@@ -1,94 +1,14 @@
-                       I                                                                         (6-
-
-                             PAGE   006  ECBRAM    .SA:1  TXRRAM RAM off    the direct  page.
-
-
-                             00942                                  XDEF    TEMPST
-  reseal                     00943D  00A9       0028     A  TEMPST RMB      STRSIZ*NUMTMP   Room for  NUMTMP  string temporaries.
-                             00944
-                             00945
- EFINIT                      00946                          * GETFLN reads filenames into FILNAM.
-                             00947
-                             00948
-                             00949                                  XDEF    FNAMLN
-                             00950D  00D1       0001     A  FNAMLN RMB      &1        The  filename length.    Must  immediately
-                             00951                               precede   FILNAM.
-                             00952                                  XDEF    FILNAM
-                             00953D  00D2       0008     A  FILNAM RMB      &6        Max  length of  filename is   8 chars.
-
-insight and pin sharp 
-
-aging across a wide 
-
-ge... breathtaking"
-
-eywood, Hi-Fi World
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                      •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- Diute sounc
-
-3 bsolutesounds.cor
-
- ase Visit The AbsolL
-
+PAGE   006  ECBRAM  .SA:1 TXRRAM RAM off the direct  page.
+
+00942                             XDEF   TEMPST
+00943D 00A9      0028    A TEMPST RMB    STRSIZ*NUMTMP Room for NUMTMP string temporaries.
+00944
+00945                      *
+00946                      * GETFLN reads filenames into FILNAM.
+00947                      *
+00948
+00949                             XDEF   FNAMLN
+00950D 00D1      0001    A FNAMLN RMB    &1       The filename length.  Must immediately
+00951                      *    precede   FILNAM.
+00952                             XDEF   FILNAM
+00953D 00D2      0008    A FILNAM RMB      &8     Max length of filename is 8 chars.
