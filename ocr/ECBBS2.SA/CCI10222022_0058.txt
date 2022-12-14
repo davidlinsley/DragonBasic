@@ -1,73 +1,60 @@
-                   PAGE 002 ECBBS2 .SA:1 BASTWO External Declarations
+PAGE   002  ECBBS2  .SA:1  BASTWO External Declarations
 
-
-                   00734                                    TTL      LIST and LLIST
-
-                   00735 
-                   00736                                    XDEF     LLIST
-                   00737P   0000 C6     FE       A  LLIST   LDB      #LPTNUM    Device number:=1ine printer device 
-                   00738P   0002 D7     6F       A          STB      DEVNUM     number to make listing go to lot. 
-                   007392   0004 9D     AS       A          JSR      CHRGOT     Reset CHRGET cond codes.
-                   00740
-                   00741                                    XDEF     LIST
-                   00742P   0006 34     01       A  LIST    PSHS     CC         Remember if end of statement (EOS).
-                   00743P   0008 BD     0000     A          JSR      LINGET     LINNUM:=specified line number or 0
-                   00744                            •     if no line number given.
-           (-      00745P   000B BD     0000     A          JSR      FNDLIN     X:=pointer to line .GE. LINNUM.
-                   00746                            •     (Start of program if no number.)
-                   00747P   000E 9F     66        A         STX      LSTPTR     Save pointer for later.
-                   00748P   0010 35     01        A         PULS     CC         Was there really a number?
-                   007492   0012 27     12    0026          BEQ      LTOEND     No, so list the whole program.
-                   007502   0014 9D     A5        A         JSR      CHRGOT     Yes, see what terminated the number.
-           40      00751P   0016 27     13    002B           BEL!    LISTGO     EOS so just list the specified line.
-                   00752P   0018 81     00        A         CM2A     #MINUTK A dash is the only other thing.
-                   00753P   001A 26     09    002';         BNE      LSTSNR      It isn't so give a syntax error.
-                   00754P   001C 9D     9F        A         JSR      CHRGET     Get the char following the dash.
-                   007552   001E 27     06    0026           BEQ     LTOEND     EOS so list from specified line to
-                   00756                            •     end of program.
-           41P     007572   0020 BD     0000      A          JSR     LINGET     LINNUM:=second line number.
-                   00758P   0023 27     06    002B           BEQ     LISTGO      Termination is OK.
-
-                   00759P   0025 39                 LSTSNR RTS                   Statement is not properly terminated.
-                   00760                            •     Return to NEWSTT where a SN error will
-                   00761                            •     result.
-
-                   00762
-                   00763P   0026 CE     FFFF      A LTOEND LDU       #&65535 Make list stop only when the zero link
-                   00764P   0029 DF     2B        A          STU     LINNUM      at the end of the program is seen.
-
-                   00765
-                   00766P   002B 32     62        A LISTGO LEAS      &2,S        Get rid of the NEWSTT return address.
-                   00767P   002D  SE    66        A          LDX     LSTPTR      X:=pointer to first line to list.
-
-                   00768
-                   00769P   002F  BD    0201      P LISTLP JSR       CONDCR      Start a new line.
-
-                   00770P   0032  BD    0000      A          JSR     BRKCHK      Check for BREAK.
-                   007712   0035  EC    84        A          LDD     , X         Is the link zero?
-                   00772P   0037  26    08    0041           BNE     NTENDP      No, haven't hit end of program yet. 
-                   007732   0039  BD    0000      A LSTEND JSR       CLOSIT      Yes, close the listing file.
-                   00774P   003C  OF    6F        A          CLR     DEVNUM      Clear the device number so output
-                   00775                            •     goes to   screen. 
-                   00776P   003E  7E    0000                 JMP     READY       Return to command level.
-
-                   00777
-                   007782   0041  9F    66        A NTENDP STX       LSTPTR      Save pointer to current line.
-                   007792   0043  EC    02        A          LDD     &2,X        D:=1ine number.
-                   007802   0045  1093  2B        A          CMPD    LINNUM      Is it beyond the end of the range?
-                   0078IP   0048  22    EF    0039           BHI     LSTEND      Yes, all done.
-                   007822   004A  BD    0000      A          JSR     LINPRT      Go outout it.
-                   007832   004D  BD    0251                 JSR     OUTSPC      Follow line number with a space.
-                   00784P   0050  SE    66        A          LDX     LSTPTR      Retrieve the line pointer.
-                   007852   0052  8D    10    0064           BSR     DCRNCH      Decrunch the line into BUF.
-                   00786P   0054  AE    SF 0066 A            LDX     [LSTPTR] Use link to make X point to the next
-                   00787                            *      line of the program.
-                   00788P   0058  CE    0000      A          LDU     #BUF        U:=pointer to te decrunched line.
-
-                   00789
-                   00790P   005B  A6    CO        A PLOOP LDA                    Get char and bump pointer.
-+44 [0)2           00791P   005D  27    DO    002F           BEQ     L• ISTLP    Go handle next program line when zero
-
-
-      For ot
-
+00734                             TTL    LIST and LLIST
+00735 
+00736                             XDEF   LLIST
+00737P 0000 C6   FE      A LLIST  LDB    #LPTNUM  Device number:=line printer device 
+00738P 0002 D7   6F      A        STB    DEVNUM   number to make listing go to lot. 
+00739P 0004 9D   A5      A        JSR    CHRGOT   Reset CHRGET cond codes.
+00740
+00741                             XDEF   LIST
+00742P 0006 34   01      A LIST   PSHS   CC       Remember if end of statement (EOS).
+00743P 0008 BD   0000    A        JSR    LINGET   LINNUM:=specified line number or 0
+00744                      *    if no line number given.
+00745P 000B BD   0000    A        JSR    FNDLIN   X:=pointer to line .GE. LINNUM.
+00746                      *    (Start of program if no number.)
+00747P 000E 9F   66      A        STX    LSTPTR   Save pointer for later.
+00748P 0010 35   01      A        PULS   CC       Was there really a number?
+00749P 0012 27   12   0026        BEQ    LTOEND   No, so list the whole program.
+00750P 0014 9D   A5      A        JSR    CHRGOT   Yes, see what terminated the number.
+00751P 0016 27   13   002B        BEQ    LISTGO   EOS so just list the specified line.
+00752P 0018 81   00      A        CMPA   #MINUTK  A dash is the only other thing.
+00753P 001A 26   09   0025        BNE    LSTSNR   It isn't so give a syntax error.
+00754P 001C 9D   9F      A        JSR    CHRGET   Get the char following the dash.
+00755P 001E 27   06   0026        BEQ    LTOEND   EOS so list from specified line to
+00756                      *    end of program.
+00757P 0020 BD   0000    A        JSR    LINGET   LINNUM:=second line number.
+00758P 0023 27   06   002B        BEQ    LISTGO   Termination is OK.
+00759P 0025 39             LSTSNR RTS             Statement is not properly terminated.
+00760                      *    Return to NEWSTT where a SN error will
+00761                      *    result.
+00762
+00763P 0026 CE   FFFF    A LTOEND LDU    #&65535  Make list stop only when the zero link
+00764P 0029 DF   2B      A        STU    LINNUM   at the end of the program is seen.
+00765
+00766P 002B 32   62      A LISTGO LEAS   &2,S     Get rid of the NEWSTT return address.
+00767P 002D 9E   66      A        LDX    LSTPTR   X:=pointer to first line to list.
+00768
+00769P 002F BD   0201    P LISTLP JSR    CONDCR   Start a new line.
+00770P 0032 BD   0000    A        JSR    BRKCHK   Check for BREAK.
+00771P 0035 EC   84      A        LDD    ,X       Is the link zero?
+00772P 0037 26   08    0041       BNE    NTENDP   No, haven't hit end of program yet. 
+00773P 0039 BD   0000    A LSTEND JSR    CLOSIT   Yes, close the listing file.
+00774P 003C 0F   6F      A        CLR    DEVNUM   Clear the device number so output
+00775                      *    goes to screen. 
+00776P 003E 7E   0000    A        JMP    READY    Return to command level.
+00777
+00778P 0041 9F   66      A NTENDP STX    LSTPTR   Save pointer to current line.
+00779P 0043 EC   02      A        LDD    &2,X     D:=line number.
+00780P 0045 1093 2B      A        CMPD   LINNUM   Is it beyond the end of the range?
+00781P 0048 22   EF   0039        BHI    LSTEND   Yes, all done.
+00782P 004A BD   0000    A        JSR    LINPRT   Go output it.
+00783P 004D BD   0251             JSR    OUTSPC   Follow line number with a space.
+00784P 0050 9E   66      A        LDX    LSTPTR   Retrieve the line pointer.
+00785P 0052 8D   10   0064        BSR    DCRNCH   Decrunch the line into BUF.
+00786P 0054 AE   9F 0066 A        LDX    [LSTPTR] Use link to make X point to the next
+00787                      *    line of the program.
+00788P 0058 CE   0000    A        LDU    #BUF     U:=pointer to te decrunched line.
+00789
+00790P 005B A6   C0      A PLOOP  LDA    ,U+      Get char and bump pointer.
+00791P 005D 27   D0   002F        BEQ    LISTLP   Go handle next program line when zero
