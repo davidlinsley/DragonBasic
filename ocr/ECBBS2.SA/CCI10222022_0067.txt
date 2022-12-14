@@ -1,71 +1,60 @@
-                                                                                                                                                                       •
+PAGE  011  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
 
-
-
-                               PAGE 011 ECBBS2 .SA:1 BASTWO The CRUNCH code                                                                                            •
-
-          audi                 01089                      *
-                               01090                      * Here when all lists of a particular type (normal or  function)
-          HIGH                 01091                      * have been checked and a match hasn't been found.
-                               01092                      *
-
-                               01093 
-                               010942 0176 CE   FFF6    A NOTFND LDU     #NFUNO-STBLEN Assume that the function lists  haven't
-                               01095                      •    been checked yet.
-                               01096P 0179 03   41      A        COM     FUNFLG   Have they?
-                               01097P 017B 26   CO   013D        BNE     DOFUNS   No, go check them.
-                               010982 017D 35   50      A        PULS    U,X      Yes, this character does not start 
-                               01099                      *    a reserved word.   Retrieve both
-                               01100                      *    buffer pointers.
-                               011012 017F A6   80      A        LDA     ,X+      Get the char back and stuff it.
-                               011022 0181 A7   CO      A        STA     ,U+
-                               011032 0183 BD   0000    A        JSR     ISLETC   Letters which fail to start a reserved 
-                               01104P 0186 25   EC   0174        BCS     GGCLOP   word are assumed to start a variable 
-                               011052 0188 03   43      A        COM     INVNAM   name so set the flag which indicates 
-                               011062 018A 20   E8   0174        BRA     GGCLOP   that we're working on a variable name.
-                               01107
-                               01108                      *
-                               01109                      * Here to skip a reserved word list entry.
-                               01110                      *
-
-                               01111
-                               011122 018C OC   42      A NTHISW INC     TOKNUM   Increment the token number.
-                               01113P 018E 4A                     DECA            Decrement count of words in this list. 
-                               011142 018F 27   AE   013F         BEG?   NXTLST   Checked all entries, go try next list. 
-                        0      01115P 0191 31   3F      A         LEAY            Need to look at current char since it 
-                               01116                           might be  the last char of the table
-                               01117                      •    entry.
-                        40     011182 0193 E6   AO        SKPRES UDB              Skip past end of entry which is marked 
-                               01119P 0195 2A   FC   0193         BPL    SKPRES   by MSB=1.
-                               011202 0197 20   AF   0148         BRA    NXTRES   Go try next table entry.
-
-                               01121
-                               01122                              TTL    The PRINT code.
-                               01123
-                               01124                              XDEF   PRINT
-                               011252 0199 27   62   01FD PRINT BED      CRDO     Null print list, just send CRLF to
-                               01126                           screen.
-                               011272 019B 8D   03   01A0         BSR    PRNTDO   Come back to clear device number. 
-                               011282 019D OF   6F      A         CLR    DEVNUM   Make output go to screen and return.
-                               01129P 019F 39                     RTS
-                               01130
-                               011312 01A0 81   40      A PRNTDO CMPA    #'@      Is it PRINT@?
-                               011322 01A2 26   05   01A9         BNE    NOTPAT   No.
-                        ("`    011332 01A4 BD   0000     A        JSR    PATDO    Yes, go positioQ the cursor. 
-                               011342 01A7 20   OA   01Eq         BRA    SCAN2L   Now scan the print list.
-                               01135
-                               01136P 01A9 81   23       A NOTPAT CMPA   #'#      Device number?
-                               011372 01AB 26   OD   01BA         BNE    PRTSCR   No, output goes to screen.
-                               011382 01AD BD   0000     A        JSR    GETDNM   Yes, go read the device number. 
-                               011392 01130 BD  0000     A        JSR    OPNOCK   Device must be open for output.
-                               01140
-                               011412 01B3 9D   A5       A SCANPL JSR    CHRGOT   If the print list is null just CRLF.
-                               011422 01B5 27   46   01FD         BEO.   CRDO
-                   ab          011432 01137 BD  0000     A        JSR    CHKCOM   Not null, comma must follow device
- 0)220E3971 EIEDC19 inn        01144                      *     number or PRINT@ position.
-
-                               01145
-'or Your Nearest Dealer I      011462 01BA Al   00       A PRTSCR CMPA   #USINTK A USING token?
-
-                                                                                                                                                                        •
-
+01089                      *
+01090                      * Here when all lists of a particular type (normal or function)
+01091                      * have been checked and a match hasn't been found.
+01092                      *
+01093 
+01094P 0176 CE   FFF6    A NOTFND LDU    #NFUN0-STBLEN Assume that the function lists haven't
+01095                      *    been checked yet.
+01096P 0179 03   41      A        COM    FUNFLG   Have they?
+01097P 017B 26   C0   013D        BNE    DOFUNS   No, go check them.
+01098P 017D 35   50      A        PULS   U,X      Yes, this character does not start 
+01099                      *    a reserved word.  Retrieve both
+01100                      *    buffer pointers.
+01101P 017F A6   80      A        LDA    ,X+      Get the char back and stuff it.
+01102P 0181 A7   C0      A        STA    ,U+
+01103P 0183 BD   0000    A        JSR    ISLETC   Letters which fail to start a reserved 
+01104P 0186 25   EC   0174        BCS    GGCLOP   word are assumed to start a variable 
+01105P 0188 03   43      A        COM    INVNAM   name so set the flag which indicates 
+01106P 018A 20   E8   0174        BRA    GGCLOP   that we're working on a variable name.
+01107
+01108                      *
+01109                      * Here to skip a reserved word list entry.
+01110                      *
+01111
+01112P 018C 0C   42      A NTHISW INC    TOKNUM   Increment the token number.
+01113P 018E 4A                    DECA            Decrement count of words in this list. 
+01114P 018F 27   AE   013F        BEQ    NXTLST   Checked all entries, go try next list. 
+01115P 0191 31   3F      A        LEAY   -&1,Y    Need to look at current char since it 
+01116                      *    might be the last char of the table
+01117                      *    entry.
+01118P 0193 E6   A0      A SKPRES LDB    ,Y+      Skip past end of entry which is marked 
+01119P 0195 2A   FC   0193        BPL    SKPRES   by MSB=1.
+01120P 0197 20   AF   0148        BRA    NXTRES   Go try next table entry.
+01121
+01122                             TTL    The PRINT code.
+01123
+01124                             XDEF   PRINT
+01125P 0199 27   62   01FD PRINT  BEQ    CRDO     Null print list, just send CRLF to
+01126                      *    screen.
+01127P 019B 8D   03   01A0        BSR    PRNTDO   Come back to clear device number. 
+01128P 019D 0F   6F      A        CLR    DEVNUM   Make output go to screen and return.
+01129P 019F 39                    RTS
+01130
+01131P 01A0 81   40      A PRNTDO CMPA   #'@      Is it PRINT@?
+01132P 01A2 26   05   01A9        BNE    NOTPAT   No.
+01133P 01A4 BD   0000    A        JSR    PATDO    Yes, go position the cursor. 
+01134P 01A7 20   0A   01B3        BRA    SCANPL   Now scan the print list.
+01135
+01136P 01A9 81   23      A NOTPAT CMPA   #'#      Device number?
+01137P 01AB 26   0D   01BA        BNE    PRTSCR   No, output goes to screen.
+01138P 01AD BD   0000    A        JSR    GETDNM   Yes, go read the device number. 
+01139P 01B0 BD   0000    A        JSR    OPNOCK   Device must be open for output.
+01140
+01141P 01B3 9D   A5      A SCANPL JSR    CHRGOT   If the print list is null just CRLF.
+01142P 01B5 27   46   01FD        BEQ    CRDO
+01143P 01B7 BD   0000    A        JSR    CHKCOM   Not null, comma must follow device
+01144                      *    number or PRINT@ position.
+01145
+01146P 01BA 8l   00      A PRTSCR CMPA   #USINTK  A USING token?
