@@ -1,81 +1,22 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                                                      K.
+PAGE   008  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 
-      II sob vci                                                       PAGE            008            ECBRAM                .SA:1              TXRRAM RAM off the direct oage.
-
-                                                                       01013                                                                                         XDEF               LOFBUF
-                                                                       01014D             02D9                        0001                  A    LOFBUF RMB                             &.1
-                                                                       01015                                                                                         XDEF               FBUFFR
-                                                                       01016D             02DA                        0010                  A    FBUFFR RMB                             &13-1-(&3*ADDPRO)
-                                                                       01017
-                                                                       01018
- )1) ;11111 I( ) ..111011) .J1—.)1 II 1( )1 A_10                       01019                                          0001                  A                        IFNE               REALIO
-   4 )1111111            ;LH( j()                                      01020A             7F00                                                                       ORG                @77400                  This plus                   the        cirect             page          gives
-//)y| |x          >1:x'.1 JO (31;0                                     01021                                                                                   8000 hex.
-)111)c )); I! 0( H.losop c)siL;                                        01022                                                                                         ENDC               1FN                     REALIO
-, )A01       113 MOLI>1 noiS                ie                         01023
-   ;!A              punos Jon!pi )                                     01024                                                                                         XDEF               START                                                                                                                                                                                                                                                         '••••
-1( I( ) .3)! Liunn poledbolui                                          01025                                          7F00                  A    START               EOU
-                                                                       01026
-                                                                       01027                                          0001                  A                        IFEO               REALIO                                                                                                                                                                                                                                                        •••■
-                                                                       01029                                                                        ENDO               IFE REALIO
-                                                                       01030
-                                                                       01031                                                                                         END
-                                                                       TOTAL           ERRORS 00000--00000
-                                                                       TOTAL           WARNINGS 00000-00000
-
-
-
-
-
-
-
-
-
-                                                         111                                                                                                                                                                                                                                                                                                                                                                                   1J  I  11
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                         1 1 I 1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                      ato
-
-
-
-
-
-
-                                                             )111,
-                                                          0101111,*
-
+01013                             XDEF   LOFBUF
+01014D 02D9      0001    A LOFBUF RMB    &1
+01015                             XDEF   FBUFFR
+01016D 02DA      0010    A FBUFFR RMB    &13+(&3*ADDPRC)
+01017
+01018
+01019            0001    A        IFNE   REALIO
+01020A 7F00                       ORG    @77400   This plus the direct page gives
+01021                      *    8000 hex.
+01022                             ENDC   1FN      REALIO
+01023
+01024                             XDEF   START
+01025            7F00    A START  EOU    *
+01026
+01027            0001    A        IFEQ   REALIO
+01029                       ENDC   IFE REALIO
+01030
+01031                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000-00000
