@@ -1,70 +1,60 @@
-                PAGE 007 ECBRAM .SAI1 TXRRAM ROM off the direct page.
+PAGE   007  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 
-
-                00955
-                00956                                                             *
-                00957                                                             *    The cassette buffer.
-                00958                                                             *
-                00959
-                00960                                                                              XDEF             CASBUF
-                00961D OODA                               ()OFF              A CASBUF RMB                           &255                  Max block length is 255.
-                00962
-                00963                                                                              XDEF CSFNAM
-                00964                                     ()ODA              0 CSFNAM EQU                           CASBUF                The filename (8 chars).
-                00965                                                                              XDEF             FILTYP
-                00966                                     00E2               0 FILTYP EQU                           CSFNAM+&8 The file type.
-                00967                                                             *           0=BASIC program.
-                00968                                                             *           1=BASIC data.
-                00969                                                             *           2=Machine language.
-                00970                                                                              XDEF             ASCFLG
-                00971                                     00E3               D ASCFLG EQU                           FILTYP+e,1 The ASCII flag.
-                00972                                                             *           0=binary file.
-                00973                                                             *           FF=ASCII file.
-(40             00974                                                                              XDEF             GAPFLG
-                00975                                     00E4               D GAPFLG EQU                           ASCFLG-F&1 Gap Flag.
-    I I I I     00976                                                             *           0=continuous file.
-                00977                                                             *           FF=gaps between blocks.
-                00978                                                                              XDEF             STRTAD
-                00979                                     00E5               D STRTAD EQU                           GAPFLG4-&1 Execution address of machine language
-                00980                                                             *           files.
-                00981                                                                              XDEF             LOADAD
-                00982                                     00E7               D LOADAD EQU                           STRTADI-&2 Load address for ungapped machine
-                00983                                                             *           language files.
-                00984                                                                              XDEF             HDRLEN
-                00985                                     000F               A HDRLEN EQU                           &15                   The length of a file header.
-                00986
-                00987                                                                              XDEF             NZLINK
-                0098BD 0109                               01                 A NZLINK FCB                           &1                    This nonzero byte must be here so
-                00989                                                             *           CHEAD doesn't think it has reached
-                00990                                                             *           the end of the program when fixing
-                00991                                                             *           up the links after the line in BUF
-                00992                                                             *           has been inserted into the program.
-                00993                                                                              XDEF BUFLNM
-                00994D 010A                               0002               A BUFLNM RMB                           &2                    Place to put line number before BUF
-                00'7495                                                           *           so BLTUC can put it all away at once.
-                00996                                                                              XDEF             BUFMIN
-                00997D 01DC                               0001               A BUFMIN RMB                           &1                    The INPUT code stores a comma here
-                00998                                                             *           since the data pointer always starts
-                00999                                                             *           on a comma or terminator.
-                01000                                                                              XDEF             BUF
-                01001D 0100                               00FC               A BUF                 RMB              BUFLEN-1-&2 Line buffer.
-                01002                                                             *           (+2 is so CRUNCH can store a zero
-                01003                                                             *           link to look like end of program
-                01004                                                             *           for direct execution.)
-                01005                                                             *           Direct statements execute directly out
-                01006                                                             *           of BUF so any statement that smashes
-                01007                                                             *           BUF (INPUT for example) must be
-                01008                                                             *           disalIoweol as a direct statement.
-                01009                                                             *           One of the two bytes immediately.
-                01010                                                             *           preceding BUFLNM must be nonzero
-                01011                                                             *           so they look like a nonzero link
-                01012                                                             *           to CHEAD.
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                      •
-
+00955
+00956                      *
+00957                      * The cassette buffer.
+00958                      *
+00959
+00960                             XDEF   CASBUF
+00961D 00DA      00FF    A CASBUF RMB    &255     Max block length is 255.
+00962
+00963                             XDEF   CSFNAM
+00964            00DA    D CSFNAM EQU    CASBUF   The filename (8 chars).
+00965                             XDEF   FILTYP
+00966            00E2    D FILTYP EQU    CSFNAM+&8 The file type.
+00967                      *    0=BASIC program.
+00968                      *    1=BASIC data.
+00969                      *    2=Machine language.
+00970                             XDEF   ASCFLG
+00971            00E3    D ASCFLG EQU    FILTYP+&1 The ASCII flag.
+00972                      *    0=binary file.
+00973                      *    FF=ASCII file.
+00974                             XDEF   GAPFLG
+00975            00E4    D GAPFLG EQU    ASCFLG+&1 Gap Flag.
+00976                      *    0=continuous file.
+00977                      *    FF=gaps between blocks.
+00978                             XDEF   STRTAD
+00979            00E5    D STRTAD EQU    GAPFLG+&1 Execution address of machine language
+00980                      *    files.
+00981                             XDEF   LOADAD
+00982            00E7    D LOADAD EQU    STRTAD+&2 Load address for ungapped machine
+00983                      *    language files.
+00984                             XDEF   HDRLEN
+00985            000F    A HDRLEN EQU    &15      The length of a file header.
+00986
+00987                             XDEF   NZLINK
+0098BD 01D9      01      A NZLINK FCB    &1       This nonzero byte must be here so
+00989                      *    CHEAD doesn't think it has reached
+00990                      *    the end of the program when fixing
+00991                      *    up the links after the line in BUF
+00992                      *    has been inserted into the program.
+00993                             XDEF  BUFLNM
+00994D 01DA      0002    A BUFLNM RMB   &2        Place to put line number before BUF
+00995                      *    so BLTUC can put it all away at once.
+00996                             XDEF   BUFMIN
+00997D 01DC      0001    A BUFMIN RMB    &1       The INPUT code stores a comma here
+00998                      *    since the data pointer always starts
+00999                      *    on a comma or terminator.
+01000                             XDEF   BUF
+01001D 01DD      00FC    A BUF    RMB    BUFLEN+&2 Line buffer.
+01002                      *    (+2 is so CRUNCH can store a zero
+01003                      *    link to look like end of program
+01004                      *    for direct execution.)
+01005                      *    Direct statements execute directly out
+01006                      *    of BUF so any statement that smashes
+01007                      *    BUF (INPUT for example) must be
+01008                      *    disallowed as a direct statement.
+01009                      *    One of the two bytes immediately
+01010                      *    preceding BUFLNM must be nonzero
+01011                      *    so they look like a nonzero link
+01012                      *    to CHEAD.
