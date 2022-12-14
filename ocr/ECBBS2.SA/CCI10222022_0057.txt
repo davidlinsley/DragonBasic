@@ -1,83 +1,34 @@
-                   PAGE 001 ECBCOM .SA:0 BASTWO Extension ROM Direct Page RAM
+PAGE   001  ECBCOM .SA:0  BASTWO Extension ROM Direct Page RAM
 
-
-                   00700                           OPT   L,LLE=120
-                   00701                           NAM   BASTWO  - BASIC - Part Two
-                   00702
-                   00703                    ********************************************************************** 
-                   00704
-                   00705                         Copyright 1982 by Microsoft Corporation, all rights reserved 
-                   00706
-                   00707                    ********************************************************************** 
-                   00708
-                   00709                           TTL   External Declarations
-                   00710
-                   00711                           XREF  BRKCHK,BUF
-                   00712                           XREF  CHKCOM,CHROUT,CLOSIT
-                   00713                           XREF  DATATK,DEVPRM
-                   00714                           XREF  ELSETK
-               MI 00715                            XREF  FNDLIN,FOUT,FREFAC,FRMEVL
-             40    00716                           XREF  GETDNM,GTBYTC
-                   00717                           XREF  HKCRNC,HKDCRN
-                   00718                           XREF  ISCNTC,ISLETC
-                   00719                           XREF  LINGET,LINPRT
-                   00720                           XREF  MINUTK
-                   00721                           XREF  NFUNO,NNRMLO
-                   00722                           XREF OPNOCK
-                   00723                           XREF  PATDO,PRINTK,PUDRVR
-                   00724                           XREF  READY,REMTK
-                   00725                           XREF  SNERR,SNGOTK,STRLIT,STRLTI
-                   00726                           XREF  TABTK
-                   00727                           XREF  USINTK
-                   00728
-                   00729           0000   A        IFNE SPCSW
-                   00731                     ENDC   IFN SPCSW
-                   00732
-
-
-               1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+44 (0)20 BG
-
-
-    For Your I qc
-
+00700                             OPT   L,LLE=120
+00701                             NAM   BASTWO    - BASIC - Part Two
+00702
+00703                      ********************************************************************** 
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      ********************************************************************** 
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   BRKCHK,BUF
+00712                             XREF   CHKCOM,CHROUT,CLOSIT
+00713                             XREF   DATATK,DEVPRM
+00714                             XREF   ELSETK
+00715                             XREF   FNDLIN,FOUT,FREFAC,FRMEVL
+00716                             XREF   GETDNM,GTBYTC
+00717                             XREF   HKCRNC,HKDCRN
+00718                             XREF   ISCNTC,ISLETC
+00719                             XREF   LINGET,LINPRT
+00720                             XREF   MINUTK
+00721                             XREF   NFUN0,NNRML0
+00722                             XREF   OPNOCK
+00723                             XREF   PATDO,PRINTK,PUDRVR
+00724                             XREF   READY,REMTK
+00725                             XREF   SNERR,SNGQTK,STRLIT,STRLTI
+00726                             XREF   TABTK
+00727                             XREF   USINTK
+00728
+00729            0000    A        IFNE   SPCSW
+00731                      ENDC    IFN SPCSW
+00732
