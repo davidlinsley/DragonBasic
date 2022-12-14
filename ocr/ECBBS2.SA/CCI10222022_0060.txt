@@ -1,69 +1,60 @@
-                                                                                                                                                                               •
+PAGE  004  ECBBS2  .SA:1  BASTWO LIST and LLIST
 
-                                                                                                                                                                               I
-                            PAGE 004 EOBBS2 .SAg1 BASTWO LIST and LLIST
-
-
-                            00797                                TTL     DCRNCH
-                            00798
-            au 4            00799                         *
-                            00800                         * DCRNCH converts a crunched line back to ASCII for LISTing or
-                            00801                         * EDITing. The decrunched line is put into BUF. On entry to
-                            00802                         * DCRNCH X contains a pointer to the link field of the line
-                            00803                         * to be decrunched.
-                            00804                         *
-                            00805
-                            00806                                XDEF    DCRNCH 
-                            00807P 0064 BD 0000         A DCRNCH JSR     HKDCRN    RAM hook.
-                            00808P 0067 30 04                    LEAX    &4„X      Skip the link and line number. 
-                            00809P 0069 108E 0000       A        LDY     #BUF      lnit the buffer pointer.
-                            00810
-     4 ii•                  00811P 006D A6     80       A DCRNLP LDA     ,X+       Get char from crunched line and point
-                       I H  00812                         *    to the next one.                                                                                             1 PI
-                            00813P 006F 27     51   00C2         BEQ     BUFRTS    End of line is marked by a zero.
-                     iik    00814P 0071 2B     15   0088         BMI     HAVTOK    It is a reserved word token.
-                            00815P 0073 81     3A       A        CMPA    #':       ELSE is crunched as a colon followed
-                            00816P 0075 26     OD   0084         BNE     NOTCOL    by an ELSE token so when decrunchina
-                            00817P 0077 66 84           A        LDB     ,X        the colon must be thrown away.
-                            00818P 0079 Cl     00       A        CMPB #ELSETK
-                            00819P 0072 27 FO       006D         BED     DCRNLP    It is an ELSE, skip the colon.
-                            00820P 007D C1     00       A        CMPB    #SNGOTK Single quote is crunched as a colon
-                            00821P 007F 27     EC   006D         BEQ     DCRNLP    followed by a single quote token so
-                            00822                         *    throw away the colon if this is the
-                            00823                         *    case.
-                            00824P 0081                          SKIP2 Skip        over BADTOK to store colon.
-                            00825P 0082 86 21           A BADTOK LDA               Unrecognised token. Print as
-                            00826                         •    exclamation point.
-                            00827P 0084 8D 30       0056 NOTCOL BSR      BUFCHR    Just a normal char, out it in the
-                            00828P 0086 20 ES       006D         BRA     DCRNLP    output buffer and go back for more.
-                            00829
-                            00830                         *                                                                                                                  rlf
-                            00831                         * Here when a reserved word token is encountered.
-                            00832                         * The strategy is as follows:
-                            00833                         *
-                            00834                         * 1) See if it's a "normal" (non-function) token or a function token. 
-                            00835                         *
-                            00836                         * 2) Determine which reserved word list the token comes from by
-                            00837                         •    subtracting the counts found in the stubs from the token.
-                            00838                         *
-                            00839                         * 3) Using the result of the subtraction in 2 as an entry number
-                            00840                         •    into the appropriate reserved word list, skip entries until
-                            00841                         •    the desired entry is found.      (Entries are skipped by looking
-                            00842                         •    for the set MSB which marks the end of each entry.)
-                            00843                         *
-                            00844                         * 4) Move the ASCII characters of the reserved word into the
-                            00845                         •    output buffer.
-                            00846
-                            00847                                                                                                                                              a
-                            00848P 0088 CE FFF6         A HAVTOK LDU     #NNRMLO-STBLEN Assume it isn't a function token
-                            00849                         *    and set up U so "normal" counts
-                            00850                         *    will be suotracted.     (U gets pre-                                                                            a
-                            00851                         *    incremented by STBLEN.)
-                            00852P 008B 81     FF                CMPA    #@377     Is it a function token?
-                            00853P 008D 26 04       0093         BNE     NTFNTK    No.
-                            00854P 008F A6 80                    LDA     ,X+       Yes, act the second byte and set up
-I-44 (0)20 B9 71 3E
-
-    For Your Neare 
-                                                                                                  OP.
-
+00797                             TTL    DCRNCH
+00798
+00799                      *
+00800                      * DCRNCH converts a crunched line back to ASCII for LISTing or
+00801                      * EDITing. The decrunched line is put into BUF. On entry to
+00802                      * DCRNCH X contains a pointer to the link field of the line
+00803                      * to be decrunched.
+00804                      *
+00805
+00806                             XDEF   DCRNCH 
+00807P 0064 BD   0000    A DCRNCH JSR    HKDCRN   RAM hook.
+00808P 0067 30   04               LEAX   &4,X     Skip the link and line number. 
+00809P 0069 108E 0000    A        LDY    #BUF     lnit the buffer pointer.
+00810
+00811P 006D A6   80      A DCRNLP LDA    ,X+      Get char from crunched line and point
+00812                      *    to the next one.
+00813P 006F 27   51   00C2        BEQ    BUFRTS   End of line is marked by a zero.
+00814P 0071 2B   15   0088        BMI    HAVTOK   It is a reserved word token.
+00815P 0073 81   3A      A        CMPA   #':      ELSE is crunched as a colon followed
+00816P 0075 26   0D   0084        BNE    NOTCOL   by an ELSE token so when decrunching
+00817P 0077 E6   84      A        LDB    ,X       the colon must be thrown away.
+00818P 0079 Cl   00      A        CMPB   #ELSETK
+00819P 007B 27   F0   006D        BEQ    DCRNLP   It is an ELSE, skip the colon.
+00820P 007D C1   00      A        CMPB   #SNGOTK  Single quote is crunched as a colon
+00821P 007F 27   EC   006D        BEQ    DCRNLP   followed by a single quote token so
+00822                      *    throw away the colon if this is the
+00823                      *    case.
+00824P 0081                SKIP2  Skip            over BADTOK to store colon.
+00825P 0082 86   21      A BADTOK LDA    #'!      Unrecognised token. Print as
+00826                      *    exclamation point.
+00827P 0084 8D   30   00B6 NOTCOL BSR    BUFCHR   Just a normal char, out it in the
+00828P 0086 20   E5   006D        BRA    DCRNLP   output buffer and go back for more.
+00829
+00830                      *
+00831                      * Here when a reserved word token is encountered.
+00832                      * The strategy is as follows:
+00833                      *
+00834                      * 1) See if it's a "normal" (non-function) token or a function token. 
+00835                      *
+00836                      * 2) Determine which reserved word list the token comes from by
+00837                      *    subtracting the counts found in the stubs from the token.
+00838                      *
+00839                      * 3) Using the result of the subtraction in 2 as an entry number
+00840                      *    into the appropriate reserved word list, skip entries until
+00841                      *    the desired entry is found.  (Entries are skipped by looking
+00842                      *    for the set MSB which marks the end of each entry.)
+00843                      *
+00844                      * 4) Move the ASCII characters of the reserved word into the
+00845                      *    output buffer.
+00846
+00847                                                                                                                                              a
+00848P 0088 CE   FFF6    A HAVTOK LDU    #NNRML0-STBLEN Assume it isn't a function token
+00849                      *    and set up U so "normal" counts
+00850                      *    will be subtracted.  (U gets pre-                                                                            a
+00851                      *    incremented by STBLEN.)
+00852P 008B 81   FF      A        CMPA   #@377    Is it a function token?
+00853P 008D 26   04   0093        BNE    NTFNTK   No.
+00854P 008F A6   80      A        LDA    ,X+      Yes, get the second byte and set up
