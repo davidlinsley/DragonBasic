@@ -1,89 +1,43 @@
-                                                                           008 ECBBS2 .SAgl BASTWO The CRUNCH code                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         40
+PAGE  008  ECBBS2  .SA:l  BASTWO The CRUNCH code
 
-                                                 00982                                                                                                                     *
-
-                                                 00983                                                                                                                     *        Here to try to crunch the current char.                                                                                                                                                                                                                                                                                                                                                                                                                                                40
-                                                 00984                                                                                                                     *
-
-                                                 00985
-                                                 00986P 010D 81                                                              3F                                  A NINDAT CMPA                                                                                                   Is it a question mark which is short                                                                                                                                                                                                                                                                                                                                                      40
-                                                 00987                                                                                                                     •                     for PRINT?
-                                                 00988P 010F 26                                                              04                    0115                                                  BNE                             NQUEST                                  No
-                                                 00989P 0111 86                                                              00                                  A                                       LDA                             #PRINTK                                 Yes, just stuff a PRINT token.                                                                                                                                                                                                                                                                                                                                                            40
-                                                 00990P 0113 20                                                              DF                    00F4                                                  BRA                             STUFFA
-                                                 00991
-                  ('                             00992P 0115 81                                                                                                  A NQUEST CMPA                                                           #SNGOTE Is it a single quote meaning the rest                                                                                                                                                                                                                                                                                                                                                                                     40
-                                                 00993                                                                                                                     •                     of the line is a remark?
-                                                 00994P 0117 26                                                              13                    012C                                                  BNE                             NSQTE                                   No.
-                                                 00995P 0119 CC                                                              3A00                                A                                       LDD                             W:*$100+SNGQTK Yes, stuff a colon followed                                                                                                                                                                                                                                                                                                                                                                                        40
-                                                 00996P 011C ED                                                              Cl                                  A                                       STD                             ,U++                                    by a single quote token.
-                                                 00997                                                                                                                                           (This looks like an end of statement
-                                                 00998                                                                                                                                           followed by a remark statement to                                                                                                                                                                                                                                                                                                                                                                                                                                         40
-                                                 00999                                                                                                                                           the run time code. The insertion of 
-                                                 01000                                                                                                                                           the colon means single quote need not 
-
-                                                 01001                                                                                                                                           be the first thing on the line as REM                                                                                                                                                                                                                                                                                                                                                                                                                                     40
-                                                 01002                                                                                                                                           must be.)
-                                                 01003                                                                                                                                            ($Z must be added since SNOOTK's                                                                                                                                                                                                                                                                                                                                                                                                                             I I
-
-                                                 01004                                                                                                                                           being external forces the constant                                                                                                                                                                                                                                                                                                                                                                                                                                        40
-                                                 01005                                                                                                                     •                     to be relocatable.)
-                                                 01006P 011E OF                                                              42                                  A SKAREM CLR                                                            TRMCHR                                  REM stops only on end                                                                               of line.
-
-                                                 01007                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     40
-                                                 01008                                                                                                                     *
-
-                                                 01009                                                                                                                     *        Here to move chars from the source line to the destination buffer
-                  01                             01010                                                                                                                     *        without crunching. This only stops on end of line or when the                                                                                                                                                                                                                                                                                                                                                                                                                          40
-                                                 01011                                                                                                                     *        char moved matches the char in TRMCHR. Quoted strings put a
-                                                 0101-2                                                                                                                    *        double quote in TRMCHR. REM and single quote put a zero in TRMCHR
-                                                 01013                                                                                                                              so everthing left on the source line is moved without crunching.                                                                                                                                                                                                                                                                                                                                                                                                                       40
-                                                 01014                                                                                                                     *
-
-                                                 01015
-                                                 01016P 0120 A6                                                              80                                  A STRLOP LDA                                                              ,X+                                   Get char from source line.                                                                                                                                                                                                                                                                                                                                                                40
-                                                 01017P 0122 27                                                               DO                     00F4                                                BEQ                             STUFFA                                  End of line.
-                                                 01018P 0124 91                                                              42                                  A                                       CMPA                            TRMCHR                                    Is it the terminating char?
-                                                 01019P 0126 27                                                               CC                     00F4                                                  BFQ                             STUFFA                                Yes, go put it away and resume                                                                                                                                                                                                                                                                                                                                                            40
-                                                 01020                                                                                                                     •                     crunching.
-                                                  01021P 0128 A7                                                              CO                                 A OSTRNG STA                                                              ,U+                                     No, put into dest buffer and go                                                                                                                                                                                                                                                                                                                                             I I         I
-
-                                                  01022P 012A 20                                                              F4                     0120                                                  BRA                             STRLOP                                  back for more.                                                                                                                                                                                                                                                                                                                                                                          40
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           40
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           4,
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           41
-
-
-
-
-
-
-
-
-
-
-
-
-
-                             I, lir I, !,
-
-+40 ot.
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                •
-
+00982                      *
+00983                      *    Here to try to crunch the current char.
+00984                      *
+00985
+00986P 010D 81   3F      A NINDAT CMPA   #'?      Is it a question mark which is short
+00987                      *    for PRINT?
+00988P 010F 26   04   0115        BNE    NQUEST   No
+00989P 0111 86   00      A        LDA    #PRINTK  Yes, just stuff a PRINT token.
+00990P 0113 20   DF   00F4        BRA    STUFFA
+00991
+00992P 0115 81   27      A NQUEST CMPA   #SNGQTE  Is it a single quote meaning the rest
+00993                      *    of the line is a remark?
+00994P 0117 26   13   012C        BNE    NSQTE    No.
+00995P 0119 CC   3A00    A        LDD    #':*$100+SNGQTK Yes, stuff a colon followed
+00996P 011C ED   C1      A        STD    ,U++     by a single quote token.
+00997                      *    (This looks like an end of statement
+00998                      *    followed by a remark statement to
+00999                      *    the run time code. The insertion of 
+01000                      *    the colon means single quote need not 
+01001                      *    be the first thing on the line as REM
+01002                      *    must be.)
+01003                      *    ($Z must be added since SNGQTK's
+01004                      *    being external forces the constant
+01005                      *    to be relocatable.)
+01006P 011E 0F   42      A SKPREM CLR    TRMCHR   REM stops only on end of line.
+01007
+01008                      *
+01009                      *    Here to move chars from the source line to the destination buffer
+01010                      *    without crunching. This only stops on end of line or when the                                                                                                                                                                                                                                                                                                                                                                                                                          40
+01011                      *    char moved matches the char in TRMCHR. Quoted strings put a
+01012                      *    double quote in TRMCHR. REM and single quote put a zero in TRMCHR
+01013                      *    so everthing left on the source line is moved without crunching.                                                                                                                                                                                                                                                                                                                                                                                                                       40
+01014                      *
+01015
+01016P 0120 A6   80      A STRLOP LDA    ,X+      Get char from source line.
+01017P 0122 27   D0   00F4        BEQ    STUFFA   End of line.
+01018P 0124 91   42      A        CMPA   TRMCHR   Is it the terminating char?
+01019P 0126 27   CC   00F4        BEQ    STUFFA   Yes, go put it away and resume
+01020                      *    crunching.
+01021P 0128 A7   C0      A QSTRNG STA    ,U+      No, put into dest buffer and go 
+01022P 012A 20   F4   0120        BRA    STRLOP   back for more.
