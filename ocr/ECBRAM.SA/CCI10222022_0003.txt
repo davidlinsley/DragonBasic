@@ -2,7 +2,7 @@ PAGE   003  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 
 00816                             XDEF   USRTAB
 00817            0034    D USRTAB EQU    STUB0+&2*STBLEN 20 bytes are needed for the USR
-00818                      •    address table (USRTAB).  There is
+00818                      *    address table (USRTAB).  There is
 00819                      *    no place else to put USRTAB in the
 00820                      *    extended version so it overlays
 00821                      *    stubs 2 and 3.  This is OK since only

@@ -1,0 +1,353 @@
+PAGE   001  ECBCOM  .SA:0 TXRRAM Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    TXRRAM   - RAM Off The Direct Page For TCC BASIC
+00702 
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711D 0000                       DSCT
+00712
+00713                             XREF   FCERR,FUNDSP,FUNLST
+00714                             XREF   NFUNTK,NNRMTK
+00715                             XREF   POWRUP
+00716                             XREF   RESLST
+00717                             XREF   SNERR,STMDSP
+00718
+00719                             TTL    RAM off the direct page.
+00720
+00721                             XDEF   VSWI3
+00722D 0000      0003    A VSWI3  RMB    &3       SWI3 vector.
+00723                             XDEF   VSWI2
+00724D 0003      0003    A VSWI2  RMB    &3       SWI2 vector.
+00725                             XDEF   VSWI
+00726D 0006      0003    A VSWI   RMB    &3       SWI vector.
+00727                             XDEF   VNMI
+00728D 0009      0003    A VNMI   RMB    &3       NMI vector.
+00729                             XDEF   VIRQ
+00730D 000C      0003    A VIRQ   RMB    &3       IRQ vector.
+00731                             XDEF   VFIRQ
+00732D 000F      0003    A VFIRQ  RMB    &3       FIRQ vector.
+00733                             XDEF   USRJMP
+00734D 0012 7E   0000    A USRJMP JMP    FCERR    Jump for USR function.
+00735                             XDEF   TICKER
+00736            0012    D TICKER EQU    USRJMP   The tick counter for TIME and TIME$
+00737                      *    uses 3 bytes.  It can overlay USRJMP
+00738                      *    because USR routines are defined by
+00739                      *    the DEFUSR statement in the extension
+00740                      *    ROM version and USRJMP is not needed.)
+00741                             XDEF   RNDX
+00742D 0015      80      A RNDX   FCB    @200     The random number.
+00743D 0016      4F      A        FCB    @117     (MLC-28-APR-80: The new random number
+00744D 0017      C7      A        FCB    @307     generator doesn't need RNDX, it uses
+00745D 0018      52      A        FCB    @122     RNDX+1 through RNDX+4.  RNDX was left
+00746            0001    A        IFNE   ADDPRC   to maintain the already published
+00747D 0019      59      A        FCB    @131     memory map information.)
+00748                             ENDC   IFN      ADDPRC
+00749                             XDEF   ALPHLK
+00750D 001A      0001    A ALPHLK RMB    &1       Alpha lock.
+00751                      *    0=not locked, -1=locked.
+00752                             XDEF   DBNCNT
+00753D 001B      0002    A DBNCNT RMB    &2       Debounce delay constant.  Kept in RAM
+00754                      *    for hopefully unnecessary adjustment.
+00755D 001D      0003    A        RMB    &3       The RAM  hook FPWRT was here for the
+00756                      *    8k version.
+00757
+
+PAGE   002  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+
+00758                      *
+00759                      * The reserved word list stubs.
+00760                      *
+00761
+00762                             XDEF   STUB0
+00763            0020    D STUB0  EQU    *
+00764                             XDEF   NNRML0
+00765D 0020      00      A NNRML0 FCB    NNRMTK   The number of "normal" (non-function)
+00766                      *    reserved words.
+00767                             XDEF   NRMLS0
+00768D 0021      0000    A NRMLS0 FDB    RESLST   The address of the normal reserved
+00769                      *    word list.
+00770                             XDEF   STMDS0
+00771D 0023      0000    A STMDS0 FDB    STMDSP   For stub 0 this is the address of the
+00772                      *    statement dispatch table. For all
+00773                      *    other stubs this is the address of
+00774                      *    the statement dispatch routine.
+00775                             XDEF   NFUN0
+00776D 0025      00      A NFUN0  FCB    NFUNTK   The number of function reserved words.
+00777                             XDEF   FUNLS0 
+00778D 0026      0000    A FUNLS0 FDB    FUNLST   The address of the function reserved
+00779                      *    word list.
+00780                             XDEF   FUNDS0
+00781D 0028      0000    A FUNDS0 FDB    FUNDSP   For stub 0 this is the address of the
+00782                      *    function dispatch table. For all
+00783                      *    other stubs this is the address of
+00784                      *    the function dispatch routine.
+00785
+00786D 002A      0028    A        RMB    NSTUBS*STBLEN Reserve storage for the other stubs.
+00787                      *    Note that NSTUBS+1 stubs are needed
+00788                      *    since the last one is a dummy and
+00789                      *    cannot actually be used.
+00790
+00791                             XDEF   STUB1
+00792            002A    D STUB1  EQU    STUB0+STBLEN Start of STUB1.
+00793                             XDEF   STMDS1
+00794            002D    D STMDS1 EQU    STUB1+&3 The address of the STUB1 statement
+00795                      *    dispatcher is stored in STMDS1.
+00796                             XDEF   FUNDS1
+00797            0032    D FUNDS1 EQU    STUB1+&8 The address of the STUB1 function
+00798                      *    dispatcher is stored in FUNDS1.
+00799
+00800                             XDEF   STUB2
+00801            0034    D STUB2  EQU    STUB1+STBLEN Start of STUB2.
+00802                             XDEF   STMDS2
+00803            0037    D STMDS2 EQU    STUB2+&3 The address of the STUB2 statement
+00804                      *    dispatcher is stored in STMDS2.
+00805                             XDEF   FUNDS2
+00806            003C    D FUNDS2 EQU    STUB2+&8 The address of the STUB2 function
+00807                      *    dispatcher is stored in FUNDS2.
+00808
+00809                      *
+00810                      * During INIT, NNRML0:=NNRMTK, NRMLS0:=RESLST, STMDS0:=STMDSP,
+00811                      * NFUN0:=NFUNTK,FUNLS0:=FUNLST,FUNDS0:=FUNDSP.
+00812                      *
+00813                      * For all other stubs, NNRMLX:=NFUNX:=0, STMDSX:=FUNDSX:=SNERR.
+00814                      *
+00815
+
+PAGE   003  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+
+00816                             XDEF   USRTAB
+00817            0034    D USRTAB EQU    STUB0+&2*STBLEN 20 bytes are needed for the USR
+00818                      *    address table (USRTAB).  There is
+00819                      *    no place else to put USRTAB in the
+00820                      *    extended version so it overlays
+00821                      *    stubs 2 and 3.  This is OK since only
+00822                      *    stub 0 is in use, with stub 1
+00823                      *    acting as the stopper.  However, in
+00824                      *    the disk version (or any version using
+00825                      *    stub 1 or higher), it will be
+00826                      *    necessary to allocate more memory for
+00827                      *    temporary storage and move USRTAB into
+00828                      *    the new area. For this reason, USRTAB
+00829                      *    is referenced indirectly through the
+00830                      *    direct page location USTBAD.
+
+PAGE   004  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+
+00832                             XDEF   ROLTBL
+00833D 0052      0008    A ROLTBL RMB    &8       Keyboard rollover table.
+00834
+00835                      *
+00836                      *  RAM for joysticks.
+00837                      *
+00838
+00839                             XDEF   POTVAL
+00840D 005A      0004    A POTVAL RMB    &4       The Joystick pot values.
+00841
+00842                      *
+00843                      *  RAM hooks for extensions.
+00844                      *
+00845
+00846                             XDEF   HOOKS
+00847            005E    D HOOKS  EQU    *        Start of RAM hooks.
+00848
+00849                             XDEF   HKOPEN
+00850D 005E 39             HKOPEN RTS             Open device or file.
+00851D 005F      0002    A        RMB    &2
+00852                             XDEF   HKDNCK
+00853D 0061 39             HKDNCK RTS             Check validity of device number.
+00854D 0062      0002    A        RMB    &2
+00855                             XDEF   HKDPRM
+00856D 0064 39             HKDPRM RTS             Return device parmameters.
+00857D 0065      0002    A        RMB    &2
+00858                             XDEF   HKCHRO
+00859D 0067 39             HKCHRO RTS             Character output.
+00860D 0068      0002    A        RMB    &2
+00861                             XDEF   HKCHRI
+00862D 006A 39             HKCHRI RTS             Character input.
+00863D 006B      0002    A        RMB    &2
+00864                             XDEF   HKCKDI
+00865D 006D 39             HKCKDI RTS             Make sure device is open for input.
+00866D 006E      0002    A        RMB    &2
+00867                             XDEF   HKCKDO
+00868D 0070 39             HKCKDO RTS             Make sure device is open for output.
+00869D 0071      0002    A        RMB    &2
+00870                             XDEF   HKCLSA
+00871D 0073 39             HKCLSA RTS             Close all devices and files.
+00872D 0074      0002    A        RMB    &2
+00873                             XDEF   HKCLS1
+00874D 0076 39             HKCLS1 RTS             Close a single device or file.
+00875D 0077      0002    A        RMB    &2
+00876                             XDEF   HKGONE
+00877D 0079 39             HKGONE RTS             Another NEWSTT hook where it can
+00878D 007A      0002    A        RMB    &2       where everything can be trapped.
+00879                             XDEF   HKITMS
+00880D 007C 39             HKITMS RTS             Disk file item scanner.
+00861D 007D      0002    A        RMB    &2 
+00882                             XDEF   HKBRKC
+00883D 007F 39             HKBRKC RTS             Poll for BREAK and other special keys.
+00884D 0080      0002    A        RMB    &2
+00885                             XDEF   HKINLN
+00886D 0082 39             HKINLN RTS             Read line of input.
+00887D 0083      0002    A        RMB    &2
+00888                             XDEF   HKFNLD
+00889D 0085 39             HKFNLD RTS             Finish loading ASCII program file.
+
+PAGE   005  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+
+00890D 0086      0002    A        RMB    &2
+00891                             XDEF   HKEOF
+00892D 0088 39             HKEOF  RTS             End of File function.
+00893D 0089      0002    A        RMB    &2
+00894                             XDEF   HKEVAL
+00895D 008B 39             HKEVAL RTS             EVAL chain hook.
+00896D 008C      0002    A        RMB    &2
+00897                             XDEF   HKETRP
+00898D 008E 39             HKETRP RTS             User error trap hook.
+00899D 008F      0002    A        RMB    &2
+00900                             XDEF   HKERR
+00901D 0091 39             HKERR  RTS             ERROR routine hook.
+00902D 0092      0002    A        RMB    &2
+00903                             XDEF   HKRUN
+00904D 0094 39             HKRUN  RTS             RUN statement hook.
+00905D 0095      0002    A        RMB    &2
+00906                             XDEF   HKSCP2
+00907D 0097 39             HKSCP2 RTS             STRLIT's string copy check.
+00908D 0098      0002    A        RMB    &2
+00909                             XDEF   HKCLRC
+00910            0097    D HKCLRC EQU    HKSCP2   CLEARC hook shares with HKSCP2.
+00911                             XDEF   HKNWST
+00912D 009A 39             HKNWST RTS             NEWSTT hook.
+00913D 009B      0002    A        RMB    &2
+00914                             XDEF   HKSCP1
+00915D 009D 39             HKSCP1 RTS             LET code string copy check.
+00916D 009E      0002    A        RMB    &2
+00917                             XDEF   HKCLS
+00918D 00A0 39             HKCLS  RTS             Hook for CLS statement.
+00919D 00A1      0002    A        RMB    &2
+00920                             XDEF   HKRENM
+00921            00A0    D HKRENM EQU    HKCLS    RENUM shares CLS hook - check return
+00922                      *    address to determine who's calling.
+00923                             XDEF   HKPTGT
+00924            00A0    D HKPTGT EQU    HKCLS    Same for PUT/GET.
+00925                             XDEF   HKASGN
+00926            00A0    D HKASGN EQU    HKCLS    Function assignment hook.
+00927                             XDEF   HKCRNC
+00928D 00A3 39             HKCRNC RTS             Hook for CRUNCH.
+00929D 00A4      0002    A        RMB    &2
+00930                             XDEF   HKDCRN
+00931D 00A6 39             HKDCRN RTS             Hook for DCRNCH.
+00932D 00A7      0002    A        RMB    &2
+00933                             XDEF   ENDHKS
+00934            00A9    D ENDHKS EQU    *        End of RAM hooks.
+00935
+00936                             XDEF   NRTSHK
+00937            0019    A NRTSHK EQU    (ENDHKS-HOOKS)/&3 The number of RTS hooks.
+00938                             XDEF   NRTSH3
+00939            004B    A NRTSH3 EQU    NRTSHK*3
+00940
+
+PAGE   006  ECBRAM  .SA:1 TXRRAM RAM off the direct  page.
+
+00942                             XDEF   TEMPST
+00943D 00A9      0028    A TEMPST RMB    STRSIZ*NUMTMP Room for NUMTMP string temporaries.
+00944
+00945                      *
+00946                      * GETFLN reads filenames into FILNAM.
+00947                      *
+00948
+00949                             XDEF   FNAMLN
+00950D 00D1      0001    A FNAMLN RMB    &1       The filename length.  Must immediately
+00951                      *    precede   FILNAM.
+00952                             XDEF   FILNAM
+00953D 00D2      0008    A FILNAM RMB      &8     Max length of filename is 8 chars.
+
+PAGE   007  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+
+00955
+00956                      *
+00957                      * The cassette buffer.
+00958                      *
+00959
+00960                             XDEF   CASBUF
+00961D 00DA      00FF    A CASBUF RMB    &255     Max block length is 255.
+00962
+00963                             XDEF   CSFNAM
+00964            00DA    D CSFNAM EQU    CASBUF   The filename (8 chars).
+00965                             XDEF   FILTYP
+00966            00E2    D FILTYP EQU    CSFNAM+&8 The file type.
+00967                      *    0=BASIC program.
+00968                      *    1=BASIC data.
+00969                      *    2=Machine language.
+00970                             XDEF   ASCFLG
+00971            00E3    D ASCFLG EQU    FILTYP+&1 The ASCII flag.
+00972                      *    0=binary file.
+00973                      *    FF=ASCII file.
+00974                             XDEF   GAPFLG
+00975            00E4    D GAPFLG EQU    ASCFLG+&1 Gap Flag.
+00976                      *    0=continuous file.
+00977                      *    FF=gaps between blocks.
+00978                             XDEF   STRTAD
+00979            00E5    D STRTAD EQU    GAPFLG+&1 Execution address of machine language
+00980                      *    files.
+00981                             XDEF   LOADAD
+00982            00E7    D LOADAD EQU    STRTAD+&2 Load address for ungapped machine
+00983                      *    language files.
+00984                             XDEF   HDRLEN
+00985            000F    A HDRLEN EQU    &15      The length of a file header.
+00986
+00987                             XDEF   NZLINK
+0098BD 01D9      01      A NZLINK FCB    &1       This nonzero byte must be here so
+00989                      *    CHEAD doesn't think it has reached
+00990                      *    the end of the program when fixing
+00991                      *    up the links after the line in BUF
+00992                      *    has been inserted into the program.
+00993                             XDEF  BUFLNM
+00994D 01DA      0002    A BUFLNM RMB   &2        Place to put line number before BUF
+00995                      *    so BLTUC can put it all away at once.
+00996                             XDEF   BUFMIN
+00997D 01DC      0001    A BUFMIN RMB    &1       The INPUT code stores a comma here
+00998                      *    since the data pointer always starts
+00999                      *    on a comma or terminator.
+01000                             XDEF   BUF
+01001D 01DD      00FC    A BUF    RMB    BUFLEN+&2 Line buffer.
+01002                      *    (+2 is so CRUNCH can store a zero
+01003                      *    link to look like end of program
+01004                      *    for direct execution.)
+01005                      *    Direct statements execute directly out
+01006                      *    of BUF so any statement that smashes
+01007                      *    BUF (INPUT for example) must be
+01008                      *    disallowed as a direct statement.
+01009                      *    One of the two bytes immediately
+01010                      *    preceding BUFLNM must be nonzero
+01011                      *    so they look like a nonzero link
+01012                      *    to CHEAD.
+
+PAGE   008  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+
+01013                             XDEF   LOFBUF
+01014D 02D9      0001    A LOFBUF RMB    &1
+01015                             XDEF   FBUFFR
+01016D 02DA      0010    A FBUFFR RMB    &13+(&3*ADDPRC)
+01017
+01018
+01019            0001    A        IFNE   REALIO
+01020A 7F00                       ORG    @77400   This plus the direct page gives
+01021                      *    8000 hex.
+01022                             ENDC   1FN      REALIO
+01023
+01024                             XDEF   START
+01025            7F00    A START  EOU    *
+01026
+01027            0001    A        IFEQ   REALIO
+01029                       ENDC   IFE REALIO
+01030
+01031                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000-00000
