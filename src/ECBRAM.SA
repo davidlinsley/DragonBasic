@@ -1,0 +1,328 @@
+       OPT    L,LLE=120
+       NAM    TXRRAM   - RAM Off The Direct Page For TCC BASIC
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       DSCT
+
+       XREF   FCERR,FUNDSP,FUNLST
+       XREF   NFUNTK,NNRMTK
+       XREF   POWRUP
+       XREF   RESLST
+       XREF   SNERR,STMDSP
+
+       TTL    RAM off the direct page.
+
+       XDEF   VSWI3
+VSWI3  RMB    &3       SWI3 vector.
+       XDEF   VSWI2
+VSWI2  RMB    &3       SWI2 vector.
+       XDEF   VSWI
+VSWI   RMB    &3       SWI vector.
+       XDEF   VNMI
+VNMI   RMB    &3       NMI vector.
+       XDEF   VIRQ
+VIRQ   RMB    &3       IRQ vector.
+       XDEF   VFIRQ
+VFIRQ  RMB    &3       FIRQ vector.
+       XDEF   USRJMP
+USRJMP JMP    FCERR    Jump for USR function.
+       XDEF   TICKER
+TICKER EQU    USRJMP   The tick counter for TIME and TIME$
+*    uses 3 bytes.  It can overlay USRJMP
+*    because USR routines are defined by
+*    the DEFUSR statement in the extension
+*    ROM version and USRJMP is not needed.)
+       XDEF   RNDX
+RNDX   FCB    @200     The random number.
+       FCB    @117     (MLC-28-APR-80: The new random number
+       FCB    @307     generator doesn't need RNDX, it uses
+       FCB    @122     RNDX+1 through RNDX+4.  RNDX was left
+       IFNE   ADDPRC   to maintain the already published
+       FCB    @131     memory map information.)
+       ENDC   IFN      ADDPRC
+       XDEF   ALPHLK
+ALPHLK RMB    &1       Alpha lock.
+*    0=not locked, -1=locked.
+       XDEF   DBNCNT
+DBNCNT RMB    &2       Debounce delay constant.  Kept in RAM
+*    for hopefully unnecessary adjustment.
+       RMB    &3       The RAM  hook FPWRT was here for the
+*    8k version.
+
+*
+* The reserved word list stubs.
+*
+
+       XDEF   STUB0
+STUB0  EQU    *
+       XDEF   NNRML0
+NNRML0 FCB    NNRMTK   The number of "normal" (non-function)
+*    reserved words.
+       XDEF   NRMLS0
+NRMLS0 FDB    RESLST   The address of the normal reserved
+*    word list.
+       XDEF   STMDS0
+STMDS0 FDB    STMDSP   For stub 0 this is the address of the
+*    statement dispatch table. For all
+*    other stubs this is the address of
+*    the statement dispatch routine.
+       XDEF   NFUN0
+NFUN0  FCB    NFUNTK   The number of function reserved words.
+       XDEF   FUNLS0 
+FUNLS0 FDB    FUNLST   The address of the function reserved
+*    word list.
+       XDEF   FUNDS0
+FUNDS0 FDB    FUNDSP   For stub 0 this is the address of the
+*    function dispatch table. For all
+*    other stubs this is the address of
+*    the function dispatch routine.
+
+       RMB    NSTUBS*STBLEN Reserve storage for the other stubs.
+*    Note that NSTUBS+1 stubs are needed
+*    since the last one is a dummy and
+*    cannot actually be used.
+
+       XDEF   STUB1
+STUB1  EQU    STUB0+STBLEN Start of STUB1.
+       XDEF   STMDS1
+STMDS1 EQU    STUB1+&3 The address of the STUB1 statement
+*    dispatcher is stored in STMDS1.
+       XDEF   FUNDS1
+FUNDS1 EQU    STUB1+&8 The address of the STUB1 function
+*    dispatcher is stored in FUNDS1.
+
+       XDEF   STUB2
+STUB2  EQU    STUB1+STBLEN Start of STUB2.
+       XDEF   STMDS2
+STMDS2 EQU    STUB2+&3 The address of the STUB2 statement
+*    dispatcher is stored in STMDS2.
+       XDEF   FUNDS2
+FUNDS2 EQU    STUB2+&8 The address of the STUB2 function
+*    dispatcher is stored in FUNDS2.
+
+*
+* During INIT, NNRML0:=NNRMTK, NRMLS0:=RESLST, STMDS0:=STMDSP,
+* NFUN0:=NFUNTK,FUNLS0:=FUNLST,FUNDS0:=FUNDSP.
+*
+* For all other stubs, NNRMLX:=NFUNX:=0, STMDSX:=FUNDSX:=SNERR.
+*
+
+       XDEF   USRTAB
+USRTAB EQU    STUB0+&2*STBLEN 20 bytes are needed for the USR
+*    address table (USRTAB).  There is
+*    no place else to put USRTAB in the
+*    extended version so it overlays
+*    stubs 2 and 3.  This is OK since only
+*    stub 0 is in use, with stub 1
+*    acting as the stopper.  However, in
+*    the disk version (or any version using
+*    stub 1 or higher), it will be
+*    necessary to allocate more memory for
+*    temporary storage and move USRTAB into
+*    the new area. For this reason, USRTAB
+*    is referenced indirectly through the
+*    direct page location USTBAD.
+       XDEF   ROLTBL
+ROLTBL RMB    &8       Keyboard rollover table.
+
+*
+*  RAM for joysticks.
+*
+
+       XDEF   POTVAL
+POTVAL RMB    &4       The Joystick pot values.
+
+*
+*  RAM hooks for extensions.
+*
+
+       XDEF   HOOKS
+HOOKS  EQU    *        Start of RAM hooks.
+
+       XDEF   HKOPEN
+HKOPEN RTS             Open device or file.
+       RMB    &2
+       XDEF   HKDNCK
+HKDNCK RTS             Check validity of device number.
+       RMB    &2
+       XDEF   HKDPRM
+HKDPRM RTS             Return device parmameters.
+       RMB    &2
+       XDEF   HKCHRO
+HKCHRO RTS             Character output.
+       RMB    &2
+       XDEF   HKCHRI
+HKCHRI RTS             Character input.
+       RMB    &2
+       XDEF   HKCKDI
+HKCKDI RTS             Make sure device is open for input.
+       RMB    &2
+       XDEF   HKCKDO
+HKCKDO RTS             Make sure device is open for output.
+       RMB    &2
+       XDEF   HKCLSA
+HKCLSA RTS             Close all devices and files.
+       RMB    &2
+       XDEF   HKCLS1
+HKCLS1 RTS             Close a single device or file.
+       RMB    &2
+       XDEF   HKGONE
+HKGONE RTS             Another NEWSTT hook where it can
+       RMB    &2       where everything can be trapped.
+       XDEF   HKITMS
+HKITMS RTS             Disk file item scanner.
+       RMB    &2 
+       XDEF   HKBRKC
+HKBRKC RTS             Poll for BREAK and other special keys.
+       RMB    &2
+       XDEF   HKINLN
+HKINLN RTS             Read line of input.
+       RMB    &2
+       XDEF   HKFNLD
+HKFNLD RTS             Finish loading ASCII program file.
+       RMB    &2
+       XDEF   HKEOF
+HKEOF  RTS             End of File function.
+       RMB    &2
+       XDEF   HKEVAL
+HKEVAL RTS             EVAL chain hook.
+       RMB    &2
+       XDEF   HKETRP
+HKETRP RTS             User error trap hook.
+       RMB    &2
+       XDEF   HKERR
+HKERR  RTS             ERROR routine hook.
+       RMB    &2
+       XDEF   HKRUN
+HKRUN  RTS             RUN statement hook.
+       RMB    &2
+       XDEF   HKSCP2
+HKSCP2 RTS             STRLIT's string copy check.
+       RMB    &2
+       XDEF   HKCLRC
+HKCLRC EQU    HKSCP2   CLEARC hook shares with HKSCP2.
+       XDEF   HKNWST
+HKNWST RTS             NEWSTT hook.
+       RMB    &2
+       XDEF   HKSCP1
+HKSCP1 RTS             LET code string copy check.
+       RMB    &2
+       XDEF   HKCLS
+HKCLS  RTS             Hook for CLS statement.
+       RMB    &2
+       XDEF   HKRENM
+HKRENM EQU    HKCLS    RENUM shares CLS hook - check return
+*    address to determine who's calling.
+       XDEF   HKPTGT
+HKPTGT EQU    HKCLS    Same for PUT/GET.
+       XDEF   HKASGN
+HKASGN EQU    HKCLS    Function assignment hook.
+       XDEF   HKCRNC
+HKCRNC RTS             Hook for CRUNCH.
+       RMB    &2
+       XDEF   HKDCRN
+HKDCRN RTS             Hook for DCRNCH.
+       RMB    &2
+       XDEF   ENDHKS
+ENDHKS EQU    *        End of RAM hooks.
+
+       XDEF   NRTSHK
+NRTSHK EQU    (ENDHKS-HOOKS)/&3 The number of RTS hooks.
+       XDEF   NRTSH3
+NRTSH3 EQU    NRTSHK*3
+
+       XDEF   TEMPST
+TEMPST RMB    STRSIZ*NUMTMP Room for NUMTMP string temporaries.
+
+*
+* GETFLN reads filenames into FILNAM.
+*
+
+       XDEF   FNAMLN
+FNAMLN RMB    &1       The filename length.  Must immediately
+*    precede   FILNAM.
+       XDEF   FILNAM
+FILNAM RMB      &8     Max length of filename is 8 chars.
+
+*
+* The cassette buffer.
+*
+
+       XDEF   CASBUF
+CASBUF RMB    &255     Max block length is 255.
+
+       XDEF   CSFNAM
+CSFNAM EQU    CASBUF   The filename (8 chars).
+       XDEF   FILTYP
+FILTYP EQU    CSFNAM+&8 The file type.
+*    0=BASIC program.
+*    1=BASIC data.
+*    2=Machine language.
+       XDEF   ASCFLG
+ASCFLG EQU    FILTYP+&1 The ASCII flag.
+*    0=binary file.
+*    FF=ASCII file.
+       XDEF   GAPFLG
+GAPFLG EQU    ASCFLG+&1 Gap Flag.
+*    0=continuous file.
+*    FF=gaps between blocks.
+       XDEF   STRTAD
+STRTAD EQU    GAPFLG+&1 Execution address of machine language
+*    files.
+       XDEF   LOADAD
+LOADAD EQU    STRTAD+&2 Load address for ungapped machine
+*    language files.
+       XDEF   HDRLEN
+HDRLEN EQU    &15      The length of a file header.
+
+       XDEF   NZLINK
+NZLINK FCB    &1       This nonzero byte must be here so
+*    CHEAD doesn't think it has reached
+*    the end of the program when fixing
+*    up the links after the line in BUF
+*    has been inserted into the program.
+       XDEF  BUFLNM
+BUFLNM RMB   &2        Place to put line number before BUF
+*    so BLTUC can put it all away at once.
+       XDEF   BUFMIN
+BUFMIN RMB    &1       The INPUT code stores a comma here
+*    since the data pointer always starts
+*    on a comma or terminator.
+       XDEF   BUF
+BUF    RMB    BUFLEN+&2 Line buffer.
+*    (+2 is so CRUNCH can store a zero
+*    link to look like end of program
+*    for direct execution.)
+*    Direct statements execute directly out
+*    of BUF so any statement that smashes
+*    BUF (INPUT for example) must be
+*    disallowed as a direct statement.
+*    One of the two bytes immediately
+*    preceding BUFLNM must be nonzero
+*    so they look like a nonzero link
+*    to CHEAD.
+       XDEF   LOFBUF
+LOFBUF RMB    &1
+       XDEF   FBUFFR
+FBUFFR RMB    &13+(&3*ADDPRC)
+
+
+       IFNE   REALIO
+       ORG    @77400   This plus the direct page gives
+*    8000 hex.
+       ENDC   1FN      REALIO
+
+       XDEF   START
+START  EOU    *
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+
+       END
