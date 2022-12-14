@@ -1,83 +1,21 @@
-                  utt
-                       PAGE   007  ECBBS2  .SA:1  BASTWO The CRUNCH code
+PAGE  007  ECBBS2  .SA:1  BASTWO The CRUNCH code
 
-
-                       00962
-                       00963P  00F4 A7   CO       A STUFFA STA    ,U+       Put the char into the dest buffer.
-                •      00964P  00F6 27   06   00FE         8E0    CRDONE    A zero marks the end of the line.
-                       009652  00F8 81   3A       A        CMPA   #7:       Hit end of statement?
-                       00966P  00FA 27   CF   00CB         BEG!   NXISCR    Yes, go work on next statement of
-                       00967                             this line.
-                       009682  00FC 20   D1   00CF  GOCLOP BRA    CRLOOP    No, continue on this statement.
-                       00969
-                       009702  00FE 6F   CO       A CRDONE CLR    ,U+       Put two more zeroes at the end of
-                       009712  0100 6F   CO                CLR    ,U+       the crunched line so  it looks like
-                       00972                             a zero link field.   This will look
-                       00973                             like the end of  program if this
-                       00974                             line is executed  in direct mode.
-                       009752  0102 IF   30                TFR    U,D       B:=1ength of crunched  line + 1 for
-                •      009762  0104 83   FFFD              SUBD   #BUF-&3   end of line zero, +2 for  link field,
-                  1111 00977                             +2 for line number.
-                       009782  0107 SE   FFFE              LDX    #BUF-&2   Set TXTPTR so CHRGET gets first byte
-                •      009792  010A 9F   A6       A        STX    TXTPTR    of crunched line.
-                       009802  010C 39                     RTS              All done.
-
-                tto
-
-
-
-                •
-
-
-
-                •
-
-
-
-
-
-
-
-
-
-
-                  1 I H
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+44 (0)20 89 -; -
-
-     For Your N(
-
+00962
+00963P 00F4 A7   C0      A STUFFA STA    ,U+      Put the char into the dest buffer.
+00964P 00F6 27   06   00FE        BEQ    CRDONE   A zero marks the end of the line.
+00965P 00F8 81   3A      A        CMPA   #':      Hit end of statement?
+00966P 00FA 27   CF   00CB        BEQ    NXTSCR   Yes, go work on next statement of
+00967                      *    this line.
+00968P 00FC 20   D1   00CF GOCLOP BRA    CRLOOP   No, continue on this statement.
+00969
+00970P 00FE 6F   C0      A CRDONE CLR    ,U+      Put two more zeroes at the end of
+00971P 0100 6F   C0      A        CLR    ,U+      the crunched line so it looks like
+00972                      *    a zero link field.   This will look
+00973                      *    like the end of  program if this
+00974                      *    line is executed  in direct mode.
+00975P 0102 1F   30      A        TFR    U,D      B:=1ength of crunched  line + 1 for
+00976P 0104 83   FFFD    A        SUBD   #BUF-&3  end of line zero, +2 for  link field,
+00977                      *    +2 for line number.
+00978P 0107 8E   FFFE    A        LDX    #BUF-&2  Set TXTPTR so CHRGET gets first byte
+00979P 010A 9F   A6      A        STX    TXTPTR   of crunched line.
+00980P 010C 39                    RTS             All done.
