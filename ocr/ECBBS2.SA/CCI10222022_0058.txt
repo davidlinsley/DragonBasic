@@ -1,4 +1,4 @@
-PAGE   002  ECBBS2  .SA:1  BASTWO External Declarations
+PAGE  002  ECBBS2  .SA:1  BASTWO External Declarations
 
 00734                             TTL    LIST and LLIST
 00735 
