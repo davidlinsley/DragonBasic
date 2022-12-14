@@ -1,4 +1,4 @@
-PAGE   005  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  005  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00890D 0086      0002    A        RMB    &2
 00891                             XDEF   HKEOF

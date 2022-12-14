@@ -1,4 +1,4 @@
-PAGE   001  ECBCOM  .SA:0 TXRRAM Extension ROM Direct Page RAM
+PAGE  001  ECBCOM  .SA:0  TXRRAM Extension ROM Direct Page RAM
 
 00700                             OPT    L,LLE=120
 00701                             NAM    TXRRAM   - RAM Off The Direct Page For TCC BASIC
@@ -59,7 +59,7 @@ PAGE   001  ECBCOM  .SA:0 TXRRAM Extension ROM Direct Page RAM
 00756                      *    8k version.
 00757
 
-PAGE   002  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  002  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00758                      *
 00759                      * The reserved word list stubs.
@@ -120,7 +120,7 @@ PAGE   002  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 00814                      *
 00815
 
-PAGE   003  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  003  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00816                             XDEF   USRTAB
 00817            0034    D USRTAB EQU    STUB0+&2*STBLEN 20 bytes are needed for the USR
@@ -138,7 +138,7 @@ PAGE   003  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 00829                      *    is referenced indirectly through the
 00830                      *    direct page location USTBAD.
 
-PAGE   004  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  004  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00832                             XDEF   ROLTBL
 00833D 0052      0008    A ROLTBL RMB    &8       Keyboard rollover table.
@@ -199,7 +199,7 @@ PAGE   004  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 00888                             XDEF   HKFNLD
 00889D 0085 39             HKFNLD RTS             Finish loading ASCII program file.
 
-PAGE   005  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  005  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00890D 0086      0002    A        RMB    &2
 00891                             XDEF   HKEOF
@@ -253,7 +253,7 @@ PAGE   005  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 00939            004B    A NRTSH3 EQU    NRTSHK*3
 00940
 
-PAGE   006  ECBRAM  .SA:1 TXRRAM RAM off the direct  page.
+PAGE  006  ECBRAM  .SA:1  TXRRAM RAM off the direct  page.
 
 00942                             XDEF   TEMPST
 00943D 00A9      0028    A TEMPST RMB    STRSIZ*NUMTMP Room for NUMTMP string temporaries.
@@ -268,7 +268,7 @@ PAGE   006  ECBRAM  .SA:1 TXRRAM RAM off the direct  page.
 00952                             XDEF   FILNAM
 00953D 00D2      0008    A FILNAM RMB      &8     Max length of filename is 8 chars.
 
-PAGE   007  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  007  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00955
 00956                      *
@@ -329,7 +329,7 @@ PAGE   007  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
 01011                      *    so they look like a nonzero link
 01012                      *    to CHEAD.
 
-PAGE   008  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  008  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 01013                             XDEF   LOFBUF
 01014D 02D9      0001    A LOFBUF RMB    &1

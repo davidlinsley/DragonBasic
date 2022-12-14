@@ -1,4 +1,4 @@
-PAGE   004  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  004  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00832                             XDEF   ROLTBL
 00833D 0052      0008    A ROLTBL RMB    &8       Keyboard rollover table.

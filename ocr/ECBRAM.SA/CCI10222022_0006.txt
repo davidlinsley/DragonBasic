@@ -1,4 +1,4 @@
-PAGE   006  ECBRAM  .SA:1 TXRRAM RAM off the direct  page.
+PAGE  006  ECBRAM  .SA:1  TXRRAM RAM off the direct  page.
 
 00942                             XDEF   TEMPST
 00943D 00A9      0028    A TEMPST RMB    STRSIZ*NUMTMP Room for NUMTMP string temporaries.
