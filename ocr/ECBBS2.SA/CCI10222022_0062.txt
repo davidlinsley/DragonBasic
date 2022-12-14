@@ -1,62 +1,60 @@
-                                                              PAGE 006 ECBBS2 .SA:1 BASTWO DCRNCH
+PAGE  006  ECBBS2  .SA:1  BASTWO DCRNCH
 
-                                                              00904                                                                                        TTL                The CRUNCH code
-                                                              00905
-                                                              00906
-                                                              00907                                                                          CRUNCH converts all reserved words to tokens.
-                                                              00908                                                                          "Normal" (non-function) tokens are single bytes with the MSB 
-                                                              00909                                                                          set. Function tokens are two bytes long. The first byte is 
-                                                              00910                                                                          always 377 octal. The second byte is the actual function token 
-                                                              00911                                                                          code. This division of normal and function tokens allows more 
-                                                              00912                                                                          reserved words than would otherwise be possible.
-                                                              00913                                                                          Token codes are actually reflect the position of the reserved 
-                                                              00914                                                                          word within its list.
-                                                              00915
-                                                              00916
-                                                              00917                                                                                         XDEF              CRUNCH
-                                                              00918P              00C3         BD             0000                  A    CRUNCH JSR                           HKCRNC                    RAM hook.
-                                                              00919P              0006         9E             A6                    A                       LDX               TXTPTR                    X:=pointer to start                                   of line               to be
-                                                              00920                                                                                   crunched.
-                                                              00921P              0008          CE            FFFF                  A                       LDU               #BUF-&1                   Ug=bointer to where                                   crunched                 line          is
-                                                              00922                                                                      *            to be stored.                             (Crunch into BUF-1 
-                                                              00923                                                                      *            because single quote expands to
-                                            11A               00924                                                                      *            a colon followed by a single Quote 
-                                                              00925                                                                      *            token.                This is the only such case 
-                                                              00926                                                                      *            and it can only occur once on a line 
-                                                              00927                                                                      *            so only one extra byte of buffer is 
-                                                              00928                                                                      *            needed.)
-                                                              00929
-                                                              00930P              00CB          OF            43                    A    NXTSCR CLR                             INVNAM                  Start crunching a new statement.
-                                                 1111         0097;1                                                                     *            Say not in variable name.
-                                                              00932P              00CD          OF            44                    A                       CLR                 INDATA                  Say not in DATA statement.
-                                                              00933
-                                                              00934P              00CF          A6            80                    A    CRLOOP LDA                             ,X+                     Get char from source line and point
-                                                              00935                                                                                   to the next one.
-                                                               00936P             00D1          27            21           00F4                             BEQ                 STUFFA                  End of line, go put it away.
-                                                              00937P              00D3          OD            43                    A                       TST                 INVNAM                  Workingon a variable name?
-                                                               00938P             00D5          27            OF           00E6                             BEQ                 NOTVAR                  No.
-                                                              00939P              00D7          BD            0000                  A                       JSR                 ISLETC                  Yes, is this char a letter?
-                                                               00940P             ()ODA         24            18           00F4                             BCC                 STUFFA                  Yes, still in variable name. Go put
-                                                               00941                                                                                  it away.
-                                                               00942P             OODC          81            30                    A                       CMPA                #'0                     No, is it a numeric digit?
-                                                               00943P             OODF          25            04           00F4                             BLO                 ENDVAR                  No, end of variable name.
-                                                               00944P             00E0          81            39                    A                       CMPA                #'9
-                                                               00945P             00E2          23            10           00F4                             BLS                 STUFFA                  Yes, still part of variable name.
-                                                               00948P             00E4          OF            43                    A    ENDVAR CLR                             INVNAM                  No, this char terminates the name.
-                                                               00947
-                                                               00948P             00E6          81            20                         NOTVAR CMPA                            #SPACE                  Is it a space to save?
-                                                 1  1 !        00949P             00E8          27            OA           00F4                             BEQ                 STUFFA                  Yes, go save it.
-                                                               00950P             00FA          97            42                                            STA                 TRMCHR                  Store into TRMCHR so if this char 
-                                                               00951                                                                                  starts              a quoted string QSTRNG will
-                                                               00952                                                                                  stop on the matching quote.
-                                                               00953P             00EC          81            22                    A                       CMPA                #DBLOTE Is it a double Quote?
-                                                               00954P             00EE          27            38           0128                             BEQ                 QSTRNG                  Yes, don't crunch until the end
-                                                               00955                                                                                   of the duoted string is found.
-                                                               00956P             00F0          OD            44                    A                       TST                 INDATA                  Not quoted string, are we in a DATA
-                                                               00957                                                                                  statement?
-                                                               00958P             00F2          27            19           010D                             BEQ                 NINDAT                  No, go try to crunch.
-                                                               00959                                                                                   Yes, don't crunch rest of statement.
-+44 (0)20 89 7 C":'                                            00960                                                                                   Fall into STUFFA to put this char
-                                                               00961                                                                                   away.
-            For Your Ne
-
+00904                             TTL    The CRUNCH code
+00905
+00906
+00907                      *    CRUNCH converts all reserved words to tokens.
+00908                      *    "Normal" (non-function) tokens are single bytes with the MSB 
+00909                      *    set. Function tokens are two bytes long. The first byte is 
+00910                      *    always 377 octal. The second byte is the actual function token 
+00911                      *    code. This division of normal and function tokens allows more 
+00912                      *    reserved words than would otherwise be possible.
+00913                      *    Token codes are actually reflect the position of the reserved 
+00914                      *    word within its list.
+00915
+00916
+00917                             XDEF   CRUNCH
+00918P 00C3 BD   0000    A CRUNCH JSR    HKCRNC   RAM hook.
+00919P 00C6 9E   A6      A        LDX    TXTPTR   X:=pointer to start of line to be
+00920                      *    crunched.
+00921P 00C8 CE   FFFF    A        LDU    #BUF-&1  U:=pointer to where crunched line is
+00922                      *    to be stored.  (Crunch into BUF-1 
+00923                      *    because single quote expands to
+00924                      *    a colon followed by a single quote 
+00925                      *    token. This is the only such case 
+00926                      *    and it can only occur once on a line 
+00927                      *    so only one extra byte of buffer is 
+00928                      *    needed.)
+00929
+00930P 00CB 0F   43      A NXTSCR CLR    INVNAM   Start crunching a new statement.
+00931                      *    Say not in variable name.
+00932P 00CD 0F   44      A        CLR    INDATA   Say not in DATA statement.
+00933
+00934P 00CF A6   80      A CRLOOP LDA    ,X+      Get char from source line and point
+00935                      *    to the next one.
+00936P 00D1 27   21   00F4        BEQ    STUFFA   End of line, go put it away.
+00937P 00D3 0D   43      A        TST    INVNAM   Working on a variable name?
+00938P 00D5 27   0F   00E6        BEQ    NOTVAR   No.
+00939P 00D7 BD   0000    A        JSR    ISLETC   Yes, is this char a letter?
+00940P 00DA 24   18   00F4        BCC    STUFFA   Yes, still in variable name. Go put
+00941                      *    it away.
+00942P 00DC 81   30      A        CMPA   #'0      No, is it a numeric digit?
+00943P 00DE 25   04   00E4        BLO    ENDVAR   No, end of variable name.
+00944P 00E0 81   39      A        CMPA   #'9
+00945P 00E2 23   10   00F4        BLS    STUFFA   Yes, still part of variable name.
+00946P 00E4 0F   43      A ENDVAR CLR    INVNAM   No, this char terminates the name.
+00947
+00948P 00E6 81   20      A NOTVAR CMPA   #SPACE   Is it a space to save?
+00949P 00E8 27   0A   00F4        BEQ    STUFFA   Yes, go save it.
+00950P 00EA 97   42      A        STA    TRMCHR   Store into TRMCHR so if this char 
+00951                      *    starts a quoted string QSTRNG will
+00952                      *    stop on the matching quote.
+00953P 00EC 81   22      A        CMPA   #DBLQTE  Is it a double quote?
+00954P 00EE 27   38   0128        BEQ    QSTRNG   Yes, don't crunch until the end
+00955                      *    of the quoted string is found.
+00956P 00F0 0D   44      A        TST    INDATA   Not quoted string, are we in a DATA
+00957                      *    statement?
+00958P 00F2 27   19   010D        BEQ    NINDAT   No, go try to crunch.
+00959                      *    Yes, don't crunch rest of statement.
+00960                      *    Fall into STUFFA to put this char
+00961                      *    away.
