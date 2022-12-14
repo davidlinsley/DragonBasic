@@ -1,4 +1,4 @@
-PAGE   007  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  007  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00955
 00956                      *
