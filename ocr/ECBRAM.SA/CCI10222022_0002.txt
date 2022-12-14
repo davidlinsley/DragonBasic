@@ -1,4 +1,4 @@
-PAGE   002  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  002  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 00758                      *
 00759                      * The reserved word list stubs.

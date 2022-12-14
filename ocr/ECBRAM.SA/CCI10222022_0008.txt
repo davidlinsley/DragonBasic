@@ -1,4 +1,4 @@
-PAGE   008  ECBRAM  .SA:1 TXRRAM RAM off the direct page.
+PAGE  008  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 
 01013                             XDEF   LOFBUF
 01014D 02D9      0001    A LOFBUF RMB    &1
