@@ -1,69 +1,60 @@
-                            PAGE 009 ECBBS2      .SA:1   BASTWO The CRUNCH code
+PAGE  009  ECBBS2  .SA:1  BASTWO The CRUNCH code
 
-
-            all             01024P 012C 81     30       A NSQTE   CMPA   WO        Numeric digits,  colons,  and semi-
-                            01025P 012E 25     04   0134          BCS    MUSTCR    colons do not get crunched.     Just
-                            01026P 0130 81     3C       A         CMPA   #SEMCOL+&1 copy them to the dest buffer.
-            H I (           010272 0132 25     CO   00F4          BCS    STUFFA    Note that ASCII codes go 0-9,    colon,
-                            01028                         *    semicolon.
-                            01029
-                            01030                         *
-                            01031                         * All special cases have been eliminated. Try to crunch.
-                            01032                         * '
-                            01033
-                            01034P 0134 30     1F       A MUSTCR LEAX    -&1,X     Point to the current char. We will
-                            01035                         •    be checking to see if it starts a
-                            01036                         •    reserved word.
-                            01037P 0136 34     50       A         PSHS   U,X       Save both buffer pointers.
-                            01038P 0138 OF     41       A         CLR    FUNFLG    Say we aren't having any fun. (This
-                            01039                         •    actually means we are searching the
-                            01040                         •    "normal" (non-function) reserved
-                            01041                         •    word lists.)
-                            01042P 013A CE     FFF6     A         LDU    #NNRMLO-STBLEN Set up pointer so normal reserved word
-                            01043                         •    lists will be checked.     (U gets pr-
-                            01044                         *    incremented by STBLEN.)
-                            01045
-                            01046P 013D OF     42       A DOFUNS CLR     TOKNUM    Token number:=0.
-                            01047
-                            01048P 013F 33     4A       A NXTLST LEAU    STBLEN,U Point to the next stub.
-                            01049P 0141 A6     C4       A         LDA    ,U        A:=reserved word count.
-                            01050P 0143 27     31   0176          BED    NOTFND    Zero means all active lists have
-                            01051                         •    been checked.
-                            01052
-                            01053P 0145 10AE 41         A         LDY    &1, U     Y:=pointer to reserved word list.
-                            01054
-                            01055P 0148 AE     E4       A NXTRES LDX     ,S        X:=bointer to first char to crunch.
-                            01056
-                            01057P 014A E6     AO       A RESLOP LDB     ,Y+       B:=char from res word list.
-                            01058P 014C EO     80       A         SUBB   ,X+       Subtract the candidate char.
-                            01059P 014E 27     FA   014A          BEQ    RESLOP    Continue while they match.
-                            01060P 0150 Cl     80       A         CMPB #@200       If only difference is the MSB we have
-                            01061                         •    a match.
-                            01062P 0152 26     38   018C          BNE    NTHISW    No match.
-                            01063
-                            01064                         *
-                            01065                         * Reserved word has been found.
-                            01066                         *
-                            01067
-                            01068P 0154 32     62       A         LEAS   82,S      Get rid of old source pointer.
-                            01069P 0156 35     40       A         PULS   U         Retrieve dest buffer pointer.
-                            01070P 0158 DA     42       A         ORB    TOKNUM    B:=token code with MSB=1.
-                            01071P 015A 96     41       A         LDA    FUNFLG    Is it a function token?
-                            01072P 015C 26     06   0164          BNE    STRTWO    Yes, go put away the 377 octal (FUNFLG
-                            01073                         *    is always 377 if nonzero) followed
-                            01074                         *    by the function token.
-                            01075P 015E Cl     00       A         CMPB   #ELSETK Not function, is it an ELSE token?
-                            010762 0160 26     06   0168          BNE    NTELSE    No.
-                            01077P 0162 86     3A       A     •   LDA    #":       Yes, store colon and ELSE token.
-                            010782 0164 ED     Cl       A STRTWO STD     ,U++      Put away double length token.
-                            01079P 0166 20     94   00FC          BRA    GOCLOP    Go back to crunch more.
-44 (0)20 89 71 39 IP        01080
-   For Your Neares          01081P 0168 67     CO       A NTELSE SIB     7U+       Put normal token away.
-
-
-
-
-
-
-                                                                                                                                                                               •
-
+01024P 012C 81   30      A NSQTE  CMPA   #'O      Numeric digits,  colons, and semi-
+01025P 012E 25   04   0134        BCS    MUSTCR   colons do not get crunched.  Just
+01026P 0130 81   3C      A        CMPA   #SEMCOL+&1 copy them to the dest buffer.
+01027P 0132 25   C0   00F4        BCS    STUFFA   Note that ASCII codes go 0-9, colon,
+01028                      *    semicolon.
+01029
+01030                      *
+01031                      * All special cases have been eliminated.  Try to crunch.
+01032                      *
+01033
+01034P 0134 30   1F      A MUSTCR LEAX   -&1,X    Point to the current char. We will
+01035                      *    be checking to see if it starts a
+01036                      *    reserved word.
+01037P 0136 34   50      A        PSHS   U,X      Save both buffer pointers.
+01038P 0138 0F   41      A        CLR    FUNFLG   Say we aren't having any fun. (This
+01039                      *    actually means we are searching the
+01040                      *    "normal" (non-function) reserved
+01041                      *    word lists.)
+01042P 013A CE   FFF6    A        LDU    #NNRML0-STBLEN Set up pointer so normal reserved word
+01043                      *    lists will be checked. (U gets pr-
+01044                      *    incremented by STBLEN.)
+01045
+01046P 013D 0F   42      A DOFUNS CLR    TOKNUM   Token number:=0.
+01047
+01048P 013F 33   4A      A NXTLST LEAU   STBLEN,U Point to the next stub.
+01049P 0141 A6   C4      A        LDA    ,U       A:=reserved word count.
+01050P 0143 27   31   0176        BEQ    NOTFND   Zero means all active lists have
+01051                      *    been checked.
+01052
+01053P 0145 10AE 41      A        LDY    &1, U    Y:=pointer to reserved word list.
+01054
+01055P 0148 AE   E4      A NXTRES LDX    ,S       X:=pointer to first char to crunch.
+01056
+01057P 014A E6   A0      A RESLOP LDB    ,Y+      B:=char from res word list.
+01058P 014C E0   80      A        SUBB   ,X+      Subtract the candidate char.
+01059P 014E 27   FA   014A        BEQ   RESLOP    Continue while they match.
+01060P 0150 C1   80      A        CMPB  #@200     If only difference is the MSB we have
+01061                      *    a match.
+01062P 0152 26   38   018C        BNE   NTHISW    No match.
+01063
+01064                      *
+01065                      * Reserved word has been found.
+01066                      *
+01067
+01068P 0154 32   62      A        LEAS   82,S     Get rid of old source pointer.
+01069P 0156 35   40      A        PULS   U        Retrieve dest buffer pointer.
+01070P 0158 DA   42      A        ORB    TOKNUM   B:=token code with MSB=1.
+01071P 015A 96   41      A        LDA    FUNFLG   Is it a function token?
+01072P 015C 26   06   0164        BNE    STRTWO   Yes, go put away the 377 octal (FUNFLG
+01073                      *    is always 377 if nonzero) followed
+01074                      *    by the function token.
+01075P 015E C1   00      A        CMPB   #ELSETK  Not function, is it an ELSE token?
+01076P 0160 26   06   0168        BNE    NTELSE   No.
+01077P 0162 86   3A      A        LDA     #':     Yes, store colon and ELSE token.
+01078P 0164 ED   C1      A STRTWO STD    ,U++     Put away double length token.
+01079P 0166 20   94   00FC        BRA    GOCLOP   Go back to crunch more.
+01080
+01081P 0168 E7   C0      A NTELSE STB    ,U+      Put normal token away.
