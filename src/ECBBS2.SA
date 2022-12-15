@@ -91,7 +91,8 @@ PLOOP  LDA    ,U+      Get char and bump pointer.
 *    marking the end of the current line
 *    is encountered.
        JSR    OUTDO    Output the char.
-       BRA    PL00P    Go back for more of this line.
+       BRA    PLOOP    Go back for more of this line.
+
        TTL    DCRNCH
 
 *
