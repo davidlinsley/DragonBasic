@@ -1,0 +1,624 @@
+PAGE  001  ECBCOM  .SA:0  BASTWO Extension ROM Direct Page RAM
+
+00700                             OPT   L,LLE=120
+00701                             NAM   BASTWO    - BASIC - Part Two
+00702
+00703                      ********************************************************************** 
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      ********************************************************************** 
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   BRKCHK,BUF
+00712                             XREF   CHKCOM,CHROUT,CLOSIT
+00713                             XREF   DATATK,DEVPRM
+00714                             XREF   ELSETK
+00715                             XREF   FNDLIN,FOUT,FREFAC,FRMEVL
+00716                             XREF   GETDNM,GTBYTC
+00717                             XREF   HKCRNC,HKDCRN
+00718                             XREF   ISCNTC,ISLETC
+00719                             XREF   LINGET,LINPRT
+00720                             XREF   MINUTK
+00721                             XREF   NFUN0,NNRML0
+00722                             XREF   OPNOCK
+00723                             XREF   PATDO,PRINTK,PUDRVR
+00724                             XREF   READY,REMTK
+00725                             XREF   SNERR,SNGQTK,STRLIT,STRLTI
+00726                             XREF   TABTK
+00727                             XREF   USINTK
+00728
+00729            0000    A        IFNE   SPCSW
+00731                      ENDC    IFN SPCSW
+00732
+
+PAGE  002  ECBBS2  .SA:1  BASTWO External Declarations
+
+00734                             TTL    LIST and LLIST
+00735 
+00736                             XDEF   LLIST
+00737P 0000 C6   FE      A LLIST  LDB    #LPTNUM  Device number:=line printer device 
+00738P 0002 D7   6F      A        STB    DEVNUM   number to make listing go to lot. 
+00739P 0004 9D   A5      A        JSR    CHRGOT   Reset CHRGET cond codes.
+00740
+00741                             XDEF   LIST
+00742P 0006 34   01      A LIST   PSHS   CC       Remember if end of statement (EOS).
+00743P 0008 BD   0000    A        JSR    LINGET   LINNUM:=specified line number or 0
+00744                      *    if no line number given.
+00745P 000B BD   0000    A        JSR    FNDLIN   X:=pointer to line .GE. LINNUM.
+00746                      *    (Start of program if no number.)
+00747P 000E 9F   66      A        STX    LSTPTR   Save pointer for later.
+00748P 0010 35   01      A        PULS   CC       Was there really a number?
+00749P 0012 27   12   0026        BEQ    LTOEND   No, so list the whole program.
+00750P 0014 9D   A5      A        JSR    CHRGOT   Yes, see what terminated the number.
+00751P 0016 27   13   002B        BEQ    LISTGO   EOS so just list the specified line.
+00752P 0018 81   00      A        CMPA   #MINUTK  A dash is the only other thing.
+00753P 001A 26   09   0025        BNE    LSTSNR   It isn't so give a syntax error.
+00754P 001C 9D   9F      A        JSR    CHRGET   Get the char following the dash.
+00755P 001E 27   06   0026        BEQ    LTOEND   EOS so list from specified line to
+00756                      *    end of program.
+00757P 0020 BD   0000    A        JSR    LINGET   LINNUM:=second line number.
+00758P 0023 27   06   002B        BEQ    LISTGO   Termination is OK.
+00759P 0025 39             LSTSNR RTS             Statement is not properly terminated.
+00760                      *    Return to NEWSTT where a SN error will
+00761                      *    result.
+00762
+00763P 0026 CE   FFFF    A LTOEND LDU    #&65535  Make list stop only when the zero link
+00764P 0029 DF   2B      A        STU    LINNUM   at the end of the program is seen.
+00765
+00766P 002B 32   62      A LISTGO LEAS   &2,S     Get rid of the NEWSTT return address.
+00767P 002D 9E   66      A        LDX    LSTPTR   X:=pointer to first line to list.
+00768
+00769P 002F BD   0201    P LISTLP JSR    CONDCR   Start a new line.
+00770P 0032 BD   0000    A        JSR    BRKCHK   Check for BREAK.
+00771P 0035 EC   84      A        LDD    ,X       Is the link zero?
+00772P 0037 26   08    0041       BNE    NTENDP   No, haven't hit end of program yet. 
+00773P 0039 BD   0000    A LSTEND JSR    CLOSIT   Yes, close the listing file.
+00774P 003C 0F   6F      A        CLR    DEVNUM   Clear the device number so output
+00775                      *    goes to screen. 
+00776P 003E 7E   0000    A        JMP    READY    Return to command level.
+00777
+00778P 0041 9F   66      A NTENDP STX    LSTPTR   Save pointer to current line.
+00779P 0043 EC   02      A        LDD    &2,X     D:=line number.
+00780P 0045 1093 2B      A        CMPD   LINNUM   Is it beyond the end of the range?
+00781P 0048 22   EF   0039        BHI    LSTEND   Yes, all done.
+00782P 004A BD   0000    A        JSR    LINPRT   Go output it.
+00783P 004D BD   0251             JSR    OUTSPC   Follow line number with a space.
+00784P 0050 9E   66      A        LDX    LSTPTR   Retrieve the line pointer.
+00785P 0052 8D   10   0064        BSR    DCRNCH   Decrunch the line into BUF.
+00786P 0054 AE   9F 0066 A        LDX    [LSTPTR] Use link to make X point to the next
+00787                      *    line of the program.
+00788P 0058 CE   0000    A        LDU    #BUF     U:=pointer to te decrunched line.
+00789
+00790P 005B A6   C0      A PLOOP  LDA    ,U+      Get char and bump pointer.
+00791P 005D 27   D0   002F        BEQ    LISTLP   Go handle next program line when zero
+
+PAGE  003  ECBBS2  .SA:1  BASTWO LIST and LLIST
+
+00792                      *    marking the end of the current line
+00793                      *    is encountered.
+00794P 005F BD   0256    P        JSR    OUTDO    Output the char.
+00795P 0062 20   F7   005B        BRA    PL00P    Go back for more of this line.
+
+PAGE  004  ECBBS2  .SA:1  BASTWO LIST and LLIST
+
+00797                             TTL    DCRNCH
+00798
+00799                      *
+00800                      * DCRNCH converts a crunched line back to ASCII for LISTing or
+00801                      * EDITing. The decrunched line is put into BUF. On entry to
+00802                      * DCRNCH X contains a pointer to the link field of the line
+00803                      * to be decrunched.
+00804                      *
+00805
+00806                             XDEF   DCRNCH 
+00807P 0064 BD   0000    A DCRNCH JSR    HKDCRN   RAM hook.
+00808P 0067 30   04               LEAX   &4,X     Skip the link and line number. 
+00809P 0069 108E 0000    A        LDY    #BUF     lnit the buffer pointer.
+00810
+00811P 006D A6   80      A DCRNLP LDA    ,X+      Get char from crunched line and point
+00812                      *    to the next one.
+00813P 006F 27   51   00C2        BEQ    BUFRTS   End of line is marked by a zero.
+00814P 0071 2B   15   0088        BMI    HAVTOK   It is a reserved word token.
+00815P 0073 81   3A      A        CMPA   #':      ELSE is crunched as a colon followed
+00816P 0075 26   0D   0084        BNE    NOTCOL   by an ELSE token so when decrunching
+00817P 0077 E6   84      A        LDB    ,X       the colon must be thrown away.
+00818P 0079 Cl   00      A        CMPB   #ELSETK
+00819P 007B 27   F0   006D        BEQ    DCRNLP   It is an ELSE, skip the colon.
+00820P 007D C1   00      A        CMPB   #SNGOTK  Single quote is crunched as a colon
+00821P 007F 27   EC   006D        BEQ    DCRNLP   followed by a single quote token so
+00822                      *    throw away the colon if this is the
+00823                      *    case.
+00824P 0081                SKIP2  Skip            over BADTOK to store colon.
+00825P 0082 86   21      A BADTOK LDA    #'!      Unrecognised token. Print as
+00826                      *    exclamation point.
+00827P 0084 8D   30   00B6 NOTCOL BSR    BUFCHR   Just a normal char, out it in the
+00828P 0086 20   E5   006D        BRA    DCRNLP   output buffer and go back for more.
+00829
+00830                      *
+00831                      * Here when a reserved word token is encountered.
+00832                      * The strategy is as follows:
+00833                      *
+00834                      * 1) See if it's a "normal" (non-function) token or a function token. 
+00835                      *
+00836                      * 2) Determine which reserved word list the token comes from by
+00837                      *    subtracting the counts found in the stubs from the token.
+00838                      *
+00839                      * 3) Using the result of the subtraction in 2 as an entry number
+00840                      *    into the appropriate reserved word list, skip entries until
+00841                      *    the desired entry is found.  (Entries are skipped by looking
+00842                      *    for the set MSB which marks the end of each entry.)
+00843                      *
+00844                      * 4) Move the ASCII characters of the reserved word into the
+00845                      *    output buffer.
+00846
+00847                                                                                                                                              a
+00848P 0088 CE   FFF6    A HAVTOK LDU    #NNRML0-STBLEN Assume it isn't a function token
+00849                      *    and set up U so "normal" counts
+00850                      *    will be subtracted.  (U gets pre-                                                                            a
+00851                      *    incremented by STBLEN.)
+00852P 008B 81   FF      A        CMPA   #@377    Is it a function token?
+00853P 008D 26   04   0093        BNE    NTFNTK   No.
+00854P 008F A6   80      A        LDA    ,X+      Yes, get the second byte and set up
+
+PAGE  005  ECBBS2  .SA:1  BASTWO DCRNCH
+
+00855P 0091 33   45      A        LEAU   &5,U     U so function counts will be
+00856                      *    subtracted.
+00857P 0093 84   7F      A NTFNTK ANDA   #@177    Clear the MSB of the token.
+00858
+00859P 0095 33   4A      A SUBCNT LEAU   STBLEN,U U:=pointer to reserved word count in
+00860                      *    the next stub.
+00861P 0097 6D   C4      A        TST    ,U       A zero count indicates the end of
+00862P 0099 27   E7   0082        BEQ    BADTOK   the active stubs so this token isn't
+00863                      *    supported by the software in this
+00864                      *    machine. For example, this program
+00865                      *    was written for machines with the
+00866                      *    extension ROM and this machine doesn't
+00867                      *    have one.
+00868P 0095 A0   C4      A        SUBA   ,U       Subtract the count from the token.
+00869P 009D 2A   F6   0095        BPL    SUBCNT   It isn't in this list. Go subtract
+00870                      *    the next count.
+00871P 009F AB   C4      A        ADDA   ,U       It's in this list. Add the count
+00872                      *    back in to get an entry number.
+00873P 00A1 EE   41      A        LDU    &1,U     U:=pointer to the reserved word list.
+00874
+00875P 00A3 4A             CHKWRD DECA            Is this the entry we want?
+00876P 00A4 2B   06   00AC        BMI    HAVWRD   Yes.
+00877P 00A6 6D   C0      A SKPWRD TST    ,U+      No, skip this entry by looking for
+00878P 00A8 2A   FC   00A6        BPL    SKPWRD   the set MSB of the last char.
+00879P 00AA 20   F7   00A3        BRA    CHKWRD   See if we have arrived.
+00880
+00881P 00AC A6   C4      A HAVWRD LDA    ,U       Copy the table entry into the output
+00882P 00AE 8D   06   00B6        BSR    BUFCHR   buffer.
+00883P 00B0 6D   C0      A        TST    ,U+      Quit when set MSB is seen. 
+00884P 00B2 2A   F8   00AC        BPL    HAVWRD
+00885P 00B4 20   B7   006D        BRA    DCRNLP   Go back for more to decrunch.
+00886
+00887P 00B6 108C 00F9    A BUFCHR CMPY   #BUF+BUFLEN-&1 Is the output buffer full?  (This
+00888                      *    could happen, for example, if the
+00889                      *    user typed in a bunch of question
+00890                      *    marks since these are expanded to
+00891                      *    PRINT when decrunched.)
+00892P 00BA 24   06   00C2        BHS    BUFRTS   Yes, throw it away.
+00893P 00BC 84   7F      A        ANDA   #@177    No, reset the MSB since some devices
+00894                      *    can't handle high order bits. (It is
+00895                      *    set if this is the last char of a
+00896                      *    reserved word.)
+00897P 00BE A7   A0      A        STA    ,Y+      Put it into the output buffer and
+00398                      *    update the buffer pointer.
+00899P 00C0 6F   A4      A        CLR    ,Y       Put in a zero to mark the end of the
+00900                      *    line. (This could be the end.)
+00901P 0002 39             BUFRTS RTS
+00902
+
+PAGE  006  ECBBS2  .SA:1  BASTWO DCRNCH
+
+00904                             TTL    The CRUNCH code
+00905
+00906
+00907                      *    CRUNCH converts all reserved words to tokens.
+00908                      *    "Normal" (non-function) tokens are single bytes with the MSB 
+00909                      *    set. Function tokens are two bytes long. The first byte is 
+00910                      *    always 377 octal. The second byte is the actual function token 
+00911                      *    code. This division of normal and function tokens allows more 
+00912                      *    reserved words than would otherwise be possible.
+00913                      *    Token codes are actually reflect the position of the reserved 
+00914                      *    word within its list.
+00915
+00916
+00917                             XDEF   CRUNCH
+00918P 00C3 BD   0000    A CRUNCH JSR    HKCRNC   RAM hook.
+00919P 00C6 9E   A6      A        LDX    TXTPTR   X:=pointer to start of line to be
+00920                      *    crunched.
+00921P 00C8 CE   FFFF    A        LDU    #BUF-&1  U:=pointer to where crunched line is
+00922                      *    to be stored.  (Crunch into BUF-1 
+00923                      *    because single quote expands to
+00924                      *    a colon followed by a single quote 
+00925                      *    token. This is the only such case 
+00926                      *    and it can only occur once on a line 
+00927                      *    so only one extra byte of buffer is 
+00928                      *    needed.)
+00929
+00930P 00CB 0F   43      A NXTSCR CLR    INVNAM   Start crunching a new statement.
+00931                      *    Say not in variable name.
+00932P 00CD 0F   44      A        CLR    INDATA   Say not in DATA statement.
+00933
+00934P 00CF A6   80      A CRLOOP LDA    ,X+      Get char from source line and point
+00935                      *    to the next one.
+00936P 00D1 27   21   00F4        BEQ    STUFFA   End of line, go put it away.
+00937P 00D3 0D   43      A        TST    INVNAM   Working on a variable name?
+00938P 00D5 27   0F   00E6        BEQ    NOTVAR   No.
+00939P 00D7 BD   0000    A        JSR    ISLETC   Yes, is this char a letter?
+00940P 00DA 24   18   00F4        BCC    STUFFA   Yes, still in variable name. Go put
+00941                      *    it away.
+00942P 00DC 81   30      A        CMPA   #'0      No, is it a numeric digit?
+00943P 00DE 25   04   00E4        BLO    ENDVAR   No, end of variable name.
+00944P 00E0 81   39      A        CMPA   #'9
+00945P 00E2 23   10   00F4        BLS    STUFFA   Yes, still part of variable name.
+00946P 00E4 0F   43      A ENDVAR CLR    INVNAM   No, this char terminates the name.
+00947
+00948P 00E6 81   20      A NOTVAR CMPA   #SPACE   Is it a space to save?
+00949P 00E8 27   0A   00F4        BEQ    STUFFA   Yes, go save it.
+00950P 00EA 97   42      A        STA    TRMCHR   Store into TRMCHR so if this char 
+00951                      *    starts a quoted string QSTRNG will
+00952                      *    stop on the matching quote.
+00953P 00EC 81   22      A        CMPA   #DBLQTE  Is it a double quote?
+00954P 00EE 27   38   0128        BEQ    QSTRNG   Yes, don't crunch until the end
+00955                      *    of the quoted string is found.
+00956P 00F0 0D   44      A        TST    INDATA   Not quoted string, are we in a DATA
+00957                      *    statement?
+00958P 00F2 27   19   010D        BEQ    NINDAT   No, go try to crunch.
+00959                      *    Yes, don't crunch rest of statement.
+00960                      *    Fall into STUFFA to put this char
+00961                      *    away.
+
+PAGE  007  ECBBS2  .SA:1  BASTWO The CRUNCH code
+
+00962
+00963P 00F4 A7   C0      A STUFFA STA    ,U+      Put the char into the dest buffer.
+00964P 00F6 27   06   00FE        BEQ    CRDONE   A zero marks the end of the line.
+00965P 00F8 81   3A      A        CMPA   #':      Hit end of statement?
+00966P 00FA 27   CF   00CB        BEQ    NXTSCR   Yes, go work on next statement of
+00967                      *    this line.
+00968P 00FC 20   D1   00CF GOCLOP BRA    CRLOOP   No, continue on this statement.
+00969
+00970P 00FE 6F   C0      A CRDONE CLR    ,U+      Put two more zeroes at the end of
+00971P 0100 6F   C0      A        CLR    ,U+      the crunched line so it looks like
+00972                      *    a zero link field.   This will look
+00973                      *    like the end of  program if this
+00974                      *    line is executed  in direct mode.
+00975P 0102 1F   30      A        TFR    U,D      B:=1ength of crunched  line + 1 for
+00976P 0104 83   FFFD    A        SUBD   #BUF-&3  end of line zero, +2 for  link field,
+00977                      *    +2 for line number.
+00978P 0107 8E   FFFE    A        LDX    #BUF-&2  Set TXTPTR so CHRGET gets first byte
+00979P 010A 9F   A6      A        STX    TXTPTR   of crunched line.
+00980P 010C 39                    RTS             All done.
+
+PAGE  008  ECBBS2  .SA:l  BASTWO The CRUNCH code
+
+00982                      *
+00983                      *    Here to try to crunch the current char.
+00984                      *
+00985
+00986P 010D 81   3F      A NINDAT CMPA   #'?      Is it a question mark which is short
+00987                      *    for PRINT?
+00988P 010F 26   04   0115        BNE    NQUEST   No
+00989P 0111 86   00      A        LDA    #PRINTK  Yes, just stuff a PRINT token.
+00990P 0113 20   DF   00F4        BRA    STUFFA
+00991
+00992P 0115 81   27      A NQUEST CMPA   #SNGQTE  Is it a single quote meaning the rest
+00993                      *    of the line is a remark?
+00994P 0117 26   13   012C        BNE    NSQTE    No.
+00995P 0119 CC   3A00    A        LDD    #':*$100+SNGQTK Yes, stuff a colon followed
+00996P 011C ED   C1      A        STD    ,U++     by a single quote token.
+00997                      *    (This looks like an end of statement
+00998                      *    followed by a remark statement to
+00999                      *    the run time code. The insertion of 
+01000                      *    the colon means single quote need not 
+01001                      *    be the first thing on the line as REM
+01002                      *    must be.)
+01003                      *    ($Z must be added since SNGQTK's
+01004                      *    being external forces the constant
+01005                      *    to be relocatable.)
+01006P 011E 0F   42      A SKPREM CLR    TRMCHR   REM stops only on end of line.
+01007
+01008                      *
+01009                      *    Here to move chars from the source line to the destination buffer
+01010                      *    without crunching. This only stops on end of line or when the                                                                                                                                                                                                                                                                                                                                                                                                                          40
+01011                      *    char moved matches the char in TRMCHR. Quoted strings put a
+01012                      *    double quote in TRMCHR. REM and single quote put a zero in TRMCHR
+01013                      *    so everthing left on the source line is moved without crunching.                                                                                                                                                                                                                                                                                                                                                                                                                       40
+01014                      *
+01015
+01016P 0120 A6   80      A STRLOP LDA    ,X+      Get char from source line.
+01017P 0122 27   D0   00F4        BEQ    STUFFA   End of line.
+01018P 0124 91   42      A        CMPA   TRMCHR   Is it the terminating char?
+01019P 0126 27   CC   00F4        BEQ    STUFFA   Yes, go put it away and resume
+01020                      *    crunching.
+01021P 0128 A7   C0      A QSTRNG STA    ,U+      No, put into dest buffer and go 
+01022P 012A 20   F4   0120        BRA    STRLOP   back for more.
+
+PAGE  009  ECBBS2  .SA:1  BASTWO The CRUNCH code
+
+01024P 012C 81   30      A NSQTE  CMPA   #'O      Numeric digits,  colons, and semi-
+01025P 012E 25   04   0134        BCS    MUSTCR   colons do not get crunched.  Just
+01026P 0130 81   3C      A        CMPA   #SEMCOL+&1 copy them to the dest buffer.
+01027P 0132 25   C0   00F4        BCS    STUFFA   Note that ASCII codes go 0-9, colon,
+01028                      *    semicolon.
+01029
+01030                      *
+01031                      * All special cases have been eliminated.  Try to crunch.
+01032                      *
+01033
+01034P 0134 30   1F      A MUSTCR LEAX   -&1,X    Point to the current char. We will
+01035                      *    be checking to see if it starts a
+01036                      *    reserved word.
+01037P 0136 34   50      A        PSHS   U,X      Save both buffer pointers.
+01038P 0138 0F   41      A        CLR    FUNFLG   Say we aren't having any fun. (This
+01039                      *    actually means we are searching the
+01040                      *    "normal" (non-function) reserved
+01041                      *    word lists.)
+01042P 013A CE   FFF6    A        LDU    #NNRML0-STBLEN Set up pointer so normal reserved word
+01043                      *    lists will be checked. (U gets pr-
+01044                      *    incremented by STBLEN.)
+01045
+01046P 013D 0F   42      A DOFUNS CLR    TOKNUM   Token number:=0.
+01047
+01048P 013F 33   4A      A NXTLST LEAU   STBLEN,U Point to the next stub.
+01049P 0141 A6   C4      A        LDA    ,U       A:=reserved word count.
+01050P 0143 27   31   0176        BEQ    NOTFND   Zero means all active lists have
+01051                      *    been checked.
+01052
+01053P 0145 10AE 41      A        LDY    &1, U    Y:=pointer to reserved word list.
+01054
+01055P 0148 AE   E4      A NXTRES LDX    ,S       X:=pointer to first char to crunch.
+01056
+01057P 014A E6   A0      A RESLOP LDB    ,Y+      B:=char from res word list.
+01058P 014C E0   80      A        SUBB   ,X+      Subtract the candidate char.
+01059P 014E 27   FA   014A        BEQ   RESLOP    Continue while they match.
+01060P 0150 C1   80      A        CMPB  #@200     If only difference is the MSB we have
+01061                      *    a match.
+01062P 0152 26   38   018C        BNE   NTHISW    No match.
+01063
+01064                      *
+01065                      * Reserved word has been found.
+01066                      *
+01067
+01068P 0154 32   62      A        LEAS   82,S     Get rid of old source pointer.
+01069P 0156 35   40      A        PULS   U        Retrieve dest buffer pointer.
+01070P 0158 DA   42      A        ORB    TOKNUM   B:=token code with MSB=1.
+01071P 015A 96   41      A        LDA    FUNFLG   Is it a function token?
+01072P 015C 26   06   0164        BNE    STRTWO   Yes, go put away the 377 octal (FUNFLG
+01073                      *    is always 377 if nonzero) followed
+01074                      *    by the function token.
+01075P 015E C1   00      A        CMPB   #ELSETK  Not function, is it an ELSE token?
+01076P 0160 26   06   0168        BNE    NTELSE   No.
+01077P 0162 86   3A      A        LDA     #':     Yes, store colon and ELSE token.
+01078P 0164 ED   C1      A STRTWO STD    ,U++     Put away double length token.
+01079P 0166 20   94   00FC        BRA    GOCLOP   Go back to crunch more.
+01080
+01081P 0168 E7   C0      A NTELSE STB    ,U+      Put normal token away.
+
+PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
+
+01082P 016A C1   00      A        CMPB   #DATATK  Starting a DATA statement?
+01083P 016C 26   02   0170        BNE    NODATT   No.
+01084P 016E 0C   44      A        INC    INDATA   Yes, set the in DATA flag.
+01085P 0170 C1   00      A NODATT CMPB   #REMTK   Is it a REM statement?
+01086P 0172 27   AA   011E        BEO    SKPREM   Yes, no crunching for rest of line. 
+01087P 0174 20   86   00FC GGCLOP BRA    GOCLOP   No, continue crunching.
+
+PAGE  011  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
+
+01089                      *
+01090                      * Here when all lists of a particular type (normal or function)
+01091                      * have been checked and a match hasn't been found.
+01092                      *
+01093 
+01094P 0176 CE   FFF6    A NOTFND LDU    #NFUN0-STBLEN Assume that the function lists haven't
+01095                      *    been checked yet.
+01096P 0179 03   41      A        COM    FUNFLG   Have they?
+01097P 017B 26   C0   013D        BNE    DOFUNS   No, go check them.
+01098P 017D 35   50      A        PULS   U,X      Yes, this character does not start 
+01099                      *    a reserved word.  Retrieve both
+01100                      *    buffer pointers.
+01101P 017F A6   80      A        LDA    ,X+      Get the char back and stuff it.
+01102P 0181 A7   C0      A        STA    ,U+
+01103P 0183 BD   0000    A        JSR    ISLETC   Letters which fail to start a reserved 
+01104P 0186 25   EC   0174        BCS    GGCLOP   word are assumed to start a variable 
+01105P 0188 03   43      A        COM    INVNAM   name so set the flag which indicates 
+01106P 018A 20   E8   0174        BRA    GGCLOP   that we're working on a variable name.
+01107
+01108                      *
+01109                      * Here to skip a reserved word list entry.
+01110                      *
+01111
+01112P 018C 0C   42      A NTHISW INC    TOKNUM   Increment the token number.
+01113P 018E 4A                    DECA            Decrement count of words in this list. 
+01114P 018F 27   AE   013F        BEQ    NXTLST   Checked all entries, go try next list. 
+01115P 0191 31   3F      A        LEAY   -&1,Y    Need to look at current char since it 
+01116                      *    might be the last char of the table
+01117                      *    entry.
+01118P 0193 E6   A0      A SKPRES LDB    ,Y+      Skip past end of entry which is marked 
+01119P 0195 2A   FC   0193        BPL    SKPRES   by MSB=1.
+01120P 0197 20   AF   0148        BRA    NXTRES   Go try next table entry.
+01121
+01122                             TTL    The PRINT code.
+01123
+01124                             XDEF   PRINT
+01125P 0199 27   62   01FD PRINT  BEQ    CRDO     Null print list, just send CRLF to
+01126                      *    screen.
+01127P 019B 8D   03   01A0        BSR    PRNTDO   Come back to clear device number. 
+01128P 019D 0F   6F      A        CLR    DEVNUM   Make output go to screen and return.
+01129P 019F 39                    RTS
+01130
+01131P 01A0 81   40      A PRNTDO CMPA   #'@      Is it PRINT@?
+01132P 01A2 26   05   01A9        BNE    NOTPAT   No.
+01133P 01A4 BD   0000    A        JSR    PATDO    Yes, go position the cursor. 
+01134P 01A7 20   0A   01B3        BRA    SCANPL   Now scan the print list.
+01135
+01136P 01A9 81   23      A NOTPAT CMPA   #'#      Device number?
+01137P 01AB 26   0D   01BA        BNE    PRTSCR   No, output goes to screen.
+01138P 01AD BD   0000    A        JSR    GETDNM   Yes, go read the device number. 
+01139P 01B0 BD   0000    A        JSR    OPNOCK   Device must be open for output.
+01140
+01141P 01B3 9D   A5      A SCANPL JSR    CHRGOT   If the print list is null just CRLF.
+01142P 01B5 27   46   01FD        BEQ    CRDO
+01143P 01B7 BD   0000    A        JSR    CHKCOM   Not null, comma must follow device
+01144                      *    number or PRINT@ position.
+01145
+01146P 01BA 8l   00      A PRTSCR CMPA   #USINTK  A USING token?
+
+PAGE  012  ECBBS2  .SA:1  BASTWO The PRINT code.
+
+01147P 01BC 1027 FE40    A        LBEQ   PUDRVR   Yes, go handle PRINT USING.
+
+PAGE  013  ECBBS2  .SA:1  BASTWO The PRINT code.
+
+01149                      *
+01150                      * Here after seeing TAB(X), SPC(X), a comma, or a semicolon, in which
+01151                      * case a terminator just causes a return without a CRLF.
+01152                      *
+01153P 01C0 27   48   020A PRINTC BEQ    PRTRTS   All done.
+01154P 01C2 81   00      A NEWCHR CMPA   #TABTK   TAB "function"?
+01155P 01C4 27   5D   0223        BEQ    TABER    Yes
+01156
+01157            0000    A        IFNE   SPCSW
+01160                      ENDC    IFN SPCSW
+01161P 01C6  81  2C      A        CMPA   #COMMA   No, a comma?
+01162P 01C8  27  41   020B        BEQ    COMPRT   Yes
+01163P 01CA  81  3B      A        CMPA   #SEMCOL  No, a semicolon?
+01164P 01CC  27  6E   023C        BEQ    MORSCN   Yes, take no action.
+01165P 01CE  BD  0000    A        JSR    FRMEVL   No, must be an item to be printed.
+01166                      *    Evaluate it.
+01167P 01D1  96  06      A        LDA    VALTYP   Get the VALTYP of the item.
+01168P 01D3  34  02      A        PSHS   A        Save indication of VALTYP since STRLIT
+01169                      *    will change numeric to string.
+01170P 01D5  26  06   01DD        BNE    PRTITM   Just print strings as is.
+01171P 01D7  BD  0000    A        JSR    FOUT     Convert the number to an ASCII outout
+01172P 01DA  BD  0000    A        JSR    STRLIT   string and build a descriptor for it.
+01173P 01DD  8D  65   0244 PRTITM BSR    STRPRT   Print the item.
+01174P 01DF  35  04      A        PULS   B        Get back its VALTYP.
+01175P 01E1  BD  0000    A        JSR    DEVPRM   Call DEVPRM to set up special I/O
+01176                      *    flag since DEVPRM may not have been
+01177                      *    called yet.
+01178P 01E4  0D  6E      A        TST    SPCIO    Is the special I/O flag set?
+01179P 01E6  27  06   0lEE        BEQ    TRMITM   No
+01180P 01E8  8D  13   01FD        BSR    CRDO     Yes, all  items get terminated by a
+01181                      *    carriage return.
+01182P 01EA  9D  A5      A        JSR    CHRGOT   Reget last char and go scan more of
+01183P 01EC  20  D2   01C0        BRA    PRINTC   print list.  (Can't go to NONNUM
+01184                      *    since we don't want an extra carriage
+01185                      *    return at the end of all items.
+01186
+01187P 01EE  5D            TRMITM TSTB            Was the item a number?
+01188P 01EF  26  08   01F9        BNE    NONNUM   No
+01189P 01F1  9D  A5      A        JSR    CHRGOT   Yes, is the next thing a comma?
+01190P 01F3  81  2C      A        CMPA   #COMMA
+01191P 01F5  27  14   020B        BEQ    COMPRT   Yes, don't  output the space that
+01192                      *    usually is printed after a number.
+01193                      *    This allows two columns of numbers
+01194                      *    to be printed on one line.
+01195P 01F7  8D  58   0251        BSR    OUTSPC   No, follow it with a space.
+01196P 01F9  9D  A5      A NONNUM JSR    CHRGOT   Look at  last char.
+01197P 01FB  26  C5   01C2        BNE    NEWCHR   Not terminator, continue scanning
+01198                      *    print  list.
+01199                      *    Terminator, fall  into CRDO to
+01200                      *    finish up.
+
+PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.                                                                                                                                                           •
+
+01202                             XDEF   CRDO
+01203P 01FD 86   0D      A CRDO   LDA    #CR      Send carriage return and line feed.                                                                                            •
+01204P 01FF 20   55   0256        BRA    OUTDO
+01205
+01206                             XDEF   CONDCR                                                                                                                                       •
+01207P 0201 BD   0000    A CONDCR JSR    DEVPRM   Get device parms.
+01208P 0204 27   F7   01FD        BEQ    CRDO     Always do CRLF if infinite width.
+01209P 0206 96   6C      A        LDA    DEVPOS   Do CRLF if not a left margin.
+01210P 0208 26   F3   01FD        BNE    CRDO
+01211P 020A 39             PRTRTS RTS
+01212
+01213                      *
+01214                      * Here when a comma has been seen.
+01215                      *                                                                                                                                                                  •
+01216P 020B BD   0000    A COMPRT JSR    DEVPRM   Get device parms.
+01217P 020E 27   0A   021A        BEQ    COMADO   If device has infinite width there
+01218                      *    is always room for another comma                                                                                                                           •
+01219                      *    field.
+01220P 0210 D6   6C      A        LDB    DEVPOS   Room for another comma field on this
+01221P 0212 D1   6B      A        CMPB   DEVLCF   line?
+01222P 0214 25   06   021C        BCS    MORCOM   Yes
+01223P 0216 8D   E5   01FD        BSR    CRDO     No, so start a new line.
+01224P 0218 20   22   023C        BRA    MORSCN   Scan more of print list.
+01225
+01226P 021A D6   6C      A COMADO LDB    DEVPOS   Get position for calculating where
+01227                      *    next comma field starts.
+01228P 021C D0   6A      A MORCOM SUBB   DEVCFW   B:=the number of spaces which must
+01229P 021E 24   FC   021C        BCC    MORCOM   be printed to get to the start of the
+01230P 0220 50                    NEGB            next column field.                                                                                                             •
+01231P 0221 20   10   0233        BRA    SPACEB   Go output the spaces. (Go to SPACEB
+01232                      *    rather than BSPAC so SPCIO gets
+01233                      *    checked.)                                                                                                                                                  •
+
+PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
+
+01235            0223    P TABER  EQU    *
+01236
+01237            0000    A        IFNE   SPCSW 
+01240                      ENDC    IFN SPCSW
+01241P 0223 BD   0000    A        JSR    GTBYTC   B:=number of spaces for SPC, or column
+01242                      *    number for TAB.
+01243P 0226 81   29      A        CMPA   #CLSPAR  Check for a closing paren without
+01244P 0228 1026 FDD4    A        LBNE   SNERR    causing a CHRGET call.
+01245
+01246            0000    A        IFNE   SPCSW
+01250                      ENDC    IFN SPCSW
+01251P 022C BD   0000    A        JSR    DEVPRM   No, it was TAB. Call DEVPRM to set
+01252                      *    up DEVPOS.
+01253P 022F D0   6C      A        SUBB   DEVPOS   Calculate number of spaces to output
+01254                      *    to get to the target column.
+01255P 0231 23   09   023C        BLS    MORSCN   Already at or beyond target column.
+01256P 0233 0D   6E      A SPACEB TST    SPCIO    Comma, TAB, and SPC are ignored if
+01257P 0235 26   05   023C        BNE    MORSCN   the special I/O flag is set.
+01258                      *    (DEVPRM has been called so SPCIO is
+01259                      *    set up.)
+01260
+01261            0000    A        IFNE   SPCSW
+01264                      ENDC    IFN SPCSW
+01265P 0237 8D   18   0251 BSPAC  BSR    OUTSPC   Ouput [B] spaces.
+01266P 0239 5A                    DECB
+01267P 023A 26   FB   0237        BNE    BSPAC
+01268P 023C 9D   9F      A MORSCN JSR    CHRGET   Reget last character.
+01269P 023E 7E   01C0    P        JMP    PRINTC   Go scan rest of print list.
+01270                      *
+01271                      * Print the string pointed to by [XREG] which ends with a zero.
+01272                      * STRLTI may copy the string into string space.
+01273                      *
+01274                             XDEF   STROUT 
+01275P 0241 BD   0000    A STROUT JSR    STRLTI   Get a string literal.
+01276                      *
+01277                      * Print thestring whose descriptor is pointed to by FACMO,FACLO.
+01278                      *
+01279                             XDEF   STRPRT
+01280P 0244 BD   0000    A STRPRT JSR    FREFAC   Return temp pointer. 
+01281                             XDEF   STRPXB 
+01282P 0247 5C             STRPXB INCB            Move one ahead.
+01283P 0248 5A             STRPR2 DECB
+01284P 0249 27   BF   020A        BEQ    PRTRTS   All done.
+01285P 024B A6   80      A        LDA    ,X+
+01286P 024D 8D   07   0256        BSR    OUTDO
+01287P 024F 20   F7   0248        BRA    STRPR2   And on and on.
+01288                             XDEF   OUTSPC
+01289P 0251 86  20       A OUTSPC LDA    #32      ASCII SPACE
+01290P 0253                       SKIP2
+01291                             XDEF   OUTQST
+01292P 0254 86 3F        A OUTQST LDA    #'?
+01293                             XDEF   OUTDO
+01294P 0256 7E 0000      A OUTDO  JMP    CHROUT   Go to machine specific output code.
+01295
+01296                             END
+TOTAL ERRORS 00000--00000
+IOTAL WARNINGS 00000-00000

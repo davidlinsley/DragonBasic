@@ -1,71 +1,52 @@
-                     KUUU
-                           PAGE  013   ECBBS2   .SA:1   BASTWO The PRINT code.
+PAGE  013  ECBBS2  .SA:1  BASTWO The PRINT code.
 
-                           01149                         *
-                           01150                         * Here after seeing TAB(X),     SPC(X),  a comma,   or a semicolon,   in which
-                           01151                         * case a terminator just causes a return without a CRLF.
-                           01152                         *
-                           01153P 01C0  27    48    020A PRINTC BED      PRTRTS     All done.
-                           01154P 01C2  81    00       A NEWCHR CMPA     #TABTK     TAB "function"?
-                           01155P 01C4  27    5D    0223         BED     TABER      Yes
-                           01156
-                           01157              0000     A         IFNE    SCSW
-                           01160                          ENDO     IFN SPCSW
-                           01161P 0106  81    2C       A         CMPA    #COMMA     No, a comma?
-                           01162P 0108  27    41    0208         BEQ     COMPRT     Yes
-                           01163P 01CA  81    38       A         CMPA    #SEMCOL    No, a semicolon?
-                           01164P 010C  27    6E    023C         BEQ     MORSCN     Yes, take no action.
-                           01165P 010E  BD    0000     A         JSR     FRMEVL     No, must be an item to be printed.
-                           01166                         *     Evaluate it.
-                           01167P 01D1  96    06       A         LDA     VALTYP     Get the VALTYP of the item.
-                           01168P 01D3  34    02       A         PSHS    A          Save indication of VALTYP since STRLIT
-                           01169                         *     will change numeric to string.
-                           01170P 01D5  26    06    01DD         BNE     PRTITM     Just print strings as is.
-                           01171P 01D7  BD    0000     A         JSR     FOUT       Convert the number to an ASCII outout
-                           01172P 01DA  BD    0000     A         JSR     STRLIT     string and build a descriptor for      it.
-                           01173P 01DD  8D    65    0244 PRTITM BSR      STRPRT     Print the item.
-                   'CP     01174P 01DF  35    04       A         PULS    B          Get back its VALTYP.
-                           01175P 01E1  BD    0000     A         JSR     DEVPRM     Call DEVPRM to set   up special   I/O
-                           01176                               flag since DEVPRM may not have been
-                           01177                               called yet.
-                           01178P 01E4  OD    6E       A         TST     SPCIO      Is the special   I/O flail set?
-                           01179P 01E6  27    06    OlEE         BEQ     TRMITM     No
-                   •       01180P 01E8  BD    13    01FD         BSR     CRDO       Yes, all  items get terminated by a
-                           01181                               carriage return.
-                           01182P 01EA  9D    A5                 JSR     CHRGOT     Reget last char and go scan more of
-                           01183P 01EC  20    D2    0100         BRA     PRINTC     print list.    (Can't go to NONNUM
-                           01184                               since we don't want an extra carriage
-                           01185                               return at the end    of all  items.
-                           01186
-                           01187P OlEE  5D                TRMITM TSTB               Was the item a number?
-                           01188P 01EF  26    08    01F9         BNE     NONNUM     No
-                           01189P 01F1  9D    A5       A         JSR     CHRGOT     Yes, is the next thing a comma?
-                           01190P 01F3  81    20       A         CMPA    #COMMA
-                           01191P 01F5  27    14    020D         BED     COMPRT     Yes, don't  output the soace that
-                           01192                               usually is printed after a number.
-                           01193                               This allows two columns of numbers
-                           01194                               to be printed on    one line.
-                           01195P 01F7  BD    58    0251         BSR     OUTSPC     No, follow it with a space.
-                           01196P 01F9  9D    AS       A  NONNUM JSR     CHRGOT     Look at  last char.
-                           01197P 01FB  26    05    0102         BNE     NEWCHR     Not terminator,   continue scanning
-                           01198                               print  list.
-                           01199                               Terminator,   fall  into CRDO to
-                           01200                               finish up.
-
-
-                        1
-
-
-+44 (0)20 E39 7.
-
-     For Your Ne(
-
-
-
-
-
-
-
-
-                   ors
-
+01149                      *
+01150                      * Here after seeing TAB(X), SPC(X), a comma, or a semicolon, in which
+01151                      * case a terminator just causes a return without a CRLF.
+01152                      *
+01153P 01C0 27   48   020A PRINTC BEQ    PRTRTS   All done.
+01154P 01C2 81   00      A NEWCHR CMPA   #TABTK   TAB "function"?
+01155P 01C4 27   5D   0223        BEQ    TABER    Yes
+01156
+01157            0000    A        IFNE   SPCSW
+01160                      ENDC    IFN SPCSW
+01161P 01C6  81  2C      A        CMPA   #COMMA   No, a comma?
+01162P 01C8  27  41   020B        BEQ    COMPRT   Yes
+01163P 01CA  81  3B      A        CMPA   #SEMCOL  No, a semicolon?
+01164P 01CC  27  6E   023C        BEQ    MORSCN   Yes, take no action.
+01165P 01CE  BD  0000    A        JSR    FRMEVL   No, must be an item to be printed.
+01166                      *    Evaluate it.
+01167P 01D1  96  06      A        LDA    VALTYP   Get the VALTYP of the item.
+01168P 01D3  34  02      A        PSHS   A        Save indication of VALTYP since STRLIT
+01169                      *    will change numeric to string.
+01170P 01D5  26  06   01DD        BNE    PRTITM   Just print strings as is.
+01171P 01D7  BD  0000    A        JSR    FOUT     Convert the number to an ASCII outout
+01172P 01DA  BD  0000    A        JSR    STRLIT   string and build a descriptor for it.
+01173P 01DD  8D  65   0244 PRTITM BSR    STRPRT   Print the item.
+01174P 01DF  35  04      A        PULS   B        Get back its VALTYP.
+01175P 01E1  BD  0000    A        JSR    DEVPRM   Call DEVPRM to set up special I/O
+01176                      *    flag since DEVPRM may not have been
+01177                      *    called yet.
+01178P 01E4  0D  6E      A        TST    SPCIO    Is the special I/O flag set?
+01179P 01E6  27  06   0lEE        BEQ    TRMITM   No
+01180P 01E8  8D  13   01FD        BSR    CRDO     Yes, all  items get terminated by a
+01181                      *    carriage return.
+01182P 01EA  9D  A5      A        JSR    CHRGOT   Reget last char and go scan more of
+01183P 01EC  20  D2   01C0        BRA    PRINTC   print list.  (Can't go to NONNUM
+01184                      *    since we don't want an extra carriage
+01185                      *    return at the end of all items.
+01186
+01187P 01EE  5D            TRMITM TSTB            Was the item a number?
+01188P 01EF  26  08   01F9        BNE    NONNUM   No
+01189P 01F1  9D  A5      A        JSR    CHRGOT   Yes, is the next thing a comma?
+01190P 01F3  81  2C      A        CMPA   #COMMA
+01191P 01F5  27  14   020B        BEQ    COMPRT   Yes, don't  output the space that
+01192                      *    usually is printed after a number.
+01193                      *    This allows two columns of numbers
+01194                      *    to be printed on one line.
+01195P 01F7  8D  58   0251        BSR    OUTSPC   No, follow it with a space.
+01196P 01F9  9D  A5      A NONNUM JSR    CHRGOT   Look at  last char.
+01197P 01FB  26  C5   01C2        BNE    NEWCHR   Not terminator, continue scanning
+01198                      *    print  list.
+01199                      *    Terminator, fall  into CRDO to
+01200                      *    finish up.

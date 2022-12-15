@@ -1,30 +1,8 @@
-                                                                                                                                               •
+PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
 
-       PAGE 010 ECBBS2 .SA:1 BASTWO The CRUNCH code                                                                                            •
-       01082P 016A Cl   00      A        CMPB   #DATATK   Starting a DATA statement?
-       01083P 016C 26   02   0170        BNE    NODATT    No
-       01084P 016E OC   44      A        INC    INDATA    Yes, set the in DATA flag.
-       01085P 0170 Cl   00      A NODATT CMPB   #REMTK    Is it a REM statement?
-       010R6P 0172 27   AA   011E        BEO    SRPREM    Yes, no crunching for rest of line. 
-       01087P 0174 20   86 00FC   GGCLOP BRA    GOCLOP    No, continue crunching.
-
-
-
-
-(
-
-
-
-
-
-
-
-
-
-
-
-•
-
-
-•
-
+01082P 016A C1   00      A        CMPB   #DATATK  Starting a DATA statement?
+01083P 016C 26   02   0170        BNE    NODATT   No.
+01084P 016E 0C   44      A        INC    INDATA   Yes, set the in DATA flag.
+01085P 0170 C1   00      A NODATT CMPB   #REMTK   Is it a REM statement?
+01086P 0172 27   AA   011E        BEO    SKPREM   Yes, no crunching for rest of line. 
+01087P 0174 20   86   00FC GGCLOP BRA    GOCLOP   No, continue crunching.

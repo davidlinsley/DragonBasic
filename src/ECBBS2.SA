@@ -1,0 +1,578 @@
+       OPT   L,LLE=120
+       NAM   BASTWO    - BASIC - Part Two
+
+********************************************************************** 
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+********************************************************************** 
+
+       TTL    External Declarations
+
+       XREF   BRKCHK,BUF
+       XREF   CHKCOM,CHROUT,CLOSIT
+       XREF   DATATK,DEVPRM
+       XREF   ELSETK
+       XREF   FNDLIN,FOUT,FREFAC,FRMEVL
+       XREF   GETDNM,GTBYTC
+       XREF   HKCRNC,HKDCRN
+       XREF   ISCNTC,ISLETC
+       XREF   LINGET,LINPRT
+       XREF   MINUTK
+       XREF   NFUN0,NNRML0
+       XREF   OPNOCK
+       XREF   PATDO,PRINTK,PUDRVR
+       XREF   READY,REMTK
+       XREF   SNERR,SNGQTK,STRLIT,STRLTI
+       XREF   TABTK
+       XREF   USINTK
+
+       IFNE   SPCSW
+ENDC    IFN SPCSW
+
+       TTL    LIST and LLIST
+
+       XDEF   LLIST
+LLIST  LDB    #LPTNUM  Device number:=line printer device 
+       STB    DEVNUM   number to make listing go to lot. 
+       JSR    CHRGOT   Reset CHRGET cond codes.
+
+       XDEF   LIST
+LIST   PSHS   CC       Remember if end of statement (EOS).
+       JSR    LINGET   LINNUM:=specified line number or 0
+*    if no line number given.
+       JSR    FNDLIN   X:=pointer to line .GE. LINNUM.
+*    (Start of program if no number.)
+       STX    LSTPTR   Save pointer for later.
+       PULS   CC       Was there really a number?
+       BEQ    LTOEND   No, so list the whole program.
+       JSR    CHRGOT   Yes, see what terminated the number.
+       BEQ    LISTGO   EOS so just list the specified line.
+       CMPA   #MINUTK  A dash is the only other thing.
+       BNE    LSTSNR   It isn't so give a syntax error.
+       JSR    CHRGET   Get the char following the dash.
+       BEQ    LTOEND   EOS so list from specified line to
+*    end of program.
+       JSR    LINGET   LINNUM:=second line number.
+       BEQ    LISTGO   Termination is OK.
+LSTSNR RTS             Statement is not properly terminated.
+*    Return to NEWSTT where a SN error will
+*    result.
+
+LTOEND LDU    #&65535  Make list stop only when the zero link
+       STU    LINNUM   at the end of the program is seen.
+
+LISTGO LEAS   &2,S     Get rid of the NEWSTT return address.
+       LDX    LSTPTR   X:=pointer to first line to list.
+
+LISTLP JSR    CONDCR   Start a new line.
+       JSR    BRKCHK   Check for BREAK.
+       LDD    ,X       Is the link zero?
+       BNE    NTENDP   No, haven't hit end of program yet. 
+LSTEND JSR    CLOSIT   Yes, close the listing file.
+       CLR    DEVNUM   Clear the device number so output
+*    goes to screen. 
+       JMP    READY    Return to command level.
+
+NTENDP STX    LSTPTR   Save pointer to current line.
+       LDD    &2,X     D:=line number.
+       CMPD   LINNUM   Is it beyond the end of the range?
+       BHI    LSTEND   Yes, all done.
+       JSR    LINPRT   Go output it.
+       JSR    OUTSPC   Follow line number with a space.
+       LDX    LSTPTR   Retrieve the line pointer.
+       BSR    DCRNCH   Decrunch the line into BUF.
+       LDX    [LSTPTR] Use link to make X point to the next
+*    line of the program.
+       LDU    #BUF     U:=pointer to te decrunched line.
+
+PLOOP  LDA    ,U+      Get char and bump pointer.
+       BEQ    LISTLP   Go handle next program line when zero
+*    marking the end of the current line
+*    is encountered.
+       JSR    OUTDO    Output the char.
+       BRA    PL00P    Go back for more of this line.
+       TTL    DCRNCH
+
+*
+* DCRNCH converts a crunched line back to ASCII for LISTing or
+* EDITing. The decrunched line is put into BUF. On entry to
+* DCRNCH X contains a pointer to the link field of the line
+* to be decrunched.
+*
+
+       XDEF   DCRNCH 
+DCRNCH JSR    HKDCRN   RAM hook.
+       LEAX   &4,X     Skip the link and line number. 
+       LDY    #BUF     lnit the buffer pointer.
+
+DCRNLP LDA    ,X+      Get char from crunched line and point
+*    to the next one.
+       BEQ    BUFRTS   End of line is marked by a zero.
+       BMI    HAVTOK   It is a reserved word token.
+       CMPA   #':      ELSE is crunched as a colon followed
+       BNE    NOTCOL   by an ELSE token so when decrunching
+       LDB    ,X       the colon must be thrown away.
+       CMPB   #ELSETK
+       BEQ    DCRNLP   It is an ELSE, skip the colon.
+       CMPB   #SNGOTK  Single quote is crunched as a colon
+       BEQ    DCRNLP   followed by a single quote token so
+*    throw away the colon if this is the
+*    case.
+SKIP2  Skip            over BADTOK to store colon.
+BADTOK LDA    #'!      Unrecognised token. Print as
+*    exclamation point.
+NOTCOL BSR    BUFCHR   Just a normal char, out it in the
+       BRA    DCRNLP   output buffer and go back for more.
+
+*
+* Here when a reserved word token is encountered.
+* The strategy is as follows:
+*
+* 1) See if it's a "normal" (non-function) token or a function token. 
+*
+* 2) Determine which reserved word list the token comes from by
+*    subtracting the counts found in the stubs from the token.
+*
+* 3) Using the result of the subtraction in 2 as an entry number
+*    into the appropriate reserved word list, skip entries until
+*    the desired entry is found.  (Entries are skipped by looking
+*    for the set MSB which marks the end of each entry.)
+*
+* 4) Move the ASCII characters of the reserved word into the
+*    output buffer.
+
+                                                                                                                        a
+HAVTOK LDU    #NNRML0-STBLEN Assume it isn't a function token
+*    and set up U so "normal" counts
+*    will be subtracted.  (U gets pre-                                                                            a
+*    incremented by STBLEN.)
+       CMPA   #@377    Is it a function token?
+       BNE    NTFNTK   No.
+       LDA    ,X+      Yes, get the second byte and set up
+       LEAU   &5,U     U so function counts will be
+*    subtracted.
+NTFNTK ANDA   #@177    Clear the MSB of the token.
+
+SUBCNT LEAU   STBLEN,U U:=pointer to reserved word count in
+*    the next stub.
+       TST    ,U       A zero count indicates the end of
+       BEQ    BADTOK   the active stubs so this token isn't
+*    supported by the software in this
+*    machine. For example, this program
+*    was written for machines with the
+*    extension ROM and this machine doesn't
+*    have one.
+       SUBA   ,U       Subtract the count from the token.
+       BPL    SUBCNT   It isn't in this list. Go subtract
+*    the next count.
+       ADDA   ,U       It's in this list. Add the count
+*    back in to get an entry number.
+       LDU    &1,U     U:=pointer to the reserved word list.
+
+CHKWRD DECA            Is this the entry we want?
+       BMI    HAVWRD   Yes.
+SKPWRD TST    ,U+      No, skip this entry by looking for
+       BPL    SKPWRD   the set MSB of the last char.
+       BRA    CHKWRD   See if we have arrived.
+
+HAVWRD LDA    ,U       Copy the table entry into the output
+       BSR    BUFCHR   buffer.
+       TST    ,U+      Quit when set MSB is seen. 
+       BPL    HAVWRD
+       BRA    DCRNLP   Go back for more to decrunch.
+
+BUFCHR CMPY   #BUF+BUFLEN-&1 Is the output buffer full?  (This
+*    could happen, for example, if the
+*    user typed in a bunch of question
+*    marks since these are expanded to
+*    PRINT when decrunched.)
+       BHS    BUFRTS   Yes, throw it away.
+       ANDA   #@177    No, reset the MSB since some devices
+*    can't handle high order bits. (It is
+*    set if this is the last char of a
+*    reserved word.)
+       STA    ,Y+      Put it into the output buffer and
+*    update the buffer pointer.
+       CLR    ,Y       Put in a zero to mark the end of the
+*    line. (This could be the end.)
+BUFRTS RTS
+
+       TTL    The CRUNCH code
+
+
+*    CRUNCH converts all reserved words to tokens.
+*    "Normal" (non-function) tokens are single bytes with the MSB 
+*    set. Function tokens are two bytes long. The first byte is 
+*    always 377 octal. The second byte is the actual function token 
+*    code. This division of normal and function tokens allows more 
+*    reserved words than would otherwise be possible.
+*    Token codes are actually reflect the position of the reserved 
+*    word within its list.
+
+
+       XDEF   CRUNCH
+CRUNCH JSR    HKCRNC   RAM hook.
+       LDX    TXTPTR   X:=pointer to start of line to be
+*    crunched.
+       LDU    #BUF-&1  U:=pointer to where crunched line is
+*    to be stored.  (Crunch into BUF-1 
+*    because single quote expands to
+*    a colon followed by a single quote 
+*    token. This is the only such case 
+*    and it can only occur once on a line 
+*    so only one extra byte of buffer is 
+*    needed.)
+
+NXTSCR CLR    INVNAM   Start crunching a new statement.
+*    Say not in variable name.
+       CLR    INDATA   Say not in DATA statement.
+
+CRLOOP LDA    ,X+      Get char from source line and point
+*    to the next one.
+       BEQ    STUFFA   End of line, go put it away.
+       TST    INVNAM   Working on a variable name?
+       BEQ    NOTVAR   No.
+       JSR    ISLETC   Yes, is this char a letter?
+       BCC    STUFFA   Yes, still in variable name. Go put
+*    it away.
+       CMPA   #'0      No, is it a numeric digit?
+       BLO    ENDVAR   No, end of variable name.
+       CMPA   #'9
+       BLS    STUFFA   Yes, still part of variable name.
+ENDVAR CLR    INVNAM   No, this char terminates the name.
+
+NOTVAR CMPA   #SPACE   Is it a space to save?
+       BEQ    STUFFA   Yes, go save it.
+       STA    TRMCHR   Store into TRMCHR so if this char 
+*    starts a quoted string QSTRNG will
+*    stop on the matching quote.
+       CMPA   #DBLQTE  Is it a double quote?
+       BEQ    QSTRNG   Yes, don't crunch until the end
+*    of the quoted string is found.
+       TST    INDATA   Not quoted string, are we in a DATA
+*    statement?
+       BEQ    NINDAT   No, go try to crunch.
+*    Yes, don't crunch rest of statement.
+*    Fall into STUFFA to put this char
+*    away.
+
+STUFFA STA    ,U+      Put the char into the dest buffer.
+       BEQ    CRDONE   A zero marks the end of the line.
+       CMPA   #':      Hit end of statement?
+       BEQ    NXTSCR   Yes, go work on next statement of
+*    this line.
+GOCLOP BRA    CRLOOP   No, continue on this statement.
+
+CRDONE CLR    ,U+      Put two more zeroes at the end of
+       CLR    ,U+      the crunched line so it looks like
+*    a zero link field.   This will look
+*    like the end of  program if this
+*    line is executed  in direct mode.
+       TFR    U,D      B:=1ength of crunched  line + 1 for
+       SUBD   #BUF-&3  end of line zero, +2 for  link field,
+*    +2 for line number.
+       LDX    #BUF-&2  Set TXTPTR so CHRGET gets first byte
+       STX    TXTPTR   of crunched line.
+       RTS             All done.
+*
+*    Here to try to crunch the current char.
+*
+
+NINDAT CMPA   #'?      Is it a question mark which is short
+*    for PRINT?
+       BNE    NQUEST   No
+       LDA    #PRINTK  Yes, just stuff a PRINT token.
+       BRA    STUFFA
+
+NQUEST CMPA   #SNGQTE  Is it a single quote meaning the rest
+*    of the line is a remark?
+       BNE    NSQTE    No.
+       LDD    #':*$100+SNGQTK Yes, stuff a colon followed
+       STD    ,U++     by a single quote token.
+*    (This looks like an end of statement
+*    followed by a remark statement to
+*    the run time code. The insertion of 
+*    the colon means single quote need not 
+*    be the first thing on the line as REM
+*    must be.)
+*    ($Z must be added since SNGQTK's
+*    being external forces the constant
+*    to be relocatable.)
+SKPREM CLR    TRMCHR   REM stops only on end of line.
+
+*
+*    Here to move chars from the source line to the destination buffer
+*    without crunching. This only stops on end of line or when the                                                                                                                                                                                                                                                                                                                                                                                                                          40
+*    char moved matches the char in TRMCHR. Quoted strings put a
+*    double quote in TRMCHR. REM and single quote put a zero in TRMCHR
+*    so everthing left on the source line is moved without crunching.                                                                                                                                                                                                                                                                                                                                                                                                                       40
+*
+
+STRLOP LDA    ,X+      Get char from source line.
+       BEQ    STUFFA   End of line.
+       CMPA   TRMCHR   Is it the terminating char?
+       BEQ    STUFFA   Yes, go put it away and resume
+*    crunching.
+QSTRNG STA    ,U+      No, put into dest buffer and go 
+       BRA    STRLOP   back for more.
+NSQTE  CMPA   #'O      Numeric digits,  colons, and semi-
+       BCS    MUSTCR   colons do not get crunched.  Just
+       CMPA   #SEMCOL+&1 copy them to the dest buffer.
+       BCS    STUFFA   Note that ASCII codes go 0-9, colon,
+*    semicolon.
+
+*
+* All special cases have been eliminated.  Try to crunch.
+*
+
+MUSTCR LEAX   -&1,X    Point to the current char. We will
+*    be checking to see if it starts a
+*    reserved word.
+       PSHS   U,X      Save both buffer pointers.
+       CLR    FUNFLG   Say we aren't having any fun. (This
+*    actually means we are searching the
+*    "normal" (non-function) reserved
+*    word lists.)
+       LDU    #NNRML0-STBLEN Set up pointer so normal reserved word
+*    lists will be checked. (U gets pr-
+*    incremented by STBLEN.)
+
+DOFUNS CLR    TOKNUM   Token number:=0.
+
+NXTLST LEAU   STBLEN,U Point to the next stub.
+       LDA    ,U       A:=reserved word count.
+       BEQ    NOTFND   Zero means all active lists have
+*    been checked.
+
+       LDY    &1, U    Y:=pointer to reserved word list.
+
+NXTRES LDX    ,S       X:=pointer to first char to crunch.
+
+RESLOP LDB    ,Y+      B:=char from res word list.
+       SUBB   ,X+      Subtract the candidate char.
+       BEQ   RESLOP    Continue while they match.
+       CMPB  #@200     If only difference is the MSB we have
+*    a match.
+       BNE   NTHISW    No match.
+
+*
+* Reserved word has been found.
+*
+
+       LEAS   82,S     Get rid of old source pointer.
+       PULS   U        Retrieve dest buffer pointer.
+       ORB    TOKNUM   B:=token code with MSB=1.
+       LDA    FUNFLG   Is it a function token?
+       BNE    STRTWO   Yes, go put away the 377 octal (FUNFLG
+*    is always 377 if nonzero) followed
+*    by the function token.
+       CMPB   #ELSETK  Not function, is it an ELSE token?
+       BNE    NTELSE   No.
+       LDA     #':     Yes, store colon and ELSE token.
+STRTWO STD    ,U++     Put away double length token.
+       BRA    GOCLOP   Go back to crunch more.
+
+NTELSE STB    ,U+      Put normal token away.
+       CMPB   #DATATK  Starting a DATA statement?
+       BNE    NODATT   No.
+       INC    INDATA   Yes, set the in DATA flag.
+NODATT CMPB   #REMTK   Is it a REM statement?
+       BEO    SKPREM   Yes, no crunching for rest of line. 
+GGCLOP BRA    GOCLOP   No, continue crunching.
+*
+* Here when all lists of a particular type (normal or function)
+* have been checked and a match hasn't been found.
+*
+
+NOTFND LDU    #NFUN0-STBLEN Assume that the function lists haven't
+*    been checked yet.
+       COM    FUNFLG   Have they?
+       BNE    DOFUNS   No, go check them.
+       PULS   U,X      Yes, this character does not start 
+*    a reserved word.  Retrieve both
+*    buffer pointers.
+       LDA    ,X+      Get the char back and stuff it.
+       STA    ,U+
+       JSR    ISLETC   Letters which fail to start a reserved 
+       BCS    GGCLOP   word are assumed to start a variable 
+       COM    INVNAM   name so set the flag which indicates 
+       BRA    GGCLOP   that we're working on a variable name.
+
+*
+* Here to skip a reserved word list entry.
+*
+
+NTHISW INC    TOKNUM   Increment the token number.
+       DECA            Decrement count of words in this list. 
+       BEQ    NXTLST   Checked all entries, go try next list. 
+       LEAY   -&1,Y    Need to look at current char since it 
+*    might be the last char of the table
+*    entry.
+SKPRES LDB    ,Y+      Skip past end of entry which is marked 
+       BPL    SKPRES   by MSB=1.
+       BRA    NXTRES   Go try next table entry.
+
+       TTL    The PRINT code.
+
+       XDEF   PRINT
+PRINT  BEQ    CRDO     Null print list, just send CRLF to
+*    screen.
+       BSR    PRNTDO   Come back to clear device number. 
+       CLR    DEVNUM   Make output go to screen and return.
+       RTS
+
+PRNTDO CMPA   #'@      Is it PRINT@?
+       BNE    NOTPAT   No.
+       JSR    PATDO    Yes, go position the cursor. 
+       BRA    SCANPL   Now scan the print list.
+
+NOTPAT CMPA   #'#      Device number?
+       BNE    PRTSCR   No, output goes to screen.
+       JSR    GETDNM   Yes, go read the device number. 
+       JSR    OPNOCK   Device must be open for output.
+
+SCANPL JSR    CHRGOT   If the print list is null just CRLF.
+       BEQ    CRDO
+       JSR    CHKCOM   Not null, comma must follow device
+*    number or PRINT@ position.
+
+PRTSCR CMPA   #USINTK  A USING token?
+       LBEQ   PUDRVR   Yes, go handle PRINT USING.
+*
+* Here after seeing TAB(X), SPC(X), a comma, or a semicolon, in which
+* case a terminator just causes a return without a CRLF.
+*
+PRINTC BEQ    PRTRTS   All done.
+NEWCHR CMPA   #TABTK   TAB "function"?
+       BEQ    TABER    Yes
+
+       IFNE   SPCSW
+ENDC    IFN SPCSW
+       CMPA   #COMMA   No, a comma?
+       BEQ    COMPRT   Yes
+       CMPA   #SEMCOL  No, a semicolon?
+       BEQ    MORSCN   Yes, take no action.
+       JSR    FRMEVL   No, must be an item to be printed.
+*    Evaluate it.
+       LDA    VALTYP   Get the VALTYP of the item.
+       PSHS   A        Save indication of VALTYP since STRLIT
+*    will change numeric to string.
+       BNE    PRTITM   Just print strings as is.
+       JSR    FOUT     Convert the number to an ASCII outout
+       JSR    STRLIT   string and build a descriptor for it.
+PRTITM BSR    STRPRT   Print the item.
+       PULS   B        Get back its VALTYP.
+       JSR    DEVPRM   Call DEVPRM to set up special I/O
+*    flag since DEVPRM may not have been
+*    called yet.
+       TST    SPCIO    Is the special I/O flag set?
+       BEQ    TRMITM   No
+       BSR    CRDO     Yes, all  items get terminated by a
+*    carriage return.
+       JSR    CHRGOT   Reget last char and go scan more of
+       BRA    PRINTC   print list.  (Can't go to NONNUM
+*    since we don't want an extra carriage
+*    return at the end of all items.
+
+TRMITM TSTB            Was the item a number?
+       BNE    NONNUM   No
+       JSR    CHRGOT   Yes, is the next thing a comma?
+       CMPA   #COMMA
+       BEQ    COMPRT   Yes, don't  output the space that
+*    usually is printed after a number.
+*    This allows two columns of numbers
+*    to be printed on one line.
+       BSR    OUTSPC   No, follow it with a space.
+NONNUM JSR    CHRGOT   Look at  last char.
+       BNE    NEWCHR   Not terminator, continue scanning
+*    print  list.
+*    Terminator, fall  into CRDO to
+*    finish up.
+       XDEF   CRDO
+CRDO   LDA    #CR      Send carriage return and line feed.                                                                                            •
+       BRA    OUTDO
+
+       XDEF   CONDCR                                                                                                                                       •
+CONDCR JSR    DEVPRM   Get device parms.
+       BEQ    CRDO     Always do CRLF if infinite width.
+       LDA    DEVPOS   Do CRLF if not a left margin.
+       BNE    CRDO
+PRTRTS RTS
+
+*
+* Here when a comma has been seen.
+*                                                                                                                                                                  •
+COMPRT JSR    DEVPRM   Get device parms.
+       BEQ    COMADO   If device has infinite width there
+*    is always room for another comma                                                                                                                           •
+*    field.
+       LDB    DEVPOS   Room for another comma field on this
+       CMPB   DEVLCF   line?
+       BCS    MORCOM   Yes
+       BSR    CRDO     No, so start a new line.
+       BRA    MORSCN   Scan more of print list.
+
+COMADO LDB    DEVPOS   Get position for calculating where
+*    next comma field starts.
+MORCOM SUBB   DEVCFW   B:=the number of spaces which must
+       BCC    MORCOM   be printed to get to the start of the
+       NEGB            next column field.                                                                                                             •
+       BRA    SPACEB   Go output the spaces. (Go to SPACEB
+*    rather than BSPAC so SPCIO gets
+*    checked.)                                                                                                                                                  •
+TABER  EQU    *
+
+       IFNE   SPCSW 
+ENDC    IFN SPCSW
+       JSR    GTBYTC   B:=number of spaces for SPC, or column
+*    number for TAB.
+       CMPA   #CLSPAR  Check for a closing paren without
+       LBNE   SNERR    causing a CHRGET call.
+
+       IFNE   SPCSW
+ENDC    IFN SPCSW
+       JSR    DEVPRM   No, it was TAB. Call DEVPRM to set
+*    up DEVPOS.
+       SUBB   DEVPOS   Calculate number of spaces to output
+*    to get to the target column.
+       BLS    MORSCN   Already at or beyond target column.
+SPACEB TST    SPCIO    Comma, TAB, and SPC are ignored if
+       BNE    MORSCN   the special I/O flag is set.
+*    (DEVPRM has been called so SPCIO is
+*    set up.)
+
+       IFNE   SPCSW
+ENDC    IFN SPCSW
+BSPAC  BSR    OUTSPC   Ouput [B] spaces.
+       DECB
+       BNE    BSPAC
+MORSCN JSR    CHRGET   Reget last character.
+       JMP    PRINTC   Go scan rest of print list.
+*
+* Print the string pointed to by [XREG] which ends with a zero.
+* STRLTI may copy the string into string space.
+*
+       XDEF   STROUT 
+STROUT JSR    STRLTI   Get a string literal.
+*
+* Print thestring whose descriptor is pointed to by FACMO,FACLO.
+*
+       XDEF   STRPRT
+STRPRT JSR    FREFAC   Return temp pointer. 
+       XDEF   STRPXB 
+STRPXB INCB            Move one ahead.
+STRPR2 DECB
+       BEQ    PRTRTS   All done.
+       LDA    ,X+
+       BSR    OUTDO
+       BRA    STRPR2   And on and on.
+       XDEF   OUTSPC
+OUTSPC LDA    #32      ASCII SPACE
+       SKIP2
+       XDEF   OUTQST
+OUTQST LDA    #'?
+       XDEF   OUTDO
+OUTDO  JMP    CHROUT   Go to machine specific output code.
+
+       END

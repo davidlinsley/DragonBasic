@@ -1,120 +1,50 @@
-              PAGE 005 E05.562 .SA:1 BASTWO DCRNCH
-
-
-              00855P          0091       33         45               A                   LEAU           &5,U                U so function counts will be
-
-              00856                                                      •           subtracted. 
-              00857P          0093       84         7F               A   NTFNTK ANDA                    #@177               Clear the MSB of the token.
-   1 1 1 1
-     1        00858
-
-              00859P          0095       33         4A               A   SUBCNT LEAU                    STBLEN,U U:=pointer to reserved word count in
-
-              00860                                                      •           the next stub.
-
-              00861P          0097       6D         C4               A                   TST            ,U                  A zero count indicates the end of
-
-              00862P          0099       27         E7         0082                      BEQ            BADTOK              the active stubs so this token isn't
-              00863                                                      *           supported by the software in this
-
-              00864                                                                  machine. For example, this program
-
-              00865                                                                  was written for machines with the
-
-              00866                                                                  extension ROM and this machine doesn't
-
-              00867                                                                  have one.
-
-              00868P          0095       AO         C4               A                   SUBA           ,U                  Subtract the count from the token.
-
-              00869P          009D       2A         F6         0095                      BPL            SUBCNT              it isn't in this list. Go subtract
-
-              00870                                                                  the next count.
-
-              00871P          009F       AB         C4               A                   ADDA           ,U                  It's in this list. Add the count
-
-              00872                                                                  back in to get an entry number.
-
-              00873P          00A1       EE         41               A                   LDU            &17U                U:=pointer to the reserved word list.
-
-              00874
-
-              00875P          00A3       4A                              CHKWRD DECA                                        Is this the entry we want?
-   !
-              00876P          00A4       2B         06         00AC                      BMI            HAVWRD              Yes.
-
-              00877P          00A6       6D         CO               A   SKPWRD TST                                         No, skip this entry by looking for
-
-              00878P          00A8       2A         FC         00A6                      BPL            S• KPWRD            the set MSB of the last char.
-
-              00879P          00AA       20         F7         00A3                      BRA            CHKWRD              See if we have arrived.
-
-              00880
-              00881P          00AC       A6         C4               A   HAVWRD LDA                     ,U                  Copy the table entry into the output
-
-              00882P          00AE       8D         06         0056                      BSR            BUFCHR              buffer.
-
-              00883P          002.0      ED         CO               A                   TST            ,U+                 Quit when set MSB is seen. 
-
-              00884P          00B2       2A         F8         00AC                      BPL            HAVWRD
-
-              00885P          00B4       20         B7         006D                      BRA            DCRNLP              Go back for more to decrunch.
- ,            00886
-
-              00887P          0056       108C       00F9             A   BUFCHR CMPY                    #BUFA-BUFLEN-&1 Is the output buffer full? (This
-
-              00888                                                      •           could happen, for example, if the
- .            00889                                                      •           user typed in a bunch of question
-
-              00890                                                      •           marks since these are expanded to
-
-              00891                                                      •           PRINT when decrunched.)
-
-              00892P          00BA       24         06         0002                      BHS            BUFRTS              Yes, throw it away.
-(
-              00893P          00BC       84         7F               A                   ANDA           #@177               No, reset the MSB since some devices
-   I ;        00894                                                                  can't handle high order bits.                                        (It is
-
-              00895                                                                  set if this is the last char of a
-
-              00896                                                      *           reserved word.)
-
-              00897P          00BF       A7         AO               A                   STA            ,Y+                 Put it into the output buffer and
-
-              00398                                                       *          update the buffer pointer.
-
-              00899P          0000       6F         A4               A                   CLR            ,Y                  Put in a zero to mark the end of the
-
-              00900                                                       *          line.           (This could be the end.)
-
-              00901P          0002       39                               BUFRTS RTS
-
-              00902
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                          •••
-
+PAGE  005  ECBBS2  .SA:1  BASTWO DCRNCH
+
+00855P 0091 33   45      A        LEAU   &5,U     U so function counts will be
+00856                      *    subtracted.
+00857P 0093 84   7F      A NTFNTK ANDA   #@177    Clear the MSB of the token.
+00858
+00859P 0095 33   4A      A SUBCNT LEAU   STBLEN,U U:=pointer to reserved word count in
+00860                      *    the next stub.
+00861P 0097 6D   C4      A        TST    ,U       A zero count indicates the end of
+00862P 0099 27   E7   0082        BEQ    BADTOK   the active stubs so this token isn't
+00863                      *    supported by the software in this
+00864                      *    machine. For example, this program
+00865                      *    was written for machines with the
+00866                      *    extension ROM and this machine doesn't
+00867                      *    have one.
+00868P 0095 A0   C4      A        SUBA   ,U       Subtract the count from the token.
+00869P 009D 2A   F6   0095        BPL    SUBCNT   It isn't in this list. Go subtract
+00870                      *    the next count.
+00871P 009F AB   C4      A        ADDA   ,U       It's in this list. Add the count
+00872                      *    back in to get an entry number.
+00873P 00A1 EE   41      A        LDU    &1,U     U:=pointer to the reserved word list.
+00874
+00875P 00A3 4A             CHKWRD DECA            Is this the entry we want?
+00876P 00A4 2B   06   00AC        BMI    HAVWRD   Yes.
+00877P 00A6 6D   C0      A SKPWRD TST    ,U+      No, skip this entry by looking for
+00878P 00A8 2A   FC   00A6        BPL    SKPWRD   the set MSB of the last char.
+00879P 00AA 20   F7   00A3        BRA    CHKWRD   See if we have arrived.
+00880
+00881P 00AC A6   C4      A HAVWRD LDA    ,U       Copy the table entry into the output
+00882P 00AE 8D   06   00B6        BSR    BUFCHR   buffer.
+00883P 00B0 6D   C0      A        TST    ,U+      Quit when set MSB is seen. 
+00884P 00B2 2A   F8   00AC        BPL    HAVWRD
+00885P 00B4 20   B7   006D        BRA    DCRNLP   Go back for more to decrunch.
+00886
+00887P 00B6 108C 00F9    A BUFCHR CMPY   #BUF+BUFLEN-&1 Is the output buffer full?  (This
+00888                      *    could happen, for example, if the
+00889                      *    user typed in a bunch of question
+00890                      *    marks since these are expanded to
+00891                      *    PRINT when decrunched.)
+00892P 00BA 24   06   00C2        BHS    BUFRTS   Yes, throw it away.
+00893P 00BC 84   7F      A        ANDA   #@177    No, reset the MSB since some devices
+00894                      *    can't handle high order bits. (It is
+00895                      *    set if this is the last char of a
+00896                      *    reserved word.)
+00897P 00BE A7   A0      A        STA    ,Y+      Put it into the output buffer and
+00398                      *    update the buffer pointer.
+00899P 00C0 6F   A4      A        CLR    ,Y       Put in a zero to mark the end of the
+00900                      *    line. (This could be the end.)
+00901P 0002 39             BUFRTS RTS
+00902
