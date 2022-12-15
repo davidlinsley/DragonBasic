@@ -3,4 +3,4 @@ PAGE  003  ECBBS2  .SA:1  BASTWO LIST and LLIST
 00792                      *    marking the end of the current line
 00793                      *    is encountered.
 00794P 005F BD   0256    P        JSR    OUTDO    Output the char.
-00795P 0062 20   F7   005B        BRA    PL00P    Go back for more of this line.
+00795P 0062 20   F7   005B        BRA    PLOOP    Go back for more of this line.
