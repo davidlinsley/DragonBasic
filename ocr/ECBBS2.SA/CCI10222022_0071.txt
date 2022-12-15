@@ -1,74 +1,59 @@
-               PAGE 015 ECBBS2 .SA:1 BASTWO The PRINT code.
+PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
 
-
-               01235           0223   P TABER EQU
-               01236
-               01237           0000   A        IFNE SPCSW 
-               01240                     ENDC  IFN SPCSW
-               01241P 0223 BD 0000    A       JSR    GTBYTC  B:=number of spaces for SPC, or column                                      •
-               01242                    •   number for TAB.
-               01243P 0226 81  29     A       CMPA   #CLSPAR Check for a closing paren without
-               01244P 0228 1026 FDD4  A       LBNE   SNERR   causing a CHRGET call.
-               01245
-               01246           0000   A        IFNE  SPCSW
-               01250                     ENDC  IFN SPCSW
-               01251P 022C BD 0000    A       JSR    DEVPRM  No, it was TAB. Call DEVPRM to set
-               01252                    •   up DEVPOS.
-               01253P 022F DO 6C      A        SUBB  DEVPOS  Calculate number of spaces to output
-               01254                    •   to get to the target column.
-               01255P 0231 23  09   023C       BLS   MORSCN  Already at or beyond target column.
-               01256P 0233 OD 6E      A SPACEB TST   SPCIO   Comma, TAB, and SPC are ignored if
-               01257P 0235 26 05    023C       BNE   MORSCN  the special I/O flag is set.
-               01258                    •   (DEVPRM has been called so SPCIO is
-               01259                    •   set up.)
-         •     01260
-               01261           0000   A        IFNE  SPCSW
-               01264                     ENDC  IFN SPCSW
-               01265P 0237 8D  18   0251 BSPAC BSR   OUTSPC  Ouput [D] spaces.
-               01266P 0239 5A                  DECB
-               01267P 023A 26 FB    0237       BNE   BSPAC
-               01268P 023C 9D  Pi=    A MORSCN JSR   CHRGET  Reget last character.
-               012692 023E 7E  01C0   P        JMP   PRINTC  Go scan rest of print list.
-               01270                    *
-               01271                    * Print the string pointed to by EXREG3 which ends with a zero.
-               01272                    * STRLTI may copy the string into string space.
-               01273                    *
-               01274                           XDEF  STROUT 
-               012752 0241 BD  0000   A STROUT JSR   STRLTI  Get a string literal.
-               01276                    *
-               01277                    * Print thestring whose descriotor is pointed to by FACMO,FACLO.
-               01278                    *
-               01279                           XDEF  STRPRT
-               01280P 0244 BD 0000    A STRPRT JSR   FREFAC  Return temp pointer. 
-               01281                           XDEF  STRPXB 
-               01282P 0247 5C           STRPXB INCB          Move one ahead.
-               01283P 0248 5A           STRPR2 DECB
-               01284P 0249 27  BF   020A       BEQ   PRTRTS  All done.
-"Progression   012652 024B A6 80      A        LDA   ,X+
-movement.      01286P 024D 8D 07    0256       BSR   OUTDO
-family of po   012872 024F 20 F7    0248       BRA   STRPR2  And on and on.
-lifetime spet  01288                           XDEF  OUTSPC
-component      012892 0251 86  20     A OUTSPC LDA   #32     ASCII SPACE
-always resp    01290P 0253                     SKIP2
-convey reali    01291                          XDEF  OUTQST
- ic most th    012922 0254 86 3F      A OUTOST LDA   #'?
-                01293                          XDEF  OUTDO
-                01294P 0256 7E 0000   A OUTDO JMP    CHROUT  Go to machine specific output code.
-                01295
-                01296                          END
-                TOTAL ERRORS 00000--00000                                                                                                 •
-                IOTAL WARNINGS 00000-00000
-
-
-
-
-
-
-
-
-
-
-            1 f
-
-                                       1=m-rnn         oulm      6,-- nom
-
+01235            0223    P TABER  EQU    *
+01236
+01237            0000    A        IFNE   SPCSW 
+01240                      ENDC    IFN SPCSW
+01241P 0223 BD   0000    A        JSR    GTBYTC   B:=number of spaces for SPC, or column
+01242                      *    number for TAB.
+01243P 0226 81   29      A        CMPA   #CLSPAR  Check for a closing paren without
+01244P 0228 1026 FDD4    A        LBNE   SNERR    causing a CHRGET call.
+01245
+01246            0000    A        IFNE   SPCSW
+01250                      ENDC    IFN SPCSW
+01251P 022C BD   0000    A        JSR    DEVPRM   No, it was TAB. Call DEVPRM to set
+01252                      *    up DEVPOS.
+01253P 022F D0   6C      A        SUBB   DEVPOS   Calculate number of spaces to output
+01254                      *    to get to the target column.
+01255P 0231 23   09   023C        BLS    MORSCN   Already at or beyond target column.
+01256P 0233 0D   6E      A SPACEB TST    SPCIO    Comma, TAB, and SPC are ignored if
+01257P 0235 26   05   023C        BNE    MORSCN   the special I/O flag is set.
+01258                      *    (DEVPRM has been called so SPCIO is
+01259                      *    set up.)
+01260
+01261            0000    A        IFNE   SPCSW
+01264                      ENDC    IFN SPCSW
+01265P 0237 8D   18   0251 BSPAC  BSR    OUTSPC   Ouput [B] spaces.
+01266P 0239 5A                    DECB
+01267P 023A 26   FB   0237        BNE    BSPAC
+01268P 023C 9D   9F      A MORSCN JSR    CHRGET   Reget last character.
+01269P 023E 7E   01C0    P        JMP    PRINTC   Go scan rest of print list.
+01270                      *
+01271                      * Print the string pointed to by [XREG] which ends with a zero.
+01272                      * STRLTI may copy the string into string space.
+01273                      *
+01274                             XDEF   STROUT 
+01275P 0241 BD   0000    A STROUT JSR    STRLTI   Get a string literal.
+01276                      *
+01277                      * Print thestring whose descriptor is pointed to by FACMO,FACLO.
+01278                      *
+01279                             XDEF   STRPRT
+01280P 0244 BD   0000    A STRPRT JSR    FREFAC   Return temp pointer. 
+01281                             XDEF   STRPXB 
+01282P 0247 5C             STRPXB INCB            Move one ahead.
+01283P 0248 5A             STRPR2 DECB
+01284P 0249 27   BF   020A        BEQ    PRTRTS   All done.
+01285P 024B A6   80      A        LDA    ,X+
+01286P 024D 8D   07   0256        BSR    OUTDO
+01287P 024F 20   F7   0248        BRA    STRPR2   And on and on.
+01288                             XDEF   OUTSPC
+01289P 0251 86  20       A OUTSPC LDA    #32      ASCII SPACE
+01290P 0253                       SKIP2
+01291                             XDEF   OUTQST
+01292P 0254 86 3F        A OUTQST LDA    #'?
+01293                             XDEF   OUTDO
+01294P 0256 7E 0000      A OUTDO  JMP    CHROUT   Go to machine specific output code.
+01295
+01296                          END
+TOTAL ERRORS 00000--00000
+IOTAL WARNINGS 00000-00000
