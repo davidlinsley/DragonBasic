@@ -1,4 +1,3 @@
-       OPT    L,LLE=120
        NAM    TXRRAM   - RAM Off The Direct Page For TCC BASIC
 
 **********************************************************************
