@@ -54,6 +54,6 @@ PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
 01293                             XDEF   OUTDO
 01294P 0256 7E 0000      A OUTDO  JMP    CHROUT   Go to machine specific output code.
 01295
-01296                          END
+01296                             END
 TOTAL ERRORS 00000--00000
 IOTAL WARNINGS 00000-00000
