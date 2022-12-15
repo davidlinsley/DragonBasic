@@ -15,6 +15,7 @@ Scans and OCR of the Dragon Data version of Microsoft Extended Color BASIC for t
 - src
   - A copy of the listing files but with the following removed to reproduce the original source.
     - PAGE heading lines
+    - OPT settings for listing (printing) configuration
     - TOTAL-WARNINGS lines
     - TOTAL-ERRORS lines
     - Columns 1 through 27 (generated line/sequence numbers and assembled output)
