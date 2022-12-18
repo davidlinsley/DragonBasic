@@ -1,0 +1,60 @@
+PAGE  011  ECBTAB  .SA:1  ECBTAB Operator Table
+
+01173
+01174                             TTL    Error Texts
+01175
+01176            FFFE    A Q      SET    -&2
+01177
+01178                             XDEF   ERRTAB
+01179P 02A9                ERRTAB DCE    NF
+01180                             XDEF   ERRNF
+01181            0000    A ERRNF  EQU    Q        NEXT WITHOUT FOR.
+01182P 02AB                       DCE    SN
+01183                             XDEF   ERRSN
+01184            0002    A ERRSN  EQU    Q        SYNTAX ERROR.
+01185P 02AD                       DCE    RG
+01186                             XDEF   ERRRG
+01187            0004    A ERRRG  EQU    Q        RETURN WITHOUT GOSUB.
+01188P 02AF                       DCE    OD
+01189                             XDEF   ERROD
+01190            0006    A ERROD  EQU    Q        OUT OF DATA.
+01191P 02B1                       DCE    FC
+01192                             XDEF   ERRFC
+01193            0008    A ERRFC  EQU    Q        ILLEGAL FUNCTION CALL.
+01194P 02B3                       DCE    OV
+01195                             XDEF   ERROV
+01196            000A    A ERROV  EQU    Q        OVERFLOW.
+01197P 02B5                       DCE    OM
+01198                             XDEF   ERROM
+01199            000C    A ERROM  EQU    Q        OUT OF MEMORY.
+01200P 02B7                       DCE    UL
+01201                             XDEF   ERRUL
+01202            000E    A ERRUL  EQU    Q        UNDEFINED LINE.
+01203P 02B9                       DCE    BS
+01204                             XDEF   ERRBS
+01205            0010    A ERRBS  EQU    Q        SUBSCRIPT OUT OF RANGE.
+01206P 02BB                       DCE    DD
+01207                             XDEF   ERRDD
+01208            0012    A ERRDD  EQU    Q        REDIMENSIONED ARRAY.
+01209P 02BD                       DCE    /0
+01210                             XDEF   ERRDVO
+01211            0014    A ERRDVO EQU    Q        DIVISION BY ZERO.
+01212P 02BF                       DCE    ID
+01213                             XDEF   ERRID
+01214            0016    A ERRID  EQU    Q        ILLEGAL DIRECT.
+01215P 02C1                       DCE    TM
+01216                             XDEF   ERRTM
+01217            0018    A ERRTM  EQU    Q        TYPE MISMATCH.
+01218P 02C3                       DCE    OS
+01219                             XDEF   ERRSO
+01220            001A    A ERRSO  EQU    Q        OUT OF STRING SPACE.
+01221P 02C5                       DCE    LS
+01222                             XDEF   ERRLS
+01223            001C    A ERRLS  EQU    Q        STRING TOO LONG.
+01224P 02C7                       DCE    ST
+01225                             XDEF   ERRST
+01226            001E    A ERRST  EQU    Q        STRING FORMULA TOO COMPLEX.
+01227P 02C9                       DCE    CN
+01228                             XDEF   ERRCN
+01229            0020    A ERRCN  EQU    Q        CAN'T CONTINUE.
+01230P 02CB                       DCE    UF

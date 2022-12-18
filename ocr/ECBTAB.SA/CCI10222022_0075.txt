@@ -1,0 +1,58 @@
+PAGE  004  ECBTAB  .SA:11 ECBTAB "Normal" (non-function) Reserved Word Table
+
+00877                             XDEF   SUBTK
+00878            00BD    A SUBTK  EQU    Q
+00879P 0132                       DCI    F,N
+00880                             XDEF   FNTK
+00881            00BE    A FNTK   EQU    Q 
+00882
+00883            0000    A        IFNE   SPCSW
+00889                      ENDC    IFN SPCSW
+00890P 0134                       DCI    THE,N
+00891                             XDEF   THENTK
+00892            00BF    A THENTK EQU    Q
+00893P 0138                       DCI    NO,T
+00894                             XDEF   NOTTK
+00895            00C0    A NOTTK  EQU    Q
+00896P 013B                       DCI    STE,P
+00897                             XDEF   STEPTK
+00898            00C1    A STEPTK EQU    Q
+00899P 013F                       DCI    OF,F
+00900                             XDEF   OFFTK
+00901            00C2    A OFFTK  EQU    Q
+00902P 0142                       DCIONE +
+00903                             XDEF   PLUSTK
+00904            00C3    A PLUSTK EQU    Q
+00905P 0143                       DCIONE -
+00906                             XDEF   MINUTK
+00907            00C4    A MINUTK EQU    Q
+00908P 0144                       DCIONE *
+00909                             XDEF   MULTK
+00910            00C5    A MULTK  EQU    Q
+00911P 0145                       DCIONE /
+00912P 0146                       DCIONE ^
+00913P 0147                       DCI    AN,D
+00914                             XDEF   ANDTK
+00915            00C8    A ANDTK  EQU    Q
+00916P 014A                       DCI    O,R
+00917                             XDEF   ORTK
+00918            00C9    A ORTK   EQU    Q
+00919P 0140      BE      A        FCB    &190     A GREATER THAN SIGN
+00920            00CA    A Q      SET    Q+&1
+00921                             XDEF   GREATK
+00922            00CA    A GREATK EQU    Q
+00923P 014D                       DCIONE =
+00924                             XDEF   EQULTK
+00925            00CB    A EQULTK EQU    Q
+00926P 014E      BC      A        FCB    &188
+00927            00CC    A Q      SET    Q+&1     A LESS THAN SIGN
+00928                             XDEF   LESSTK
+00929            00CC    A LESSTK EQU    Q
+00930P 014F                       DCI    USIN,G
+00931                             XDEF   USINTK
+00932            00CD    A USINTK EQU    Q
+00933                             XDEF   LNRMTK
+00934            00CD    A LNRMTK EQU    Q        Last "normal" token.
+00935                             XDEF   NNRMTK
+00936            004E    A NNRMTK EQU    Q-&127   How many normal tokens.
+00937

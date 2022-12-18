@@ -1,0 +1,60 @@
+PAGE  002  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
+
+00758P 0033                RESLST DCI    FO,R
+00759                             XDEF   FORTK
+00760            0080    A FORTK  EQU    Q
+00761            0080    A FSTATK EQU    Q        The first statement token.
+00762P 0036                       DCI    G,O
+00763                             XDEF   GOTK
+00764            0081    A GOTK   EQU    Q
+00765P 0038                       DCI    RE,M
+00766                             XDEF   REMTK
+00767            0082    A REMTK  EQU    Q
+00768P 003B                       DCIONE
+00769                             XDEF   SNGQTK
+00770            0083    A SNGQTK EQU    Q
+00771P 003C                       DCI    ELS,E
+00772                             XDEF   ELSETK
+00773            0084    A ELSETK EQU    Q
+00774P 0040                       DCI    I,F
+00775                             XDEF   IFTK
+00776            0085    A IFTK   EQU    Q
+00777P 0042                       DCI    DAT,A
+00778                             XDEF   DATATK
+00779            0086    A DATATK EQU    Q
+00780P 0046                       DCI    PRIN,T
+00781                             XDEF   PRINTK
+00782            0087    A PRINTK EQU    Q
+00783P 0048                       DCI    O,N
+00784                             XDEF   ONTK
+00785            0088    A ONTK   EQU    Q
+00786P 004D                       DCI    INPU,T
+00787                             XDEF   INPUTK
+00788            0089    A INPUTK EQU    Q
+00789P 0052                       DCI    EN,D
+00790P 0055                       DCI    NEX,T
+00791P 0059                       DCI    DI,M
+00792P 005C                       DCI    REA,D
+00793P 0060                       DCI    LE,T
+00794P 0063                       DCI    RU,N
+00795P 0066                       DCI    RESTOR,E
+00796P 006D                       DCI    RETUR,N
+00797P 0073                       DCI    STO,P
+00798P 0077                       DCI    POK,E
+007990 0078                       DCI    CON,T
+00800P 007F                       DCI    LIS,T
+00801P 0083                       DCI    CLEA,R
+00802                             XDEF   CLEATK
+00803            0096    A CLEATK EQU    Q
+00804P 0088                       DCI    NE,W
+00805P 008B                       DCI    DE,F
+00806            0000    A        IFNE   WAITSW
+00808                      ENDC    IFE WAITSW
+00809P 008E                       DCI    CLOA,D
+00810                             XDEF   CLOATK
+00811            0099    A CLOATK EQU    Q
+00812P 0093                       DCI    CSAV,E
+00813                             XDEF   CSAVTK
+00814            009A    A CSAVTK EQU    Q
+00815P 0098                       DCI    OPE,N
+00816P 009C                       DCI    CLOS,E

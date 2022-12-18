@@ -1,0 +1,61 @@
+PAGE  001  ECBCOM  .SA:0  ECBTAB Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    ECBTAB   - Tables for ECB / MLC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   ZBITIN,ZCASOF,ZCASON,ZCBIN,ZCBLIN,ZCBOUT,ZCSRDO,ZHRDIN
+00712                             XREF   ZINHST,ZJOYIN,ZLPTOU,ZOUTHS,ZPOLCA,ZSCROU,ZSFTIN,ZSTBAU
+00713                             XREF   ZWRTLD
+00714 
+00715                             TTL    I/O Jump Table
+00716
+00717                             XDEF   HRDINI
+00718P 0000 7E   0000    A HRDINI JMP    ZHRDIN   Hardware initialization.
+00719                             XDEF   SFTINI
+00720P 0003 7E   0000    A SFTINI JMP    ZSFTIN   Software initialization.
+00721                             XDEF   POLCAT
+00722P 0006 7E   0000    A POLCAT JMP    ZPOLCA   Poll the keyboard.
+00723                             XDEF   CBLINK
+00724P 0009 7E   0000    A CBLINK JMP    ZCBLIN   Blink the cursor.
+00725                             XDEF   SCROUT
+00726P 000C 7E   0000    A SCROUT JMP    ZSCROU   Output char to screen.
+00727                             XDEF   LPTOUT
+00728P 000F 7E   0000    A LPTOUT JMP    ZLPTOU   Output char to printer.
+00729                             XDEF   JOYIN
+00730P 0012 7E   0000    A JOYIN  JMP    ZJOYIN   Input joystick coordinates.
+00731                             XDEF   CASON
+00732P 0015 7E   0000    A CASON  JMP    ZCASON   Turn on the cassette motor.
+00733                             XDEF   CASOFF
+00734P 0018 7E   0000    A CASOFF JMP    ZCASOF   Turn off the cassette motor.
+00735                             XDEF   WRTLDR
+00736P 001B 7E   0000    A WRTLDR JMP    ZWRTLD   Turn on cassette and write leader.
+00737                             XDEF   CBOUT
+00738P 001E 7E   0000    A CBOUT  JMP    ZCBOUT   Output byte to cassette.
+00739                             XDEF   CSRDON
+00740P 0021 7E   0000    A CSRDON JMP    ZCSRDO   Turn on cassette and sync up for
+00741                      *    reading.
+00742                             XDEF   CBIN
+00743P 0024 7E   0000    A CBIN   JMP    ZCBIN    Read a byte from cassette.
+00744                             XDEF   BITIN
+00745P 0027 7E   0000    A BITIN  JMP    ZBITIN   Read a bit from cassette.
+00746                             XDEF   INHST
+00747P 002A 7E   0000    A INHST  JMP    ZINHST   Read a byte from the host.
+00748                             XDEF   OUTHST
+00749P 002D 7E   0000    A OUTHST JMP    ZOUTHS   Send a byte to the host.
+00750                             XDEF   STBAUD
+00751P 0030 7E   0000    A STBAUD JMP    ZSTBAU   Set the baud rate.
+00752
+00753                             TTL    "Normal" (non-function) Reserved Word Table
+00754
+00755            007F    A Q      SET    &128-&1
+00756
+00757                             XDEF   RESLST
+

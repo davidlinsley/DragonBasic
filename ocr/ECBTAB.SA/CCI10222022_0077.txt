@@ -1,0 +1,15 @@
+PAGE  006  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
+
+00998P 01B4                       FDBEXT COLORS
+00999P 01B6                       FDBEXT CIRCLE
+01000P 01B8                       FDBEXT PAINT
+01001P 01BA                       FDBEXT GET
+01002P 01BC                       FDBEXT PUT
+01003P 01BE                       FDBEXT DRAW
+01004P 01C0                       FDBEXT PCOPY
+01005P 01C2                       FDBEXT PMODE
+01006P 01C4                       FDBEXT PLAY
+01007P 01C6                       FDBEXT DLOAD
+01008P 01C8                       FDBEXT RENUM
+01009            0001    A        IFEQ   REALIO
+01012                      ENDC    IFE REALIO

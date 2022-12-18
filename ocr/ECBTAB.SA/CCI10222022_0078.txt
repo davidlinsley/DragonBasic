@@ -1,0 +1,60 @@
+PAGE  007  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
+
+01014
+01015                             TTL    Function Reserved Word List
+01016
+01017            007F    A Q      SET    &128-&1
+01018
+01019                             XDEF   FUNLST
+01020P 01CA                FUNLST DCI    SG,N
+01021            0080    A CLASS0 EQU    Q        The first class 0 function token.
+01022P 01CD                       DCI    IN,T
+01023P 01D0                       DCI    AB,S
+01024
+01025            0000    A        IFNE   FRESW
+01027                      ENDC    IFN FRESW
+01028
+01029P 01D3                       DCI    PO,S
+01030P 01D6                       DCI    RN,D
+01031
+01032P 01D9                       DCI    SQ,R
+01033P 01DC                       DCI    LO,G
+01034P 01DF                       DCI    EX,P
+01035P 01E2                       DCI    SI,N
+01036P 01E5                       DCI    CO,S
+01037P 01E8                       DCI    TA,N
+01038P 01EB                       DCI    AT,N
+01039P 01EE                       DCI    PEE,K
+01040                             XDEF   PEEKTK
+01041            008C    A PEEKTK EQU    Q
+01042P 01F2                       DCI    LE,N
+01043P 01F5                       DCI    STR,$
+01044P 01F9                       DCI    VA,L
+01045P 01FC                       DCI    AS,C
+01046P 01FF                       DCI    CHR,$
+01047P 0203                       DCI    EO,F
+01048P 0206                       DCI    JOYST,K
+01049P 020C                       DCI    FI,X
+01050P 020F                       DCI    HEX,$
+01051                             XDEF   CLASS1
+01052            0096    A CLASS1 EQU    Q+&1     The first class 1 function token.
+01053                             XDEF   TCLAS1
+01054            002C    A TCLAS1 EQU    (2*CLASS1)!.&255
+01055P 0213                       DCI    LEFT,$
+01056P 0218                       DCI    RIGHT,S
+01057P 021E                       DCI    MID,$
+01058                             XDEF   MID$TK
+01059            0098    A MID$TK EQU    Q
+01060
+01061                             XDEF   CLASS2
+01062            0099    A CLASS2 EQU    Q+&1     The first class 2 function token.
+01063                             XDEF   TCLAS2
+01064            0032    A TCLAS2 EQU    (2*CLASS2)!.&255
+01065P 0222                       DCI    POIN,T
+01066                             XDEF   CLASS3
+01067            009A    A CLASS3 EQU    Q+&1     The first class 3 function token.
+01068                             XDEF   TCLAS3
+01069            0034    A TCLAS3 EQU    (2*CLASS3)!.&255
+01070
+01071P 0227                       DCI    INKEY,$
+01072

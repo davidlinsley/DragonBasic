@@ -1,0 +1,26 @@
+PAGE  008  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
+
+01073            0001    A        IFNE   MEMSW
+01074P 022D                       DCI    ME,M
+01075                             ENDC   IFN      MEMSW
+01076P 0230                       DCI    VARPT,R
+01077P 0236                       DCI    INST,R
+01078            0000    A        IFNE   TODCLK
+01080                      ENDC    IFN TODCLK
+01081            0000    A        IFEQ   TODCLK
+01082P 023B                       DCI    TIME,R
+01083                             ENDC   IFE      TODCLK
+01084                             XDEF   TIMETK
+01085            009E    A TIMETK EQU    Q
+01086P 0240                       DCI    PPOIN,T
+01087P 0246                       DCI    STRING,$
+01088P 024D                       DCI    US,R
+01089                             XDEF   USRTK
+01090            00A1    A USRTK  EQU    Q
+01091                             XDEF   LFUNTK
+01092            00A1    A LFUNTK EQU    Q        The last function token.
+01093                             XDEF   TLFNTK
+01094            0042    A TLFNTK EQU    (2*LFUNTK)!.&255
+01095                             XDEF   NFUNTK
+01096            0022    A NFUNTK EQU    Q-&127   How many function tokens.
+01097

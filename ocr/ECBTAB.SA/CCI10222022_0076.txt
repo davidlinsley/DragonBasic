@@ -1,0 +1,60 @@
+PAGE  005  ECBTAB  .SA:l  ECBTAB "Normal" (non-function) Reserved Word Table
+
+00939
+00940                             TTL    Statement Dispatch Table
+00941
+00942                             XDEF   STMDSP
+00943P 0154                STMDSP FDBEXT FOR
+00944P 0156                       FDBEXT GO
+00945P 0158                       FDBEXT REM      The actual REM handier.
+00946P 015A      0000    A        FDB    REM      Handle single quote same as REM.
+00947P 015C      0000    A        FDB    REM      Handle ELSE same as REM.
+00948P 015E                       FDBEXT IF
+00949P 0160                       FDBEXT DATA
+00950P 0162                       FDBEXT PRINT
+00951P 0164                       FDBEXT ONGOTO
+00952P 0166                       FDBEXT INPUT
+00953P 0168                       FDBEXT END
+00954P 016A                       FDBEXT NEXT
+00955P 016C                       FDBEXT DIM
+00956P 016E                       FDBEXT READ
+00957P 0170                       FDBEXT LET
+00958P 0172                       FDBEXT RUN
+00959P 0174                       FDBEXT RESTOR
+00960P 0176                       FDBEXT RETURN
+00961P 0178                       FDBEXT STOP
+00962P 017A                       FDBEXT POKE
+00963P 017C                       FDBEXT CONT
+00964P 017E                       FDBEXT LIST
+00965P 0180                       FDBEXT CLEAR
+00966P 0182                       FDBEXT SCRATH
+00967P 0184                       FDBEXT DEF
+00968
+00969            0000    A        IFNE   WAITSW
+00971                      ENDC    IFN WAITSW
+00972
+00973P 0186                       FDBEXT CLOAD
+00974P 0188                       FDBEXT CSAVE
+00975P 018A                       FDBEXT OPEN
+00976P 018C                       FDBEXT CLOSE
+00977
+00978P 018E                       FDBEXT LLIST
+00979
+00980P 0190                       FDBEXT SET
+00961P 0192                       FDBEXT RESET
+00982P 0194                       FDBEXT CLS
+00983P 0196                       FDBEXT MOTOR 
+00984P 0198                       FDBEXT SOUND
+00985P 019A                       FDBEXT AUDIO
+00986P 019C                       FDBEXT EXEC
+00987P 019E                       FDBEXT SKIPF
+00988P 01A0                       FDBEXT DELETE
+00989P 01A2                       FDBEXT EDIT
+00990P 01A4                       FDBEXT TRON
+00991P 01A6                       FDBEXT TROFF
+00992P 01A8                       FDBEXT LINE
+00993P 01AA                       FDBEXT PCLS
+00994P 01AC                       FDBEXT PSET
+00995P 01AE                       FDBEXT PRESET
+00996P 01B0                       FDBEXT SCREEN
+00997P 01B2                       FDBEXT PCLEAR
