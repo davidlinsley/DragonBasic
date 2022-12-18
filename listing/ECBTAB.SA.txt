@@ -1,0 +1,603 @@
+PAGE  001  ECBCOM  .SA:0  ECBTAB Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    ECBTAB   - Tables for ECB / MLC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   ZBITIN,ZCASOF,ZCASON,ZCBIN,ZCBLIN,ZCBOUT,ZCSRDO,ZHRDIN
+00712                             XREF   ZINHST,ZJOYIN,ZLPTOU,ZOUTHS,ZPOLCA,ZSCROU,ZSFTIN,ZSTBAU
+00713                             XREF   ZWRTLD
+00714 
+00715                             TTL    I/O Jump Table
+00716
+00717                             XDEF   HRDINI
+00718P 0000 7E   0000    A HRDINI JMP    ZHRDIN   Hardware initialization.
+00719                             XDEF   SFTINI
+00720P 0003 7E   0000    A SFTINI JMP    ZSFTIN   Software initialization.
+00721                             XDEF   POLCAT
+00722P 0006 7E   0000    A POLCAT JMP    ZPOLCA   Poll the keyboard.
+00723                             XDEF   CBLINK
+00724P 0009 7E   0000    A CBLINK JMP    ZCBLIN   Blink the cursor.
+00725                             XDEF   SCROUT
+00726P 000C 7E   0000    A SCROUT JMP    ZSCROU   Output char to screen.
+00727                             XDEF   LPTOUT
+00728P 000F 7E   0000    A LPTOUT JMP    ZLPTOU   Output char to printer.
+00729                             XDEF   JOYIN
+00730P 0012 7E   0000    A JOYIN  JMP    ZJOYIN   Input joystick coordinates.
+00731                             XDEF   CASON
+00732P 0015 7E   0000    A CASON  JMP    ZCASON   Turn on the cassette motor.
+00733                             XDEF   CASOFF
+00734P 0018 7E   0000    A CASOFF JMP    ZCASOF   Turn off the cassette motor.
+00735                             XDEF   WRTLDR
+00736P 001B 7E   0000    A WRTLDR JMP    ZWRTLD   Turn on cassette and write leader.
+00737                             XDEF   CBOUT
+00738P 001E 7E   0000    A CBOUT  JMP    ZCBOUT   Output byte to cassette.
+00739                             XDEF   CSRDON
+00740P 0021 7E   0000    A CSRDON JMP    ZCSRDO   Turn on cassette and sync up for
+00741                      *    reading.
+00742                             XDEF   CBIN
+00743P 0024 7E   0000    A CBIN   JMP    ZCBIN    Read a byte from cassette.
+00744                             XDEF   BITIN
+00745P 0027 7E   0000    A BITIN  JMP    ZBITIN   Read a bit from cassette.
+00746                             XDEF   INHST
+00747P 002A 7E   0000    A INHST  JMP    ZINHST   Read a byte from the host.
+00748                             XDEF   OUTHST
+00749P 002D 7E   0000    A OUTHST JMP    ZOUTHS   Send a byte to the host.
+00750                             XDEF   STBAUD
+00751P 0030 7E   0000    A STBAUD JMP    ZSTBAU   Set the baud rate.
+00752
+00753                             TTL    "Normal" (non-function) Reserved Word Table
+00754
+00755            007F    A Q      SET    &128-&1
+00756
+00757                             XDEF   RESLST
+
+PAGE  002  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
+
+00758P 0033                RESLST DCI    FO,R
+00759                             XDEF   FORTK
+00760            0080    A FORTK  EQU    Q
+00761            0080    A FSTATK EQU    Q        The first statement token.
+00762P 0036                       DCI    G,O
+00763                             XDEF   GOTK
+00764            0081   A GOTK    EQU    Q
+00765P 0038                       DCI    RE,M
+00766                             XDEF   REMTK
+00767            0082   A REMTK   EQU    Q
+00768P 003B                       DCIONE
+00769                             XDEF   SNGQTK
+00770            0083    A SNGQTK EQU    Q
+00771P 003C                       DCI    ELS,E
+00772                             XDEF   ELSETK
+00773            0084    A ELSETK EQU    Q
+00774P 0040                       DCI    I,F
+00775                             XDEF   IFTK
+00776            0085    A IFTK   EQU    Q
+00777P 0042                       DCI    DAT,A
+00778                             XDEF   DATATK
+00779            0086    A DATATK EQU    Q
+00780P 0046                       DCI    PRIN,T
+00781                             XDEF   PRINTK
+00782            0087    A PRINTK EQU    Q
+00783P 0048                       DCI    O,N
+00784                             XDEF   ONTK
+00785            0088    A ONTK   EQU    Q
+00786P 004D                       DCI    INPU,T
+00787                             XDEF   INPUTK
+00788            0089    A INPUTK EQU    Q
+00789P 0052                       DCI    EN,D
+00790P 0055                       DCI    NEX,T
+00791P 0059                       DCI    DI,M
+00792P 005C                       DCI    REA,D
+00793P 0060                       DCI    LE,T
+00794P 0063                       DCI    RU,N
+00795P 0066                       DCI    RESTOR,E
+00796P 006D                       DCI    RETUR,N
+00797P 0073                       DCI    STO,P
+00798P 0077                       DCI    POK,E
+007990 0078                       DCI    CON,T
+00800P 007F                       DCI    LIS,T
+00801P 0083                       DCI    CLEA,R
+00802                             XDEF   CLEATK
+00803            0096    A CLEATK EQU    Q
+00804P 0088                       DCI    NE,W
+00805P 008B                       DCI    DE,F
+00806            0000    A        IFNE   WAITSW
+00808                      ENDC    IFE WAITSW
+00809P 008E                       DCI    CLOA,D
+00810                             XDEF   CLOATK
+00811            0099    A CLOATK EQU    Q
+00812P 0093                       DCI    CSAV,E
+00813                             XDEF   CSAVTK
+00814            009A    A CSAVTK EQU    Q
+00815P 0098                       DCI    OPE,N
+00816P 009C                       DCI    CLOS,E
+
+PAGE  003  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
+
+00817P 00A1                       DCI    LLIS,T
+00818P 00A6                       DCI    SE,T
+00819P 00A9                       DCI    RESE,T
+00820P 00AE                       DCI    CL,S
+00821P 00B1                       DCI    MOTO,R
+00822P 00B6                       DCI    SOUN,D
+00823P 00BB                       DCI    AUDI,O
+00824P 00C0                       DCI    EXE,C
+00825                             XDEF   EXECTK
+00826            00A4    A EXECTK EQU    Q
+00827P 00C4                       DCI    SKIP,F
+00826P 00C9                       DCI    DE,L
+00829P 00CC                       DCI    EDI,T
+00830P 00D0                       DCI    TRO,N
+00831P 00D4                       DCI    TROF,F
+00832P 00D9                       DCI    LIN,E
+00833P 00DD                       DCI    PCL,S
+00834P 00E1                       DCI    PSE,T
+00835                             XDEF   PSETTK
+00836            00AC    A PSETTK EQU    Q
+00837P 00E5                       DCI    PRESE,T
+00838                             XDEF   PRESTK
+00839            00AD    A PRESTK EQU    Q
+00840P 00EB                       DCI    SCREE,N
+00841P 00F1                       DCI    PCLEA,R
+00842                             XDEF   PCLETK
+00843            00AF    A PCLETK EQU    Q
+00844P 00F7                       DCI    COLO,R
+00845P 00FC                       DCI    CIRCL,E
+00846P 0102                       DCI    PAIN,T
+00847P 0107                       DCI    GE,T
+00848P 010A                       DCI    PU,T
+00849P 010D                       DCI    DRA,W
+00850P 0111                       DCI    PCOP,Y
+00851P 0116                       DCI    PMOD,E
+00852                             XDEF   PMODTK
+00853            00B7    A PMODTK EQU    Q
+00854P 011B                       DCI    PLA,Y
+00855P 011F                       DCI    DLOA,D
+00856                             XDEF   DLOATK
+00857            00B9    A DLOATK EQU    Q
+00858P 0124                       DCI    RENU,M
+00859            0001    A        IFEQ   REALIO
+00862                      ENDC    IFE REALIO
+00863
+00864                             XDEF   LSTATK
+00865            00BA    A LSTATK EQU    Q        The last statement token.
+00866
+00867P 0129      54      A        FCC    /TAB/
+00868P 012C      A8               FCB    '(+&128
+00869            00BB    A Q      SET    Q+&1
+00870
+00871                             XDEF   TABTK
+00872            00BB    A TABTK  EQU    Q
+00873P 012D                       DCI    T,O
+00874                             XDEF   TOTK
+00875            00BC    A TOTK   EQU    Q
+00876P 012F                       DCI    SU,B
+
+PAGE  004  ECBTAB  .SA:11 ECBTAB "Normal" (non-function) Reserved Word Table
+
+00877                             XDEF   SUBTK
+00878            00BD    A SUBTK  EQU    Q
+00879P 0132                       DCI    F,N
+00880                             XDEF   FNTK
+00881            00BE    A FNTK   EQU    Q 
+00882
+00883            0000    A        IFNE   SPCSW
+00889                      ENDC    IFN SPCSW
+00890P 0134                       DCI    THE,N
+00891                             XDEF   THENTK
+00892            00BF    A THENTK EQU    Q
+00893P 0138                       DCI    NO,T
+00894                             XDEF   NOTTK
+00895            00C0    A NOTTK  EQU    Q
+00896P 013B                       DCI    STE,P
+00897                             XDEF   STEPTK
+00898            00C1    A STEPTK EQU    Q
+00899P 013F                       DCI    OF,F
+00900                             XDEF   OFFTK
+00901            00C2    A OFFTK  EQU    Q
+00902P 0142                       DCIONE +
+00903                             XDEF   PLUSTK
+00904            00C3    A PLUSTK EQU    Q
+00905P 0143                       DCIONE -
+00906                             XDEF   MINUTK
+00907            00C4    A MINUTK EQU    Q
+00908P 0144                       DCIONE *
+00909                             XDEF   MULTK
+00910            00C5    A MULTK  EQU    Q
+00911P 0145                       DCIONE /
+00912P 0146                       DCIONE ^
+00913P 0147                       DCI    AN,D
+00914                             XDEF   ANDTK
+00915            00C8    A ANDTK  EQU    Q
+00916P 014A                       DCI    O,R
+00917                             XDEF   ORTK
+00918            00C9    A ORTK   EQU    Q
+00919P 0140      BE      A        FCB    &190     A GREATER THAN SIGN
+00920            00CA    A Q      SET    Q+&1
+00921                             XDEF   GREATK
+00922            00CA    A GREATK EQU    Q
+00923P 014D                       DCIONE =
+00924                             XDEF   EQULTK
+00925            00CB    A EQULTK EQU    Q
+00926P 014E      BC      A        FCB    &188
+00927            00CC    A Q      SET    Q+&1     A LESS THAN SIGN
+00928                             XDEF   LESSTK
+00929            00CC    A LESSTK EQU    Q
+00930P 014F                       DCI    USIN,G
+00931                             XDEF   USINTK
+00932            00CD    A USINTK EQU    Q
+00933                             XDEF   LNRMTK
+00934            00CD    A LNRMTK EQU    Q        Last "normal" token.
+00935                             XDEF   NNRMTK
+00936            004E    A NNRMTK EQU    Q-&127   How many normal tokens.
+00937
+
+PAGE  005  ECBTAB  .SA:l  ECBTAB "Normal" (non-function) Reserved Word Table
+
+00939
+00940                             TTL    Statement Dispatch Table
+00941
+00942                             XDEF   STMDSP
+00943P 0154                STMDSP FDBEXT FOR
+00944P 0156                       FDBEXT GO
+00945P 0158                       FDBEXT REM      The actual REM handier.
+00946P 015A      0000    A        FDB    REM      Handle single quote same as REM.
+00947P 015C      0000    A        FDB    REM      Handle ELSE same as REM.
+00948P 015E                       FDBEXT IF
+00949P 0160                       FDBEXT DATA
+00950P 0162                       FDBEXT PRINT
+00951P 0164                       FDBEXT ONGOTO
+00952P 0166                       FDBEXT INPUT
+00953P 0168                       FDBEXT END
+00954P 016A                       FDBEXT NEXT
+00955P 016C                       FDBEXT DIM
+00956P 016E                       FDBEXT READ
+00957P 0170                       FDBEXT LET
+00958P 0172                       FDBEXT RUN
+00959P 0174                       FDBEXT RESTOR
+00960P 0176                       FDBEXT RETURN
+00961P 0178                       FDBEXT STOP
+00962P 017A                       FDBEXT POKE
+00963P 017C                       FDBEXT CONT
+00964P 017E                       FDBEXT LIST
+00965P 0180                       FDBEXT CLEAR
+00966P 0182                       FDBEXT SCRATH
+00967P 0184                       FDBEXT DEF
+00968
+00969            0000    A        IFNE   WAITSW
+00971                      ENDC    IFN WAITSW
+00972
+00973P 0186                       FDBEXT CLOAD
+00974P 0188                       FDBEXT CSAVE
+00975P 018A                       FDBEXT OPEN
+00976P 018C                       FDBEXT CLOSE
+00977
+00978P 018E                       FDBEXT LLIST
+00979
+00980P 0190                       FDBEXT SET
+00961P 0192                       FDBEXT RESET
+00982P 0194                       FDBEXT CLS
+00983P 0196                       FDBEXT MOTOR 
+00984P 0198                       FDBEXT SOUND
+00985P 019A                       FDBEXT AUDIO
+00986P 019C                       FDBEXT EXEC
+00987P 019E                       FDBEXT SKIPF
+00988P 01A0                       FDBEXT DELETE
+00989P 01A2                       FDBEXT EDIT
+00990P 01A4                       FDBEXT TRON
+00991P 01A6                       FDBEXT TROFF
+00992P 01A8                       FDBEXT LINE
+00993P 01AA                       FDBEXT PCLS
+00994P 01AC                       FDBEXT PSET
+00995P 01AE                       FDBEXT PRESET
+00996P 01B0                       FDBEXT SCREEN
+00997P 01B2                       FDBEXT PCLEAR
+
+PAGE  006  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
+
+00998P 01B4                       FDBEXT COLORS
+00999P 01B6                       FDBEXT CIRCLE
+01000P 01B8                       FDBEXT PAINT
+01001P 01BA                       FDBEXT GET
+01002P 01BC                       FDBEXT PUT
+01003P 01BE                       FDBEXT DRAW
+01004P 01C0                       FDBEXT PCOPY
+01005P 01C2                       FDBEXT PMODE
+01006P 01C4                       FDBEXT PLAY
+01007P 01C6                       FDBEXT DLOAD
+01008P 01C8                       FDBEXT RENUM
+01009            0001    A        IFEQ   REALIO
+01012                      ENDC    IFE REALIO
+
+PAGE  007  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
+
+01014
+01015                             TTL    Function Reserved Word List
+01016
+01017            007F    A Q      SET    &128-&1
+01018
+01019                             XDEF   FUNLST
+01020P 01CA                FUNLST DCI    SG,N
+01021            0080    A CLASS0 EQU    Q        The first class 0 function token.
+01022P 01CD                       DCI    IN,T
+01023P 01D0                       DCI    AB,S
+01024
+01025            0000    A        IFNE   FRESW
+01027                      ENDC    IFN FRESW
+01028
+01029P 01D3                       DCI    PO,S
+01030P 01D6                       DCI    RN,D
+01031
+01032P 01D9                       DCI    SQ,R
+01033P 01DC                       DCI    LO,G
+01034P 01DF                       DCI    EX,P
+01035P 01E2                       DCI    SI,N
+01036P 01E5                       DCI    CO,S
+01037P 01E8                       DCI    TA,N
+01038P 01EB                       DCI    AT,N
+01039P 01EE                       DCI    PEE,K
+01040                             XDEF   PEEKTK
+01041            008C    A PEEKTK EQU    Q
+01042P 01F2                       DCI    LE,N
+01043P 01F5                       DCI    STR,$
+01044P 01F9                       DCI    VA,L
+01045P 01FC                       DCI    AS,C
+01046P 01FF                       DCI    CHR,$
+01047P 0203                       DCI    EO,F
+01048P 0206                       DCI    JOYST,K
+01049P 020C                       DCI    FI,X
+01050P 020F                       DCI    HEX,$
+01051                             XDEF   CLASS1
+01052            0096    A CLASS1 EQU    Q+&1     The first class 1 function token.
+01053                             XDEF   TCLAS1
+01054            002C    A TCLAS1 EQU    (2*CLASS1)!.&255
+01055P 0213                       DCI    LEFT,$
+01056P 0218                       DCI    RIGHT,S
+01057P 021E                       DCI    MID,$
+01058                             XDEF   MID$TK
+01059            0098    A MID$TK EQU    Q
+01060
+01061                             XDEF   CLASS2
+01062            0099    A CLASS2 EQU    Q+&1     The first class 2 function token.
+01063                             XDEF   TCLAS2
+01064            0032    A TCLAS2 EQU    (2*CLASS2)!.&255
+01065P 0222                       DCI    POIN,T
+01066                             XDEF   CLASS3
+01067            009A    A CLASS3 EQU    Q+&1     The first class 3 function token.
+01068                             XDEF   TCLAS3
+01069            0034    A TCLAS3 EQU    (2*CLASS3)!.&255
+01070
+01071P 0227                       DCI    INKEY,$
+01072
+
+PAGE  008  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
+
+01073            0001    A        IFNE   MEMSW
+01074P 022D                       DCI    ME,M
+01075                             ENDC   IFN      MEMSW
+01076P 0230                       DCI    VARPT,R
+01077P 0236                       DCI    INST,R
+01078            0000    A        IFNE   TODCLK
+01080                      ENDC    IFN TODCLK
+01081            0000    A        IFEQ   TODCLK
+01082P 023B                       DCI    TIME,R
+01083                             ENDC   IFE      TODCLK
+01084                             XDEF   TIMETK
+01085            009E    A TIMETK EQU    Q
+01086P 0240                       DCI    PPOIN,T
+01087P 0246                       DCI    STRING,$
+01088P 024D                       DCI    US,R
+01089                             XDEF   USRTK
+01090            00A1    A USRTK  EQU    Q
+01091                             XDEF   LFUNTK
+01092            00A1    A LFUNTK EQU    Q        The last function token.
+01093                             XDEF   TLFNTK
+01094            0042    A TLFNTK EQU    (2*LFUNTK)!.&255
+01095                             XDEF   NFUNTK
+01096            0022    A NFUNTK EQU    Q-&127   How many function tokens.
+01097
+
+PAGE  009  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
+
+01099
+01100                             TTL    Function Dispatcn Table
+01101
+01102                             XDEF   FUNDSP
+01103P 0250                FUNDSP FDBEXT SGN
+01104P 0252                       FDBEXT INT
+01105P 0254                       FDBEXT ABS
+01106
+01107            0000    A        IFNE   FRESW
+01109                      ENDC    IFN FRESW
+01110
+01111P 0256                       FDBEXT POS
+01112P 0258                       FDBEXT RND
+01113P 025A                       FDBEXT SQR
+01114P 025C                       FDBEXT LOG
+01115P 025E                       FDBEXT EXP
+01116P 0260                       FDBEXT SIN
+01117P 0262                       FDBEXT COS
+01118P 0264                       FDBEXT TAN
+01119P 0266                       FDBEXT ATN
+01120P 0268                       FDBEXT PEEK
+01121P 026A                       FDBEXT LEN
+01122P 026C                       FDBEXT STR$
+01123P 026E                       FDBEXT VAL
+01124P 0270                       FDBEXT ASC
+01125P 0272                       FDBEXT CHR$
+01126P 0274                       FDBEXT EOF
+01127P 0276                       FDBEXT JOYSTK
+01128P 0278                       FDBEXT FIX
+01129P 027A                       FDBEXT HEX$
+01130
+01131P 027C                       FDBEXT LEFT$ 
+01132P 027E                       FDBEXT RIGHT$,
+01133P 0280                       FDBEXT MID$
+01134
+01135P 0282                       FDBEXT POINT
+01136
+01137P 0284                       FDBEXT INKEY$
+01138
+01139            0001    A        IFNE   MEMSW
+01140P 0286                       FDBEXT MEM
+01141                             ENDC   IFN      MEMSW
+01142P 0288                       FDBEXT VARPTR
+01143P 028A                       FDBEXT INSTR
+01144            0000    A        IFNE   TODCLK
+01146                      ENDC    IFN TODCLK
+01147            0000    A        IFEQ   TODCLK
+01148P 028C                       FDBEXT TIMER
+01149                             ENDC   IFE      TODCLK
+01150P 028E                       FDBEXT PPOINT
+01151P 0290                       FDBEXT STRNG$ 
+01152P 0292                       FDBEXT USRFN
+
+PAGE  010  ECBTAB  .SA:1  ECBTAB Function Dispatch Table
+
+01154
+01155                             TTL    Operator Table
+01156
+01157                             XDEF   OPTAB
+01156P 0294      79      A OPTAB  FCB    &121
+01159P 0295                       FDBEXT FADDT
+01160P 0297      79      A        FCB    &121
+01161P 0298                       FDBEXT FSUBT
+01162P 029A      7B      A        FCB    &123
+01163P 029B                       FDBEXT FMULTT
+01164P 029D      7B      A        FCB    &123
+01165P 029E                       FDBEXT FDIVT
+01166P 02A0      7F      A        FCB    &127
+01167P 02A1                       FDBEXT FPWRT
+01168P 02A3      50      A        FCB    &80
+01169P 02A4                       FDBEXT ANDOP
+01170P 02A6      46      A        FCB    &70
+01171P 02A7                       FDBEXT DROP
+
+PAGE  011  ECBTAB  .SA:1  ECBTAB Operator Table
+
+01173
+01174                             TTL    Error Texts
+01175
+01176            FFFE    A Q      SET    -&2
+01177
+01178                             XDEF   ERRTAB
+01179P 02A9                ERRTAB DCE    NF
+01180                             XDEF   ERRNF
+01181            0000    A ERRNF  EQU    Q        NEXT WITHOUT FOR.
+01182P 02AB                       DCE    SN
+01183                             XDEF   ERRSN
+01184            0002    A ERRSN  EQU    Q        SYNTAX ERROR.
+01185P 02AD                       DCE    RG
+01186                             XDEF   ERRRG
+01187            0004    A ERRRG  EQU    Q        RETURN WITHOUT GOSUB.
+01188P 02AF                       DCE    OD
+01189                             XDEF   ERROD
+01190            0006    A ERROD  EQU    Q        OUT OF DATA.
+01191P 02B1                       DCE    FC
+01192                             XDEF   ERRFC
+01193            0008    A ERRFC  EQU    Q        ILLEGAL FUNCTION CALL.
+01194P 02B3                       DCE    OV
+01195                             XDEF   ERROV
+01196            000A    A ERROV  EQU    Q        OVERFLOW.
+01197P 02B5                       DCE    OM
+01198                             XDEF   ERROM
+01199            000C    A ERROM  EQU    Q        OUT OF MEMORY.
+01200P 02B7                       DCE    UL
+01201                             XDEF   ERRUL
+01202            000E    A ERRUL  EQU    Q        UNDEFINED LINE.
+01203P 02B9                       DCE    BS
+01204                             XDEF   ERRBS
+01205            0010    A ERRBS  EQU    Q        SUBSCRIPT OUT OF RANGE.
+01206P 02BB                       DCE    DD
+01207                             XDEF   ERRDD
+01208            0012    A ERRDD  EQU    Q        REDIMENSIONED ARRAY.
+01209P 02BD                       DCE    /0
+01210                             XDEF   ERRDVO
+01211            0014    A ERRDVO EQU    Q        DIVISION BY ZERO.
+01212P 02BF                       DCE    ID
+01213                             XDEF   ERRID
+01214            0016    A ERRID  EQU    Q        ILLEGAL DIRECT.
+01215P 02C1                       DCE    TM
+01216                             XDEF   ERRTM
+01217            0018    A ERRTM  EQU    Q        TYPE MISMATCH.
+01218P 02C3                       DCE    OS
+01219                             XDEF   ERRSO
+01220            001A    A ERRSO  EQU    Q        OUT OF STRING SPACE.
+01221P 02C5                       DCE    LS
+01222                             XDEF   ERRLS
+01223            001C    A ERRLS  EQU    Q        STRING TOO LONG.
+01224P 02C7                       DCE    ST
+01225                             XDEF   ERRST
+01226            001E    A ERRST  EQU    Q        STRING FORMULA TOO COMPLEX.
+01227P 02C9                       DCE    CN
+01228                             XDEF   ERRCN
+01229            0020    A ERRCN  EQU    Q        CAN'T CONTINUE.
+01230P 02CB                       DCE    UF
+
+PAGE  012  ECBTAB  .SA:1  ECBTAB Error Texts
+
+01231                             XDEF   ERRUF
+01232            0022    A ERRUF  EQU    Q        UNDEFINED USER FUNCTION.
+01233P 02CD                       DCE    FD
+01234                             XDEF   ERRFD
+01235            0024    A ERRFD  EQU    Q        Bad File Data
+01236P 02CF                       DCE    AO
+01237                             XDEF   ERRAO
+01238            0026    A ERRAO  EQU    Q        Already Open.
+01239P 02D1                       DCE    DN
+01240                             XDEF   ERRDN
+01241            0028    A ERRDN  EQU    Q        Device Number.
+01242P 02D3                       DCE    IO
+01243                             XDEF   ERRIO
+01244            002A    A ERRIO  EQU    Q        Input/Output error.
+01245P 02D5                       DCE    FM 
+01246                             XDEF   ERRBM
+01247            002C    A ERRBM  EQU    Q        Bad File Mode.
+01248P 02D7                       DCE    NO 
+01249                             XDEF   ERRNO
+01250            002E    A ERRNO  EQU    Q        Device Not Open.
+01251P 02D9                       DCE    IE
+01252                             XDEF   ERRIE
+01253            0030    A ERRIE  EQU    Q        Input past End.
+01254P 02DB                       DCE    DS 
+01255                             XDEF   ERRDS
+01256            0032    A ERRDS  EQU    Q        Direct Statement in file.
+01257P 02DD                       DCE    NE
+01258                             XDEF   ERRNE
+01259            0034    A ERRNE  EQU    Q        Non Exisitent file.
+01260
+01261            0034    A LERRNM EQU    Q        Last error number used.
+01262 
+01263                      *
+01264                      * NEEDED FOR MESSAGES IN ALL VERSIONS.
+01265                      *
+01266                             XDEF   ERR
+01267P 02DF      20      A ERR    FCC    / ERROR/
+01268P 02E5      00      A        FCB    &0
+01269                             XDEF   INTXT
+01270P 02E6      20      A INTXT  FCC    / IN /
+01271P 02EA      00      A        FCB    &0
+01272P 02EB                       ACRLF  This     precedes REDDY for those who
+01273                      *    want to force a carriage return
+01274                      *    before printing "OK".  The binary
+01275                      *    CLOAD code does this.
+01276                             XDEF   REDDY
+01277P 02EC      4F      A REDDY  FCC    /OK/
+01278P 02EE                       ACRLF
+01279P 02EF      00      A        FCB    &0
+01280                             XDEF   BRKTXT
+01281P 02F0                BRKTXT ACRLF
+01282P 02F1      42      A        FCC    /BREAK/
+01283P 02F6      00      A        FCB    &0
+01284 
+01285                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000-00000

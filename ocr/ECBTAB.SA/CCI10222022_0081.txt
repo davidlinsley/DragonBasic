@@ -5,7 +5,7 @@ PAGE  010  ECBTAB  .SA:1  ECBTAB Function Dispatch Table
 01156
 01157                             XDEF   OPTAB
 01156P 0294      79      A OPTAB  FCB    &121
-01159P 0295                       FDBEXT FADDT                                                                                                            •
+01159P 0295                       FDBEXT FADDT
 01160P 0297      79      A        FCB    &121
 01161P 0298                       FDBEXT FSUBT
 01162P 029A      7B      A        FCB    &123
@@ -14,7 +14,7 @@ PAGE  010  ECBTAB  .SA:1  ECBTAB Function Dispatch Table
 01165P 029E                       FDBEXT FDIVT
 01166P 02A0      7F      A        FCB    &127
 01167P 02A1                       FDBEXT FPWRT
-01168P 02A3      50      A        FCB    &80                                                                                                              • 
-01169P 02A4                       FDBEXT ANDOP                                                                                                          M
+01168P 02A3      50      A        FCB    &80
+01169P 02A4                       FDBEXT ANDOP
 01170P 02A6      46      A        FCB    &70
 01171P 02A7                       FDBEXT DROP

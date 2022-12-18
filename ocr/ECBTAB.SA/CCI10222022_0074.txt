@@ -10,7 +10,7 @@ PAGE  003  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00824P 00C0                       DCI    EXE,C
 00825                             XDEF   EXECTK
 00826            00A4    A EXECTK EQU    Q
-00827P 00C4                       DCI    SKIP,F                                                                                                                                       •
+00827P 00C4                       DCI    SKIP,F
 00826P 00C9                       DCI    DE,L
 00829P 00CC                       DCI    EDI,T
 00830P 00D0                       DCI    TRO,N
@@ -27,7 +27,7 @@ PAGE  003  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00841P 00F1                       DCI    PCLEA,R
 00842                             XDEF   PCLETK
 00843            00AF    A PCLETK EQU    Q
-00844P 00F7                       DCI    COLO,R                                                                                                                                       I
+00844P 00F7                       DCI    COLO,R
 00845P 00FC                       DCI    CIRCL,E
 00846P 0102                       DCI    PAIN,T
 00847P 0107                       DCI    GE,T

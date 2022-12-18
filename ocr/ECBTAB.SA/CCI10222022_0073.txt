@@ -26,20 +26,20 @@ PAGE  002  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00781                             XDEF   PRINTK
 00782            0087    A PRINTK EQU    Q
 00783P 0048                       DCI    O,N
-00784                             XDEF   ONTK                                                                                                  0
+00784                             XDEF   ONTK
 00785            0088    A ONTK   EQU    Q
 00786P 004D                       DCI    INPU,T
-00787                             XDEF   INPUTK                                                                                                0
+00787                             XDEF   INPUTK
 00788            0089    A INPUTK EQU    Q
 00789P 0052                       DCI    EN,D
-00790P 0055                       DCI    NEX,T                                                                                                 0
+00790P 0055                       DCI    NEX,T
 00791P 0059                       DCI    DI,M
 00792P 005C                       DCI    REA,D
-00793P 0060                       DCI    LE,T                                                                                                  •
+00793P 0060                       DCI    LE,T
 00794P 0063                       DCI    RU,N
 00795P 0066                       DCI    RESTOR,E
-00796P 006D                       DCI    RETUR,N                                                                                               0
-00797P 0073                       DCI    STO,P                                                                                                I
+00796P 006D                       DCI    RETUR,N
+00797P 0073                       DCI    STO,P
 00798P 0077                       DCI    POK,E
 007990 0078                       DCI    CON,T
 00800P 007F                       DCI    LIS,T
