@@ -1,0 +1,565 @@
+       NAM    ECBTAB   - Tables for ECB / MLC
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   ZBITIN,ZCASOF,ZCASON,ZCBIN,ZCBLIN,ZCBOUT,ZCSRDO,ZHRDIN
+       XREF   ZINHST,ZJOYIN,ZLPTOU,ZOUTHS,ZPOLCA,ZSCROU,ZSFTIN,ZSTBAU
+       XREF   ZWRTLD
+
+       TTL    I/O Jump Table
+
+       XDEF   HRDINI
+HRDINI JMP    ZHRDIN   Hardware initialization.
+       XDEF   SFTINI
+SFTINI JMP    ZSFTIN   Software initialization.
+       XDEF   POLCAT
+POLCAT JMP    ZPOLCA   Poll the keyboard.
+       XDEF   CBLINK
+CBLINK JMP    ZCBLIN   Blink the cursor.
+       XDEF   SCROUT
+SCROUT JMP    ZSCROU   Output char to screen.
+       XDEF   LPTOUT
+LPTOUT JMP    ZLPTOU   Output char to printer.
+       XDEF   JOYIN
+JOYIN  JMP    ZJOYIN   Input joystick coordinates.
+       XDEF   CASON
+CASON  JMP    ZCASON   Turn on the cassette motor.
+       XDEF   CASOFF
+CASOFF JMP    ZCASOF   Turn off the cassette motor.
+       XDEF   WRTLDR
+WRTLDR JMP    ZWRTLD   Turn on cassette and write leader.
+       XDEF   CBOUT
+CBOUT  JMP    ZCBOUT   Output byte to cassette.
+       XDEF   CSRDON
+CSRDON JMP    ZCSRDO   Turn on cassette and sync up for
+*    reading.
+       XDEF   CBIN
+CBIN   JMP    ZCBIN    Read a byte from cassette.
+       XDEF   BITIN
+BITIN  JMP    ZBITIN   Read a bit from cassette.
+       XDEF   INHST
+INHST  JMP    ZINHST   Read a byte from the host.
+       XDEF   OUTHST
+OUTHST JMP    ZOUTHS   Send a byte to the host.
+       XDEF   STBAUD
+STBAUD JMP    ZSTBAU   Set the baud rate.
+
+       TTL    "Normal" (non-function) Reserved Word Table
+
+Q      SET    &128-&1
+
+       XDEF   RESLST
+RESLST DCI    FO,R
+       XDEF   FORTK
+FORTK  EQU    Q
+FSTATK EQU    Q        The first statement token.
+       DCI    G,O
+       XDEF   GOTK
+GOTK   EQU    Q
+       DCI    RE,M
+       XDEF   REMTK
+REMTK  EQU    Q
+       DCIONE
+       XDEF   SNGQTK
+SNGQTK EQU    Q
+       DCI    ELS,E
+       XDEF   ELSETK
+ELSETK EQU    Q
+       DCI    I,F
+       XDEF   IFTK
+IFTK   EQU    Q
+       DCI    DAT,A
+       XDEF   DATATK
+DATATK EQU    Q
+       DCI    PRIN,T
+       XDEF   PRINTK
+PRINTK EQU    Q
+       DCI    O,N
+       XDEF   ONTK
+ONTK   EQU    Q
+       DCI    INPU,T
+       XDEF   INPUTK
+INPUTK EQU    Q
+       DCI    EN,D
+       DCI    NEX,T
+       DCI    DI,M
+       DCI    REA,D
+       DCI    LE,T
+       DCI    RU,N
+       DCI    RESTOR,E
+       DCI    RETUR,N
+       DCI    STO,P
+       DCI    POK,E
+       DCI    CON,T
+       DCI    LIS,T
+       DCI    CLEA,R
+       XDEF   CLEATK
+CLEATK EQU    Q
+       DCI    NE,W
+       DCI    DE,F
+       IFNE   WAITSW
+ENDC    IFE WAITSW
+       DCI    CLOA,D
+       XDEF   CLOATK
+CLOATK EQU    Q
+       DCI    CSAV,E
+       XDEF   CSAVTK
+CSAVTK EQU    Q
+       DCI    OPE,N
+       DCI    CLOS,E
+       DCI    LLIS,T
+       DCI    SE,T
+       DCI    RESE,T
+       DCI    CL,S
+       DCI    MOTO,R
+       DCI    SOUN,D
+       DCI    AUDI,O
+       DCI    EXE,C
+       XDEF   EXECTK
+EXECTK EQU    Q
+       DCI    SKIP,F
+       DCI    DE,L
+       DCI    EDI,T
+       DCI    TRO,N
+       DCI    TROF,F
+       DCI    LIN,E
+       DCI    PCL,S
+       DCI    PSE,T
+       XDEF   PSETTK
+PSETTK EQU    Q
+       DCI    PRESE,T
+       XDEF   PRESTK
+PRESTK EQU    Q
+       DCI    SCREE,N
+       DCI    PCLEA,R
+       XDEF   PCLETK
+PCLETK EQU    Q
+       DCI    COLO,R
+       DCI    CIRCL,E
+       DCI    PAIN,T
+       DCI    GE,T
+       DCI    PU,T
+       DCI    DRA,W
+       DCI    PCOP,Y
+       DCI    PMOD,E
+       XDEF   PMODTK
+PMODTK EQU    Q
+       DCI    PLA,Y
+       DCI    DLOA,D
+       XDEF   DLOATK
+DLOATK EQU    Q
+       DCI    RENU,M
+       IFEQ   REALIO
+ENDC    IFE REALIO
+
+       XDEF   LSTATK
+LSTATK EQU    Q        The last statement token.
+
+       FCC    /TAB/
+       FCB    '(+&128
+Q      SET    Q+&1
+
+       XDEF   TABTK
+TABTK  EQU    Q
+       DCI    T,O
+       XDEF   TOTK
+TOTK   EQU    Q
+       DCI    SU,B
+       XDEF   SUBTK
+SUBTK  EQU    Q
+       DCI    F,N
+       XDEF   FNTK
+FNTK   EQU    Q 
+
+       IFNE   SPCSW
+ENDC    IFN SPCSW
+       DCI    THE,N
+       XDEF   THENTK
+THENTK EQU    Q
+       DCI    NO,T
+       XDEF   NOTTK
+NOTTK  EQU    Q
+       DCI    STE,P
+       XDEF   STEPTK
+STEPTK EQU    Q
+       DCI    OF,F
+       XDEF   OFFTK
+OFFTK  EQU    Q
+       DCIONE +
+       XDEF   PLUSTK
+PLUSTK EQU    Q
+       DCIONE -
+       XDEF   MINUTK
+MINUTK EQU    Q
+       DCIONE *
+       XDEF   MULTK
+MULTK  EQU    Q
+       DCIONE /
+       DCIONE ^
+       DCI    AN,D
+       XDEF   ANDTK
+ANDTK  EQU    Q
+       DCI    O,R
+       XDEF   ORTK
+ORTK   EQU    Q
+       FCB    &190     A GREATER THAN SIGN
+Q      SET    Q+&1
+       XDEF   GREATK
+GREATK EQU    Q
+       DCIONE =
+       XDEF   EQULTK
+EQULTK EQU    Q
+       FCB    &188
+Q      SET    Q+&1     A LESS THAN SIGN
+       XDEF   LESSTK
+LESSTK EQU    Q
+       DCI    USIN,G
+       XDEF   USINTK
+USINTK EQU    Q
+       XDEF   LNRMTK
+LNRMTK EQU    Q        Last "normal" token.
+       XDEF   NNRMTK
+NNRMTK EQU    Q-&127   How many normal tokens.
+
+
+       TTL    Statement Dispatch Table
+
+       XDEF   STMDSP
+STMDSP FDBEXT FOR
+       FDBEXT GO
+       FDBEXT REM      The actual REM handier.
+       FDB    REM      Handle single quote same as REM.
+       FDB    REM      Handle ELSE same as REM.
+       FDBEXT IF
+       FDBEXT DATA
+       FDBEXT PRINT
+       FDBEXT ONGOTO
+       FDBEXT INPUT
+       FDBEXT END
+       FDBEXT NEXT
+       FDBEXT DIM
+       FDBEXT READ
+       FDBEXT LET
+       FDBEXT RUN
+       FDBEXT RESTOR
+       FDBEXT RETURN
+       FDBEXT STOP
+       FDBEXT POKE
+       FDBEXT CONT
+       FDBEXT LIST
+       FDBEXT CLEAR
+       FDBEXT SCRATH
+       FDBEXT DEF
+
+       IFNE   WAITSW
+ENDC    IFN WAITSW
+
+       FDBEXT CLOAD
+       FDBEXT CSAVE
+       FDBEXT OPEN
+       FDBEXT CLOSE
+
+       FDBEXT LLIST
+
+       FDBEXT SET
+       FDBEXT RESET
+       FDBEXT CLS
+       FDBEXT MOTOR 
+       FDBEXT SOUND
+       FDBEXT AUDIO
+       FDBEXT EXEC
+       FDBEXT SKIPF
+       FDBEXT DELETE
+       FDBEXT EDIT
+       FDBEXT TRON
+       FDBEXT TROFF
+       FDBEXT LINE
+       FDBEXT PCLS
+       FDBEXT PSET
+       FDBEXT PRESET
+       FDBEXT SCREEN
+       FDBEXT PCLEAR
+       FDBEXT COLORS
+       FDBEXT CIRCLE
+       FDBEXT PAINT
+       FDBEXT GET
+       FDBEXT PUT
+       FDBEXT DRAW
+       FDBEXT PCOPY
+       FDBEXT PMODE
+       FDBEXT PLAY
+       FDBEXT DLOAD
+       FDBEXT RENUM
+       IFEQ   REALIO
+ENDC    IFE REALIO
+
+       TTL    Function Reserved Word List
+
+Q      SET    &128-&1
+
+       XDEF   FUNLST
+FUNLST DCI    SG,N
+CLASS0 EQU    Q        The first class 0 function token.
+       DCI    IN,T
+       DCI    AB,S
+
+       IFNE   FRESW
+ENDC    IFN FRESW
+
+       DCI    PO,S
+       DCI    RN,D
+
+       DCI    SQ,R
+       DCI    LO,G
+       DCI    EX,P
+       DCI    SI,N
+       DCI    CO,S
+       DCI    TA,N
+       DCI    AT,N
+       DCI    PEE,K
+       XDEF   PEEKTK
+PEEKTK EQU    Q
+       DCI    LE,N
+       DCI    STR,$
+       DCI    VA,L
+       DCI    AS,C
+       DCI    CHR,$
+       DCI    EO,F
+       DCI    JOYST,K
+       DCI    FI,X
+       DCI    HEX,$
+       XDEF   CLASS1
+CLASS1 EQU    Q+&1     The first class 1 function token.
+       XDEF   TCLAS1
+TCLAS1 EQU    (2*CLASS1)!.&255
+       DCI    LEFT,$
+       DCI    RIGHT,S
+       DCI    MID,$
+       XDEF   MID$TK
+MID$TK EQU    Q
+
+       XDEF   CLASS2
+CLASS2 EQU    Q+&1     The first class 2 function token.
+       XDEF   TCLAS2
+TCLAS2 EQU    (2*CLASS2)!.&255
+       DCI    POIN,T
+       XDEF   CLASS3
+CLASS3 EQU    Q+&1     The first class 3 function token.
+       XDEF   TCLAS3
+TCLAS3 EQU    (2*CLASS3)!.&255
+
+       DCI    INKEY,$
+
+       IFNE   MEMSW
+       DCI    ME,M
+       ENDC   IFN      MEMSW
+       DCI    VARPT,R
+       DCI    INST,R
+       IFNE   TODCLK
+ENDC    IFN TODCLK
+       IFEQ   TODCLK
+       DCI    TIME,R
+       ENDC   IFE      TODCLK
+       XDEF   TIMETK
+TIMETK EQU    Q
+       DCI    PPOIN,T
+       DCI    STRING,$
+       DCI    US,R
+       XDEF   USRTK
+USRTK  EQU    Q
+       XDEF   LFUNTK
+LFUNTK EQU    Q        The last function token.
+       XDEF   TLFNTK
+TLFNTK EQU    (2*LFUNTK)!.&255
+       XDEF   NFUNTK
+NFUNTK EQU    Q-&127   How many function tokens.
+
+
+       TTL    Function Dispatcn Table
+
+       XDEF   FUNDSP
+FUNDSP FDBEXT SGN
+       FDBEXT INT
+       FDBEXT ABS
+
+       IFNE   FRESW
+ENDC    IFN FRESW
+
+       FDBEXT POS
+       FDBEXT RND
+       FDBEXT SQR
+       FDBEXT LOG
+       FDBEXT EXP
+       FDBEXT SIN
+       FDBEXT COS
+       FDBEXT TAN
+       FDBEXT ATN
+       FDBEXT PEEK
+       FDBEXT LEN
+       FDBEXT STR$
+       FDBEXT VAL
+       FDBEXT ASC
+       FDBEXT CHR$
+       FDBEXT EOF
+       FDBEXT JOYSTK
+       FDBEXT FIX
+       FDBEXT HEX$
+
+       FDBEXT LEFT$ 
+       FDBEXT RIGHT$,
+       FDBEXT MID$
+
+       FDBEXT POINT
+
+       FDBEXT INKEY$
+
+       IFNE   MEMSW
+       FDBEXT MEM
+       ENDC   IFN      MEMSW
+       FDBEXT VARPTR
+       FDBEXT INSTR
+       IFNE   TODCLK
+ENDC    IFN TODCLK
+       IFEQ   TODCLK
+       FDBEXT TIMER
+       ENDC   IFE      TODCLK
+       FDBEXT PPOINT
+       FDBEXT STRNG$ 
+       FDBEXT USRFN
+
+       TTL    Operator Table
+
+       XDEF   OPTAB
+OPTAB  FCB    &121
+       FDBEXT FADDT
+       FCB    &121
+       FDBEXT FSUBT
+       FCB    &123
+       FDBEXT FMULTT
+       FCB    &123
+       FDBEXT FDIVT
+       FCB    &127
+       FDBEXT FPWRT
+       FCB    &80
+       FDBEXT ANDOP
+       FCB    &70
+       FDBEXT DROP
+
+       TTL    Error Texts
+
+Q      SET    -&2
+
+       XDEF   ERRTAB
+ERRTAB DCE    NF
+       XDEF   ERRNF
+ERRNF  EQU    Q        NEXT WITHOUT FOR.
+       DCE    SN
+       XDEF   ERRSN
+ERRSN  EQU    Q        SYNTAX ERROR.
+       DCE    RG
+       XDEF   ERRRG
+ERRRG  EQU    Q        RETURN WITHOUT GOSUB.
+       DCE    OD
+       XDEF   ERROD
+ERROD  EQU    Q        OUT OF DATA.
+       DCE    FC
+       XDEF   ERRFC
+ERRFC  EQU    Q        ILLEGAL FUNCTION CALL.
+       DCE    OV
+       XDEF   ERROV
+ERROV  EQU    Q        OVERFLOW.
+       DCE    OM
+       XDEF   ERROM
+ERROM  EQU    Q        OUT OF MEMORY.
+       DCE    UL
+       XDEF   ERRUL
+ERRUL  EQU    Q        UNDEFINED LINE.
+       DCE    BS
+       XDEF   ERRBS
+ERRBS  EQU    Q        SUBSCRIPT OUT OF RANGE.
+       DCE    DD
+       XDEF   ERRDD
+ERRDD  EQU    Q        REDIMENSIONED ARRAY.
+       DCE    /0
+       XDEF   ERRDVO
+ERRDVO EQU    Q        DIVISION BY ZERO.
+       DCE    ID
+       XDEF   ERRID
+ERRID  EQU    Q        ILLEGAL DIRECT.
+       DCE    TM
+       XDEF   ERRTM
+ERRTM  EQU    Q        TYPE MISMATCH.
+       DCE    OS
+       XDEF   ERRSO
+ERRSO  EQU    Q        OUT OF STRING SPACE.
+       DCE    LS
+       XDEF   ERRLS
+ERRLS  EQU    Q        STRING TOO LONG.
+       DCE    ST
+       XDEF   ERRST
+ERRST  EQU    Q        STRING FORMULA TOO COMPLEX.
+       DCE    CN
+       XDEF   ERRCN
+ERRCN  EQU    Q        CAN'T CONTINUE.
+       DCE    UF
+       XDEF   ERRUF
+ERRUF  EQU    Q        UNDEFINED USER FUNCTION.
+       DCE    FD
+       XDEF   ERRFD
+ERRFD  EQU    Q        Bad File Data
+       DCE    AO
+       XDEF   ERRAO
+ERRAO  EQU    Q        Already Open.
+       DCE    DN
+       XDEF   ERRDN
+ERRDN  EQU    Q        Device Number.
+       DCE    IO
+       XDEF   ERRIO
+ERRIO  EQU    Q        Input/Output error.
+       DCE    FM 
+       XDEF   ERRBM
+ERRBM  EQU    Q        Bad File Mode.
+       DCE    NO 
+       XDEF   ERRNO
+ERRNO  EQU    Q        Device Not Open.
+       DCE    IE
+       XDEF   ERRIE
+ERRIE  EQU    Q        Input past End.
+       DCE    DS 
+       XDEF   ERRDS
+ERRDS  EQU    Q        Direct Statement in file.
+       DCE    NE
+       XDEF   ERRNE
+ERRNE  EQU    Q        Non Exisitent file.
+
+LERRNM EQU    Q        Last error number used.
+
+*
+* NEEDED FOR MESSAGES IN ALL VERSIONS.
+*
+       XDEF   ERR
+ERR    FCC    / ERROR/
+       FCB    &0
+       XDEF   INTXT
+INTXT  FCC    / IN /
+       FCB    &0
+       ACRLF  This     precedes REDDY for those who
+*    want to force a carriage return
+*    before printing "OK".  The binary
+*    CLOAD code does this.
+       XDEF   REDDY
+REDDY  FCC    /OK/
+       ACRLF
+       FCB    &0
+       XDEF   BRKTXT
+BRKTXT ACRLF
+       FCC    /BREAK/
+       FCB    &0
+
+       END

@@ -67,10 +67,10 @@ PAGE  002  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00761            0080    A FSTATK EQU    Q        The first statement token.
 00762P 0036                       DCI    G,O
 00763                             XDEF   GOTK
-00764            0081   A GOTK    EQU    Q
+00764            0081    A GOTK   EQU    Q
 00765P 0038                       DCI    RE,M
 00766                             XDEF   REMTK
-00767            0082   A REMTK   EQU    Q
+00767            0082    A REMTK  EQU    Q
 00768P 003B                       DCIONE
 00769                             XDEF   SNGQTK
 00770            0083    A SNGQTK EQU    Q
