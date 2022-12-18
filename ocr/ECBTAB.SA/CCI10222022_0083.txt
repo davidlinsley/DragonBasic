@@ -1,118 +1,59 @@
-                                 PAGE       012      ECBTAB         .SA31       EBTAB Error Texts
+PAGE  012  ECBTAB  .SA:1  ECBTAB Error Texts
 
-
-
-                                 01231                                                         XDEF         ERRUF
-
-                                 01232                          0022           A ERRUF         EQU          Q               UNDEFINED USER FUNCTION.
-                    40           01233P       02CD                                             DOE          FD
-
-                                 01234                                                         XDEF         ERRED
-
-                                 01235                          0024           A ERRED         EQU          Q               Bad File Data
-                    40           01236P       02CF                                             DCE          AO
-
-                                 01237                                                         XDEF         ERRAO
-
-                                 01238                          0026           A ERRAO         EQU          Q               Already Open.
-                    40           01239P       02D1                                             DOE          DN
-
-                        IIII     01240                                                         XDEF         ERRDN
-
-                                 01241                          0028           A ERRDN         EQU          Q               Device Number.
-                    40           01242P       02D3                                             DCE          ICJ
-
-                                 01243                                                         XDEF         ERRIO
-
-                                 01244                          002A           A ERRIO         EQU          Q               Input/Output error.
-                    41                                                                                                                                                                                                                                                               40 
-                                 01245P       02D5                                             DOE          FM 
-
-                                 01246                                                         XDEF         ERRBM
-                                 01247                          002C           A ERRBM         EQU          i',2            Bad File Mode.
-                    40                                                                                                                                                                                                                                                               40 
-                                 01248P       02D7                                             DCE          NO 
-
-                                 01249                                                         XDEF         ERRNO
-
-                                 01250                          002E           A ERRNO         EQU          Q               Device Not Open.
-                    40                                                                                                                                                                                                                                                               40 
-                                 01251P       02D9                                             DCE          IE
-
-                                 01252                                                         XDEF         ERRIE
-
-                                 01253                          0030           A ERRIE         EQU          Q               Input past End.
-                    40                                                                                                                                                                                                                                                               40 
-                                 01254P       02DB                                             DCE          DS 
-
-                                 01255                                                         XDEF         ERRDS
-
-                                 01256                          0032           A ERRDS         EQU          Q               Direct Statement                in file.
-                    40           01257P       02DD                                             DCE-         NE                                                                                                                                                                       40 
-
-                        Hil      01258                                                         XDEF         ERRNE
-
-                                 01259                          0034           A ERRNE         EQU          Q               Non Exisitent file.
-                    40                                                                                                                                                                                                                                                               40 
-                                 01260
-
-                                 01261                          0034           A LERRNM EQU                 Q               Last error number used
-
-                                 01262 
-                    40                                                                                                                                                                                                                                                               40 
-                                 01263                                            *
-
-                                 01264                                            *   NEEDED FOR MESSAGES IN ALL VERSIONS.
-
-                                 01265                                            *
-                    (5           01266                                                         XDEF         ERR                                                                                                                                                                      40 
-
-                                 01267P       02DF              20             A ERR           FCC          / ERROR/
-
-                                 01268P       02E5              00             A               FCB          &O
-                    40           01269                                                         XDEF         INTXT                                                                                                                                                                    40 
-
-                                 01270P       02E6              20             A INTXT         FCC          / IN /
-
-                                 01271P       02FA           1 00              A               FCB          &O
-                    40           01272P       02EB                                             ACRLF        This            precedes REDDY for those                      who                                                                                                        40
-
-                                 01273                                            *         want to force a carriage return
-
-                                 01274                                            *         before printing)             "OK".        The binary
-                    40                                                                                                                                                                                                                                                           -   40
-                                 01275                                            *         CLOAD code does this.
-"Progression"              II    01276                                                         XDEF         REDDY                                                                                                                                                                 I I I
-movement. TI                     01277P       02EC              4F             A REDDY         FCC          /OK/
-                    40                                                                                                                                                                                                                                                               40
-family of pow                    01278P       02EE                                             ACRLF
-
-lifetime spent                   01279P       02EF              00             A               FOB          &O
-
-components                       01280                                                         XDEF         BRKTXT
-                    40                                                                                                                                                                                                                                                               40 
-; Mays respe•                    01281P       02F0                                BRKTXT ACRLF
-   >i)voy realisn                01282P       02F1              42             A.              FCC          /BREAK/
-
-111( most thui                   01283P       02F6              00             A               FOB          &O
-; ; Iv ;illowe      40           01284                                                                                                                                                                                                                                               40 
-
-                                 01285                                                         END
-
-                                 TOTAL      ERRORS 00000--00000
-                    40                                                                                                                                                                                                                                                               40 
-                                 TOTAL      WARNINGS 00000-00000
-
-
-
-
-                                                                                                                                                                                                                                                                                     40 
-
-
-
-
-
-                                                                                                                                                                                                                                                                                     40
-
-                                                                                                                                                                                                                                                                                 I,
-
+01231                             XDEF   ERRUF
+01232            0022    A ERRUF  EQU    Q        UNDEFINED USER FUNCTION.
+01233P 02CD                       DCE    FD
+01234                             XDEF   ERRFD
+01235            0024    A ERRFD  EQU    Q        Bad File Data
+01236P 02CF                       DCE    AO
+01237                             XDEF   ERRAO
+01238            0026    A ERRAO  EQU    Q        Already Open.
+01239P 02D1                       DCE    DN
+01240                             XDEF   ERRDN
+01241            0028    A ERRDN  EQU    Q        Device Number.
+01242P 02D3                       DCE    IO
+01243                             XDEF   ERRIO
+01244            002A    A ERRIO  EQU    Q        Input/Output error.
+01245P 02D5                       DCE    FM 
+01246                             XDEF   ERRBM
+01247            002C    A ERRBM  EQU    Q        Bad File Mode.
+01248P 02D7                       DCE    NO 
+01249                             XDEF   ERRNO
+01250            002E    A ERRNO  EQU    Q        Device Not Open.
+01251P 02D9                       DCE    IE
+01252                             XDEF   ERRIE
+01253            0030    A ERRIE  EQU    Q        Input past End.
+01254P 02DB                       DCE    DS 
+01255                             XDEF   ERRDS
+01256            0032    A ERRDS  EQU    Q        Direct Statement in file.
+01257P 02DD                       DCE    NE
+01258                             XDEF   ERRNE
+01259            0034    A ERRNE  EQU    Q        Non Exisitent file.
+01260
+01261            0034    A LERRNM EQU    Q        Last error number used.
+01262 
+01263                      *
+01264                      * NEEDED FOR MESSAGES IN ALL VERSIONS.
+01265                      *
+01266                             XDEF   ERR
+01267P 02DF      20      A ERR    FCC    / ERROR/
+01268P 02E5      00      A        FCB    &0
+01269                             XDEF   INTXT
+01270P 02E6      20      A INTXT  FCC    / IN /
+01271P 02EA      00      A        FCB    &0
+01272P 02EB                       ACRLF  This     precedes REDDY for those who
+01273                      *    want to force a carriage return
+01274                      *    before printing "OK".  The binary
+01275                      *    CLOAD code does this.
+01276                             XDEF   REDDY
+01277P 02EC      4F      A REDDY  FCC    /OK/
+01278P 02EE                       ACRLF
+01279P 02EF      00      A        FCB    &0
+01280                             XDEF   BRKTXT
+01281P 02F0                BRKTXT ACRLF
+01282P 02F1      42      A        FCC    /BREAK/
+01283P 02F6      00      A        FCB    &0
+01284 
+01285                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000-00000
