@@ -1,126 +1,20 @@
-                          PAGE 010 ECBTAB . SA :1 ECBTAB Function Dispatch Table
-
-
-
-                          01154
-
-                          01155                                     TTL     Operator   Table
-                  *       01156
-
-                          01157                                     XDEF    OPTAB
-
-                          01156P   0294        79        A OPTAB    FCB     &121
-                  •       01159P   0295                             FDBEXT  FADDT                                                                                                            •
-
-                          01160P   0:297       79        A          FCB     &121
-
-                          01161P   0298                             FDBEXT  FSUBT
-                  •       01162P   029A        7E4       A          FCB     &123
-
-                          01163P   029B                             FDBEXT  FMULTT
-
-                          01164P   029D        7B        A          FCB     &123
-                  •       01165P   029E                             FDBEXT  FDI VT
-
-                          01166P   02A0        7F        A          FCB     &127
-
-                          01167P   02A1                             FDBEXT  FPWRT
-                  411,    01168P   02A3        50        A          FCB     &BO                                                                                                              • 
-
-                          01169P   02A4                             FDBEXT  ANDOP                                                                                                          M
-
-                          01170P   02A6        46                   FCB     &70
-                                                                                                                                                                                             •
-                          01171P   02A7                             FDBEXT  DROP
-
-
-
-
-                  •                                                                                                                                                                          •
-
-
-
-
-
-                  •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                             •
-
-
-
-
-
-                  •                                                                                                                                                                          •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   ogression - 
-movement The la   •
-
-family of power a 
-
-lifetime spent in th 
-
-components that . 
-
- Mays espect th- 
-
-( A/0y ealism o 
-
- ic most thunder'
-                                                                                                                                                                                             I
- ( )ol allowed to .
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                  •
-
-
-
-
-                  •
-
+PAGE  010  ECBTAB  .SA:1  ECBTAB Function Dispatch Table
+
+01154
+01155                             TTL    Operator Table
+01156
+01157                             XDEF   OPTAB
+01156P 0294      79      A OPTAB  FCB    &121
+01159P 0295                       FDBEXT FADDT                                                                                                            •
+01160P 0297      79      A        FCB    &121
+01161P 0298                       FDBEXT FSUBT
+01162P 029A      7B      A        FCB    &123
+01163P 029B                       FDBEXT FMULTT
+01164P 029D      7B      A        FCB    &123
+01165P 029E                       FDBEXT FDIVT
+01166P 02A0      7F      A        FCB    &127
+01167P 02A1                       FDBEXT FPWRT
+01168P 02A3      50      A        FCB    &80                                                                                                              • 
+01169P 02A4                       FDBEXT ANDOP                                                                                                          M
+01170P 02A6      46      A        FCB    &70
+01171P 02A7                       FDBEXT DROP
