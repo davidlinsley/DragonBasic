@@ -1,155 +1,54 @@
-                     PAGE   009   EOBTAB     .SA:1    EOBTAB   Function Reserved      Word List 
-
-
-
-
-                     01099
-
-                     01100                                      TTL      Function    Dispatcn Table
-                                                                                                                                                                                                 •
-                     01101
-
-                     01102                                      XDEF     FUNDSP
-
-                     01103P 0250                       FUNDSP   FDBEXT SON 
-
-                     01104P 0252                                FDBEXT INT 
-
-                     01105P 0254                                FDBEXT ABS
-
-
-                     01106
-
-                     01107                0000       A          IFNE     FRESW
-
-                     01109                              ENDC      IFN FRESW
-
-
-                     01110
-
-                     01111P   0256                              FDBEXT POS
-
-                     01112P   0258                              FDBEXT RND
-
-
-                     01113P   025A                              FDBEXT SUR                                                                                                                       •
-                     01114P   025C                              FDBEXT LOG
-
-                     01115P   025E                              FDBEXT EXP
-
-
-                     01116P   0260                              FDBEXT SIN
-                                                                                                                                                                                                 •
-                     01117P   0262                              FDBEXT COS
-
-                     01118P   0264                              FDBEXT TAN
-
-                     01119P   0266                              FDBEXT ATN
-                                                                                                                                                                                                 •
-                     01120P   0268                              FDBEXT PEEK
-
-
-                     01121P   026A                              FDBEXT LEN
-
-                     01122P   026C                              FDBEXT STR$
-
-                     01123P   026E                              FDBEXT VAL
-
-                     01124P   0270                              FDBEXT ASC
-
-
-                     01125P   0272                              FDBEXT CHR$
-
-                     01126P   0274                              FDBEXT EOF
-
-              I      01127P   0276                              FDBEXT JOYSTK
-                 I
-
-                     01128P   0278                              FDBEXT FIX
-
-                     01129P   027A                              FDBEXT HEX$
-
-
-                     01130
-
-                     01131P   027C                              FDBEXT LEFTS 
-            e•
-                     01132P   027E                              .FDBEXT RIGHTS,
-
-                     01133P   0280                              FDBEXT MID$
-                                                                                                o
-
-                     01134                                                                                                                                                                       •
-
-                     01135P   0282                              FDBEXT POINT
-
-
-                     01136
-
-                     01137P   0284                              FDBEXT INKEY$
-
-
-                     01138
-
-                     01139                 0001      A           IFNE     MEMBW
-
-
-            ID       01140P   0286                              FDBEXT MEM                                                                                                                       •
-                     01141                                       ENDC     IFN        MEMSW
-
-                     01142P   0288                               FDBEXT VARPTR
-
-"Progressi           01143P   028A                               FDBEXT INSTR
-
-movemen              01144                 0000      A           IFNE     TODCLK
-
-family of            01146                               ENDC     IFN TODCLK
-
-lifetime sp          01147                 0000      A           IFEQ     TODCLK
-
-componer    •        01148P   0280                               FDBEXT TIMER
-
-       res           01149                                       ENDC     IFE        TODCLK
-convey re 
-I I In most at       01150P   028E                               FDBEXT PPOINT                                                                                                                   •
-                     01151P   090                                FDBEXT STRNG$ 
-; c lot rill
-                     01152P   0292                               FDBEXT USRFN
-
-
-                                                                                                                                                                                                 •
-            •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            10
-
-
-
-
-
-
-
-
-            •
-
-
-
-
-
-
-                     PAGE 010 ECEONL .SA:1 Downio DNLBLK - Download a block of data.
-
+PAGE  009  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
+
+01099
+01100                             TTL    Function Dispatcn Table
+01101
+01102                             XDEF   FUNDSP
+01103P 0250                FUNDSP FDBEXT SGN
+01104P 0252                       FDBEXT INT
+01105P 0254                       FDBEXT ABS
+01106
+01107            0000    A        IFNE   FRESW
+01109                      ENDC    IFN FRESW
+01110
+01111P 0256                       FDBEXT POS
+01112P 0258                       FDBEXT RND
+01113P 025A                       FDBEXT SQR
+01114P 025C                       FDBEXT LOG
+01115P 025E                       FDBEXT EXP
+01116P 0260                       FDBEXT SIN
+01117P 0262                       FDBEXT COS
+01118P 0264                       FDBEXT TAN
+01119P 0266                       FDBEXT ATN
+01120P 0268                       FDBEXT PEEK
+01121P 026A                       FDBEXT LEN
+01122P 026C                       FDBEXT STR$
+01123P 026E                       FDBEXT VAL
+01124P 0270                       FDBEXT ASC
+01125P 0272                       FDBEXT CHR$
+01126P 0274                       FDBEXT EOF
+01127P 0276                       FDBEXT JOYSTK
+01128P 0278                       FDBEXT FIX
+01129P 027A                       FDBEXT HEX$
+01130
+01131P 027C                       FDBEXT LEFT$ 
+01132P 027E                       FDBEXT RIGHT$,
+01133P 0280                       FDBEXT MID$
+01134
+01135P 0282                       FDBEXT POINT
+01136
+01137P 0284                       FDBEXT INKEY$
+01138
+01139            0001    A        IFNE   MEMSW
+01140P 0286                       FDBEXT MEM
+01141                             ENDC   IFN      MEMSW
+01142P 0288                       FDBEXT VARPTR
+01143P 028A                       FDBEXT INSTR
+01144            0000    A        IFNE   TODCLK
+01146                      ENDC    IFN TODCLK
+01147            0000    A        IFEQ   TODCLK
+01148P 028C                       FDBEXT TIMER
+01149                             ENDC   IFE      TODCLK
+01150P 028E                       FDBEXT PPOINT
+01151P 0290                       FDBEXT STRNG$ 
+01152P 0292                       FDBEXT USRFN
