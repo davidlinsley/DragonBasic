@@ -45,7 +45,7 @@ PAGE  002  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
 00800                      * NUMBER OF LOCS REMAIN AVAILABLE FOR THE STACK.
 00801                      •    THE CALL IS:
 00802                      * LDAI B, NUMBER OF 2-BYTE ENTRIES NEEDED.
-00603                      * JSR GETSTK
+00803                      * JSR GETSTK
 00804                      *
 00805                      * THIS ROUTINE MUST BE CALLED BY ANY ROUTINE WHICH PUTS
 00806                      * AN ARBITRARY AMOUNT OF STUFF ON THE STACK,
