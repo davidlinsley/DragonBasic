@@ -13,26 +13,26 @@ PAGE  012  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
 01223P 0253 27   06   025B        BEQ    DIRIS    IT IS A DIRECT STATEMENT.
 01224P 0255 9F   29      A        STX    OLDLIN   SAVE OLD LINE NUMBER.
 01225P 0257 9E   2F      A        LDX    TXTBEG   GET PNTR TO START OF STATEMENT.
-01226P 0259 9F   2D      A        STX    OLDTXT   SAVE IT.                                                                                    4o
+01226P 0259 9F   2D      A        STX    OLDTXT   SAVE IT.
 01227P 025B 0F   6F      A DIRIS  CLR    DEVNUM   Make output go to screen and input
 01228                      *    come from keyboard.
 01229            0000    A        IFNE   CNTRLO
 01231                      ENDC    IFN CNTRLO
 01232P 0250 8E   FFFF    A        LDX    #BRKTXT-&1
-01233P 0260 0D   00      A        TST    BRKMFL   Is "BREAK" message flag set?                                                                •
-01234P 0262 102A FE14 007A        LBPL   READY    No, don't print   "BREAK".
-01235P 0266 7E   006F             JMP    ERRFIN
+01233P 0260 0D   00      A        TST    BRKMFL   Is "BREAK" message flag set?
+01234P 0262 102A FE14 007A        LBPL   READY    No, don't print "BREAK".
+01235P 0266 7E   006F    P        JMP    ERRFIN
 01236
 01237            0001    A        IFEQ   REALIO
 01246                      ENDC    IFE REALIO
 01247                             XDEF   CONT
-01248P 0269 26   0E   0279  CONT  BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.                                                         11' 
+01248P 0269 26   0E   0279  CONT  BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.
 01249P 026B C6   00      A        LDB    #ERRCN   CONTINUE ERROR.
 01250P 026D 9E   2D      A        LDX    OLDTXT   A STORED TXTPTR OF ZERO IS SETUP
 01251                      *    BY STKINI AND INDICATES THERE IS
 01252                      *    NOTHING TO CONTINUE.
-01253P 026F 1027 FDDA 004D        LBEQ   ERROR    "STOP",  "END", TYPING CRLF TO
-01254                      *    "INPUT" AND 'C SETUP OLDTXT.
+01253P 026F 1027 FDDA 004D        LBEQ   ERROR    "STOP", "END", TYPING CRLF TO
+01254                      *    "INPUT" AND ^C SETUP OLDTXT.
 01255P 0273 9F   A6      A        STX    TXTPTR
 01256P 0275 9E   29      A        LDX    OLDLIN
 01257P 0277 9F   68      A        STX    CURLIN
@@ -54,7 +54,7 @@ PAGE  012  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
 01273P 0283 9D   A5      A        JSR    CHRGOT   New memory size specified?
 01274P 0285 27   0C   0293        BEQ    CURMEM   No, retain current one.
 01275P 0287 BD   06B3    P        JSR    CHKCOM   Yes, eat the mandatory comma.
-01276P 028A BD   OB8C    P        JSR    EVLADR   X:=new memory size.
+01276P 028A BD   0B8C    P        JSR    EVLADR   X:=new memory size.
 01277P 028D 30   1F      A        LEAX   -&1,X    (Adjust or the fact that BASIC wants
 01278                      *    one byte beyond ENDMEM for VAL trick.)
 01279P 028F 9C   74      A        CMPX   ENDMEM   Is it beyond the actual end of RAM?
