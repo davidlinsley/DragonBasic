@@ -8,7 +8,7 @@ PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
 00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
 00706                      *                                                                    *
 00707                      **********************************************************************
-00708                                                                                                                                                              (4.
+00708
 00709                             TTL    External Declarations
 00710
 00711                             XREF   BRKTXT,BUF,BUFLNM,BUFM1N
@@ -35,7 +35,7 @@ PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
 00732                             XREF   TEMPST,THENTK,TIMETK,TIMSET,TCLAS1,TCLAS2,TCLAS3,TLFNTK,TOTK
 00733                             XREF   XRRUN
 00734                             XREF   ZEROFC
-00735                                                                                                                                                     (do
+00735
 00736                             TTL    GENERAL STORAGE MANAGEMENT ROUTINES.
 00737
 00738                      *
@@ -56,5 +56,5 @@ PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
 00753P 0012 27   09   001D        BEQ    STVPNT   IF IT IS NULL, SAVE STACK'S FORIABLE.
 00754P 0014 9C   11      A        CMPX   TEMPX2   ARE THE PNTRS EQUAL?
 00755P 0016 27   09   0021        BEQ    FFRTS    YES, WE HAVE FINISHED.
-00756P 0018 9E   0F      A        LDX    TEMPX1   ADD OFFSET TO TEMPX1 AND                                                                              (ap
+00756P 0018 9E   0F      A        LDX    TEMPX1   ADD OFFSET TO TEMPX1 AND
 00757P 001A 3A                    ABX             PUT RESULT IN XREG.
