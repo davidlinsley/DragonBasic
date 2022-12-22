@@ -49,7 +49,7 @@ PAGE    020   ECBBAS     .SA:1    BASIC     ON ...   GO TO ..."    CODE.
 01560P 0414      00      A        FCB    &0
 01561                      *
 01562                      * HERE WHEN THE DATA THAT WAS TYPED IN OR IN "DATA" STATEMENTS
-01563                      * IS IMPROPERLY FORMATTED.  FOR "INPUT" WE START AGAIN.                                                                            (41
+01563                      * IS IMPROPERLY FORMATTED.  FOR "INPUT" WE START AGAIN.
 01564                      * FOR "READ" WE GIVE A SYNTAX ERROR AT THE DATA LINE.
 01565                      *
 01566                      * IN DISK VERSION IF THE DATA WAS READ FROM A DISK FILE THEN
