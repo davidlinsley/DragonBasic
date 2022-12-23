@@ -1,4 +1,4 @@
-PAGE    020   ECBBAS     .SA:1    BASIC     ON ...   GO TO ..."    CODE.
+PAGE  020  ECBBAS  .SA:1  BASIC  ON ... GO TO ..." CODE.
 
 01514                             TTL    "LET" CODE.
 01515

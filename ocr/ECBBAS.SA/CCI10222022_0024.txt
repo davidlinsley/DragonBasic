@@ -1,4 +1,4 @@
-PAGE  016  ECBBAS  .SA :1  BASIC  RUN,GOTO,GOSUB,RETURN.
+PAGE  016  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
 
 01415P 0346 30   01      A        LEAX   &1,X     Yes, don't check the next byte since
 01416                      *    it might look like an IF token.
