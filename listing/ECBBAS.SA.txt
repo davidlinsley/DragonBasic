@@ -247,7 +247,7 @@ PAGE  005  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REINIT.
 00935P 00EC 9E   41      A        LDX    HIGHDS   SET NEW [VARTAB].
 00936P 00EE 9F   1B      A        STX    VARTAB
 00937                             XDEF   FINI
-00938P 00F0 8D   36   0128  FINI  BSR    RUNC     DO CLEAR & SET UP STACK.
+00938P 00F0 8D   36   0128 FINI   BSR    RUNC     DO CLEAR & SET UP STACK.
 00939P 00F2 8D   02   00F6        BSR    CHEADA   FIX UP THE LINKS
 00940P 00F4 20   8D   0083        BRA    MAIN
 00941                      *    AND SET [TXTPTR] TO [TXTTAB]-1.
@@ -292,8 +292,8 @@ PAGE  006  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REINIT.
 00977P 010E 27   09   0119        BEQ    FLINRT   YES, SEC AND RTS.
 00978P 0110 10A3 02      A        CMPD   &2,X     COMPARE SIZES.
 00979P 0113 23   06   011B        BLS    FNLRTS   This is the one we want or we have
-00980                       *    gone beyond it in which case the carry
-00981                       *    is set.
+00980                      *    gone beyond it in which case the carry
+00981                      *    is set.
 00982P 0115 AE   84      A        LDX    ,X       TRY NEXT ONE.
 00983P 0117 20   F3   010C        BRA    FNDLOP 
 00984P 0119 lA   01        FLINRT SEC
@@ -510,7 +510,7 @@ PAGE  011  ECBBAS  .SA:1  BASIC  NEW STATEMENT FETCHER.
 01182P 0223 39             RESRTS RTS
 01183
 01184            0001    A        IFEQ   REALIO
-01187                      ENDC    IFE REALIO
+01187                       ENDC   IFE REALIO
 01188
 01189            0001    A        IFNE   REALIO
 01190                             XDEF   ISCNTC
@@ -556,16 +556,16 @@ PAGE  012  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
 01227P 025B 0F   6F      A DIRIS  CLR    DEVNUM   Make output go to screen and input
 01228                      *    come from keyboard.
 01229            0000    A        IFNE   CNTRLO
-01231                      ENDC    IFN CNTRLO
+01231                       ENDC   IFN CNTRLO
 01232P 0250 8E   FFFF    A        LDX    #BRKTXT-&1
 01233P 0260 0D   00      A        TST    BRKMFL   Is "BREAK" message flag set?
 01234P 0262 102A FE14 007A        LBPL   READY    No, don't print "BREAK".
 01235P 0266 7E   006F    P        JMP    ERRFIN
 01236
 01237            0001    A        IFEQ   REALIO
-01246                      ENDC    IFE REALIO
+01246                       ENDC   IFE REALIO
 01247                             XDEF   CONT
-01248P 0269 26   0E   0279  CONT  BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.
+01248P 0269 26   0E   0279 CONT   BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.
 01249P 026B C6   00      A        LDB    #ERRCN   CONTINUE ERROR.
 01250P 026D 9E   2D      A        LDX    OLDTXT   A STORED TXTPTR OF ZERO IS SETUP
 01251                      *    BY STKINI AND INDICATES THERE IS
@@ -586,7 +586,7 @@ PAGE  012  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
 01266                      *
 01267
 01268                             XDEF   CLEAR
-01269P 027A 27   2C   02A8  CLEAR BEQ    CLRCGO   If no arguments just do clear.
+01269P 027A 27   2C   02A8 CLEAR  BEQ    CLRCGO   If no arguments just do clear.
 01270P 027C BD   082C    P        JSR    INTID2   Evaluate the new string space size.
 01271P 027F 34   06      A        PSHS   D        Save it  for later.
 01272P 0281 9E   27      A        LDX    MEMSIZ   Get the current memory size.
@@ -929,7 +929,7 @@ PAGE  021  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
 01587                      *    it clobbers BUF.
 01588
 01589            0000    A        IFNE   CNTRLO
-01591                      ENDC    IFN CNRTLO
+01591                       ENDC   IFN CNRTLO
 01592P 0437 8D   03   043C        BSR    INPTDO   Come back here to clear device number.
 01593P 0439 0F   6F      A        CLR    DEVNUM   Make input come from keyboard.
 01594P 043B 39                    RTS
@@ -1281,7 +1281,7 @@ PAGE  028  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
 01919                      *    STORE FAC ON STACK UNPACKED.
 01920P 0622 34   04      A        PSHS   B        START WITH SIGN SET UP.
 01921            0001    A        IFEQ   ADDPRC
-01925                      ENDC    IFE ADDPRC
+01925                       ENDC   IFE ADDPRC
 01926
 01927            0001    A        IFNE   ADDPRC
 01928P 0624 D6   4F      A FORPSH LDB    FACEXP   Enter here to avoid storing sign.
@@ -1305,7 +1305,7 @@ PAGE  028  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
 01946P 0647 54                    LSRB            SETUP [C] FOR DOREL'S "CHKVAL".
 01947P 0648 D7   0A      A        STB    DOMASK   SAVE FOR "DOCMP".
 01948            0001    A        IFEQ   ADDPRC
-01952                      ENDC    IFE ADDPRC
+01952                       ENDC   IFE ADDPRC
 01953            0001    A        IFNE   ADDPRC
 01954P 064A 35   52      A        PULS   A,X,U    Unpack the stack into ARG.
 01955P 064C 97   5C      A        STA    ARGEXP

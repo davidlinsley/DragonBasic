@@ -18,7 +18,7 @@ PAGE  021  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
 01587                      *    it clobbers BUF.
 01588
 01589            0000    A        IFNE   CNTRLO
-01591                      ENDC    IFN CNRTLO
+01591                       ENDC   IFN CNRTLO
 01592P 0437 8D   03   043C        BSR    INPTDO   Come back here to clear device number.
 01593P 0439 0F   6F      A        CLR    DEVNUM   Make input come from keyboard.
 01594P 043B 39                    RTS

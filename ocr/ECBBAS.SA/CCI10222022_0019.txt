@@ -32,7 +32,7 @@ PAGE  011  ECBBAS  .SA:1  BASIC  NEW STATEMENT FETCHER.
 01182P 0223 39             RESRTS RTS
 01183
 01184            0001    A        IFEQ   REALIO
-01187                      ENDC    IFE REALIO
+01187                       ENDC   IFE REALIO
 01188
 01189            0001    A        IFNE   REALIO
 01190                             XDEF   ISCNTC

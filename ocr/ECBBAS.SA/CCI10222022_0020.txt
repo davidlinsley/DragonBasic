@@ -17,16 +17,16 @@ PAGE  012  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
 01227P 025B 0F   6F      A DIRIS  CLR    DEVNUM   Make output go to screen and input
 01228                      *    come from keyboard.
 01229            0000    A        IFNE   CNTRLO
-01231                      ENDC    IFN CNTRLO
+01231                       ENDC   IFN CNTRLO
 01232P 0250 8E   FFFF    A        LDX    #BRKTXT-&1
 01233P 0260 0D   00      A        TST    BRKMFL   Is "BREAK" message flag set?
 01234P 0262 102A FE14 007A        LBPL   READY    No, don't print "BREAK".
 01235P 0266 7E   006F    P        JMP    ERRFIN
 01236
 01237            0001    A        IFEQ   REALIO
-01246                      ENDC    IFE REALIO
+01246                       ENDC   IFE REALIO
 01247                             XDEF   CONT
-01248P 0269 26   0E   0279  CONT  BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.
+01248P 0269 26   0E   0279 CONT   BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.
 01249P 026B C6   00      A        LDB    #ERRCN   CONTINUE ERROR.
 01250P 026D 9E   2D      A        LDX    OLDTXT   A STORED TXTPTR OF ZERO IS SETUP
 01251                      *    BY STKINI AND INDICATES THERE IS
@@ -47,7 +47,7 @@ PAGE  012  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
 01266                      *
 01267
 01268                             XDEF   CLEAR
-01269P 027A 27   2C   02A8  CLEAR BEQ    CLRCGO   If no arguments just do clear.
+01269P 027A 27   2C   02A8 CLEAR  BEQ    CLRCGO   If no arguments just do clear.
 01270P 027C BD   082C    P        JSR    INTID2   Evaluate the new string space size.
 01271P 027F 34   06      A        PSHS   D        Save it  for later.
 01272P 0281 9E   27      A        LDX    MEMSIZ   Get the current memory size.

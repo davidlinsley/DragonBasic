@@ -24,8 +24,8 @@ PAGE  006  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REINIT.
 00977P 010E 27   09   0119        BEQ    FLINRT   YES, SEC AND RTS.
 00978P 0110 10A3 02      A        CMPD   &2,X     COMPARE SIZES.
 00979P 0113 23   06   011B        BLS    FNLRTS   This is the one we want or we have
-00980                       *    gone beyond it in which case the carry
-00981                       *    is set.
+00980                      *    gone beyond it in which case the carry
+00981                      *    is set.
 00982P 0115 AE   84      A        LDX    ,X       TRY NEXT ONE.
 00983P 0117 20   F3   010C        BRA    FNDLOP 
 00984P 0119 lA   01        FLINRT SEC

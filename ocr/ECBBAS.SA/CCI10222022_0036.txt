@@ -4,7 +4,7 @@ PAGE  028  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
 01919                      *    STORE FAC ON STACK UNPACKED.
 01920P 0622 34   04      A        PSHS   B        START WITH SIGN SET UP.
 01921            0001    A        IFEQ   ADDPRC
-01925                      ENDC    IFE ADDPRC
+01925                       ENDC   IFE ADDPRC
 01926
 01927            0001    A        IFNE   ADDPRC
 01928P 0624 D6   4F      A FORPSH LDB    FACEXP   Enter here to avoid storing sign.
@@ -28,7 +28,7 @@ PAGE  028  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
 01946P 0647 54                    LSRB            SETUP [C] FOR DOREL'S "CHKVAL".
 01947P 0648 D7   0A      A        STB    DOMASK   SAVE FOR "DOCMP".
 01948            0001    A        IFEQ   ADDPRC
-01952                      ENDC    IFE ADDPRC
+01952                       ENDC   IFE ADDPRC
 01953            0001    A        IFNE   ADDPRC
 01954P 064A 35   52      A        PULS   A,X,U    Unpack the stack into ARG.
 01955P 064C 97   5C      A        STA    ARGEXP
