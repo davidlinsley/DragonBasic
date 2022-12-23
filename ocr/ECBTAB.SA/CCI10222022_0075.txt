@@ -7,7 +7,7 @@ PAGE  004  ECBTAB  .SA:11 ECBTAB "Normal" (non-function) Reserved Word Table
 00881            00BE    A FNTK   EQU    Q 
 00882
 00883            0000    A        IFNE   SPCSW
-00889                      ENDC    IFN SPCSW
+00889                       ENDC   IFN SPCSW
 00890P 0134                       DCI    THE,N
 00891                             XDEF   THENTK
 00892            00BF    A THENTK EQU    Q

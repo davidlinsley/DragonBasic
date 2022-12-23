@@ -9,7 +9,7 @@ PAGE  009  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
 01105P 0254                       FDBEXT ABS
 01106
 01107            0000    A        IFNE   FRESW
-01109                      ENDC    IFN FRESW
+01109                       ENDC   IFN FRESW
 01110
 01111P 0256                       FDBEXT POS
 01112P 0258                       FDBEXT RND
@@ -45,7 +45,7 @@ PAGE  009  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
 01142P 0288                       FDBEXT VARPTR
 01143P 028A                       FDBEXT INSTR
 01144            0000    A        IFNE   TODCLK
-01146                      ENDC    IFN TODCLK
+01146                       ENDC   IFN TODCLK
 01147            0000    A        IFEQ   TODCLK
 01148P 028C                       FDBEXT TIMER
 01149                             ENDC   IFE      TODCLK

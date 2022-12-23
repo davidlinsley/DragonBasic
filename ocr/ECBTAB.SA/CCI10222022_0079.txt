@@ -6,7 +6,7 @@ PAGE  008  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
 01076P 0230                       DCI    VARPT,R
 01077P 0236                       DCI    INST,R
 01078            0000    A        IFNE   TODCLK
-01080                      ENDC    IFN TODCLK
+01080                       ENDC   IFN TODCLK
 01081            0000    A        IFEQ   TODCLK
 01082P 023B                       DCI    TIME,R
 01083                             ENDC   IFE      TODCLK

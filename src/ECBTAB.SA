@@ -104,7 +104,7 @@ CLEATK EQU    Q
        DCI    NE,W
        DCI    DE,F
        IFNE   WAITSW
-ENDC    IFE WAITSW
+ ENDC   IFE WAITSW
        DCI    CLOA,D
        XDEF   CLOATK
 CLOATK EQU    Q
@@ -156,7 +156,7 @@ PMODTK EQU    Q
 DLOATK EQU    Q
        DCI    RENU,M
        IFEQ   REALIO
-ENDC    IFE REALIO
+ ENDC   IFE REALIO
 
        XDEF   LSTATK
 LSTATK EQU    Q        The last statement token.
@@ -178,7 +178,7 @@ SUBTK  EQU    Q
 FNTK   EQU    Q 
 
        IFNE   SPCSW
-ENDC    IFN SPCSW
+ ENDC   IFN SPCSW
        DCI    THE,N
        XDEF   THENTK
 THENTK EQU    Q
@@ -258,7 +258,7 @@ STMDSP FDBEXT FOR
        FDBEXT DEF
 
        IFNE   WAITSW
-ENDC    IFN WAITSW
+ ENDC   IFN WAITSW
 
        FDBEXT CLOAD
        FDBEXT CSAVE
@@ -297,7 +297,7 @@ ENDC    IFN WAITSW
        FDBEXT DLOAD
        FDBEXT RENUM
        IFEQ   REALIO
-ENDC    IFE REALIO
+ ENDC   IFE REALIO
 
        TTL    Function Reserved Word List
 
@@ -310,7 +310,7 @@ CLASS0 EQU    Q        The first class 0 function token.
        DCI    AB,S
 
        IFNE   FRESW
-ENDC    IFN FRESW
+ ENDC   IFN FRESW
 
        DCI    PO,S
        DCI    RN,D
@@ -362,7 +362,7 @@ TCLAS3 EQU    (2*CLASS3)!.&255
        DCI    VARPT,R
        DCI    INST,R
        IFNE   TODCLK
-ENDC    IFN TODCLK
+ ENDC   IFN TODCLK
        IFEQ   TODCLK
        DCI    TIME,R
        ENDC   IFE      TODCLK
@@ -389,7 +389,7 @@ FUNDSP FDBEXT SGN
        FDBEXT ABS
 
        IFNE   FRESW
-ENDC    IFN FRESW
+ ENDC   IFN FRESW
 
        FDBEXT POS
        FDBEXT RND
@@ -425,7 +425,7 @@ ENDC    IFN FRESW
        FDBEXT VARPTR
        FDBEXT INSTR
        IFNE   TODCLK
-ENDC    IFN TODCLK
+ ENDC   IFN TODCLK
        IFEQ   TODCLK
        FDBEXT TIMER
        ENDC   IFE      TODCLK
