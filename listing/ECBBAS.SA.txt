@@ -1,0 +1,2424 @@
+PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    BASIC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   BRKTXT,BUF,BUFLNM,BUFM1N
+00712                             XREF   CASOFF,CHROUT,CLASS1,CLASS2,CLASS3,CLSALL,CONDCR,CRUNCH
+00713                             XREF   CONS16,DATATK,DEVPRM
+00714                             XREF   ELSETK,EQULTK,ERR,ERRBS,ERRCN,ERRDD
+00715                             XREF   ERRDIR,ERRDS,ERRFC
+00716                             XREF   ERRFD,ERRID,ERRIE,ERRLS,ERRNF,ERROD,ERROM,ERRRG
+00717                             XREF   ERRSN,ERRSO,ERRST,ERRTAB,ERRTM,ERRUL
+00718                             XREF   FADD,FCOMP,FIN,FINLOD,FLOAT,FLOATS
+00719                             XREF   FNDOER,FNTK,FONE,FORTK,FOUTC,FUNDSO
+00720                             XREF   GETDNM,GOTK,GREATK
+00721                             XREF   HKASGN,HKCLRC,HKERR,HKETRP
+00722                             XREF   HKEVAL,HKGONE,HKITMS,HKNWST,HKRUN,HKSCP1,HKSCP2,HOCONS
+00723                             XREF   IFTK,INLIN,INPRT
+00724                             XREF   LESSTK,LFUNTK,LHMID$,LINPRT,LNRMTK,LOFBUF,LSTATK
+00725                             XREF   MID$TK,MINUTK,MOVFA,MOVFM,MOVMF,MOVVF
+00726                             XREF   NEGOP,NOTTK
+00727                             XREF   OPNICK,OPTAB,OUTDO,OUTQST,OUTSPC
+00728                             XREF   PLUSTK,POLCAT
+00729                             XREF   QINT
+00730                             XREF   REDDY
+00731                             XREF   SETDNM,SIGN,SNDOFF,STEPTK,STMDSO,STROUT,STRPRT,SUBTK
+00732                             XREF   TEMPST,THENTK,TIMETK,TIMSET,TCLAS1,TCLAS2,TCLAS3,TLFNTK,TOTK
+00733                             XREF   XRRUN
+00734                             XREF   ZEROFC
+00735
+00736                             TTL    GENERAL STORAGE MANAGEMENT ROUTINES.
+00737
+00738                      *
+00739                      * FIND A"FOR" ENTRY ON THE STACK VIA "VARPNT".
+00740                      *
+00741            0012    A FORSIZ EQU    &16+(&2*ADDPRC)
+00742
+00743P 0000 30   64      A FNDFOR LEAX   &4,S     IGNORE ADDRESS OF NEWSTT AND RTS ADDR.
+00744P 0002 C6   12      A FFLOOP LDB    #FORSIZ  LOAD B WITH INC VALUE.
+00745P 0004 9F   0F      A        STX    TEMPX1   SAVE FOR ADDITION LATER.
+00746P 0006 A6   84      A        LDA    ,X       GET STACK ENTRY.
+00747P 0008 80   00      A        SUBA   #FORTK   IS IT A "FOR" TOKEN?
+00748                      *    CLEAR ACCA FOR ADD TO [XREG].
+00749P 000A 26   15   0021        BNE    FFRTS    NO, NO "FOR" LOOPS WITH THIS PNTR.
+00750P 000C AE   01      A        LDX    &1,X     YES, GET "FOR" VARIABLE'S PNTR.
+00751P 000E 9F   11      A        STX    TEMPX2   SAVE IT.
+00752P 0010 9E   3B      A        LDX    FORPNT   GET PNTR OF FORIABLE SOUGHT AFTER.
+00753P 0012 27   09   001D        BEQ    STVPNT   IF IT IS NULL, SAVE STACK'S FORIABLE.
+00754P 0014 9C   11      A        CMPX   TEMPX2   ARE THE PNTRS EQUAL?
+00755P 0016 27   09   0021        BEQ    FFRTS    YES, WE HAVE FINISHED.
+00756P 0018 9E   0F      A        LDX    TEMPX1   ADD OFFSET TO TEMPX1 AND
+00757P 001A 3A                    ABX             PUT RESULT IN XREG.
+
+PAGE  002  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
+
+00758P 001B 20   E5   0002        BRA    FFLOOP   TRY, TRY AGAIN.
+00759P 001D 9E   11      A STVPNT LDX    TEMPX2   TRANSFER TO
+00760P 001F 9F   3B      A        STX    FORPNT   FORIABLE'S PNTR.
+00761P 0021 9E   0F      A FFRTS  LDX    TEMPX1
+00762P 0023 4D                    TSTA            Set Z if FOR entry found.
+00763P 0024 39                    RTS             RETURN TO CALLER.
+00764
+00765
+00766                      * THIS IS THE BLOCK TRANSFER ROUTINE.
+00767                      * IT MAKES SPACE BY SHOVING EVERYTHING FORWARD.
+00768
+00769                      * ON ENTRY:
+00770                      * [A,B]=[HIGHDS]    (FOR REASON).
+00771                      * [HIGHDS]= DESTINATION OF [HIGH ADDRESS]. 
+00772                      * [LOWTR]= LOWEST ADDR TO BE TRANSFERRED. 
+00773                      * [HIGHTR]= HIGHEST ADDR TO BE TRANSFERRED.
+00774
+00775                      * A CHECK IS MADE TO ASCERTAIN THAT A REASONABLE 
+00776                      * AMOUNT OF SPACE REMAINS BETWEEN THE TOP
+00777                      * OF THE STACK AND THE HIGHEST LOCATION TRANSFERRED INTO.
+00778
+00779                      * ON EXIT:
+00780                      * [LOWDS]=DESTINATION OF [LOWTR]
+00781                      * [X]=[LOWTR]
+00782
+00783                             XDEF   BLTU
+00784P 0025 8D   17   003E BLTU   BSR    REASON   ASCERTAIN THAT STACK WON'T
+00785                      •    BE OVERRUN. 
+00786                             XDEF   BLTUC
+00787P 0027 DE   41      A BLTUC  LDU    HIGHDS
+00788P 0029 33   41      A        LEAU   &1,U 
+00789P 002B 9E   43      A        LDX    HIGHTR 
+00790P 002D 30   01      A        LEAX   &1,X
+00791P 002F A6   82      A BLTLOP LDA    ,-X      GET ELEMENT TO BE MOVED. 
+00792P 0031 36   02      A        PSHU   A        MOVE IT.
+00793P 0033 9C   47      A        CMPX   LOWTR    AT BOTTOM OF LIST?
+00794P 0035 26   F8   002F        BNE    BLTLOP   NOPE, CONTINUE.
+00795P 0037 DF   45      A        STU    LOWDS    SET DEST OF [LOWTR] 
+00796P 0039 39             BLTRTS RTS             RETURN TO CALLER.
+00797
+00798                      *
+00799                      * THIS ROUTINE IS USED TO ASCERTAIN THAT A GIVEN
+00800                      * NUMBER OF LOCS REMAIN AVAILABLE FOR THE STACK.
+00801                      •    THE CALL IS:
+00802                      * LDAI B, NUMBER OF 2-BYTE ENTRIES NEEDED.
+00803                      * JSR GETSTK
+00804                      *
+00805                      * THIS ROUTINE MUST BE CALLED BY ANY ROUTINE WHICH PUTS
+00806                      * AN ARBITRARY AMOUNT OF STUFF ON THE STACK,
+00807                      * I.E., ANY RECURSIVE ROUTINE LIKE "FRMEVL".
+00808                      * IT IS ALSO CALLED BY ROUTINES SUCH AS "GOSUB" AND "FOR"
+00809                      * WHICH MAKE PERMANENT ENTRIES ON THE STACK.
+00810                      *
+00811                      * ROUTINES WHICH MERELY USE AND FREE UP THE GUARANTEED
+00812                      * NUMLEV LOCATIONS NEED NOT CALL THIS.
+00813                      * 
+00814                      *
+00815                      * ON EXIT:
+
+PAGE  003  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
+
+00816                      * [A,B] HAVE BEEN MODIFIED. [XREG] PRESERVED.
+00817                      *
+00818                             XDEF   GETSTK
+00819P 003A 4F             GETSTK CLRA
+00820P 003B 58                    ASLB            MULTIPLY [A,B] BY 2.
+00821                      *    NUMBER IS LESS THAN 128 SO NO CARRY.                                                                         •
+00822P 003C D3   1F      A        ADDD   STREND   [A,B]= HIGH ADDRESS REQ'D.
+00823                      * BRA REASON  ;CALL REASON, AND RETURN.
+00824                      *
+00825                      * [A,B]=SOME ADDR.
+00826                      * "REASON" MAKES SURE AT LEAST NUMLEV*2 LOCATIONS EXIST
+00827                      * BETWEEN [A,B] AND THE TOP OF THE STACK.
+00828                      *
+00829
+00830                             XDEF   REASON
+00831P 003E C3    003A   A REASON ADDD   #&2*NUMLEV
+00832P 0041 25    08  004B        BCS    OMERR
+00833P 0043 10DF  17     A        STS    STKTMP
+00834P 0046 1093  17     A        CMPD   STKTMP
+00835P 0049 25    EE  0039        BCS    BLTRTS   OK, return.
+00836                      *    Fall into OMERR.
+
+PAGE  004  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
+
+00838                             TTL    ERROR HANDLER, READY, NEW, REINIT.
+00839
+00840                             XDEF   OMERR
+00841P 004B C6   00      A OMERR  LDB    #ERROM
+00842                             XDEF   ERROR
+00843P 004D BD   0000    A ERROR  JSR    HKETRP   Let users trap their errors when
+00844                      *    calling BASIC subroutines.
+00845P 0050 BD   0000    A        JSR    HKERR    Hook for extended error handier.
+00846            0001    A        IFNE   REALIO
+00847P 0053 BD   0000    A        JSR    CASOFF   Turn off the cassette motor and
+00848                      *    enable interrupts.
+00849P 0056 BD   0000    A        JSR    SNDOFF   Turn off TV sound.
+00850                             ENDC   IFN      REALIO
+00851P 0059 BD   013D    P        JSR    STKINI   RESET THE STACK AND FLAGS
+00852P 005C 0F   6F      A        CLR    DEVNUM   Make input come from keyboard and
+00853                      *    output go to screen.
+00854            0000    A        IFNE   CNTRLO
+00856                       ENDC   IFN CNTRLO
+00857P 005E BD   0000    A        JSR    CONDCR   OUTPUT CRLF.
+00858P 0061 BD   0000    A        JSR    OUTQST   PRINT A QUESTION MARK
+00859P 0064 8E   0000    A        LDX    #ERRTAB  GET START OF ERROR TABLE.
+00860                             XDEF   ERPRNT
+00861P 0067 3A             ERPRNT ABX             ADD IN OFFSET.
+00862P 0068 8D   3D   00A7        BSR    XOUT     Print first char of message.
+00863P 006A 8D   38   00A7        BSR    XOUT     Print second char of message.
+00864P 006C 8E   FFFF    A        LDX    #ERR-&1  GET PNTR TO " ERROR".
+00865P 006F BD   0000    A ERRFIN JSR    STROUT   OUTPUT IT.
+00866P 0072 96   68      A        LDA    CURLIN   Was it a direct statment?
+00867P 0074 4C                    INCA            (Only need to check high order byte
+00868                      *    since highest line number allowed
+00869                      *    is 63999, for which the high order
+00870                      *    byte is 249.
+00871P 0075 27   03   007A        BEQ    READY    YES, DON'T TYPE LINE NUMBER.
+00872P 0077 BD   0000    A        JSR    INPRT
+00873                             XDEF   READY
+00874            007A    P READY  EQU    *
+00875            0000    A        IFNE   CNTRLO
+00877                       ENDC   IFN CNTRLO
+00878P 007A BD   0000    A        JSR    CONDCR   Position to left margin.
+00879P 007D 8E   FFFF    A        LDX    #REDDY-&1 SAY "OK".
+00880P 0080 BD   0000    A        JSR    STROUT
+00881                             XDEF   MAIN
+00882P 0083 BD   0000    A MAIN   JSR    INLIN     GET A LINE FROM TERMINAL.
+00883P 0086 CE   FFFF    A        LDU    #&65535   Make it look like a direct statement.
+00884P 0089 DF   68      A        STU    CURLIN
+00885P 008B 25   F6   0083        BCS    MAIN      If BREAK ignore the line.
+00886P 008D 0D   70      A        TST    EOFFLG    End of file reached?
+00887P 008F 1026 FF6D    A        LBNE   FINLOD    Yes, must be loading an ASCII file.
+00888                      *    Go finish up the load.
+00889P 0093 9F   A6      A        STX    TXTPTR   SET UP TEXT PNTR.
+00890P 0095 9D   9F      A        JSR    CHRGET
+00891P 0097 27   EA   0083        BEQ    MAIN     IF BLANK LINE, GET ANOTHER.
+00892P 0099 25   11   00AC        BCS    MAIN1    IS A LINE NUMBER. NOT DIRECT.
+00893P 009B C6   00      A        LDB    #ERRDS   Give Direct Statement in file error
+00894P 009D 0D   6F      A        TST    DEVNUM   if not reading from keyboard.
+00895P 009F 26   AC   004D        BNE    ERROR
+00896P 00A1 BD   0000    A        JSR    CRUNCH   COMPACTIFY.
+00897                             XDEF   GOGONE
+
+PAGE  005  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REINIT.
+
+00898P 00A4 7E   01DF    P GOGONE JMP    GONE     EXECUTE IT.
+00899
+00900P 00A7 A6   80      A XOUT   LDA    ,X+      Get char and update pointer.
+00901P 00A9 7E   0000    A        JMP    OUTDO    Go output the char and return.
+00902
+00903P 00AC BD   03A3    P MAIN1  JSR    LINGET   READ LINE NUMBER INTO "LINNUM".
+00904                             XDEF   EDTENT
+00905P 00AF 9E   28      A EDTENT LDX    LINNUM   ALLOW "BLTU" TO PUT LINE NUMBER AWAY.
+00906P 00B1 BF   0000    A        STX    BUFLNM
+00907P 00B4 BD   0000    A        JSR    CRUNCH
+00908P 00B7 D7   03      A        STB    COUNT    RETAIN CHARACTER COUNT.
+00909P 00B9 8D   4D   0108        BSR    FNDLIN
+00910P 00BB 25   12   00CF        BCS    NODEL    NO MATCH, SO DON'T DELETE.
+00911P 00BD DC   47      A        LDD    LOWTR    COMPUTE NEGATIVE LENGTH.
+00912P 00BF A3   84      A        SUBD   ,X
+00913P 00C1 D3   1B      A        ADDD   VARTAB   COMPUTE NEW [VARTAB] SO
+00914P 00C3 DD   1B      A        STD    VARTAB   "MLOOP" CAN KNOW WHERE TO STOP.
+00915P 00C5 EE   84      A        LDU    ,X       PREPARE TO COMPACTIFY.
+00916P 00C7 37   02      A MLOOP  PULU   A        GET BYTE TO MOVE.
+00917P 00C9 A7   80      A        STA    ,X+      STUFF IT DOWN IN.
+00918P 00CB 9C   1B      A        CMPX   VARTAB   DONE YET?
+00919P 00CD 26   F8   00C7        BNE    MLOOP    APPARENTLY NOT.
+00920P 00CF B6   FFFF    A NODEL  LDA    BUF-&1   SEE IF LINE HAD ANY CONTENTS.
+00921P 00D2 27   1C   00F0        BEQ    FINI     IF NOT, DON'T INSERT.
+00922P 00D4 DC   1B      A        LDD    VARTAB   GET PNTR TO TOP.
+00923P 00D6 DD   43      A        STD    HIGHTR   SETUP FOR BLT UP.
+00924P 00D8 DB   03      A        ADDB   COUNT
+00925P 00DA 89   00      A        ADCA   #&0
+00926P 00DC DD   41      A        STD    HIGHDS   NOTE [A,B] IS SET FOR "REASON".
+00927P 00DE BD   0025    P        JSR    BLTU
+00928                      *    XREG POINTS TO BEGINNING OF LINE.
+00929P 00E1 CE   FFFE    A        LDU    #BUFLNM-&2 PUTTING IN [ADRGAB] AT FRONT OF BUF
+00930                      *    FOOLS "CHEAD" WITH NONZERO LINK.
+00931P 00E4 37   02      A STOLOP PULU   A        GET FIRST CHARACTER
+00932P 00E6 A7   80      A        STA    ,X+      PUT IT IN MEMORY.
+00933P 00E8 9C   45      A        CMPX   LOWDS
+00934P 00EA 26   F8   00E4        BNE    STOLOP
+00935P 00EC 9E   41      A        LDX    HIGHDS   SET NEW [VARTAB].
+00936P 00EE 9F   1B      A        STX    VARTAB
+00937                             XDEF   FINI
+00938P 00F0 8D   36   0128  FINI  BSR    RUNC     DO CLEAR & SET UP STACK.
+00939P 00F2 8D   02   00F6        BSR    CHEADA   FIX UP THE LINKS
+00940P 00F4 20   8D   0083        BRA    MAIN
+00941                      *    AND SET [TXTPTR] TO [TXTTAB]-1.
+00942                             XDEF   CHEADA
+00943P 00F6 9E   19      A CHEADA LDX    TXTTAB   SET [XREG] TO [TXTTAB].
+00944                      *
+00945                      * CHEAD GOES THROUGH PROGRAM STORAGE AND FIXES
+00946                      * UP ALL THE LINKS. THE END OF EACH LINE IS FOUND
+00947                      * BY SEARCHING FOR THE ZERO AT THE END.
+00948                      * THE DOUBLE ZERO LINK IS USED TO DETECT THE END OF THE PROGRAM.
+00949                      *
+00950                             XDEF   CHEAD
+00951P 00F8 EC   84      A CHEAD  LDD    ,X       ARRIVED AT DOUBLE ZEROES?
+00952P 00FA 27   21   011D        BEQ    FNDRTS   Yes, end of program.
+00953P 00FC 33   04      A        LEAU   &4,X     No, search for end of line.
+00954P 00FE A6   C0      A CZLOOP LDA    ,U+      IS BYTE A ZERO?
+00955P 0100 26   FC   00FE        BNE    CZLOOP   NO, CONTINUE SEARCHING.
+
+PAGE  006  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REINIT.
+
+00956P 0102 EF   84      A        STU    ,X       Yes, store link.
+00957P 0104 AE   84      A        LDX    ,X       Point to next line.
+00958P 0106 20   F0   00F8        BRA    CHEAD    Go handle the next line.
+00959
+00960                      *
+00961                      *  FNDLIN SEARCHES THE PROGRAM TEXT FOR THE LINE
+00962                      *  WHOSE NUMBER IS PASSED IN "LINNUM".
+00963                      *  THERE ARE TWO POSSIBLE RETURNS:
+00964                      *
+00965                      * 1) CARRY NOT SET.
+00966                      *    XREG POINTS TO THE LINK FIELD IN THE LINE
+00967                      *    WHICH IS THE ONE SEARCHED FOR
+00968                      *
+00969                      * 2) CARRY SET.
+00970                      *    LINE NOT FOUND. XREG POINTS TO THE LINE IN THE
+00971                      *    PROGRAM GREATER THAN THE ONE SOUGHT AFTER.
+00972                      *
+00973                             XDEF   FNDLIN
+00974P 0108 DC   2B      A FNDLIN LDD    LINNUM   D:=1ine number to search for.
+00975P 010A 9E   19      A        LDX    TXTTAB   START AT THE BEGINNING.
+00976P 010C EE   84      A FNDLOP LDU    ,X       IS THE LINK FIELD ZERO?
+00977P 010E 27   09   0119        BEQ    FLINRT   YES, SEC AND RTS.
+00978P 0110 10A3 02      A        CMPD   &2,X     COMPARE SIZES.
+00979P 0113 23   06   011B        BLS    FNLRTS   This is the one we want or we have
+00980                       *    gone beyond it in which case the carry
+00981                       *    is set.
+00982P 0115 AE   84      A        LDX    ,X       TRY NEXT ONE.
+00983P 0117 20   F3   010C        BRA    FNDLOP 
+00984P 0119 lA   01        FLINRT SEC
+00985P 011B 9F   47      A FNLRTS STX    LOWTR
+00986P 011D 39             FNDRTS RTS
+00987                      *
+00988                      * THE "NEW" COMMAND CLEARS THE PROGRAM TEXT AS WELL
+00989                      * AS VARIABLE SPACE.
+00990                      *
+00991                             XDEF   SCRATH
+00992P 011E 26   FB   011B SCRATH BNE    FNLRTS   MAKE SURE THERE IS A TERMINATOR.
+00993                             XDEF   SCRTCH
+00994P 0120 9E   19      A SCRTCH LDX    TXTTAB   CLEAR FIRST TWO BYTES PNT'D
+00995P 0122 6F   80      A        CLR    ,X+      TO BY TXTPTR.
+00996P 0124 6F   80      A        CLR    ,X+
+00997P 0126 9F   1B      A        STX    VARTAB
+00998                             XDEF   RUNC
+00999P 0128 9E   19      A RUNC   LDX    TXTTAB   SET TXTPTR TO START OF TEXT.
+01000P 012A BD   02F7    P        JSR    DEXPTR   POINT TO ZERO TO FOOL "NEWSTT".
+01001                      *
+01002                      * CLEARC IS A SUBROUTINE WHICH INITIALIZES THE VARIABLE AND
+01003                      * ARRAY SPACE BY RESETING ARYTAB (THE END OF SIMPLE VARIABLE SPACE)
+01004                      * AND STREND (THE END OF ARRAY STORAGE). IT FALLS INTO "STKINI"
+01005                      * WHICH RESETS THE STACK.
+01006                      *
+01007                             XDEF   CLEARC
+01008P 012D BD   0000    A CLEARC JSR    HKCLRC   RAM hook.
+01009P 0130 9E   27      A        LDX    MEMSIZ   FREE UP STRING SPACE.
+01010P 0132 9F   23      A        STX    FRETOP
+01011P 0134 BD   021D    P        JSR    RESTOR   RESTORE DATA
+01012P 0137 9E   1B      A        LDX    VARTAB   LIBERATE THE
+01013P 0139 9F   1D      A        STX    ARYTAB   VARIABLES AND
+
+PAGE  007  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REIN1T.
+
+01014P 0138 9F   1F      A        STX    STREND   ARRAYS.
+01015 
+01016                      *    STKINI RESETS THE STACK POINTER ELIMINATING
+01017                      *    GOSUB AND FOR CONTEXT. STRING TEMPORARIES ARE FREED
+01018                      *    UP, SUBFLG IS RESET. CONTINUING IS PROHIBITED.
+01019                      *    AND A DUMMY ENTRY IS PUT ON TTHE STACK SO "FNDFOR" WILL ALWAYS
+01020                      *    FIND A NON-"FOR" ENTRY AT THE BOTTOM OF THE STACK.
+01021
+01022                             XDEF   STKINI
+01023P 013D 8E   0000    A STKINI LDX    #TEMPST  INITIALIZE STRING TEMPORARIES.
+01024P 0140 9F   0B      A        STX    TEMPPT
+01025P 0142 AE   E4      A        LDX    ,S       Get the return address.
+01026P 0144 10DE 21      A        LDS    STKTOP   INITIALIZE STACK.
+01027P 0147 6F   E2      A        CLR    ,-S      Put a zero on the stack. (Non NEXT,
+01028                      *    FOR, GOSUB token.)
+01029P 0149 0F   2D      A        CLR    OLDTXT   PROHIBIT CONTINUING.
+01030P 014B 0F   2E      A        CLR    OLDTXT+&1
+01031P 014D 0F   08      A        CLR    SUBFLG   PILLOW SUBSCRIPTS.
+01032P 014F 6E   84      A        JMP    ,X       RETURN.
+
+PAGE  008  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REINIT.
+
+01034                             TTL    THE "FOR" STATEMENT.
+01035
+01036                      *
+01037                      * A "FOR" ENTRY ON THE STACK HAS THE FOLLOWING FORMAT:
+01038                      *
+01039                      * LOW ADDRESS
+01040                      * TOKEN (FORTK) 1 BYTE
+01041                      * A POINTER TO THE LOOP VARIABLE 2 BYTES
+01042                      * THE STEP 4+ADDPRC BYTES
+01043                      * A BYTE REFLECTING THE SIGN OF THE INCREMENT 1 BYTE
+01044                      * THE UPPER VALUE 4+ADDPRC BYTES
+01045                      * THE LINE NUMBER OF THE "FOR" STATEMENT 2 BYTES
+01046                      * A TEXT POINTER INTO THE "FOR" STATEMENT 2 BYTES
+01047                      * HIGH ADDRESS
+01048                      *
+01049                      * TOTAL 16+(2*ADDPRC)  BYTES.
+01050                      *
+01051
+01052                             XDEF   FOR
+01053P 0151 86   80      A FOR    LDA    #&128    DON'T RECOGNIZE
+01054P 0153 97   08      A        STA    SUBFLG   SUBSCRIPTED VARIABLES.
+01055P 0155 BD   03C5    P        JSR    LET      READ THE VARIABLE AND ASSIGN IT
+01056                      *    THE CORRECT INITIAL VALUE AND STORE
+01057                      *    A POINTER TO THE VARIABLE IN VARPNT.
+01058P 0158 BD   0000    P        JSR    FNDFOR   PNTR IS IN VARPNT, AND FORPNT.
+01059P 015B 32   62      A        LEAS   &2,S     GET RID OF NEWSTT RETURN ADDRESS
+01060                      *    IN CASE THIS IS A TOTALLY NEW ENTRY.
+01061P 015D 26   04   0163        BNE    NOTOL    IF NO MATCH, DON'T ELIMINATE ANYTHING.
+01062P 015F 9E   0F      A        LDX    TEMPX1   ELIMINATE THE MATCHING ENTRY AS
+01063P 0161 32   85      A        LEAS   B,X      WELL AS EVERYTHING AFTER IT.
+01064P 0163 C6   09      A NOTOL  LDB    #&8+ADDPRC
+01065P 0165 BD   003A    P        JSR    GETSTK   Make sure there is enough room on the
+01066                      *    stack for another FOR entry.
+01067P 0168 BD   0324    P        JSR    DATAN    GET AN XREG POINTING TO TERMINATOR.
+01068                      *    [TXTPTR] IS UNAFFECTED.
+01069P 016B DC   68      A        LDD    CURLIN   PUSH POINTER TO TERMINATOR FOLLOWED
+01070P 016D 34   16      A        PSHS   X,B,A    BY LINE NUMBER.
+01071P 016F                       SYNCHK TOTK     "TO" IS NECESSARY.
+01072P 0174 BD   057D    P        JSR    CHKNUM   VALUE MUST BE A NUMBER.
+01073P 0177 BD   057B    P        JSR    FRMNUM   GET UPPER VALUE INTO FAC.
+01074P 017A D6   54      A        LDB    FACSGN   PACK FAC.
+01075P 017C CA   7F      A        ORB    #&127
+01076P 017E D4   50      A        ANDB   FACHO
+01077P 0180 D7   50      A        STB    FACHO    SET PACKED SIGN BIT.
+01078P 0182 108E 0189    P        LDY    #LDFONE  Y:=return address for FORPSH.
+01079P 0186 7E   0624    P        JMP    FORPSH   PUT FAC ONTO STACK, PACKED.
+01080P 0189 8E   0000    A LDFONE LDX    #FONE    PUT 1.0 INTO FAC.
+01081P 018C BD   0000    A        JSR    MOVFM
+01082P 018F 9D   A5      A        JSR    CHRGOT
+01083P 0191 81   00      A        CMPA   #STEPTK  A STEP IS GIVEN?
+01084P 0193 26   05   019A        BNE    ONEON    NO. ASSUME 1.0.
+01085P 0195 9D   9F      A        JSR    CHRGET   YES. ADVANCE POINTER.
+01086P 0197 BD   057B    A        JSR    FRMNUM   READ THE STEP.
+01087P 019A BD   0000    A ONEON  JSR    SIGN     GET SIGN IN ACCB.
+01088P 019D BD   0620    P        JSR    PUSHF    PUSH FAC ONTO STACK (THRU B).
+01089P 01A0 DC   3B      A        LDD    FORPNT   PUT PNTR TO VARIABLE ON STACK.
+01090P 01A2 34   06      A        PSHS   B,A
+01091P 01A4 86   00      A NXTCON LDA    #FORTK   PUT A FORTK ONTO STACK.
+
+PAGE  009  ECBBAS  .SA:1  BASIC  THE "FOR" STATEMENT.
+
+01092P 01A6 34   02      A        PSHS   A
+01093                      * BRA NEWSTT  ;SIMULATE BRA TO NEWSTT. JUST FALL IN.
+
+PAGE  010  ECBBAS  .SA:1  BASIC  THE "FOR" STATEMENT.
+
+01095                             TTL    NEW STATEMENT FETCHER.
+01096
+01097                      *
+01098                      * BACK HERE FOR NEW STATEMENT. CHARACTER POINTED TO BY TXTPTR
+01099                      * IS ":" OR END-OF-LINE. THE ADDRESS OF THIS LOC IS LEFT
+01100                      * ON THE STACK WHEN A STATEMENT IS EXECUTED SO THAT
+01101                      * IT CAN MERELY DO A RETURN WHEN IT IS DONE.
+01102                      *
+01103                             XDEF   NEWSTT
+01104P 01A8 BD   0000    A NEWSTT JSR    HKNWST   RAM hook.
+01105P 01AB 1C   AF      A        ANDCC  #$FF!X(F!+I) Enable interrupts.
+01106P 01AD 8D   75   0224        BSR    ISCNTC   LISTEN FOR CONTROL-C.
+01107P 01AF 9E   A6      A        LDX    TXTPTR   LOOK AT CURRENT CHARACTER.
+01108P 01B1 9F   2F      A        STX    TXTBEG   SAVE IN CASE OF RESTART BY INPUT.
+01109P 01B3 A6   80      A        LDA    ,X+
+01110P 01B5 27   07   01BE        BEQ    ENDLIN   IT IS A NULL - END OF LINE.
+01111P 01B7 81   3A      A        CMPA   #':
+01112P 01B9 27   24   01DF        BEQ    GONE     IF A ":", CONTINUE STATEMENT.
+01113P 01BB 7E   06BD    P SNERR1 JMP    SNERR    NEITHER SO SYNTAX ERROR.
+01114P 01BE A6   81      A ENDLIN LDA    ,X++     IS LINK 0?
+01115                      *    (Only check high order byte since
+01116                      *    program can't be on physical page O.)
+01117P 01C0 97   00      A        STA    BRKMFL   MAKE SURE DONT PRINT BREAK
+01118P 01C2 1027 0088 024E        LBEQ   ENDCON   YES - RAN OFF THE END.
+01119P 01C6 EC   80      A        LDD    ,X+      NO, PUT NEXT LINE NUMBER IN CURLIN.
+01120P 01C8 DD   68      A        STD    CURLIN   ONLY BUMP ONCE FOR SETTING TXTPTR
+01121P 01CA 9F   A6      A        STX    TXTPTR   SO NEXT CHRGET WILL GET FIRST CHAR
+01122                      *    OF LINE.
+01123P 01CC 96   AF      A        LDA    TRCFLG   Are we tracing the program?
+01124P 01CE 27   0F   01DF        BEQ    GONE     No.
+01125P 01D0 86   5B      A        LDA    #'[      Yes, print the line number enclosed
+01126P 01D2 BD   0000    A        JSR    CHROUT   in square brackets.
+01127P 01D5 96   68      A        LDA    CURLIN   (B still contains low order byte.)
+01128P 01D7 BD   0000    A        JSR    LINPRT
+01129P 01DA 86   5D      A        LDA    #']
+01130P 01DC BD   0000    A        JSR    CHROUT
+01131P 01DF 9D   9F      A GONE   JSR    CHRGET   GET THE STATEMENT TYPE.
+01132P 01E1 8D   02   01E5        BSR    GONE3
+01133P 01E3 20   C3   01A8        BRA    NEWSTT
+01134                             XDEF   GONE3
+01135P 01E5 27   3C   0223 GONE3  BEQ    RESRTS   IF TERMINATOR, TRY AGAIN.
+01136P 01E7 BD   0000    A        JSR    HKGONE   RAM hook.
+01137P 01EA 4D                    TSTA            Is it a reserved word token?
+01138P 01EB 102A 01D6 03C5        LBPL   LET      Not a token, must be an implicit LET.
+01139P 01EF 81   00      A        CMPA   #LSTATK  Is it a statement token?
+01140P 01F1 22   0B   01FE        BHI    NOTOST   It's not a statement token from
+01141                      *    statement list 0.
+01142P 01F3 BE   0000    A        LDX    STMDS0   It is a list 0 statement token.
+01143                      *    X:=pointer to dispatch table.
+01144                             XDEF   DOSDSP
+01145P 01F6 48             DOSDSP ASLA            Multiply token by 2 to get offset
+01146                      *    into dispatch table.  (Get rid of
+01147                      *    MSB in process.)
+01148P 01F7 1F   89      A        TFR    A,B      X:=pointer to dispatch address for
+01149P 01F9 3A                    ABX             this statement.  (Can't use
+01150                      *    LDX A,X since offset is signed.)
+01151P 01FA 9D   9F      A        JSR    CHRGET   Get the first char and set the cond
+01152                      *    codes.
+
+PAGE  011  ECBBAS  .SA:1  BASIC  NEW STATEMENT FETCHER.
+
+01153P 01FC 6E   94      A        JMP    [, X]    Go handle the statement.
+01154
+01155                      *
+01156                      * Here if not a list 0 statement.
+01157                      *
+01158
+01159P 01FE 81   FF      A NOTOST CMPA   #@377    Is it a function token?
+01160P 0200 27   08   020A        BEQ    FNASGN   Yes.
+01161P 0202 81   00      A        CMPA   #LNRMTK  is it a list 0 token?
+01162P 0204 23   B5   01BB        BLS    SNERR1   Yes, give a syntax error.
+01163P 0206 6E   9F 000A A        JMP    [STMDS0+STBLEN] No, jump to the list 1 statement
+01164                      *    dispatcher.
+01165
+01166P 020A 9D   9F      A FNASGN JSR    CHRGET   Get the second byte of the function
+01167                      *    token.
+01168P 020C 81   00      A        CMPA   #MID$TK  Is it MID$ assignment?
+01169P 020E 1027 FDEE    A        LBEQ   LHMID$   Yes.
+01170P 0212 81   00      A        CMPA   #TIMETK  Is it a TIME token?
+01171P 0214 1027 FDE8    A        LBEQ   TIMSET   Yes,  go set the clock.
+01172P 0218 BD   0000    A        JSR    HKASGN   No, go to RAM hook to check for
+01173P 021B 20   9E   01BB        BRA    SNERR1   other function assignments,  If none,
+01174                      *    give a  syntax error.
+01175
+01176                            TTL    RESTORE,STOP,END,CONTINUE,CLEAR.
+01177
+01178                            XDEF   RESTOR
+01179P 021D 9E   19      A RESTOR LDX    TXTTAB
+01180P 021F 30   1F               DEX             INIT DATPTR TO [TXTTAB]-1
+01181P 0221 9F   33      A RESFIN STX    DATPTR   READ FINISHES COMES TO RESFIN.
+01182P 0223 39             RESRTS RTS
+01183
+01184            0001    A        IFEQ   REALIO
+01187                      ENDC    IFE REALIO
+01188
+01189            0001    A        IFNE   REALIO
+01190                             XDEF   ISCNTC
+01191P 0224 BD   0000    A ISCNTC JSR    POLCAT   POLL KEYBOARD.  WAS THERE A KEY TYPED?
+01192P 0227 27   0A   0233        BEQ    ISCRTS   NO, JUST RETURN.
+01193P 0229 81   03      A TSTBRK CMPA   #BRKCHR  YES, IS IS THE BREAK KEY?
+01194P 022B 27   15   0242        BEQ    STOP     YES, HIT THE BINDERS.
+01195P 022D 81   13      A        CMPA   #PAWZC   NO, IS IT THE PAUSE KEY?
+01196P 022F 27   03   0234        BEQ    HANG     Yes, hang around for a while.
+01197P 0231 97   87      A        STA    INKCHR   No, not special key, save it for
+01198P 0233 39             ISCRTS RTS             INKEY$ and return.
+01199P 0234 BD   0000    A HANG   JSR    POLCAT   YES, NOW WAIT FOR ANOTHER KEY.
+01200P 0237 27   FB   0234        BEQ    HANG
+01201P 0239 20   EE   0229        BRA    TSTBRK   GOT ONE, GO SEE WHAT IT IS.
+01202                             ENDC   IFN      REALIO
+01203
+01204                             XDEF   END
+01205P 023B BD   0000    A END    JSR    CLSALL   Close all devices and files.
+01206P 023E 9D   A5      A        JSR    CHRGOT   Reget the char.
+01207P 0240 20   02   0244        BRA    ENDER    Check termination, etc.
+01208
+01209                             XDEF   STOP
+01210P 0242 1A   01        STOP   SEC             MAKE [C] NONZERO AS A FLAG.
+01211P 0244 26   33   0279 ENDER  BNE    CONTRT   RETURN IF NOT CONT-C OR
+01212                      *    IF NO TERMINATOR FOR STOP OR END.
+
+PAGE  012  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
+
+01213                      *    [C]=0 for END, WILL NOT PRINT "BREAK".
+01214P 0246 9E   A6      A        LDX    TXTPTR
+01215P 0248 9F   2F      A        STX    TXTBEG
+01216                             XDEF   STPEND
+01217P 024A 06   00      A STPEND ROR    BRKMFL   Set MSB of BRKMFL if "BREAK" is to
+01218                      *    be printed.
+01219P 024C 32   62      A        LEAS   &2,S     POP OFF NEWSTT ADDR.
+01220                             XDEF   ENDCON
+01221P 024E 9E   68      A ENDCON LDX    CURLIN
+01222P 0250 8C   FFFF    A        CMPX   #&65535  IS IT A DIRECT STATEMENT?
+01223P 0253 27   06   025B        BEQ    DIRIS    IT IS A DIRECT STATEMENT.
+01224P 0255 9F   29      A        STX    OLDLIN   SAVE OLD LINE NUMBER.
+01225P 0257 9E   2F      A        LDX    TXTBEG   GET PNTR TO START OF STATEMENT.
+01226P 0259 9F   2D      A        STX    OLDTXT   SAVE IT.
+01227P 025B 0F   6F      A DIRIS  CLR    DEVNUM   Make output go to screen and input
+01228                      *    come from keyboard.
+01229            0000    A        IFNE   CNTRLO
+01231                      ENDC    IFN CNTRLO
+01232P 0250 8E   FFFF    A        LDX    #BRKTXT-&1
+01233P 0260 0D   00      A        TST    BRKMFL   Is "BREAK" message flag set?
+01234P 0262 102A FE14 007A        LBPL   READY    No, don't print "BREAK".
+01235P 0266 7E   006F    P        JMP    ERRFIN
+01236
+01237            0001    A        IFEQ   REALIO
+01246                      ENDC    IFE REALIO
+01247                             XDEF   CONT
+01248P 0269 26   0E   0279  CONT  BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.
+01249P 026B C6   00      A        LDB    #ERRCN   CONTINUE ERROR.
+01250P 026D 9E   2D      A        LDX    OLDTXT   A STORED TXTPTR OF ZERO IS SETUP
+01251                      *    BY STKINI AND INDICATES THERE IS
+01252                      *    NOTHING TO CONTINUE.
+01253P 026F 1027 FDDA 004D        LBEQ   ERROR    "STOP", "END", TYPING CRLF TO
+01254                      *    "INPUT" AND ^C SETUP OLDTXT.
+01255P 0273 9F   A6      A        STX    TXTPTR
+01256P 0275 9E   29      A        LDX    OLDLIN
+01257P 0277 9F   68      A        STX    CURLIN
+01258P 0279 39             CONTRT RTS             RETURN TO CALLER.
+01259
+01260                      *
+01261                      * THIS CODE IS FOR THE "CLEAR" COMMAND WITH AN ARGUMENT
+01262                      * TO CHANGE THE AMOUNT OF STRING SPACE ALLOCATED and a second
+01263                      * argument to change memory size.
+01264                      * IF NO FORMULA IS GIVEN THE AMOUNT OF STRING SPACE
+01265                      * REMAINS UNCHANGED.  The same applies to memory size.
+01266                      *
+01267
+01268                             XDEF   CLEAR
+01269P 027A 27   2C   02A8  CLEAR BEQ    CLRCGO   If no arguments just do clear.
+01270P 027C BD   082C    P        JSR    INTID2   Evaluate the new string space size.
+01271P 027F 34   06      A        PSHS   D        Save it  for later.
+01272P 0281 9E   27      A        LDX    MEMSIZ   Get the current memory size.
+01273P 0283 9D   A5      A        JSR    CHRGOT   New memory size specified?
+01274P 0285 27   0C   0293        BEQ    CURMEM   No, retain current one.
+01275P 0287 BD   06B3    P        JSR    CHKCOM   Yes, eat the mandatory comma.
+01276P 028A BD   0B8C    P        JSR    EVLADR   X:=new memory size.
+01277P 028D 30   1F      A        LEAX   -&1,X    (Adjust or the fact that BASIC wants
+01278                      *    one byte beyond ENDMEM for VAL trick.)
+01279P 028F 9C   74      A        CMPX   ENDMEM   Is it beyond the actual end of RAM?
+
+PAGE  013  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
+
+01280P 0291 22   18   02AB        BHI    OMERR1   Yes, give out of memory error.
+01281P 0293 1F   10      A CURMEM TFR    X,D      Calculate the new stack top by
+01282P 0295 A3   E1      A        SUBD   ,S++     subtracting the new string space
+01283                      *    size from the current or new memory
+01284                      *    size.
+01285P 0297 25   12   02AB        BCS    OMERR1   Specified string space is more than
+01286                      *    memory size!
+01287P 0299 1F   03      A        TFR    D,U      Save new stack top.
+01288P 029B 83   003A    A        SUBD   #&2*NUMLEV Make sure there is a reasonable amount
+01289P 029E 25   0B   02AB        BCS    OMERR1   of space between the top of the stack
+01290P 02A0 93   1B      A        SUBD   VARTAB   and the end of the BASIC program.
+01291P 02A2 25   07   02AB        BLO    OMERR1
+01292P 02A4 DF   21      A        STU    STKTOP   All is OK. Store new STKTOP and
+01293P 02A6 9F   27      A        STX    MEMSIZ   current or new memory size.
+01294P 02A8 7E   012D    P CLRCGO JMP    CLEARC   Go do the clear.
+01295
+01296P 02AB 7E   004B    P OMERR1 JMP    OMERR    Give out  of memory error.
+01297
+
+PAGE  014  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
+
+01299                             TTL    RUN,GOTO,GOSUB,RETURN.
+01300
+01301                             XDEF   RUN
+01302P 02AE BD   0000    A RUN    JSR    HKRUN    Hook for RUN filename.
+01303P 02B1 BD   0000    A        JSR    XRRUN    Init PLAY and DRAW settings.
+01304P 02B4 BD   0000    A        JSR    CLSALL   Close all files and devices.
+01305P 02B7 9D   A5      A        JSR    CHRGOT   Reget the char.
+01306P 02B9 1027 FE6B 0128        LBEQ   RUNC     IF NO LINE # ARGUMENT.
+01307P 02BD BD   012D    P        JSR    CLEARC   CLEAN UP -- RESET THE STACK.
+01308P 02C0 20   19   02DB        BRA    RUNC2    MUST REPLACE RTS ADDR.
+01309
+01310                      *
+01311                      * Spaces are not allowed within reserved words so GO, TO, and
+01312                      * SUB are separate reserved words.  When a GO token is encountered
+01313                      * we come here to decide whether it's GOTO or GOSUB.
+01314                      *
+01315
+01316                             XDEF   GO
+01317P 02C2 1F   89      A GO     TFR    A,B      Save token in B.
+01318P 02C4 9D   9F      A ONGO   JSR    CHRGET   Fetch char following token.
+01319P 02C6 C1   00      A        CMPB   #TOTK    Is it a TO token?
+01320P 02C8 27   16   02E0        BEQ    GOTO     Yes, GOTO it.
+01321P 02CA C1   00      A        CMPB   #SUBTK   No, how about a SUB token?
+01322P 02CC 26   45   0313        BNE    SNERR2   No, GO what?
+01323                      *    Yes, fail into GOSUB code.
+01324
+01325                      *
+01326                      * A GOSUB ENTRY ON THE STACK HAS THE FOLLOWING FORMAT:
+01327                      *
+01328                      * LOW ADDRESS:
+01329                      * THE SUBTK ONE BYTE
+01330                      * THE LINE NUMBER OF THE GOSUB STATEMENT TWO BYTES
+01331                      * A POINTER INTO THE TEXT OF THE GOSUB TWO BYTES
+01332                      *
+01333                      * HIGH ADDRESS.
+01334                      *
+01335                      * TOTAL FIVE BYTES.
+01336                      *
+01337P 02CE C6   03      A GOSUB  LDB    #&3
+01338P 02D0 BD   003A    P        JSR    GETSTK   MAKE SURE THERE IS ROOM.
+01339P 02D3 DE   A6      A        LDU    TXTPTR   PUSH ON THE TEXT POINTER AND
+01340P 02D5 9E   68      A        LDX    CURLIN   THE CURRENT LINE NUMBER.
+01341P 02D7 86   00      A        LDA    #SUBTK   FOLLOW WITH A GOSUB TOKEN.
+01342P 02D9 34   52      A        PSHS   U,X,A
+01343P 02DB 8D   03   02E0 RUNC2  BSR    GOTO     USE RTS SCHEME TO "NEWSTT".
+01344P 02DD 7E   01A8    P        JMP    NEWSTT
+01345
+01346P 02E0 9D   A5      A GOTO   JSR    CHRGOT   Reset cond codes for LINGET.
+01347P 02E2 BD   03A3    P        JSR    LINGET   PICK UP THE LINE NUMBER IN "LINNUM".
+01348P 02E5 8D   40   0327        BSR    REMN     SKIP TO END OF LINE.
+01349P 02E7 30   01               INX             GO UP TO NEXT STATEMENT.
+01350P 02E9 DC   2B      A        LDD    LINNUM
+01351P 02EB 1093 68      A        CMPD   CURLIN   IS LINE BEFORE OR AFT CURRENT ONE?
+01352P 02EE 22   02   02F2        BHI    LUKALL   CAN START SEARCH FROM HERE.
+01353P 02F0 9E   19      A        LDX    TXTTAB   SEARCH FROM START.
+01354P 02F2 BD   010C    P LUKALL JSR    FNDLOP   [A] ALREADY HAS HIGH ORDER.
+013550 02F5 25   17   030E        BCS    ULERR    GOTO LINE IS NONEXISTANT.
+01356P 02F7 30   1F      A DEXPTR LEAX   -&1,X    "CHRGET" WILL INC THIS.
+
+PAGE  015  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
+
+01357P 02F9 9F   A6      A        STX    TXTPTR
+01358P 02FB 39             GORTS  RTS             PROCESS THE STATEMENT.
+01359                      *
+01360                      * "RETURN" RESTORES THE LINE NUMBER AND TEXT PNTR FROM THE STACK
+01361                      * AND ELIMINATES ALL THE "FOR" ENTRIES IN FRONT OF THE "GOSUB" ENTRY.
+01362                      *
+01363                             XDEF   RETURN
+01364P 02FC 26   FD   02FB RETURN BNE    GORTS    NO TERMINATOR=BLOW HIM UP.
+01365P 02FE 86   FF      A        LDA    #&255
+01366P 0300 97   3B      A        STA    FORPNT   MAKE SURE THE VARIABLE'S PNTR
+01367                      *    NEVER GETS MATCHED.
+01368P 0302 BD   0000    P        JSR    FNDFOR   GO PAST ALL THE "FOR" ENTRIES.
+01369P 0305 1F   14               TXS
+01370P 0307 81   00      A        CMPA   #SUBTK-FORTK RETURN WITHOUT GOSUB?
+01371                      *    (FNDFOR subtracted FORTK.)
+01372P 0309 27   0B   0316        BEQ    RETU1
+01373P 030B C6   00      A        LDB    #ERRRG
+01374P 030D                       SKIP2
+01375                             XDEF   ULERR
+01376P 030E C6   00      A ULERR  LDB    #ERRUL   NO MATCH SO "UL" ERROR.
+01377P 0310 7E   004D    P        JMP    ERROR    YES.
+01378P 0313 7E   06BD    P SNERR2 JMP    SNERR
+01379P 0316 35   52      A RETU1  PULS   A,X,U    PULL OFF GOSUB TOKEN, LINE NUMBER,
+01380P 0318 9F   68      A        STX    CURLIN   AND TEXT POINTER.
+01381P 031A DF   A6      A        STU    TXTPTR
+01382                             XDEF   DATA
+01383P 031C 8D   06   0324 DATA   BSR    DATAN    SKIP TO END OF STATEMENT, SINCE
+01384                      *    WHEN "GOSUB" STUCK THE TEXT PNTR
+01385                      *    ONTO THE STACK, THE LINE NUMBER ARG
+01386                      *    HAD'T BEEN READ YET.
+01387P 031E                       SKIP2  Skip     over REM to set TXTPTR.
+01388                             XDEF   REM
+01389P 031F 8D   06   0327 REM    BSR    REMN     Skip to end of line.
+01390P 0321 9F   A6      A        STX    TXTPTR   Set the text pointer.
+01391P 0323 39             REMRTS RTS             "NEWSTT" RTS ADDR IS STILL THERE.
+01392
+01393P 0324 C6   3A      A DATAN  LDB    #':      "DATA" TERMINATES ON ":" AND NULL.
+01394P 0326                       SKIP1
+01395P 0327 5F             REMN   CLRB            THE ONLY TERMINATOR IS NULL.
+01396P 0328 D7   01      A        SIB    CHARAC   PRESERVE IT.
+01397P 032A 5F                    CLRB            THIS MAKES CHARAC=0 AFTER SWAP.
+01398P 032B 9E   A6      A        LDX    TXTPTR   START AT CURRENT POSITION.
+01399P 032D 1F   98      A EXCHQT TFR    B,A
+01400P 032F D6   01      A        LDB    CHARAC   SWAP TERMINATORS.
+01401P 0331 97   01      A        STA    CHARAC
+01402P 0333 A6   84      A REMER  LDA    ,X
+01403P 0335 27   EC   0323        BEQ    REMRTS   NULL ALWAYS TERMINATES.
+01404P 0337 34   04 A1E0          CBA             IS IT THE OTHER TERMINATOR?
+01405P 033B 27   E6   0323        BEQ    REMRTS   YES, IT'S FINISHED.
+01406P 033D 30   01               INX             PROGRESS TO NEXT CHARACTER.
+01407P 033F 81   22      A        CMPA   #&34     IS IT A QUOTE?
+01408P 0341 27   EA   032D        BEQ    EXCHQT   YES, TIME TO TRADE.
+01409 
+01410                      *
+01411                      * Count the number of IF's skipped for IF THEN ELSE code.
+01412                      *
+01413P 0343 4C                    INCA            Is is a function token?
+01414P 0344 26   02   0348        BNE    CHKIF    No, see if it's an IF token.
+
+PAGE  016  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
+
+01415P 0346 30   01      A        LEAX   &1,X     Yes, don't check the next byte since
+01416                      *    it might look like an IF token.
+01417                      *    Note that A contains 0 so it won't
+01418                      *    look like an IF token.
+01419P 0348 81   01      A CHKIF  CMPA   #IFTK+&1 Is it an IF token?  (+1 because of
+01420                      *    INCA.)
+01421P 034A 26   E7   0333        BNE    REMER    No.
+01422P 034C 0C   04      A        INC    IFCNT    Yes, increment count of IFs seen.
+01423P 034E 20   E3   0333        BRA    REMER
+
+PAGE  017  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
+
+01425                             TTL    "IF ... THEN" CODE.
+01426
+01427                             XDEF   IF
+01428P 0350 BD   057B    P IF     JSR    FRMNUM   EVALUATE A FORMULA.
+01429P 0353 9D   A5      A        JSR    CHRGOT   GET CURRENT CHARACTER.
+01430P 0355 81   00      A        CMPA   #GOTK    IS TERMINATING CHARACTER A GOTK?
+01431P 0357 27   05   035E        BEQ    OKGOTO   Yes. Since the presence of a TO
+01432                      *    token isn't checked for here, IF 
+01433                      *    THEN GOSUB is allowed as well as
+01434                      *    IF THEN GOTO.
+01435P 0359                       SYNCHK THENTK   NO, IT MUST BE "THEN".
+01436P 035E 96   4F      A OKGOTO LDA    FACEXP   0=FALSE. ALL OTHERS TRUE.
+01437P 0360 26   13   0375        BNE    DOCOND   TRUE !
+01438P 0362 0F   04      A        CLR    IFCNT    False.  Set IF count to zero.
+01439P 0364 8D   B6   031C SKPMRF BSR    DATA     Skip until end of statement (colon)
+01440                      *    or end of line (zero).
+01441P 0366 4D                    TSTA            Stop on end of line?
+01442P 0367 27   BA   0323        BEQ    REMRTS   Yes, there is no matching ELSE clause.
+01443P 0369 9D   9F      A        JSR    CHRGET   No, stopoed on an ELSE (:ELSETK).
+01444P 036B 81   00      A        CMPA   #ELSETK
+01445P 036D 26   F5   0364        BNE    SKPMRF   No, continue skipping.
+01446P 036F 0A   04      A        DEC    IFCNT    Yes, is this the matching ELSE?
+01447P 0371 2A   F1   0364        BPL    SKPMRF   No, continue skipping.  (BPL instead 
+01448                      *    of BNE since IFCNT was set to zero
+01449                      *    when the original IF was seen.)
+01450P 0373 9D   9F      A        JSR    CHRGET   Yes, this is the ELSE we want.  Eat
+01451                              the ELSE token.
+01452P 0375 9D   A5      A DOCOND JSR    CHRGOT   TEST CURRENT CHARACTER.
+01453P 0377 1025 FF65 02E0        LBCS   GOTO     IF A NUMBER, GOTO IT.
+01454P 037B 7E   01E5    P        JMP    GONE3    INTERPRET NEW STATEMENT.
+
+PAGE  018  ECBBAS  .SA:1  BASIC  "IF ... THEN" CODE.
+
+01456                             TTL    "ON ... GO TO ..." CODE.
+01457
+01458                             XDEF   ONGOTO
+01459P 037E BD   0B5A    P ONGOTO JSR    GETBYT   GET VALUE IN FACLO.
+01460P 0381                       SYNCHK GOTK     Must have GO token.
+01461P 0386 34   02      A        PSHS   A        Save TO or SUB token.
+01462P 0388 81   00      A        CMPA   #SUBTK   AN "ON ... GOSUB" PERHAPS?
+01463P 038A 27   04   0390        BEQ    ONGLOP   YES.
+01464P 038C 81   00      A        CMPA   #TOTK    Must be ON ... GOTO.
+01465P 038E 26   83   0313 SNERR3 BNE    SNERR2
+01466P 0390 0A   53      A ONGLOP DEC    FACLO
+01467P 0392 26   05   0399        BNE    ONGLP1   SKIP ANOTHER LINE NUMBER.
+01468P 0394 35   04      A        PULS   B        B:=To or SUB token.
+01469P 0396 7E   02C4    P        JMP    ONGO     Go decide what to do.
+01470
+01471P 0399 9D   9F      A ONGLP1 JSR    CHRGET   ADVANCE AND SET CODES.
+01472P 039B 8D   06   03A3        BSR    LINGET
+01473P 039D 81   2C      A        CMPA   #&44     IS IT A COMMA?
+01474P 039F 27   EF   0390        BEQ    ONGLCP
+01475P 03A1 35   84      A        PULS   B, PC    Get rid of token and return to NEWSTT.
+01476                      *    NEWSTT will give SN error if not end
+01477                      *    of statement. If end of statement, 
+01478                      *    the statement following the ON will 
+01479                      *    be executed.
+
+PAGE  019  ECBBAS  .SA:1  BASIC  "ON ... GO TO ..." CODE.
+
+01481                      *
+01482                      * "LINGET" READS A LINE NUMBER FROM THE CURRENT TEXT POSITION.
+01483                      *
+01484                      * LINE NUMBERS RANGE FROM 0 TO 64000-1.
+01485                      *
+01486                      * THE ANSWER IS RETURNED IN "LINNUM".
+01487                      * "TXTPTR" IS UPDATED TO POINT TO THE TERMINATING CHARCTER
+01488                      * AND [A] = THE TERMINATING CHARACTER WITH CONDITION
+01489                      * CODES SET UP TO REFLECT ITS VALUE.
+01490                      *
+01491                             XDEF   LINGET
+01492P 03A3 9E   8A      A LINGET LDX    DBLZER
+01493P 03A5 9F   2B      A        STX    LINNUM   INITIALIZE LINE NUMBER TO ZERO.
+01494P 03A7 24   64   040D MORLIN BCC    LETRTS   IT IS NOT A DIGIT.
+01495P 03A9 80   30      A        SUBA   #'0
+01496P 03AB 97   01      A        STA    CHARAC   SAVE CHARACTER.
+01497P 03AD DC   2B      A        LDD    LINNUM
+01498P 03AF 81   18      A        CMPA   #&24     LINE NUMBER WILL BE .LT. 64000?
+01499P 03B1 22   DB   038E        BHI    SNERR3
+01500P 03B3 58                    ASLB            MULTIPLY BY 10.
+01501P 03B4 49                    ROLA
+01502P 03B5 58                    ASLB
+01503P 03B6 49                    ROLA
+01504P 03B7 D3   2B      A        ADDD   LINNUM
+01505P 03B9 58                    ASLB
+01506P 03BA 49                    ROLA
+01507P 03BB DB   01      A        ADDB   CHARAC   ADD IN DIGIT.
+01508P 03BD 89   00      A        ADCA   #&0
+01509P 03BF DD   2B      A        STD    LINNUM
+01510P 03C1 9D   9F      A        JSR    CHRGET   GET A CHARACTER.
+01511P 03C3 20   E2   03A7        BRA    MORLIN
+01512
+
+PAGE  020  ECBBAS  .SA:1  BASIC  ON ... GO TO ..." CODE.
+
+01514                             TTL    "LET" CODE.
+01515
+01516                             XDEF   LET
+01517P 03C5 BD   079D    P LET    JSR    PTRGET   GET PNTR TO VARIABLE INTO "VARPNT".
+01518P 03C8 9F   3B      A        STX    FORPNT   PRESERVE POINTER.
+01519P 03CA                       SYNCHK EQULTK   "=" IS NECESSARY.
+01520P 03CF 96   06      A        LDA    VALTYP   RETAIN THE VARIABLE'S VALUE TYPE.
+01521P 03D1 34   02      A        PSHS   A
+01522P 03D3 BD   0590    P        JSR    FRMEVL   GET VALUE OF FORMULA INTO "FAC".
+01523                             XDEF   LETRET
+01524            03D6    P LETRET EQU    *        Return address when LET calls FRMEVL.
+01525P 03D6 35   02      A        PULS   A
+01526P 03D8 46                    RORA            CARRY SET FOR STRING, OFF FOR
+01527                      *    NUMERIC.
+01528P 03D9 BD   0582    P        JSR    CHKVAL   MAKE SURE "VALTYP" MATCHES CARRY.
+01529                      *    AND SET ZERO FLAG FOR NUMERIC.
+01530P 03DC 1027 FC20    A        LBEQ   MOVVF    IF NUMERIC, COPY IT.
+01531                             XDEF   INPCOM
+01532P 03E0 BD   0000    A INPCOM JSR    HKSCP1   RAM hook for string copy check.
+01533P 03E3 9E   52      A        LDX    FACMO    GET PNTR TO DESCRIPTOR.
+01534P 03E5 DC   21      A        LDD    STKTOP   SEE IF IT POINTS INTO STRING SPACE.
+01535P 03E7 10A3 02      A        CMPD   &2,X
+01536P 03EA 24   11   03FD        BCC    DNTCPY   IF [STKTOP].GE.[2&3,X], DON'T COPY.
+01537P 03EC 9C   1B      A        CMPX   VARTAB   If [VARTAB].GT.[FACMO], don't copy.
+01538P 03EE 25   0D   03FD        BCS    DNTCPY   ([X]=[FACMO] from INPCOM.)
+01539                             XDEF   DOCOPY
+01540P 03F0 E6   84      A DOCOPY LDB    ,X       GET LENGTH OF STRING.
+01541P 03F2 BD   0959    P        JSR    STRINI   GET ROOM TO COPY STRING INTO.
+01542P 03F5 9E   4D      A        LDX    DSCPNT   GET POINTER TO OLD DESCRIPTOR.
+01543P 03F7 BD   0A92    P        JSR    MOVINS   COPY IT.
+01544P 03FA 8E   0056    A        LDX    #DSCTMP  GET POINTER TO OLD DESCRIPTOR.
+01545P 03FD 9F   4D      A DNTCPY STX    DSCPNT   REMEMBER POINTER TO DESCRIPTOR.
+01546P 03FF BD   0AC4    P        JSR    FRETMS   FREE UP THE TEMPORARY WITHOUT
+01547                      *    FREEING UP ANY STRING SPACE.
+01548P 0402 DE   4D      A        LDU    DSCPNT   GET OLD ONE.
+01549P 0404 9E   3B      A        LDX    FORPNT   GET DESTINATION.
+01550P 0406 37   26      A        PULU   A,B,Y    A:=length, B:=garbage byte, Y:=string
+01551                      *    pointer.
+01552P 0408 A7   84      A        STA    ,X       Put away the length.
+01553P 040A 10AF 02      A        STY    &2,X     Put away the pointer.
+01554P 040D 39             LETRTS RTS             DONE.
+01555
+01556                             TTL    INPUT AND READ CODE.
+01557
+01558P 040E      3F      A TRYAGN FCC    /?REDO/
+01559P 0413                       ACRLF
+01560P 0414      00      A        FCB    &0
+01561                      *
+01562                      * HERE WHEN THE DATA THAT WAS TYPED IN OR IN "DATA" STATEMENTS
+01563                      * IS IMPROPERLY FORMATTED.  FOR "INPUT" WE START AGAIN.
+01564                      * FOR "READ" WE GIVE A SYNTAX ERROR AT THE DATA LINE.
+01565                      *
+01566                      * IN DISK VERSION IF THE DATA WAS READ FROM A DISK FILE THEN
+01567                      * A BAD FILE DATA ERROR IS GENERATED.
+01568                      *
+01569P 0415 C6   00      A TRMNOK LDB    #ERRFD   If input didn't come from the keyboard
+01570P 0417 0D   6F      A        TST    DEVNUM   give a "Bad file Data" error.
+01571P 0419 27   03   041E        BEQ    ISKBDI
+
+PAGE  021  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01572P 041B 7E   004D    P ERRGO6 JMP    ERROR
+01573P 041E 96   09      A ISKBDI LDA    INPFLG
+01574P 0420 27   07   0429        BEQ    TRMNO1   IF INPUT TRY AGAIN.
+01575P 0422 9E   31      A        LDX    DATLIN   GET DATA LINE NUMBER.
+01576P 0424 9F   68      A        STX    CURLIN   MAKE IT CURRENT LINE.
+01577P 0426 7E   06BD    P SNERR4 JMP    SNERR
+01578
+01579P 0429 8E   040D    P TRMNO1 LDX    #TRYAGN-&1
+01580P 042C BD   0000    A        JSR    STROUT   PRINT "?REDO FROM START".
+01581P 042F 9E   2F      A        LDX    TXTBEG   POINT AT START
+01582P 0431 9F   A6      A        STX    TXTPTR   OF THIS CURRENT LINE.
+01583P 0433 39                    RTS             GO TO "NEWSTT".
+01584
+01585                             XDEF   INPUT
+01586P 0434 BD   0000    A INPUT  JSR    ERRDIR   Can't allow INPUT as a direct since
+01587                      *    it clobbers BUF.
+01588
+01589            0000    A        IFNE   CNTRLO
+01591                      ENDC    IFN CNRTLO
+01592P 0437 8D   03   043C        BSR    INPTDO   Come back here to clear device number.
+01593P 0439 0F   6F      A        CLR    DEVNUM   Make input come from keyboard.
+01594P 043B 39                    RTS
+01595
+01596P 043C 81   23      A INPTDO CMPA   #'#      Device number?
+01597P 043E 26   09   0449        BNE    INPKBD   No, INPUT from keyboard.
+01598P 0440 BD   0000    A        JSR    GETDNM   Yes, read the device number.
+01599P 0443 BD   0000    A        JSR    OPNICK   Make sure it's open for input.
+01600P 0446 BD   06B3    P        JSR    CHKCOM   Make sure a comma follows.
+01601                      *    (It would be better to check for the
+01602                      *    comma before calling OPNICK but
+01603                      *    memory is at a premium and that would
+01604                      *    require a call to CHRGOT here.)
+01605P 0449 81   22      A INPKBD CMPA   #&34     A QUOTE?
+01606P 044B 26   0B   0458        BNE    NOTQTI   NO MESSAGE.
+01607P 044D BD   067E    P        JSR    STRTXT   LITERALIZE THE STRING IN TEXT
+01608P 0450                       SYNCHK &59      MUST END WITH SEMICOLON.
+01609P 0455 BD   0000    A        JSR    STRPRT   PRINT IT OUT.  (The output will be
+01610                      *    suppressed if DEVNUM is nonzero.)
+01611P 0458 8E   0000    A NOTQTI LDX    #BUFMIN  Just in case DEVNUM is nonzero make
+01612P 045B 6F   84      A        CLR    ,X       BUF look empty to force ITMSCN to
+01613                      *    be called for disk files.  Also set
+01614                      *    X to point to BUFMIN for INPCON.
+01615P 045D 0D   6F      A        TST    DEVNUM   Reading from the keyboard?
+01616P 045F 26   22   0483        BNE    INPCON   No, go do file I/O.
+01617P 0461 8D   06   0469        BSR    QINLIN   Yes, TYPE "?" AND get A LINE OF TEXT.
+01618P 0463 C6   2C      A        LDB    #COMMA   Put a comma into BUFMIN to look like
+01619P 0465 E7   84      A        STB    ,X       a good terminator.  (X is pointing to
+01620                      *    BUFMIN from the INLIN call made by
+01621                      *    QINLIN.)
+01622P 0467 20   1A   0483        BRA    INPCON   Go do the assignments.
+01623
+01624
+01625P 0469 BD   0000    A QINLIN JSR    OUTGIST
+01626P 046C BD   0000    A        JSR    OUTSPC
+01627                             XDEF   INLNDO
+01628P 046F BD   0000    A INLNDO JSR    INLIN
+01629P 0472 24   05   0479        BCC    EOFTST   Not BREAK, check for end of file.
+01630P 0474 32   64      A        LEAS   &4,S     BREAK, clean up stack and quit.
+
+PAGE  022  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01631P 0476 7E   024A    P        JMP    STPEND   Carry set so "BREAK" will be printed.
+01632
+01633P 0479 C6   00      A EOFTST LDB    #ERRIE   Give Input past End error if end of
+01634P 047B 0D   70      A        TST    EOFFLG   file reached.
+01635P 047D 26   9C   041B        BNE    ERRGO6
+01636P 047F 39                    RTS             Return with line of input.
+
+PAGE  023  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01638                             XDEF   READ
+01639P 0480 9E   33      A READ   LDX    DATPTR   GET LAST DATA LOCATION.
+01640P 0482                       SKIP1  LDA      A,#CLR TO MAKE IT NONZERO.
+01641P 0483 4F             INPCON CLRA
+01642P 0484 97   09      A        STA    INPFLG   STORE THE FLAG.
+01643                      *
+01644                      * IN THE PROCESSING OF DATA AND READ STATEMENTS:
+01645                      * ONE POINTER POINTS TO THE DATA (IE, THE NUMBERS BEING FETCHED)
+01646                      * AND ANOTHER POINTS TO THE LIST OF VARIABLES.
+01647                      *
+01648                      * THE POINTER INTO THE DATA ALWAYS STARTS POINTING TO A
+01649                      * TERMINATOR -- A , : OR END-OF-LINE.
+01650                      *
+01651                      * AT THIS POINT TXTPTR POINTS TO LIST OF VARIABLES AND
+01652                      * XREG POINTS TO DATA OR INPUT LINE.
+01653                      *
+01654P 0486 9F   35      A        STX    INPPTR
+01655P 0488 BD   079D    P INLOOP JSR    PTRGET   READ VARIABLE LIST.
+01656P 048B 9F   3B      A        STX    FORPNT   SAVE POINTER FOR "LET" STRING STUFFING.
+01657                      *    RETURNS PNTR TOP VAR IN VARPNT.
+01658P 048D 9E   A6      A        LDX    TXTPTR   SAVE TEXT PNTR.
+01659P 048F 9F   2B      A        STX    VARTXT
+01660P 0491 9E   35      A        LDX    INPPTR   SET TEXT PNTR TO DATA.
+01661P 0493 A6   84      A        LDA    ,X       GET CURRENT CHARACTER AND SET CODES.
+01662P 0495 26   0C   04A3        BNE    DATBK    MUST BE A COMMA.
+01663P 0497 96   09      A        LDA    INPFLG
+01664P 0499 26   58   04F3        BNE    DATLOP   SEARCH FOR ANOTHER DATA STATEMENT.
+01665P 049B BD   0000    A        JSR    HKITMS   RAM hook for disk file item scanner.
+01666                      *    Goes to ITMSCN if disk and returns
+01667                      *    at DATBK or just returns here if not
+01668                      *    disk.
+01669P 049E BD   0000    A        JSR    OUTQST   Give them a double question mark.
+01670P 04A1 8D   C6   0469        BSR    QINLIN   GET ANOTHER LINE.
+01671                             XDEF   DATBK
+01672P 04A3 9F   A6      A DATBK  STX    TXTPTR   SET FOR "CHRGET".
+01673P 04A5 9D   9F      A        JSR    CHRGET
+01674P 04A7 D6   06      A        LDB    VALTYP   GET VALUE TYPE.
+01675P 04A9 27   27   04D2        BEQ    NUMINS   INPUT A NUMBER IF NUMERIC.
+01676P 04AB 9E   A6      A        LDX    TXTPTR   GET POINTER BEYOND SPACES. 
+01677P 04AD 97   01      A        STA    CHARAC   ASSUME QUOTED STRING.
+01678P 04AF 81   22      A        CMPA   #&34     TERMINATORS OK?
+01679P 04B1 27   12   04C5        BEQ    NOWGET   YES.
+01680P 04B3 30   1F      A        LEAX   -&1,X    RESTORE PNTR TO START OF STRING.
+01681P 04B5 4F                    CLRA            If the special I/O flag is set make
+01682P 04B6 97   01      A        STA    CHARAC   the string only end on end of line
+01683P 04B8 BD   0000    A        JSR    DEVPRM   Set up special I/O flag.
+01684P 04BB 0D   6E      A        TST    SPCIO    since all items written with SPCIO
+01685P 04BD 26   06   04C5        BNE    NOWGET   set have a CR after them.
+01686P 04BF 86   3A      A        LDA    #':      SET TERMINATORS TO ":" AND
+01687P 04C1 97   01      A        STA    CHARAC
+01688P 04C3 86   2C      A        LDA    #&44     COMMA.
+01689P 04C5 97   02      A NOWGET STA    ENDCHR
+01690P 04C7 BD   096A    P        JSR    STRLT2   MAKE A STRING DESCRIPTOR FOR THE VALUE 
+01691                      *    AND COPY IF NECESSARY.
+01692P 04CA BD   0683    P        JSR    ST2TXT   SET TEXT POINTER.
+01693P 04CD BD   03E0    P        JSR    INPCOM   DO ASSIGNMENT.
+01694P 04D0 20   06   04D8        BRA    STRDN2
+01695P 04D2 BD   0000    A NUMINS JSR    FIN
+
+PAGE  024  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01696P 04D5 BD   0000    A        JSR    MOVVF
+01697P 04D8 9D   AS      A STRDN2 JSR    CHRGOT   READ LAST CHARACTER.
+01698P 04DA 27   06   04E2        BEQ    TRMOK    ":" OR EOL IS OK.
+01699P 04DC 81   2C      A        CMPA   #&44     A COMMA?
+01700P 04DE 1026 FF33 0415        LBNE   TRMNOK
+01701P 04E2 9E   A6      A TRMOK  LDX    TXTPTR
+01702P 04E4 9F   35      A        STX    INPPTR   SAVE FOR MORE READS.
+01703P 04E6 9E   2B      A        LDX    VARTXT
+01704P 04E8 9F   A6      A        STX    TXTPTR   POINT TO VARIABLE LIST.
+01705P 04EA 9D   A5      A        JSR    CHRGOT   LOOK AT LAST VARTAB CHARACTER.
+01706P 04EC 27   21   050F        BEQ    VAREND   THAT'S THE END OF THE LIST.
+01707P 04EE BD   06B3    P        JSR    CHKCOM   NOT END. CHECK FOR COMMA.
+01708P 04F1 20   95   0488        BRA    INLOOP
+01709                      *
+01710                      * SUBROUTINE TO FIND DATA
+01711                      * THE SEARCH IS MADE BY USING THE EXECUTION CODE FOR DATA TO
+01712                      * SKIP OVER STATEMENTS. THE START WORD OF EACH STATEMENT
+01713                      * IS COMPARED WITH "DATATK". EACH NEW LINE NUMBER
+01714                      * IS STORED IN "DATLIN" SO THAT IF AN ERROR OCCURS
+01715                      * WHILE READING DATA THE ERROR MESSAGE CAN GIVE THE LINE
+01716                      * NUMBER OF THE ILL-FORMATTED DATA.
+01717                      *
+01718P 04F3 9F   A6      A DATLOP STX    TXTPTR   SAVE TEXT POINTER FOR "DATAN".
+01719P 04F5 BD   0324    P        JSR    DATAN    SKIP SOME TEXT.
+01720P 04F8 30   01      A        LEAX   &1,X     POINT PAST THE TERMINATOR.
+01721P 04FA 4D                    TSTA            TERMINATOR ZERO?
+01722P 04FB 26   0A   0507        BNE    NOWLIN   SHO AIN'T.
+01723P 04FD C6   00      A        LDB    #ERROD   IN CASE END OF PROGRAM GIVE "OUT OF
+01724P 04FF EE   81      A        LDU    ,X++     DATA" ERROR.
+01725P 0501 27   41   0544        BEQ    ERRGO5
+01726P 0503 EC   81      A        LDD    ,X++     DATLIN:=LINE NUMBER OF THIS LINE.
+01727P 0505 DD   31      A        STD    DATLIN   LEAVE X POINTING TO FIRST CHAR
+01728                      *    OF LINE.
+01729P 0507 A6   84      A NOWLIN LDA    ,X       GET CHAR FROM LINE.
+01730P 0509 81   00      A        CMPA   #DATATK  IS IT A "DATA" STATEMENT.
+01731P 050B 26   E6   04F3        BNE    DATLOP   NOT QUITE RIGHT. KEEP LOOKING.
+01732P 050D 20   94   04A3        BRA    DATBK    THIS IS THE ONE !
+01733P 050F 9E   35      A VAREND LDX    INPPTR   PUT AWAY A NEW DATA PNTR MAYBE.
+01734P 0511 D6   09      A        LDB    INPFLG
+01735P 0513 1026 FD0A 0221        LBNE   RESFIN
+01736P 0517 A6   84      A        LDA    ,X       LAST DATA CHR COULD HAVE BEEN
+01737                      *    COMMA OR COLON BUT SHOULD BE NULL.
+01738P 0519 27   06   0521        BEQ    INPRTS   IT IS NULL.
+01739P 051B 8E   0521    P        LDX    #EXIGNT-&1
+01740P 051E 7E   0000    A        JMP    STROUT   TYPE "?EXTRA IGNORED"
+01741P 0521 39             INPRTS RTS             DO NEXT STATEMENT.
+01742P 0522      3F      A EXIGNT FCC    /?EXTRA IGNORED/
+01743P 0530                       ACRLF
+01744P 0531      00      A        FCB    &0
+
+PAGE  025  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01746                             TTL    THE NEXT CODE IS THE "NEXT CODE"
+01747
+01748                      *
+01749                      * A "FOR" ENTRY ON THE STACK HAS THE FOLLOWING FORMAT:
+01750                      *
+01751                      * LOW ADDRESS
+01752                      * TOKEN (FORTK) 1 BYTE
+01753                      * A POINTER TO THE LOOP VARIABLE 2 BYTES
+01754                      * THE STEP 4+ADDPRC BYTES
+01755                      * A BYTE REFLECTING THE SIGN OF THE INCREMENT 1 BYTE
+01756                      * THE UPPER VALUE (PACKED) 4+ADDPRC BYTES
+01757                      * THE LINE NUMBER OF THE "FOR" STATEMENT 2 BYTES
+01758                      * A TEXT POINTER INTO THE "FOR" STATEMENT 2 BYTES
+01759                      * HIGH ADDRESS
+01760                      *
+01761                      * TOTAL 16+(2*ADDPRC) BYTES.
+01762                      *
+01763                             XDEF   NEXT
+01764P 0532 26   04   0538 NEXT   BNE    GETFOR
+01765P 0534 9E   8A      A        LDX    DBLZER   WITHOUT ARG CALL "FNDFOR" WITH
+01766P 0536 20   03   053B        BRA    STXFOR   [FORPNT]=0.
+01767P 0538 BD   079D    p GETFOR JSR    PTRGET   GET A POINTER TO LOOP VARIABLE
+01768P 053B 9F   3B      A STXFOR STX    FORPNT   INTO "FORPNT".
+01769P 053D BD   0000    P        JSR    FNDFOR   FIND THE MATCHING ENTRY IF ANY.
+01770P 0540 27   04   0546        BEQ    HAVFOR
+01771P 0542 C6   00      A        LDB    #ERRNF   "NEXT WITHOUT FOR".
+01772P 0544 20   47   058D ERRGO5 BRA    ERRGO4
+01773P 0546 1F   14        HAVFOR TXS             SETUP STACK. CHOP FIRST.
+01774P 0548 30   03      A        LEAX    &3,X    POINT TO INCREMENT.
+01775P 054A BD   0000    A        JSR     MOVFM   GET QUANTITY INTO THE FAC.
+01776P 054D A6   68      A        LDA     &7+ADDPRC,S SET SIGN CORRECTLY.
+01777P 054F 97   54      A        STA     FACSGN
+01778P 0551 9E   3B      A        LDX     FORPNT
+01779P 0553 BD   0000    A        JSR     FADD    ADD INC TO LOOP VARIABLE.
+01780P 0556 BD   0000    A        JSR     MOVVF   PACK THE FAC INTO MEMORY.
+01781P 0559 30   69      A        LEAX    &8+ADDPRC,S
+01782P 055B BD   0000    A        JSR     FCOMP   COMPARE FAC WITH UPPER VALUE.
+01783P 055E E0   68      A        SUBB    &7+ADDPRC,S SUBTRACT SIGN OF INC FROM SIGN OF
+01784                      *    OF (CURRENT VALUE-FINAL VALUE).
+01785P 0560 27   0C   056E        BEQ     LOOPDN  IF SIGN (FINAL-CURRENT)-SIGN STEP=0
+01786                      *    THEN LOOP IS DONE.
+01787P 0562 AE   6E      A        LDX     &12+(&2*ADDPRC),S
+01788P 0564 9F   68      A        STX     CURLIN  STORE LINE NUMBER OF "FOR" STATEMENT.
+01789P 0566 AE   E8 10   A        LDX     &14+(&2*ADDPRC),S
+01790P 0569 9F   A6      A        STX     TXTPTR  STORE TEXT PNTR INTO "FOR" STATEMENT.
+01791P 056B 7E   01A8    P NEWSGO JMP     NEWSTT  PROCESS NEXT STATEMENT.
+01792
+01793P 056E 32   E8 12   A LOOPDN LEAS    FORSIZ,S WIPE OUT THIS ENTRY.
+01794P 0571 9D   A5      A        JSR     CHRGOT
+01795P 0573 81   2C      A        CMPA    #&44    COMMA AT END?
+01796P 0575 26   F4   056B        BNE     NEWSGO
+01797P 0577 9D   9F      A        JSR     CHRGET
+01798P 0579 8D   BD   0538        BSR     GETFOR  DO NEXT BUT DON'T ALLOW BLANK VARIABLE
+01799                      *    PNTR. [VARPNT] IS THE STK PNTR WHICH
+01800                      *    NEVER MATCHES ANY POINTER.
+01801                      *    BSR TO PUT ON DUMMY NEWSTT ADDR.
+01802
+01803                             TTL    FORMULA EVALUATION CODE.
+
+PAGE  026  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+01804 
+01805                      *
+01806                      * THESE ROUTINES CHECK FOR CERTAIN "VALTYP".
+01807                      * [C] IS NOT PRESERVED.
+01808                      *
+01609                             XDEF   FRMNUM
+01810P 0578 8D   13   0590 FRMNUM BSR    FRMEVL
+01811                             XDEF   CHKNUM
+01812P 057D 1C   FE      A CHKNUM ANDCC  #$FF!X(C) Say must be numeric.
+01813P 057F      7D      A        FCB    @175     TST extended to get to CHKVAL.
+01814                      *    Note 6809 TST doesn't affect carry.
+01815                             XDEF   CHKSTR
+01816P 0580                CHKSTR SETCC  C        Say must be string.
+01817                             XDEF   CHKVAL
+01818P 0582 0D   06      A CHKVAL TST    VALTYP   Set N if string, clear N if numeric.
+01819P 0584 25   03   0589        BCS    STRCHK   Check for string.
+01820P 0586 2A   99   0521        BPL    INPRTS   If numeric OK.
+01821P 0588                       SKIP2  Skip     into TMERDO.
+01822P 0589 2B   96   0521 STRCHK BMI    INPRTS   If it's a string OK.
+01823P 058B C6   00      A TMERDO LDB    #ERRTM
+01824P 058D 7E   004D    P ERRGO4 JMP    ERROR
+01825                      *
+01826                      * THE FORMULA EVALUATOR STARTS WITH
+01827                      * [TXTPTR] POINTING TO THE FIRST CHARACTER OF THE FORMULA.
+01828                      * AT THE END [TXTPTR] POINTS TO THE TERMINATOR.
+01829                      * THE RESULT IS LEFT IN THE FAC.
+01830                      * ON RETURN [A] DOES NOT REFLECT THE TERMINATOR.
+01831                      *
+01832                      * THE FORMULA EVALUATOR USES THE OPERATOR LIST (OPTAB)
+01833                      * TO DETERMINE PRECEDENCE AND DISPATCH ADDRESSES FOR
+01834                      * EACH OPERATOR.
+01835                      * A TEMPORARY RESULT ON THE STACK HAS THE FOLLOWING FORMAT.
+01836                      * THE ADDRESS OF THE OPERATOR ROUTINE.
+01837                      * THE FLOATING POINT TEMPORARY RESULT.
+01838                      * THE PRECEDENCE OF THE OPERATOR.
+01839                      *
+01840                             XDEF   FRMEVL
+01841P 0590 8D   6E   0600 FRMEVL BSR    PTRBCK   Backup character pointer.
+01842                             XDEF   FRMCHK
+01843P 0592 4F             FRMCHK CLRA            INITIAL DUMMY PRECEDENCE IS 0.
+01844P 0593                       SKIP2  SKIP     OVER PSH INSTRUCTION.
+01845P 0594 34   04      A LPOPER PSHS   B        SAVE LOW PRECEDENCE. (MASK.)
+01846P 0596 34   02      A        PSHS   A        SAVE HIGH PRECEDENCE.
+01847P 0598 C6   01      A        LDB    #&1
+01848P 059A BD   003A    P        JSR    GETSTK   MAKE SURE THERE IS ROOM FOR
+01849                      *    RECURSIVE CALLS.
+01850P 059D BD   065D    P        JSR    EVAL     EVALUATE SOMETHING.
+01851                             XDEF   FRMRET
+01852            05A0    P FRMRET EQU    *        Return address when FRMEVL calls EVAL.
+01853P 05A0 0F   3F      A        CLR    OPMASK   PREPARE TO BUILD MASK MAYBE.
+01854P 05A2 9D   A5      A TSTOP  JSR    CHRGOT   RESET LAST CHARACTER.
+01855P 05A4 80   00      A LOPREL SUBA   #GREATK  IS CURRENT CHARACTER A RELATION?
+01856P 05A6 25   13   05BB        BCS    ENDREL   NO. RELATIONS ALL THROUGH.
+01857P 05A8 81   01      A        CMPA   #LESSTK-GREATK+&1 REALLY RELATIONAL?
+01858P 05AA 24   0F   05BB        BCC    ENDREL   NO -- JUST BIG.
+01859P 05AC 81   01      A        CMPA   #&1      SET CARRY FOR ZERO ONLY.
+01860P 05AE 49                    ROLA            0 TO 1, 1 TO 2, 2 TO 4.
+01861P 05AF 98   3F      A        EORA   OPMASK   BRING IN THE OLD BITS.
+
+PAGE  027  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+01862P 05B1 91   3F      A        CMPA   OPMASK   MAKE SURE THE NEW MASK IS BIGGER.
+01863P 05B3 25   64   0619        BCS    SNERR5   SYNTAX ERROR. BECAUSE TWO OF THE SAME.
+01864P 05B5 97   3F      A        STA    OPMASK   SAVE MASK.
+01865P 05B7 9D   9F      A        JSR    CHRGET
+01866P 05B9 20   E9   05A4        BRA    LOPREL   GET THE NEXT CANDIDATE.
+01867P 058B D6   3F      A ENDREL LDB    OPMASK   WERE THERE ANY?
+01868P 05BD 26   33   05F2        BNE    FINREL   YES, HANDLE AS SPECIAL OP.
+****WARNING   001--00000
+01869P 05BF 1024 006B 062E        LBCC   QOP      NOT AN OPERATOR.
+01870P 05C3 8B   00      A        ADDA   #GREATK-PLUSTK
+01871P 05C5 24   67   062E        BCC    QOP      NOT AN OPERATOR. 
+01872P 05C7 99   06      A        ADCA   VALTYP   [C]=1.
+01873P 05C9 1027 0491 0A5E        LBEQ   CAT      ONLY IF [A]=0 AND [VALTYP]=-1 (A STR).
+01874P 05CD 89   FF      A        ADCA   #-&1     GET BACK ORIGINAL [A]. 
+01875P 05CF 34   02      A        PSHS   A        SAVE ACCA.
+01876P 05D1 48                    ASLA            MULTIPLY BY 2.
+01877P 05D2 AB   E0      A        ADDA   ,S+      BY THREE.
+01878P 05D4 8E   0000    A        LDX    #OPTAB
+01879P 05D7 30   86      A        LEAX   A,X      ADD IN OFFSET.
+01880P 05D9 35   02      A QPREC  PULS   A        GET PREVIOUS PRECEDENCE.
+01881P 05DB A1   84      A        CMPA   ,X       IS OLD PRECEDENCE GREATER OR EQUAL?
+01882P 05DD 24   55   0634        BCC    QCHNUM   YES, GO OPERATE.
+01883P 05DF 8D   9C   057D        BSR    CHKNUM   CAN'T BE STRING HERE.
+01884P 05E1 34   02      A DOPREC PSHS   A        SAVE OLD PRECEDENCE.
+01885P 05E3 8D   29   060E        BSR    DOPRE1   SET A RETURN ADDRESS FOR OP.
+01886P 05E5 9E   3D      A        LDX    OPPTR    GET POINTER TO OP.
+01887P 05E7 35   02      A        PULS   A        PULL OFF PREVIOUS PRECEDENCE.
+01888P 05E9 26   1D   0608        BNE    QPREC1   THAT'S A REAL OPERATOR.
+01889P 05EB 4D                    TSTA            DONE ?
+****WARNING   001--01869
+01890P 05EC 1027 006A 065A        LBEQ   QOPRTS   DONE !
+01891P 05F0 20   48   063D        BRA    PULSTK
+01892P 05F2 08   06      A FINREL ASL    VALTYP   GET VALUE TYPE INTO "C".
+01893P 05F4 59                    ROLB            PUT VALTYP INTO LOW ORDER BIT OF MASK.
+01894P 05F5 8D   09   0600        BSR    PTRBCK   DECREMENT TEXT POINTER.
+01895P 05F7 8E   0605    P        LDX    #PTDORL  MAKE [XREG] POINT AT OPERATOR ENTRY.
+01896P 05FA D7   3F      A        STB    OPMASK   SAVE THE OPERATION MASK.
+01897P 05FC 0F   06      A        CLR    VALTYP   Make it look numeric to slip past
+01898                      *    CHKNUM call if we don't operate at
+01899                      *    QPREC.
+01900P 05FE 20   D9   05D9        BRA    QPREC    SAVE IT ALL.
+01901
+01902P 0600 9E   A6      A PTRBCK LDX    TXTPTR   TXTPTR:=TXTPTR-1.
+01903P 0602 7E   02F7    P        JMP    DEXPTR
+01904
+01905P 0605      64      A PTDORL FCB    &100     PRECEDENCE.
+01906P 0606      073A    P        FDB    DOREL    OPERATOR ADDRESS.
+01907P 0608 A1   84      A QPREC1 CMPA   ,X       LAST PRECEDENCE IS GREATER?
+01908P 060A 24   31   063D        BCC    PULSTK   YES, GO OPERATE.
+01909P 060C 20   D3   05E1        BRA    DOPREC   NO SAVE ARGUMENT AND GET OTHER OPERAND. 
+01910P 060E EC   01      A DOPRE1 LDD    &1,X     PUT DISPATCH ADDRESS ON STACK.
+01911P 0610 34   06      A        PSHS   B,A
+01912P 0612 8D   08   061C        BSR    PUSHF1   SAVE FAC ON STACK UNPACKED.
+01913P 0614 D6   3F      A        LDB    OPMASK   [ACCB] MAY BE MASK FOR REL.
+01914P 0616 16   FF7B 0594        LBRA   LPOPER
+01915P 0619 7E   06BD    P SNERR5 JMP    SNERR    GO TO AN ERROR.
+01916P 061C D6   54      A PUSHF1 LDB    FACSGN
+01917P 061E A6   84      A        LDA    ,X       GET HIGH PRECEDENCE.
+
+PAGE  028  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+01918P 0620 35   20      A PUSHF  PULS   Y        Y:=RETURN ADDRESS.
+01919                      *    STORE FAC ON STACK UNPACKED.
+01920P 0622 34   04      A        PSHS   B        START WITH SIGN SET UP.
+01921            0001    A        IFEQ   ADDPRC
+01925                      ENDC    IFE ADDPRC
+01926
+01927            0001    A        IFNE   ADDPRC
+01928P 0624 D6   4F      A FORPSH LDB    FACEXP   Enter here to avoid storing sign.
+01929P 0626 9E   50      A        LDX    FACHO
+01930P 0628 DE   52      A        LDU    FACMO
+01931P 062A 34   54      A        PSHS   U,X,B
+01932                             ENDC   IFN      ADDPRC
+01933P 062C 6E   A4      A        JMP    ,Y       RETURN.
+01934P 062E 9E   8A      A QOP    LDX    DBLZER
+01935P 0630 A6   E0      A        LDA    ,S+      GET HIGH PRECEDENCE OF LAST OP.
+01936P 0632 27   26   065A        BEQ    QOPRTS   DONE !
+01937P 0634 81   64      A QCHNUM CMPA   #&100    RELATIONAL OPERATOR?
+01938P 0636 27   03   063B        BEQ    UNPSTK   YES, DON'T CHECK OPERAND.
+01939P 0638 BD   057D    P        JSR    CHKNUM   MUST BE NUMBER.
+01940P 063B 9F   3D      A UNPSTK STX    OPPTR    SAVE OPERATOR'S POINTER FOR NEXT TIME.
+01941P 063D 35   04      A PULSTK PULS   B        GET MASK FOR REL OP IF IT IS ONE.
+01942P 063F 81   5A      A        CMPA   #&90     NOT TOKEN?
+01943P 0641 27   19   065C        BEQ    UNPRTS   YES, NOTHING TO UNPACK.
+01944P 0643 81   7D      A        CMPA   #&125
+01945P 0645 27   15   065C        BEQ    UNPRTS   IT IS A MINUS.
+01946P 0647 54                    LSRB            SETUP [C] FOR DOREL'S "CHKVAL".
+01947P 0648 D7   0A      A        STB    DOMASK   SAVE FOR "DOCMP".
+01948            0001    A        IFEQ   ADDPRC
+01952                      ENDC    IFE ADDPRC
+01953            0001    A        IFNE   ADDPRC
+01954P 064A 35   52      A        PULS   A,X,U    Unpack the stack into ARG.
+01955P 064C 97   5C      A        STA    ARGEXP
+01956P 064E 9F   5D      A        STX    ARGHO
+01957P 0650 DF   5F      A        STU    ARGMO
+01958                             ENDC   IFN      ADDPRC
+01959P 0652 35   04      A        PULS   B
+01960P 0654 D7   61      A        STB    ARGSGN
+01961P 0656 D8   54      A        EORB   FACSGN   GET PROBABLE RESULT SIGN.
+01962P 0658 D7   62      A        STB    ARISGN   ARITHMETIC SIGN. USED BY
+01963                      *    ADD, SUB, MULT, DIV.
+01964P 065A D6   4F      A QOPRTS LDB    FACEXP   GET IT AND SET CODES.
+01965P 065C 39             UNPRTS RTS             RETURN.
+01966
+01967P 065D BD   0000    A EVAL   JSR    HKEVAL   RAM hook.
+01968P 0660 0F   06      A        CLR    VALTYP   ASSUME VALUE WILL BE NUMERIC.
+01969P 0662 9D   9F      A        JSR    CHRGET   GET A CHARACTER.
+01970P 0664 24   03   0669        BCC    EVAL2
+01971P 0666 7E   0000    A EVAL1  JMP    FIN      IT IS A NUMBER.
+01972P 0669 BD   07E8    P EVAL2  JSR    ISLETC   VARIABLE NAME?
+01973P 066C 24   5C   06CA        BCC    ISVAR    YES.
+01974P 066E 81   2E      A        CMPA   #'.      LEADING CHARACTER OF CONSTANT?
+01975P 0670 27   F4   0666        BEQ    EVAL1
+01976P 0672 81   00      A        CMPA   #MINUTK  NEGATION?
+01977P 0674 27   4C   06C2        BEQ    DOMIN    SHO IS.
+01978P 0676 81   00      A        CMPA   #PLUSTK
+01979P 0678 27   E3   065D        BEQ    EVAL
+01980P 067A 81   22      A        CMPA   #&34     A QUOTE? A STRING?
+01981P 067C 26   0A   0688        BNE    EVAL3
+
+PAGE  029  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+01982                             XDEF   STRTXT
+01983P 067E 9E   A6      A STRTXT LDX    TXTPTR
+01984P 0680 BD   0964    P        JSR    STRLTI   YES. GO PROCESS IT.
+01985P 0683 9E   64      A ST2TXT LDX    STRNG2   Reset the text pointer.
+01986P 0685 9F   A6      A        STX    TXTPTR
+01987P 0687 39                    RTS
+01988
+01989P 0688 81   00      A EVAL3  CMPA   #NOTTK   CHECK FOR "NOT" OPERATOR.
+01990P 068A 26   0D   0699        BNE    EVAL4
+01991P 068C 86   5A      A        LDA    #&90     "NOT" HAS PRECEDENCE 90.
+01992P 068E BD   0594    P        JSR    LPOPER   GO PERFORM.
+01993P 0691 BD   0836    P        JSR    INTCNV   INTEGERIZE.
+01994P 0694 43                    COMA            COMPLEMENT HIGH
+01995P 0695 53                    COMB            AND COMPLEMENT LOW.
+01996P 0696 7E   0940    P        JMP    GIVABF   FLOAT [A,B] AS RESULT IN FAC.
+01997                      *    AND RETURN.
+01998P 0699 81   00      A EVAL4  CMPA   #FNTK    USER-DEFINED FUNCTION?
+01999P 069B 1027 F961    A        LBEQ   FNDOER
+02000P 069F 81   26      A        CMPA   #'&      Hex or octal constant?
+02001P 06A1 1027 F95B    A        LBEQ   HOCONS   Yes, go handle it.
+02002P 06A5 4C                    INCA            Is it a function token?
+02003P 06A6 27   2E   06D6        BEQ    ISFUN    Yes, go handle it.
+02004
+02005                             XDEF   PARCHK
+02006P 06A8 8D   06   06B0 PARCHK BSR    CHKOPN   ONLY POSSIBILITY LEFT IS
+02007P 06AA BD   0590    P        JSR    FRMEVL   A FORMULA IN PARENTHESIS.
+02008                      *    RECURSIVELY EVALUATE THE FORMULA.
+02009                             XDEF   CHKCLS
+02010P 06AD C6   29      A CHKCLS LDB    #@51     CHECK FOR A RIGHT PARENTHESE
+02011P 06AF                       SKIP2
+02012                             XDEF   CHKOPN
+02013P 06B0 C6   28      A CHKOPN LDB    #@50
+02014P 06B2                       SKIP2
+02015                             XDEF   CHKCOM
+02016P 06B3 C6   2C      A CHKCOM LDB    #&44
+02017                      *
+02018                      * "SYNCHK" LOOKS AT THE CURRENT CHARACTER TO MAKE SURE IT
+02019                      * IS THE SPECIFIC THING LOADED INTO ACCB JUST BEFORE THE CALL TO
+02020                      * "SYNCHK". IF NOT, IT CALLS THE "SYNTAX ERROR" ROUTINE.
+02021                      * OTHERWISE IT GOBBLES THE NEXT CHAR AND RETURNS.
+02022                      *
+02023                      * [A]=NEW CHAR AND TXTPTR IS ADVANCED BY "CHRGET".
+02024                      *
+02025                             XDEF   SYNCHR
+02026P 0685 E1   9F 00A6 A SYNCHR CMPB   [TXTPTR] Is [B] same as current char?
+02027P 06B9 26   02   06BD        BNE    SNERR    No, but it should be.
+02028P 06BB 0E   9F      A        JMP    CHRGET   Yes, skip current char.
+02029                             XDEF   SNERR
+02030P 06BD C6   00      A SNERR  LDB    #ERRSN   "SYNTAX ERROR"
+02031P 06BF 7E   004D    P        JMP    ERROR
+02032P 06C2 86   7D      A DOMIN  LDA    #&125    A PRECEDENCE BELOW "^".
+02033P 06C4 BD   0594    P        JSR    LPOPER   BUT ABOVE ALL ELSE.
+02034P 06C7 7E   0000    A        JMP    NEGOP    NEGATE THE FAC.
+02035                      *    AND RETURN.
+02036
+02037                             XDEF   ISVAR
+02038P 06CA BD   079D    P ISVAR  JSR    PTRGET   GET A PNTR TO VARIABLE.
+02039P 06CD 9F   52      A ISVRET STX    FACMO
+
+PAGE  030  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+02040P 06CF 96   06      A        LDA    VALTYP
+02041P 06D1 26   89   065C        BNE    UNPRTS   THE STRING IS SET UP.
+02042P 06D3 7E   0000    A        JMP    MOVFM    MOVE ACTUAL VALUE IN.
+02043                      *    AND RETURN.
+02044 
+02045P 06D6 9D   9F      A ISFUN  JSR    CHRGET   Eat the 377 octal which is the first
+02046                      *    byte of the function token and get
+02047                      *    the second byte of the function token.
+02048P 06D8 1F   89      A        TFR    A,B      Move token to B.
+02049P 06DA 58                    ASLB            Multiply by two to get a dispatch
+02050                      *    table offset and to get rid of the
+02051                      *    high order bit.
+02052P 06DB 9D   9F      A        JSR    CHRGET   Get next char for SYNCHKs below.
+02053P 06DD Cl   00      A        CMPB   #TLFNTK  Is this a list 0 function?
+02054P 06DF 23   04   06E5        BLS    ISOFUN   Yes.
+02055P 06E1 6E   9F 000A A        JMP    [FUNDS0+STBLEN] No, jump to list 1 function
+02056                      *    dispatcher.
+02057
+02058P 06E5 34   04      A ISOFUN PSHS   B        SAVE FUNCTION NUMBER.
+02059P 06E7 C1   00      A        CMPB   #TCLAS1  Is it a Class 0 function?
+02060P 06E9 25   22   070D        BLO    ISCLS0   Yes, go crack argument.
+02061P 06EB C1   00      A        CMPB   #TCLAS3  No, is it a Class 3 function?
+02062P 06ED 24   20   070F        BHS    FINGO    Yes, no args, just dispatch.
+02063                      *    No, must be Class 2. Fall in.
+02064
+02065                      *
+02066                      *      MOST FUNCTIONS (Class 0) TAKE A SINGLE ARGUMENT.
+02067                      *      THE RETURN ADDRESS OF THESE FUNCTIONS IS "CHKNUM"
+02068                      *      WHICH ASCERTAINS THAT [VALTYP]=0  (NUMERIC).
+02069                      *      FUNCTIONS THAT RETURN STRING RESULTS
+02070                      *      (E.G., CHR$) MUST POP OF THAT RETURN ADDR AND
+02071                      *      RETURN DIRECTLY TO "FRMEVL".
+02072                      *
+02073                      *      Class 1 functions can take more than one argument,
+02074                      *      THE FIRST OF WHICH MUST BE STRING AND THE SECOND OF WHICH
+02075                      *      MUST BE A NUMBER BETWEEN 0 AND 255.
+02076                      *      THE CLOSED PARENTHESIS MUST BE CHECKED AND RETURN IS DIRECTLY
+02077                      *      TO "FRMEVL" WITH THE TEXT PNTR POINTING BEYOND THE ")".
+02078                      *      THE POINTER TO THE DESCRIPTOR OF THE STRING ARGUMENT
+02079                      *      IS STORED ON THE STACK UNDERNEATH THE VALUE OF THE
+02080                      *      INTEGER ARGUMENT.
+02081                      *
+02082                      *      Class 2 functions can have any number and type of arguments so
+02083                      *      the only thing done here is to check for an open parenthesis.
+02084                      *
+02085                      *      Class 3 functions have no arguments so nothing is checked here
+02086                      *      at all.
+02087                      *
+02088
+02089P 06EF 8D   BF   06B0        BSR    CHKOPN   CHECK FOR AN OPEN PARENTHESIS
+02090P 06F1 A6   E4      A        LDA    ,S       A:=function number.
+02091P 06F3 81   00      A        CMPA   #TCLAS2  Is it a Class 2 function?
+02092P 06F5 24   18   070F        BHS    FINGO    Yes, open paren has been checked so
+02093                      *    just dispatch.
+02094P 06F7 BD   0590    P        JSR    FRMEVL   EAT OPEN PAREN AND FIRST ARG.
+02095P 06FA 8D   B7   06B3        BSR    CHKCOM   TWO ARGS SO COMMA MUST DELIMIT.
+02096P 06FC BD   0580    P        JSR    CHKSTR   MAKE SURE FIRST WAS STRING.
+02097P 06FF 35   02      A        PULS   A        GET FUNCTION NUMBER.
+
+PAGE  031  ECBBAS  .SA:l  BASIC  FORMULA EVALUATION CODE.
+
+02098P 0701 DE   54      A        LDU    FACMO    SAVE POINTER AT STRING DESCRIPTOR
+02099P 0703 34   42      A        PSHS   U,A      RESAVE FUNCTION NUMBER.
+02100                      *    THIS MUST BE ON STACK SINCE RECURSIVE.
+02101P 0705 BD   0B5A    P        JSR    GETBYT   [B]=VALUE OF FORMULA.
+02102P 0708 35   02      A        PULS   A        GET FUNCTION NUMBER.
+02103P 070A 34   06      A        PSHS   B,A      Save integer and function number.
+02104P 070C      BE      A        FCB    &216     LDXIM to FINGO.  (Faster than CPMXIM.)
+02105P 070D 8D   99   06A8 ISCLS0 BSR    PARCHK   READ A FORMULA SURROUNDED BY PARENS.
+02106P 070F 35   04      A FINGO  PULS   B        GET DISPATCH FUNCTION.
+02107P 0711 BE   0000    A        LDX    FUNDS0   X:=address of function dispatch table.
+02108                             XDEF   DOFDSP
+02109P 0714 3A             DOFDSP ABX             Dispatch to the function.
+02110P 0715 AD   94      A        JSR    [,X]
+02111                      *    STRING FUNCTIONS REMOVE THIS RET ADDR.
+02112P 0717 7E   057D    P        JMP    CHKNUM   CHECK IT FOR NUMERICNESS AND RETURN.
+02113
+02114                             XDEF   OROP
+02115P 071A                OROP   SKIP1  "LDA"    TO SET [ACCA] NONZERO.
+02116                             XDEF   ANDOP
+02117P 071B 4F             ANDOP  CLRA            SET [ACCA]=0.
+02118P 071C 97   03      A        STA    COUNT    KEEP THE TYPE.
+02119P 071E BD   0836    P        JSR    INTCNV   D:=INT VALUE AND CHECK SIZE.
+02120P 0721 DD   01      A        STD    INTEGR   STORE IT FOR LATER USE.
+02121P 0723 BD   0000    A        JSR    MOVFA
+02122P 0726 BD   0836    P        JSR    INTCNV   [FACMO&LO]= INT OF ARG.
+02123P 0729 0D   03      A        TST    COUNT    SEE IF "AND" OR "OR" WITHOUT
+02124                      *    AFFECTING [A,B].
+02125P 072B 26   06   0733        BNE    ORFIN    WAS "OR"
+02126P 072D 94   01      A        ANDA   INTEGR
+02127P 072F D4   02      A        ANDB   INTEGR+&1 GOT RESULT IN [A,B]
+02128P 0731 20   04   0737        BRA    STOLOG
+02129P 0733 9A   01      A ORFIN  ORA    INTEGR
+02130P 0735 DA   02      A        ORB    INTEGR+&1 GOT RESULT OR "OR".
+02131P 0737 7E   0940    P STOLOG JMP    G1VABF   FLOAT AND RET TO USER.
+02132
+02133                      *
+02134                      * TIME TO PERFORM A RELATIONAL OPERATOR.
+02135                      * [ACCB] CONTAINS THE BITS AS TO WHICH RELATIONAL
+02136                      * OPERATOR IT WAS. LOW BIT ON=STRING COMPARE.
+02137                      *
+02138P 073A BD   0582    P DOREL  JSR    CHKVAL   CHECK FOR MATCH AND SET
+02139                      *    Z-FLAG IF NUMERIC.
+02140P 073D 26   10   074F        BNE    CLRVAL
+02141P 073F 96   61      A        LDA    ARGSGN   PACK ARG FOR FCOMP.
+02142P 0741 8A   7F      A        ORA    #&127
+02143P 0743 94   5D      A        ANDA   ARGHO
+02144P 0745 97   5D      A        STA    ARGHO
+02145P 0747 BE   005C    A        LDX    #ARGEXP
+02146P 074A BD   0000    A        JSR    FCOMP
+02147P 074D 20   36   0785        BRA    DOCMP
+02148P 074F 0F   06      A CLRVAL CLR    VALTYP   RESULT WILL BE NUMERIC.
+02149P 0751 0A   3F      A        DEC    OPMASK   TURN OFF VALTYP WHICH WAS STRING.
+02150P 0753 BD   0AA6    P STRCMP JSR    FREFAC   FREE THE FACLO STRING.
+02151P 0756 D7   56      A        STB    DSCTMP   SAVE FOR LATER.
+02152P 0758 9F   58      A        STX    DSCTMP+&2
+02153P 075A 9E   5F      A        LDX    ARGMO    GET POINTER TO OTHER STRING.
+02154P 075C BD   0AA8    P        JSR    FRETMP   FREES FIRST DESC POINTER.
+02155                      *    DOES NOT CHANGE [ACCB].
+
+PAGE  032  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+02156P 075F 96   56      A        LDA    DSCTMP   GET COUNT INTO ACCA.
+02157P 0761 34   04 A0E0          SBA             WHICH IS GREATER. IF 0, ALL SET UP.
+02158P 0765 27   07   076E        BEQ    STASGN   JUST PUT SIGN OF DIFFERENCE AWAY.
+02159P 0767 86   01      A        LDA    #&1
+02160P 0769 24   03   076E        BCC    STASGN   SIGN IS POSITIVE.
+02161P 076B D6   56      A        LDB    DSCTMP   LENGTH OF FAC IS SHORTER.
+02162P 076D 40                    NEGA            GET A MINUS 1 FOR NEGATIVES.
+02163P 076E 97   54      A STASGN STA    FACSGN   KEEP FOR LATER.
+02164P 0770 DE   58      A        LDU    DSCTMP+&2 SET POINTER TO SECOND.
+02165P 0772 5C                    INCB            TO LOOP PROPERLY.
+02166
+02167                      *
+02168                      * XREG HAS POINTER TO FIRST STRING.
+02169                      * UREG HAS POINTER TO SECOND STRING.
+02170                      *
+02171
+02172P 0773 5A             NXTCMP DECB            ANY CHARACTERS LEFT TO COMPARE?
+02173P 0774 26   04   077A        BNE    GETCMP   NOT DONE YET.
+02174P 0776 D6   54      A        LDB    FACSGN   USE SIGN OF LENGTH DIFFERENCE
+02175                      *    SINCE ALL CHARACTERS ARE THE SAME.
+02176P 0778 20   0B   0785        BRA    DOCMP
+02177P 077A A6   80      A GETCMP LDA    ,X+      GET NEXT CHAR TO COMPARE.
+02178P 077C A1   C0      A        CMPA   ,U+      SAME?
+02179P 077E 27   F3   0773        BEQ    NXTCMP   YEP. TRY FURTHER.
+02180P 0780 C6   FF      A        LDB    #-&1     Say the first is greater than the
+02181                      *    second.
+02182P 0782 24   01   0785        BCC    DOCMP    It really is.
+02183P 0784 50                    NEGB            Say second is greater than first.
+02184P 0785 CB   01      A DOCMP  ADDB   #&1      -1 TO 1, 0 TO 2, 1 TO 4.
+02185P 0787 59                    ROLB
+02186P 0788 D4   0A      A        ANDB   DOMASK
+02187P 078A 27   02   078E        BEQ    GOFLOT
+02188P 078C C6   FF      A        LDB    #-&1     MAP 0 TO 0. ALL OTHERS TO -1.
+02189P 078E 7E   0000    A GOFLOT JMP    FLOAT    FLOAT THE ONE-BYTE RESULT INTO FAC.
+02190
+
+PAGE  033  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+02192
+02193                             TTL    DIMENSION AND VARIABLE SEARCHING.
+02194
+02195                      *
+02196                      * THE "DIM" CODE SETS [DIMFLG] AND THEN FALLS INTO THE VARIABLE SEARCH
+02197                      * ROUTINE, WHICH LOOKS AT DIMFLG AT THREE DIFFERENT POINTS.
+02198                      * 1) IF AN ENTRY IS FOUND, "DIMFLG" BEING ON INDICATES
+02199                      *  A "DOUBLY" DIMENSIONED VARIABLE.
+02200                      * 2) WHEN A NEW ENTRY IS BEING BUILT "DIMFLG" BEING ON
+02201                      *  INDICTAES THE INDICES SHOULD BE USED FOR THE                                                                                               !,
+02202                      *  SIZE OF EACH INDEX. OTHERWISE THE DEFAULT OF TEN
+02203                      *  IS USED.
+02204                      * 3) WHEN THE BUILD ENTRY CODE FINISHES, ONLY IF "DIMFLG" IS OFF
+02205                      *  WILL INDEXING BE DONE.
+02206                      *
+02207P 0791 BD   06B3    P DIM3   JSR    CHKCOM   MUST BE A COMMA
+02208                             XDEF   DIM
+02209P 0794 C6   01      A DIM    LDB    #&1      SET [ACCB] NONZERO. 
+02210P 0796 8D   08   07A0 DIM1   BSR    PTRGT1 
+02211P 0798 9D   A5      A DIMCON JSR    CHRGOT   GET LAST CHARACTER.
+02212P 079A 26   F5   0791        BNE    DIM3
+02213P 079C 39                    RTS
+02214                      *
+02215                      * ROUTINE TO READ THE VARIABLE NAME AT THE CURRENT TEXT POSITION
+02216                      * AND PUT A POINTER TO ITS VALUE IN VARPNT. [TXTPTR]
+02217                      * POINTS TO THE TERMINATING CHARCTER.. NOT THAT EVALUATING SUBSCRIPTS
+02218                      * IN A VARIABLE NAME CAN CAUSE RECURSIVE CALLS TO "PTRGET" SO AT
+02219                      * THAT POINT ALL VALUES MUST BE STORED ON THE STACK.
+02220                      *
+02221                             XDEF   PTRGET 
+02222P 079D 5F             PTRGET CLRB            MAKE [ACCB]=0.
+02223P 079E 9D   A5      A        JSR    CHRGOT   RETRIEVE LAST CHARACTER. 
+02224P 07A0 D7   05      A PTRGT1 STB    DIMFLG   STORE FLAG AWAY.
+02225                             XDEF   PTRGT2 
+02226P 07A2 97   37      A PTRGT2 STA    VARNAM
+02227P 07A4 9D   A5      A        JSR    CHRGOT   GET CURRENT CHARACTER
+02228                      *    MAYBE WITH FUNCTION BIT OFF.
+02229P 07A6 8D   40   07E8        BSR    ISLETC   CHECK FOR LETTER.
+02230P 07A8 1025 FF11 06BD        LBCS   SNERR    MUST HAVE A LETTER.
+02231P 07AC 5F                    CLRB            ASSUME NO SECOND CHARACTER.
+02232P 07AD D7   06      A        STB    VALTYP   DEFAULT IS NUMERIC.
+02233P 07AF 9D   9F      A        JSR    CHRGET   GET FOLLOWING CHARACTER.
+02234P 07B1 25   04   07B7        BCS    ISSEC    CARRY SET BY CHRGET IF NUMERIC.
+02235P 07B3 8D   33   07E8        BSR    ISLETC   SET CARRY IF NOT ALPHABETIC.
+02236P 07B5 25   0A   07C1        BCS    NOSEC    ALLOW ALPHABETICS.
+02237P 07B7 1F   89      A ISSEC  TFR    A,B      IT IS A NUMBER -- SAVE IN ACCB.
+02236P 07B9 9D   9F      A EATEM  JSR    CHRGET   LOOK AT NEXT CHARACTER.
+02239P 07BB 25   FC   07B9        BCS    EATEM    SKIP NUMERICS.
+02240P 07BD 8D   29   07E8        BSR    ISLETC
+02241P 07BF 24   F8   07B9        BCC    EATEM    SKIP ALPHABETICS.
+02242P 07C1 81   24      A NOSEC  CMPA   #'$      IS IT A STRING?
+02243P 07C3 26   06   07CB        BNE    NOTSTR   IF NOT, [VALTYP]=0.
+02244P 07C5 03   06      A        COM    VALTYP   SET [VALTYP]=377 (STRING !).
+02245P 07C7 CB   80      A        ADDB   #&128    TURN ON MSB OF SECOND CHARACTER.
+02246P 07C9 9D   9F      A        JSR    CHRGET   GET CHARACTER AFTER $.
+02247P 07CB D7   38      A NOTSTR STB    VARNAM+&1 STORE AWAY SECOND CHARACTER. 
+02248P 07CD 9A   08      A        ORA    SUBFLG   OR in flag which says whether to 
+02249                      *    allow arrays.
+
+PAGE  034  ECBBAS  .SA:1  BASIC  DIMENSION AND VARIABLE SEARCHING.
+
+02250P 07CF 80   28      A        SUBA   #@50     (CHECK FOR "(") WON'T MATCH IF SUBFLG SET.
+****WARNING   001--01890
+02251P 07D1 1027 0078 084D        LBEQ   ISARY    IT IS!
+02252P 07D5 0F   08      A        CLR    SUBFLG   ALLOW SUBSCRIPTS AGAIN. 
+02253P 07D7 9E   1B      A        LDX    VARTAB   PLACE TO START SEARCH. 
+02254P 07D9 DC   37      A        LDD    VARNAM
+02255P 07DB 9C   1D      A LOPFND CMPX   ARYTAB   AT END OF TABLE YET?
+02256P 07DD 27   12   07F1        BEQ    NOTFNS   YES. WE COULDN'T FIND IT.
+02257P 07DF 10A3 81      A        CMPD   ,X++     COMPARE THE NAMES.
+02258P 07E2 27   3E   0822        BEQ    FINNOW   THIS IS THE ONE.
+02259P 07E4 30   05      A NOTIT  LEAX   &4+ADDPRC,X MOVE ON. UGG. 
+02260P 07E6 20   F3   07DB        BRA    LOPFND
+02261 
+02262                      *
+02263                      * TEST FOR A LETTER. / CARRY ON= NOT A LETTER.
+02264                      *     CARRY OFF= A LETTER.
+02265                      *
+02266                             XDEF   ISLETC
+02267P 07E8 81   41      A ISLETC CMPA   #'A 
+02268P 07EA 25   04   07F0        BCS    ISLRTS
+02269P 07EC 80   5B      A        SUBA   #'Z+&1 
+02270P 07EE 80   A5      A        SUBA   #-'Z-&1
+02271P 07F0 39             ISLRTS RTS             RETURN TO CALLER.
+02272
+02273P 07F1 8E   008A    A NOTFNS LDX    #DBLZER  IN CASE EVAL IS CALLING WE RETURN A
+02274P 07F4 EE   E4      A        LDU    ,S       A POINTER TO A SIMULATED ZERO SO
+02275P 07F6 1183 06CD    P        CMPU   #ISVRET  ARRAY VARIABLES DON'T GET MOVED AND
+02276P 07FA 27   28   0824        BEQ    PTRRTS   SCREW UP THE LIKES OF A(I)=S WHERE 
+02277                      *    S IS UNDEFINED.  NOTE THAT A POINTER
+02278                      *    TO A SINGLE BYTE ZERO LOOKS LIKE A
+02279                      *    FLOATING POINT ZERO (EXPONENT=0) OR
+02280                      *    A NULL STRING (LENGTH=0).
+02281P 07FC DC   1F      A        LDD    STREND   GET HIGHEST ADDR TO MOVE.
+02282P 07FE DD   43      A        STD    HIGHTR
+02283P 0800 C3   0007    A        ADDD   #&6+ADDPRC Add length of new VARTAB entry.
+02284P 0803 DD   41      A        STD    HIGHDS   PLACE TO STUFF IT.
+02285P 0805 9E   1D      A        LDX    ARYTAB
+02286P 0807 9F   47      A        STX    LOWTR    LOWEST THING TO MOVE.
+02287P 0809 BD   0025    P        JSR    BLTU     MOVE IT ALL.
+02288                      *    NOTE ALL [A,B] HAS [HIGHDS] FOR REASON.
+02289P 080C 9E   41      A        LDX    HIGHDS   NEW STREND
+02290P 080E 9F   1F      A        STX    STREND   IS SET HERE.
+02291P 0810 9E   45      A        LDX    LOWDS    AND SET UP
+02292P 0812 9F   1D      A        STX    ARYTAB   NEW START OF ARRAY TABLE.
+02293P 0814 9E   47      A        LDX    LOWTR    GET ADDR OF VARIABLE ENTRY.
+02294P 0816 DC   37      A        LDD    VARNAM
+02295P 0818 ED   81      A        STD    ,X++     STORE NAME OF VARIABLE.
+02296P 081A 4F                    CLRA            ZERO OUT THE VALUE.
+02297P 0818 5F                    CLRB
+02298P 081C ED   84      A        STD    ,X
+02299P 081E ED   02      A        STD    &2,X
+02300            0001    A        IFNE   ADDPRC
+02301P 0820 A7   04      A        STA    &4,X
+02302                             ENDC   IFN      ADDPRC
+02303P 0822 9F   39      A FINNOW STX    VARPNT   THIS IS IT.
+02304P 0824 39             PTRRTS RTS
+
+PAGE  035  ECBBAS  .SA:1  BASIC  DIMENSION AND VARIABLE SEARCHING.
+
+02306                             TTL    MULTIPLE DIMENSION CODE.
+02307 
+02308                      *
+02309                      * INTIDX READS A FORMULA FROM THE CURRENT POSITION AND
+02310                      * TURNS IT INTO A POSITIVE INTEGER
+02311                      * LEAVING THE RESULT IN [FACMO,FACLO]. NEGATIVE ARGUMENTS
+02312                      * ARE NOT ALLOWED.
+02313                      *
+02314P 0825      90      A N32768 FCB    &144,&128,&0,&0 -32768.
+02315            0001    A        IFNE   ADDPRC
+02316P 0829      00      A        FCB    &0
+02317                             ENDC   IFN      ADDPRC
+02318
+02319                             XDEF   INTIDX
+02320P 082A 9D   9F      A INTIDX JSR    CHRGET
+02321                             XDEF   INTID2
+02322P 082C BD   057B    P INTID2 JSR    FRMNUM   GET A NUMBER
+02323P 082F BD   057D    P POSINT JSR    CHKNUM   Make sure it's numeric for callers
+02324                      *    coming in at POSINT. (Can't wait
+02325                      *    for check to be made at INTCNV since
+02326                      *    can't rely on FACSGN for strings.)
+02327P 0832 96   54      A        LDA    FACSGN
+02328P 0834 2B   60   0896        BMI    FCERR    IF NEGATIVE, BLOW HIM OUT.
+02329                             XDEF   INTCNV
+02330P 0836 BD   057D    P INTCNV JSR    CHKNUM   Make sure it's numeric for callers
+02331                      *    coming in at INTCNV. 
+02332P 0839 96   4F      A        LDA    FACEXP
+02333P 083B 81   90      A        CMPA   #&144    FAC .GT. 32767?
+02334P 083D 25   08   0847        BCS    QINTGO
+02335P 083F 8E   0825    P        LDX    #N32768  GET ADDR OF -32768.
+02336P 0842 BD   0000    A        JSR    FCOMP    SEE IF FAC=[[X]].
+02337P 0845 26   4F   0896        BNE    FCERR    NO, FAC IS TOO BIG.
+02338P 0847 BD   0000    A QINTGO JSR    QINT     Get the integer part.
+02339P 084A DC   52      A        LDD    FACMO    Return it in D for the callers.
+02340P 084C 39                    RTS
+02341                      *
+02342                      * FORMAT OF ARRAYS IN CORE.
+02343                      *
+02344                      * DESCRIPTOR:
+02345                      * LOWBYTE = FIRST CHARACTER.
+02346                      * HIGHBYTE = SECOND CHARACTER (200 BIT IS STRING FLAG).
+02347                      * LENGTH OF ARRAY IN CORE IN BYTES (INCLUDES EVERYTHING).
+02348                      * NUMBER OF DIMENSIONS.
+02349                      * FOR EACH DIMENSION STARTING WITH THE FIRST A LIST
+02350                      * (2 BYTES EACH) OF THE MAX INDICE+1
+02351                      * THE VALUES
+02352                      *
+02353P 084D D6   05      A ISARY  LDB    DIMFLG   SAVE DIMFLG AND VALTYP FOR RECURSION.
+02354P 084F 96   06      A        LDA    VALTYP
+02355P 0851 34   06      A        PSHS   B,A
+02356P 0853 5F                    CLRB            SET NUMBER OF DIMENSIONS TO ZERO.
+02357P 0854 9E   37      A INDLOP LDX    VARNAM   SAVE VARIABLE NAME AND NUMBER OF DIMS.
+02358P 0856 34   14      A        PSHS   X,B
+02359P 0858 8D   D0   082A        BSR    INTIDX   EVALUATE INDEX INTO FACMO&LO.
+02360P 085A 35   34      A        PULS   B,X,Y    B:=NUMBER OF DIMS, X:=VARNAM, AND
+02361                      *    Y:=VALTYP,DIMFLG.
+02362P 085C 9F   37      A        STX    VARNAM   PUT VARNAM BACK.
+02363P 085E DE   52      A        LDU    INDICE   PUT INDEX ON AND FOLLOW WITH DIMFLG
+
+PAGE  036  ECBBAS  .SA:1  BASIC  MULTIPLE DIMENSION CODE.
+
+02364P 0860 34   60      A        PSHS   U,Y      AND VALTYP.
+02365P 0862 5C                    INCB            INCREMENT # OF DIMS.
+02366P 0863 9D   A5      A        JSR    CHRGOT   GET TERMINATING CHARACTER.
+02367P 0865 81   2C      A        CMPA   #&44     A COMMA?
+02368P 0867 27   EB   0854        BEQ    INDLOP   YES.
+02369P 0869 D7   03      A        STB    COUNT    SAVE COUNT OF DIMS.
+02370P 086B BD   06AD    P        JSR    CHKCLS   MUST BE CLOSED PAREN.
+02371P 086E 35   06      A        PULS   A,B      GET BACK VALTYP AND DIMFLG.
+02372P 0870 97   06      A        STA    VALTYP
+02373P 0872 D7   05      A        STB    DIMFLG
+02374P 0874 9E   1D      A        LDX    ARYTAB   PLACE TO START SEARCH.
+02375P 0876 9C   1F      A LOPFDA CMPX   STREND
+02376P 0878 27   21   089B        BEQ    NOTFDD   A FINE THING! NO ARRAY!. 
+02377P 087A DC   37      A        LDD    VARNAM   COMPARE THE NAMES.
+02378P 087C 10A3 84      A        CMPD   ,X
+02379P 087F 27   06   0887        BEQ    GOTARY   WELL, HERE IT IS !! 
+02380P 0881 EC   02      A        LDD    &2,X     GET LENGTH.
+02381P 0883 30   88      A        LEAX   D,X      ADD IT TO [XREG].
+02382P 0885 20   EF   0876        BRA    LOPFDA
+02383P 0887 C6   00      A GOTARY LDB    #ERRDD   PERHAPS A "RE-DIMENSION" ERROR 
+02384P 0889 96   05      A        LDA    DIMFLG   TEST THE DIMFLG
+02385P 088B 26   0B   0898        BNE    ERRGO3
+02386P 088D D6   03      A        LDB    COUNT    GET NUMBER OF DIMS INPUT. 
+02387P 088F El   04      A        CMPB   &4,X     # OF DIMS THE SAME?
+02388P 0891 27   59   08EC        BEQ    GETDEF   SAME SO GO GET DEFINITION. 
+02389P 0893 C6   00      A BSERR  LDB    #ERRBS   GET BAD SUB ERROR NUMBER.
+02390P 0895                       SKIP2
+02391                             XDEF   FCERR
+02392P 0896 C6   00      A FCERR  LDB    #ERRFC   TOO BIG. "FUNCTION CALL" ERROR. 
+02393P 0898 7E   004D    P ERRGO3 JMP    ERROR
+02394
+02395                      *
+02396                      * HERE WHEN VARIABLE IS NOT FOUND IN THE ARRAY TABLE.
+02397                      *
+02398                      * BUILDING AN ENTRY.
+02399                      *
+02400                      * PUT DOWN THE DESCRIPTOR.
+02401                      * SETUP NUMBER OF DIMENSIONS.
+02402                      * MAKE SURE THERE IS ROOM FOR THE NEW ENTRY.
+02403                      * REMEMBER "VARPNT".
+02404                      * TALLY=4.
+02405                      * SKIP 2 LOCS FOR LATER FILL IN OF SIZE.
+02406                      * LOOP: GET AN INDICE
+02407                      * PUT DOWN NUMBER+1 AND INCREMENT VARPTR.
+02408                      * TALLY=TALLY*NUMBER+1.
+02409                      * DECREMENT NUMBER-DIMS.
+02410                      * BNE LOOP
+02411                      * CALL "REASON" WITH [A,B] REFLECTING LAST LOC OF VARIABLE.
+02412                      * UPDATE STREND.
+02413                      * ZERO ALL.
+02414                      * MAKE TALLY INCLUDE MAXDIMS AND DESCRIPTOR. 
+02415                      * PUT DOWN TALLY.
+02416                      * IF CALLED BY DIMENSION, RETURN.
+02417                      * OTHERWISE INDEX INTO THE VARIABLE AS IF IT
+02418                      *  WERE FOUND ON THE INITIAL SEARCH.
+02419                      *
+02420P 089B CC   0005    A NOTFDD LDD    #&4+ADDPRC Initial tally is length of a single
+02421P 089E DD   64      A        STD    CURTOL   element value.
+
+PAGE  037  ECBBAS  .SA:1  BASIC  MULTIPLE DIMENSION CODE.
+
+02422P 08A0 DC   37      A        LDD    VARNAM
+02423P 08A2 ED   84      A        STD    ,X
+02424P 08A4 D6   03      A        LDB    COUNT
+02425P 08A6 E7   04      A        STB    &4,X     SAVE NUMBER OF DIMENSIONS.
+02426P 08A8 BD   003A    P        JSR    GETSTK   GET ROOM FOR DIMENSION ENTRIES.
+02427P 08AB 9F   41      A        STX    ARYPNT   SAVE TO KNOW WHERE TO STORE SIZE.
+02428P 08AD C6   0B      A LOPPTA LDB    #&11     DEFAULT SIZE.
+02429P 08AF 4F                    CLRA
+02430P 08B0 0D   05      A        TST    DIMFLG
+02431P 08B2 27   05   08B9        BEQ    NOTDIM   NOT IN A DIM STATEMENT.
+02432P 08B4 35   06      A        PULS   A,B      GET THE INDEX.
+02433P 08B6 C3   0001    A        ADDD   #&1      INCREMENT IT
+02434P 08B9 ED   05      A NOTDIM STD    &5,X     STORE INDEX.
+02435P 08BB 8D   5D   091A        BSR    UMULT    [A,B]=[CURTOL]*[5&6,X].
+02436P 08BD DD   64      A        STD    CURTOL   SAVE NEW TALLY.
+02437P 08BF 30   02      A        LEAX   &2,X     MOVE POINTER AHEAD.
+02438P 08C1 0A   03      A        DEC    COUNT    ANY MORE INDICES LEFT?
+02439P 08C3 26   E8   08AD        BNE    LOPPTA   YES.
+02440P 08C5 9F   0F      A        STX    TEMPX1   TEMPX1:=X for later, X:=X+D.
+02441P 08C7 D3   0F      A        ADDD   TEMPX1
+02442P 08C9 1025 F77E 004B        LBCS   OMERR    Not enough memory for this array.
+02443P 08CD 1F   01      A        TFR    D,X      Save pointer for clearing the array.
+02444P 08CF BD   003E    P        JSR    REASON   GET ROOM.
+02445                      *    MISSING FIVE WON'T HURT SINCE
+02446                      *    2*NUMLEV=38.
+024472 08D2 83   0035    A        SUBD   #&2*NUMLEV-&5 SUB 2*NUMLEV ADDED BY REASON AND ADD 5.
+02448P 08D5 DD   1F      A        STD    STREND   NEW END OF STORAGE.
+02449P 08D7 4F                    CLRA            STORING [ACCA] IS FASTER THAN CLEAR.
+02450P 08D8 30   1F        ZERITA DEX             NO NEED TO ZERO TOP OF MEMORY.
+02451P 08DA A7   05      A        STA    &5,X     ZERO  !!
+02452P 08DC 9C   0F      A        CMPX   TEMPX1   STOP? (TEMPX1 was set up above.)
+02453P 08DE 26   F8   08D8        BNE    ZERITA   NO. CONTINUE.
+02454P 08E0 9E   41      A        LDX    ARYPNT   WHERE TO STORE LENGTH.
+02455P 08E2 96   1F      A        LDA    STREND   RESTORE [ACCA].
+02456P 08E4 93   41      A        SUBD   ARYPNT   DETERMINE LENGTH.
+02457P 08E6 ED   02      A        STD    &2,X     Put it away.
+02458P 08E8 96   05      A        LDA    DIMFLG
+02459P 08EA 26   2D   0919        BNE    DIMRTS   BYE.
+02460                      *
+02461                      * AT THIS POINT [XREG,4] POINTS BEYOND THE SIZE TO THE NUMBER OF
+02462                      * DIMENSIONS. STRATEGY:
+02463                      * NUMDIM=NUMBER OF DIMENSIONS.
+02464                      * CURTOL=0.
+02465                      * INLPNM:GET A NEW INDICE.
+02466                      * MAKE SURE INDICE IS NOT TOO BIG.
+02467                      * MULTIPLY CURTOL BY CURMAX.
+02468                      * ADD INDICE TO CURTOL.
+02469                      * NUMDIM=NUMDIM-1.
+02470                      * BNE INLPNM.
+02471                      * USE [CURTOL]*4 AS OFFSET.
+02472                      *
+02473P 08EC E6   04      A GETDEF LDB    &4,X
+02474P 08EE D7   03      A        STB    COUNT    SAVE A COUNTER.
+02475P 08F0 4F                    CLRA            ZERO [CURTOL].
+02476P 08F1 5F                    CLRB
+02477P 08F2 DD   64      A INLPNM STD    CURTOL
+02478P 08F4 35   06      A        PULS   A,B      Get the index.
+02479P 08F6 DD   52      A        STD    INDICE
+
+PAGE  038  ECBBAS  .SA:1  BASIC  MULTIPLE DIMENSION CODE.
+
+02480P 08F8 10A3 05      A        CMPD   &5,X     If it is greater than or equal to the
+02481P 08FB 24   3A   0937        BCC    BSERR7   number of elements in this dimension
+02482                      *    give a Bad Subscript error.  (Remember
+02483                      *    that indices start at 0 so this check
+02484                      *    is correct.)
+02485P 08FD DE   64      A INLPN1 LDU    CURTOL   DON'T MULTIPLY IF CURTOL=0.
+02486P 08FF 27   04   0905        BEQ    NOMULT
+02487P 0901 8D   17   091A        BSR    UMULT    MULTIPLY [A,B] BY [5&6,X].
+02488P 0903 D3   52      A        ADDD   INDICE   ADD IN [INDICE].
+02489P 0905 30   02      A NOMULT LEAX   &2,X     BUMP INDEX.
+02490P 0907 0A   03      A        DEC    COUNT    ANY MORE?
+02491P 0909 26   E7   08F2        BNE    INLPNM   YES.
+02492            0001    A        IFNE   ADDPRC
+02493P 090B ED   E3      A        STD    ,--S     Save for multiply by 5.
+02494                             ENDC   IFN      ADDPRC
+02495P 090D 58                    ASLB            MULTIPLY RESULT BY FOUR.
+02496P 090E 49                    ROLA 
+02497P 090F 58                    ASLB
+02498P 0910 49                    ROLA 
+02499            0001    A        IFNE   ADDPRC
+02500P 0911 E3   El      A        ADDD   ,S++     Multiply by five.
+02501                             ENDC   IFN      ADDPRC
+02502P 0913 30   85      A        LEAX   D,X      Use as offset into array.
+02503P 0915 30   05      A        LEAX   &5,X     Account for five bytes at start of
+02504                      *    array. (2 for name, 2 for length, 1
+02505                      *    for number of dims.)
+02506P 0917 9F   39      A        STX    VARPNT   SET VARIABLE POINTER.
+02507P 0919 39             DIMRTS RTS             RETURN TO CALLER.
+02508
+
+PAGE  039  ECBBAS  .SA:1  BASIC  MULTIPLE DIMENSION CODE.
+
+02510                             TTL    INTEGER ARITHMETIC ROUTINES.
+02511 
+02512                      * TWO BYTE UNSIGNED INTEWER MULTIPLY.
+02513                      * THIS IS FOR MULTIPLY DIMENSIONED ARRAYS.
+02514                      *  [A,B]=[CURTOL]*[5&6,X].
+02515P 091A 86   10      A UMULT  LDA    #&16
+02516P 091C 97   45      A        STA    DECCNT   HAVE TO PUT IT IN MEMORY.
+02517P 091E EC   05      A        LDD    &5,X     Put [5&6,X] in faster memory.
+02518P 0920 DD   17      A        STD    ADDEND
+02519P 0922 4F                    CLRA            CLR THE ACCS.
+02520P 0923 5F                    CLRB            RESULT INITIALLY ZERO.
+02521P 0924 58             UMULTC ASLB            MULTIPLY BY TWO.
+02522P 0925 49                    ROLA
+02523P 0926 25   0F   0937        BCS    BSERR7   TWO MUCH !
+02524P 0928 08   65      A        ASL    CURTOL+&1
+02525P 092A 09   64      A        ROL    CURTOL
+02526P 092C 24   04   0932        BCC    UMLCNT   NOTHING IN THIS POSITION TO MULTIPLY.
+02527P 092E D3   17      A        ADDD   ADDEND
+02528P 0930 25   05   0937        BCS    BSERR7   MAN, JUST TOO MUCH !
+02529P 0932 0A   45      A UMLCNT DEC    DECCNT   DONE?
+02530P 0934 26   EE   0924        BNE    UMULTC   KEEP IT UP.
+02531P 0936 39             UMLRTS RTS             YES, ALL DONE.
+02532P 0937 7E   0893    P BSERR7 JMP    BSERR    DISPATCH.
+
+PAGE  040  ECBBAS  .SA:1  BASIC  INTEGER ARITHMETIC ROUTINES.
+
+02534                             TTL    FRE FUNCTION AND INTEGER TO FLOATING ROUTINES.
+02535
+02536            0000    A        IFNE   FRESW
+02549                       ENDC   IFN FRESW
+02550
+02551            0001    A        IFNE   MEMSW
+02552                             XDEF   MEM
+02553P 093A 1F   40      A MEM    TFR    S,D      Subtract storage end from stack
+02554                             XREF   PATCHM
+02555P 093C 7E   0000    A        JMP    PATCHM
+02556                             ENDC   IFN      MEMSW
+02557
+02558                             XDEF   SNGFLT
+02559P 093F 4F             SNGFLT CLRA            Use only B.
+02560                             XDEF   GIVABF
+02561P 0940 0F   06      A GIVABF CLR    VALTYP   SET NUMERIC.
+02562P 0942 DD   50      A        STD    FACHO
+02563P 0944 C6   90      A        LDB    #&144    SET EXPONENT TO 2^16.
+02564P 0946 7E   0000    A        JMP    FLOATS   TURN IT TO A FLOATING PNT #.
+02565
+02566                             TTL    STRING FUNCTIONS.
+02567
+02588                      *
+02569                      * THE STR$ FUNCTION TAKES A NUMBER AND GIVES A STRING
+02570                      * WITH THE CHARACTERS THE OUTPUT OF THE NUMBER
+02571                      * WOULD HAVE GIVEN.
+02572                      *
+02573                             XDEF   STR$
+02574P 0949 BD   057D    P STR$   JSR    CHKNUM   ARG HAS TO BE NUMERIC.
+02575P 094C CE   0000    A        LDU    #LOFBUF
+02576P 094F BD   0000    A        JSR    FOUTC    DO ITS OUTPUT.
+02577P 0952 32   62      A        LEAS   &2,S     GET RID OF "CHKNUM" RETURN ADDR.
+02578P 0954 8E   FFFF    A        LDX    #LOFBUF-&1
+02579P 0957 20   0B   0964        BRA    STRLTI   SCAN IT AND TURN IT INTO A STRING.
+02580                      *
+02581                      * "STRINI" GET STRING SPACE FOR THE CREATION OF A STRING AND
+02582                      * CREATES A DESCRIPTOR FOR IT IN "DSCTMP".
+02583                      *
+02584P 0959 9F   4D      A STRINI STX    DSCPNT   RETAIN THE DESCRIPTOR POINTER.
+02585                             XDEF   STRSPA
+02586P 095B 8D   5F   09BC STRSPA BSR    GETSPA   GET STRING SPACE.
+02587P 095D 9F   58      A STRAD2 STX    DSCTMP+&2 SAVE LOCATION.
+02588P 095F D7   56      A        STB    DSCTMP   SAVE LENGTH.
+02589P 0961 39                    RTS             ALL DONE.
+02590                      *
+02591                      * "STRLT2" TAKES THE STRING LITERAL WHOSE FIRST CHARACTER
+02592                      * IS POINTED TO BY [XREG]+1 AND BUILDS A DESCRIPTOR FOR IT. 
+02593                      * THE DESCRIPTOR IS INITIALLY BUILT IN "DSCTMP", BUT "PUTNEW"
+02594                      * TRANSFERS IT INTO A TEMPORARY AND LEAVES A POINTER
+02595                      * AT THE TEMPORARY IN FACMO&LO. THE CHARACTERS OTHER THAN
+02596                      * ZERO THAT TERMINATE THE STRING SHOULD BE SET UP IN "CHARAC"
+02597                      * AND "ENDCHR". IF THE TERMINATOR IS A QUOTE, THE QUOTE IS SKIPPED
+02598                      * OVER. LEADING QUOTES SHOULD BE SKIPPED BEFORE JSR. ON RETURN
+02599                      * THE CHARACTER AFTER THE STRING LITERAL IS POINTED TO
+02600                      * BY [STRNG2].
+02601                      *
+02602                             XDEF   STRLIT
+02603P 0962 30   1F        STRLIT DEX
+
+PAGE  041  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02604                             XDEF   STRLTI
+02605P 0964 86   22      A STRLTI LDA    #&34     ASSUME STRING ENDS ON QUOTE.
+02606                             XDEF   STRLT3
+02607P 0966 97   01      A STRLT3 STA    CHARAC
+02608P 0968 97   02      A        STA    ENDCHR
+02609P 096A 30   01        STRLT2 INX             SET BEGINING.
+02610P 096C 9F   62      A        STX    STRNG1   SAVE POINTER TO STRING.
+02611P 096E 9F   58      A        STX    DSCTMP+&2 IN CASE NO STRCPY.
+02612P 0970 C6   FF      A        LDB    #&255    INITIALIZE CHARACTER COUNT.
+02613P 0972 5C             STRGET INCB            INCREMENT CHARACTER COUNT.
+02614P 0973 A6   80      A        LDA    ,X+      GET CHARACTER.
+02615P 0975 27   0C   0983        BEQ    STRFI2   IF ZERO.
+02616P 0977 91   01      A        CMPA   CHARAC   THIS TERMINATOR?
+02617P 0979 27   04   097F        BEQ    STRFIN   YES.
+02618P 097B 91   02      A        CMPA   ENDCHR
+02619P 097D 26   F3   0972        BNE    STRGET   LOOK FURTHER.
+02620P 097F 81   22      A STRFIN CMPA   #&34     QUOTE?
+02621P 0981 27   02   0985        BEQ    STRFI1
+02622P 0983 30   1F        STRFI2 DEX             NO, BACK UP.
+02523P 0985 9F   64      A STRFI1 STX    STRNG2   FOR ANYONE WISHING TO SET [TXTPTR].
+02624P 0987 D7   56      A        STB    DSCTMP   RETAIN COUNT.
+02625P 0989 BD   0000    A        JSR    HKSCP2   RAM hook for string copy check.
+02626P 098C DE   62      A        LDU    STRNG1   If string is above LOFBUF it need
+02527P 098E 1183 0000    A        CMPU   #LOFBUF  not be copied into string space.
+02628P 0992 22   07   099B        BHI    PUTNEW   Don't copy.
+02629P 0994 8D   C3   0959        BSR    STRINI   Need to copy the string.
+02630P 0996 9E   62      A        LDX    STRNG1
+02631P 0998 BD   0A94    P        JSR    MOVSTR   MOVE STRING.
+02632                      *
+02633                      * SOME STRING FUNCTION IS RETURNING A RESULT IN DSCTMP.
+02634                      * SETUP A TEMP DESCRIPTOR WITH DSCTMP IN IT.
+02635                      * PUT A POINTER TO THE DESCRIPTOR IN FACMO&LO AND FLAG THE
+02636                      * RESULT AS TYPE STRING.
+02637                      *
+02638P 099B 9E   0B      A PUTNEW LDX    TEMPPT   POINTER TO FIRST FREE TEMP.
+02639P 099D 8C   0028    A        CMPX   #TEMPST+STRSIZ*NUMTMP
+02640P 09A0 26   05   09A7        BNE    PUTNW1
+02641P 09A2 C6   00      A        LDB    #ERRST   STRING TEMPORARY ERROR.
+02642P 09A4 7E   004D    P ERRGO2 JMP    ERROR    GO TELL HIM.
+02643P 09A7 96   56      A PUTNW1 LDA    DSCTMP   Move DSCTMP into the temporary.
+02644P 09A9 A7   84      A        STA    &0,X     Move the length.
+02645P 09AB DC   58      A        LDD    DSCTM2+&2 Follow with the address.
+02646P 09AD ED   02      A        STD    &2,X
+02647P 09AF 86   FF      A        LDA    #-&1
+02648P 09B1 97   06      A        STA    VALTYP   TYPE IS "STRING".
+02649P 09B3 9F   0D      A        STX    LASTPT   SET POINTER TO LAST-USED TEMP.
+02650P 09B5 9F   52      A        STX    FACMO    POINTER TO STRING
+02651P 09B7 30   05      A        LEAX   STRSIZ,X POINT TO NEXT TEMP IF THERE IS ONE.
+02652P 09B9 9F   0B      A        STX    TEMPPT   SAVE POINTER TO NEXT TEMP IF ANY.
+02653P 09B8 39                    RTS             ALL DONE.
+02654
+02655                      *
+02656                      * GETSPA - GET SPACE FOR CHARACTER STRING.
+02657                      * MAY FORCE GARBAGE COLLECTION.
+02658                      *
+02659                      * # OF CHARACTERS (BYTES) IN ACCB.
+02660                      * RETURNS WITH POINTER IN XREG. OTHERWISE (IF CAN'T GET
+02661                      * SPACE) BLOWS OFF TO "OUT OF STRING SPACE" TYPE ERROR.
+
+PAGE  042  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02662                      * ALSO PRESERVES [ACCB] AND SETS [FRESPC]=[XREG]=PNTR AT SPACE.
+02663                      *
+02664                             XDEF   GETSPA
+02665P 09BC 0F   07      A GETSPA CLR    GARBFL   SIGNAL NO GARBAGE COLLECTION YET.
+02666P 09BE 4F             TRYAG2 CLRA            SAVE AMOUNT OF STRING SPACE NEEDED.
+02667P 09BF 34   06      A        PSHS   B,A
+02668P 09C1 DC   23      A        LDD    FRETOP   IS THERE ENOUGH FREE SPACE?
+02669P 09C3 A3   E0      A        SUBD   ,S+      (LEAVE ONLY SINGLE BYTE COUNT OF
+02670                      *    BYTES NEEDED ON STACK.)
+02671P 09C5 1093 21      A        CMPD   STKTOP   THERE IS NOT ENOUGH IF FRETOP-AMOUNT 
+02672                      *    NEEDED IS BELOW STKTOP.
+02673P 09C8 25   0A   09D4        BCS    GARBAG   NO, CLEAN UP AND TRY AGAIN.
+02674P 09CA DD   23      A        STD    FRETOP   YES, SAVE NEW [FRETOP].
+02675P 09CC 9E   23      A        LDX    FRETOP   GET ANSWER IN XREG.
+02676P 09CE 30   01      A        LEAX   &1,X     MOVE BACK TO POINT TO STRING.
+02677P 09D0 9F   25      A        STX    FRESPC   PUT IT THERE OLD MAN.
+02678P 09D2 35   84      A        PULS   B,PC     GET COUNT BACK IN ACCB AND RETURN.
+02679
+02680P 09D4 C6   00      A GARBAG LDB    #ERRSO   "OUT OF STRING SPACE"
+02681P 09D6 03   07      A        COM    GARBFL   HAS COLLECTION ALREADY BEEN DONE? 
+02682P 09D8 27   CA   09A4        BEQ    ERRGO2   YES, GIVE OS ERROR.
+02683P 09DA 8D   04   09E0        BSR    GARBA2   NO, GO DO IT.
+02684P 09DC 35   04      A        PULS   B        GET BACK STRING LENGTH.
+02685P 09DE 20   DE   09BE        BRA    TRYAG2   NOW SEE IF THERE IS ENOUGH ROOM.
+02686
+02687P 09E0 9E   27      A GARBA2 LDX    MEMSIZ   START FROM TOP DOWN.
+02688            0001    A        IFEQ   REALIO
+02691                       ENDC   IFE REALIO 
+02692P 09E2 9F   23      A FNDVAR STX    FRETOP   LIKE SO. 
+02693P 09E4 4F                    CLRA            GRBPNT:=0.
+02694P 09E5 5F                    CLRB
+02695P 09E6 DD   4B      A        STD    GRBPNT
+02696P 09E8 9E   21      A        LDX    STKTOP
+02697P 09EA 9F   47      A        STX    GRBTOP
+02698P 09EC 8E   0000    A        LDX    #TEMPST
+02699P 09EF 9C   0B      A TVAR   CMPX   TEMPPT   DONE WITH TEMPS? 
+02700P 09F1 27   04   09F7        BEQ    SVARS    YEP.
+02701P 09F3 8D   32   0A27        BSR    DVAR
+02702P 09F5 20   F8   09EF        BRA    TVAR     LOOP.
+02703P 09F7 9E   1B      A SVARS  LDX    VRRTAB   GET START OF SIMPLE VARIABLES.
+02704P 09F9 9C   1D      A SVAR   CMPX   ARYTAB   DONE WITH SIMPLE VARIABLES?
+02705P 09FB 27   04   0A01        BEQ    ARYVAR   YEP.
+02706P 09FD 8D   22   0A21        BSR    DVARS    DO IT , AGAIN.
+02707P 09FF 20   F8   09F9        BRA    SVAR     LOOP.
+02708P 0A01 9F   41      A ARYVAR STX    ARYPNT   SAVE FOR ADDITION.
+02709P 0A03 9E   41      A ARYVA2 LDX    ARYPNT   GET THE POINTER TO VARIABLE.
+02710P 0A05 9C   1F      A ARYVA3 CMPX   STREND   DONE WITH ARRAYS? 
+02711P 0A07 27   35   0A3E        BEQ    GRBPAS   YES, GO FINISH UP. 
+02712P 0A09 EC   02      A        LDD    &2,X     GET LENGTH.
+02713P 0A0B D3   41      A        ADDD   ARYPNT   ADD IN START.
+02714P 0A0D DD   41      A        STD    ARYPNT   GET POINTER TO NEXT ARRAY VARIABLE. 
+02715P 0A0F A6   01      A        LDA    &1,X     SEE IF STRING VARIABLE.
+02716P 0A11 2A   F0   0A03        BPL    ARYVA2   NO.
+02717P 0A13 E6   04      A        LDB    &4,X     GET LENGTH OF DIM STORAGE.
+02718P 0A15 58                    ASLB            MULTIPLY BY 2.
+02719P 0A16 CB   05      A        ADDB   #&5      ADD ON HEADER LENGTH.
+02720P 0A18 3A                    ABX             ADD VALUE TO [XREG]. 
+02721                      *    GIVING START OF VALUES.
+
+PAGE  043  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.                                                                                                  •
+
+02722P 0A19 9C   41      A ARYSTR CMPX   ARYPNT   END OF THE ARRAY?
+02723P 0A1B 27   E8   0A05        BEQ    ARYVA3   YES.
+02724P 0A1D 8D   08   0A27        BSR    DVAR
+02725P 0A1F 20   F8   0A19        BRA    ARYSTR   CYCLE.
+02726P 0A21 A6   01      A DVARS  LDA    &1,X     IS THIS A STRING VARIABLE?
+02727P 0A23 30   02      A        LEAX   &2,X     (POINT TO LENGTH)
+02728P 0A25 2A   14   0A3B        BPL    DVARTS   NO, SKIP IT.
+02729P 0A27 E6   84      A DVAR   LDB    ,X       IS LENGTH=0?
+02730P 0A29 27   10   0A3B        BEQ    DVARTS   YES, RETURN.
+02731P 0A2B EC   02      A        LDD    &2,X     GET ADDRESS OF STRING DATA.
+02732P 0A2D 1093 23      A        CMPD   FRETOP   IF IT'S ABOVE FRETOP THERE IS NO NEED
+02733P 0A30 22   09   0A3B        BHI    DVARTS   TO LOOK AT IT FURTHER.
+02734P 0A32 1093 47      A        CMPD   GRBTOP   SKIP IT IF IT ISN'T BETTER THAN THE
+02735P 0A35 23   04   0A3B        BLS    DVARTS   CURRENT BEST.  (THAT IS IF IT IS
+02736                      *    LESS THAN ON EQUAL TO GRPTOB.)
+02737P 0A37 9F   4B      A        STX    GRBPNT   IT IS BETTER, UPDATE GRPTOB.
+02738P 0A39 DD   47      A        STD    GRBTOP
+02739P 0A3B 30   05      A DVARTS LEAX   &4+ADDPRC,X SKIP OVER VARIABLE VALUE.
+02740P 0A3D 39             GRBRTS RTS             DONE.
+02741                      *
+02742                      * HERE WHEN MADE ONE COMPLETE PASS THROUGH STRING VARIABLES.
+02743                      *
+02744P 0A3E 9E   4B      A GRBPAS LDX    GRBPNT   VARIABLE POINTER.
+02745P 0A40 27   FB   0A3D        BEQ    GRBRTS   ALL DONE.
+02746P 0A42 4F                    CLRA            GET LENGTH OF STRING INTO A,B.
+02747P 0A43 E6   84      A        LDB    ,X
+02748                      *   NOTE: GRBTOP=LOWTR SO NO NEED TO SET LOWTR.
+02749P 0A45 5A                    DECB            SO ADDITION GIVES [LOWTR]+[A,B]-1.
+02750P 0A46 D3   47      A        ADDD   LOWTR
+02751P 0A48 DD   43      A        STD    HIGHTR
+02752P 0A4A 9E   23      A        LDX    FRETOP
+02753P 0A4C 9F   41      A        STX    HIGHDS   WHERE IT ALL GOES.
+02754P 0A4E BD   0027    P        JSR    BLTUC
+02755P 0A51 9E   4B      A        LDX    GRBPNT   GET ADDR OF VARIABLE.
+02756P 0A53 DC   45      A        LDD    LOWDS    GET POSITION OF START OF RESULT. 
+02757P 0A55 ED   02      A        STD    &2,X     CHANGE ADDRESS OF STRING IN THE
+02758                      *    DESCRIPTOR.
+02759P 0A57 9E   45      A        LDX    LOWDS
+02760P 0A59 30   1F      A        LEAX   -&1,X
+02761P 0A5B 7E   09E2    P        JMP    FNDVAR   GO TO FNDVAR WITH SOMETHING FOR
+02762                      *    [FRETOP]. 
+02763                      *
+02764                      * THE FOLLOWING ROUTINE CONCATENATES TWO STRINGS.
+02765                      * THE FAC CONTAINS THE FIRST ONE AT THIS POINT.
+02766                      • [TXTPTR] POINTS TO THE + SIGN.
+02767                      *
+02768P 0A5E DC   52      A CAT    LDD     FACMO   PUSH THE POINTER TO THE LEFT HAND
+02769P 0A60 34   06      A        PSHS    B,A     STRING DESCRIPTOR.
+02770P 0A62 BD   065D    P        JSR     EVAL    CAN COME BACK HERE SINCE
+02771                      *    OPERATOR IS KNOWN.
+02772P 0A65 BD   0580    P        JSR     CHKSTR  RESULT MUST BE STRING.
+02773P 0A68 35   10      A        PULS    X       X:=POINTER TO LEFT SIDE DESCRIPTOR.
+02774P 0A6A 9F   62      A        STX     STRNG1  SAVE IT.
+02775P 0A6C E6   84      A        LDB      X      GET LENGTH OF OLD STRING.
+02776P 0A6E 9E   52      A        LOX     FACMO   GET SECOND DESC'S PNTR.
+02777P 0A70 EB   84      A        ADDB    ,X
+02778P 0A72 24   05   0A79        BCC     SIZEOK  RESULT IS LESS THAN 256.
+02779P 0A74 C6   00      A        LDB     #ERRLS  ERROR "LONG STRING".
+
+PAGE  044  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02780P 0A76 7E   004D    P        JMP    ERROR
+02781P 0A79 BD   0959    P SIZEOK JSR    STRINI   INITIALIZE STRING.
+02782P 0A7C 9E   62      A        LDX    STRNG1   POINTER TO FIRST STRING.
+02783P 0A7E E6   84      A        LDB    ,X
+02784P 0A80 8D   10   0A92        BSR    MOVINS   MOVE IT.
+02785P 0A82 9E   4D      A        LDX    DSCPNT   GET POINTER TO SECOND.
+02786P 0A84 8D   22   0AA8        BSR    FRETMP   FREE IT.
+02787P 0A86 8D   0C   0A94        BSR    MOVSTR
+02788P 0A88 9E   62      A        LDX    STRNG1
+02789P 0A8A 8D   1C   0AA8        BSR    FRETMP
+02790P 0A8C BD   099B    P        JSR    PUTNEW
+02791P 0A8F 7E   05A2    P        JMP    TSTOP    "CAT" REENTERS FORM EVAL AT TSTOP.
+02792
+02793                             XDEF   MOVINS
+02794P 0A92 AE   02      A MOVINS LDX    &2,X     X:-=POINTER TO ACTUAL STRING DATA.
+02795P 0A94 DE   25      A MOVSTR LDU    FRESPC   U:=POINTER TO WHERE IT GOES.
+02796P 0A96 5C                    INCB            CATCH SO WE DON'T COPY NULL STRINGS.
+02797P 0A97 20   04   0A9D        BRA    QMOVE
+02798P 0A99 A6   80      A MOVLP  LDA    ,X+      GET CHAR FROM SOURCE.
+02799P 0A9B A7   C0      A        STA    ,U+      STORE IN DEST.
+02800P 0A9D 5A             QMOVE  DECB            CONTINUE UNTIL COUNT IS EXHAUSTED.
+02001P 0A9E 26   F9   0A99        BNE    MOVLP
+02802P 0AA0 DF   25      A        STU    FRESPC   SAVE POINTER IN CASE MORE STRINGS
+02803P 0AA2 39                    RTS             ARE MOVED.
+02804
+02805                      *
+02806                      * "FRETMP" IS PASSED A STRING DESCRIPTOR PNTR IN XREG.
+02807                      * A CHECK IS MADE TO SEE IF THE STRING DESCRIPTOR POINTS TO THE LAST
+02808                      * TEMPORARY DESCRIPTOR ALLOCATED BY PUTNEW.
+02809                      * IF SO, THE TEMPORARY IS FREED UP BY THE UPDATING OF [TEMPPT].
+02810                      * IF A TEMP IS FREED UP, A FURTHER CHECK SEES IF THE STRING DATA THAT
+02811                      * THAT STRING TEMP PNT'D TO IS THE LOWEST PART OF STRING SPACE IN USE.
+02812                      * IF SO, [FRETOP] IS UPDATED TO REFLECT THE FACT THAT THE SPACE
+02813                      * IS NO LONGER IN USE.
+02814                      *
+02815                             XDEF   FRESTR
+02816P 0AA3 BD   0580    P FRESTR JSR    CHKSTR   MAKE SURE ITS A STRING.
+02817                             XDEF   FREFAC
+02818P 0AA6 9E   52      A FREFAC LDX    FACMO    FREE UP STR PNT'D TO BY FAC.
+02019                             XDEF   FRETMP
+02020P 0AA8 E6   84      A FRETMP LDB    ,X       GET LENGTH FOR LATER.
+02821P 0AAA 8D   18   0AC4        BSR    FRETMS   FREE UP THE TEMPORARY DESC.
+02822P 0AAC 26   13   0AC1        BNE    FRETRT   RETURN.
+02823P 0AAE AE   07      A        LDX    STRSIZ+&2,X GET POINTER TO STRING ITSELF.
+02824P 0AB0 30   1F               DEX             DECREMENT POINTER TO STRING.
+02825P 0AB2 9C   23      A        CMPX   FRETOP
+02026P 0AB4 26   08   0ABE        BNE    FREINX   IT IS NOT THE LAST STRING.
+02827P 0AB6 34   04      A        PSHS   B        SAVE ACCB.
+02028P 0AB8 D3   23      A        ADDD   FRETOP
+02829P 0ABA DD   23      A        STD    FRETOP   GET RID OF SPACE USED BY STRING.
+02830P 0ABC 35   04      A        PULS   B        GET ACCB BACK.
+02831P 0ABE 30   01        FREINX INX             POINT TO NEW STRING.
+02832P 0AC0 39                    RTS             DONE
+02833P 0AC1 AE   02      A FRETRT LDX    &2,X     GET POINTER TO STRING ITSELF.
+02834P 0AC3 39                    RTS
+02835P 0AC4 9C   0D      A FRETMS CMPX   LASTPT   LAST ENTRY TO TEMP?
+02836P 0AC6 26   07   0ACF        BNE    FRERTS
+02837P 0AC8 9F   0B      A        STX    TEMPPT
+
+PAGE  045  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02838P 0ACA 30   1B      A        LEAX   -STRSIZ,X POINT TO LAST ONE.
+02839P 0ACC 9F   0D      A        STX    LASTPT   UPDATE TEMP PNTR.
+02840P 0ACE 4F                    CLRA            ZERO [ACCA] FOR POSSIBLE ADD.
+02841                      *    ALSO CLEARS ZFLG SO WE DO REST OF FRETMP.
+02842P 0ACF 39             FRERTS RTS             ALL DONE.
+02843                      *
+02844                      * THE FUNCTION LEN($) RETURNS THE LENGTH OF THE STRING
+02845                      * PASSED AS AN ARGUMENT.
+02846                      *
+02847                             XDEF   LEN
+02848P 0AD0 8D   03   0AD5 LEN    BSR    LEN1
+02849P 0AD2 7E   093F    P GOSGFL JMP    SNGFLT
+02850                             XDEF   LEN1
+02851P 0AD5 8D   CC   0AA3 LEN1   BSR    FRESTR   FREE UP STRING.
+02852P 0AD7 0F   06      A        CLR    VALTYP   FORCE NUMERIC.
+02853P 0AD9 5D                    TSTB            SET CODES ON LENGTH.
+02854P 0ADA 39                    RTS             DONE.
+02855                      *
+02856                      * CHR$(#) CREATES A STRING WHICH CONTAINS AS ITS ONLY
+02857                      * CHARACTER THE ASCII EQUIVALENT OF THE INTEGER ARGUMENT (#)
+02858                      * WHICH MUST BE .LT. 255.
+02859                      *
+02860                             XDEF   CHR$
+02861P 0ADB BD   0B5D    P CHR$   JSR    CONINT   GET INTEGER IN RANGE.
+02862                             XDEF   CHR$DO
+02863P 0ADE C6   01      A CHR$DO LDB    #&1      ONE-CHARACTER STRING.
+02864P 0AE0 BD   09BC    P        JSR    GETSPA   GET SPACE FOR STRING.
+02865P 0AE3 96   53      A        LDA    FACLO    GET INTEGER.
+02866P 0AE5 BD   095D    P        JSR    STRAD2   SAVE INFO AWAY.
+02867P 0AE8 A7   84      A        STA    ,X
+02868                             XDEF   GOPTNW
+02869P 0AEA 32   62      A GOPTNW LEAS   &2,S     GET RID OF "CHKNUM" RETURN ADDR.
+02870P 0AEC 7E   099B    P RL$RET JMP    PUTNEW   SETUP FAC TO POINT TO DESC.
+02871                      *
+02872                      * THE FOLLOWING IS THE ASC($) FUNCTION. IT RETURNS
+02873                      * AN INTEGER WHICH IS THE DECIMAL ASCII EQUIVALENT.
+02874                      *
+02875                             XDEF   ASC
+02876P 0AEF 8D   02   0AF3 ASC    BSR    ASC2
+02877P 0AF1 20   DF   0AD2        BRA    GOSGFL   GOTO SNGFLT
+02878                             XDEF   ASC2
+02879P 0AF3 8D   E0   0AD5 ASC2   BSR    LEN1
+02880P 0AF5 27   5E   0B55        BEQ    GOFUC    NULL STRING, BAD ARG.
+02881P 0AF7 E6   84      A        LDB    ,X       GET CHARACTER.
+02882P 0AF9 39                    RTS
+02883                      *
+02884                      * THE FOLLOWING IS THE LEFT$($,#) FUNCTION.
+02885                      * IT TAKES THE LEFTMOST # CHARACTERS OF THE STRING.
+02886                      * IF # .GT. THE LEN OF THE STRING, IT RETURNS THE WHOLE STRING.
+02887                      *
+02888                             XDEF   LEFT$
+02889P 0AFA 8D   48   0B44 LEFT$  BEIR   PREAM    TEST THE PARAMETERS.
+02890                             XDEF   LEFTUS
+02891P 0AFC 4F             LEFTUS CLRA            LEFT NEVER CHANGES STRING POINTER. 
+02A92P 0AFD E1   84      A RLEFT  CMPB   ,X       COMPARE LENGTHS.
+02893P 0AFF 23   03   0B04        BLS    RLEFT1
+02894P 0B01 E6   84      A        LDB    ,X       GET ALL THE STRING. 
+02895P 0B03 4F                    CLRA            ANOTHER CLR A FOR RIGHT$.
+
+PAGE  046  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02896P 0B04 34   06      A RLEFT1 PSHS   B,A      SAVE LENGTH AND OFFSET.
+02897P 0806 BD   095B    P        JSR    STRSPA   GET A PLACE TO PUT RESULT.
+02898P 0B09 9E   4D      A        LDX    DSCPNT   GET POINTER TO STRING.
+02899P 0B0B 8D   9B   0AA8        BSR    FRETMP   FREE IT UP.
+02900P 0B0D 35   04      A        PULS   B        B:=OFFSET.
+02901P 0B0F 3A                    ABX             ADD IN OFFSET.
+02902P 0B10 35   04      A        PULS   B        B:=LENGTH.
+02903P 0B12 BD   0A94    P        JSR    MOVSTR   GO MOVE IT.
+02904P 0B15 20   D5   0AEC        BRA    RL$RET   PUT TEMP IN TEMP LST.
+02905                             XDEF   RIGHT$
+02906P 0B17 8D   2B   0B44 RIGHT$ BSR    PREAM    CHECK ARG.
+02907P 0B19 A0   84      A        SUBA   ,X       A:=OFFSET INTO STRING.
+02908P 0B1B 40                    NEGA
+02909P 0B1C 20   DF   0AFD        BRA    RLEFT    CHECK IT FOR SIZE.
+02910
+02911                      * MID ($,#) RETURNS STRING WITH CHARS FROM # POSITION                                          I
+02912                      * ONWARD. IF # .GT. LEN ($) THEN RETURN NULL STRING. 
+02913                      * MID ($,#,#) RETURNS STRING WITH CHARACTERS FROM
+02914                      * # POSITION FOR #2 CHARACTERS. IF #2 GOES PAST END OF STRING 
+02915                      * RETURN AS MUCH AS POSSIBLE.
+02916
+02917                             XDEF   MID$
+02918P 0B1E C6   FF      A MID$   LDB    #&255    DEFAULT.
+02919P 0B20 D7   53      A        STB    FACLO    SAVE FOR LATER COMPARE.
+02920P 0B22 9D   A5      A        JSR    CHRGOT   GET CURRENT CHARACTER.
+02921P 0B24 81   29      A        CMPA   #@51     IS IT A RIGHT PAREN )?
+02922P 0B26 27   05   0B2D        BEQ    MID2     NO THIRD PARAM.
+02923P 0B28 BD   06B3    P        JSR    CHKCOM   MUST HAVE COMMA.
+02924P 0B2B 8D   2D   0B5A        BSR    GETBYT   GET THE LENGTH INTO "FACLO".
+02925P 0B2D 8D   15   0B44 MID2   BSR    PREAM    CHECK IT OUT.
+02926P 0B2F 27   24   0B55        BEQ    GOFUC    Don't permit a zero offset.
+02927P 0B31 5F                    CLRB            ASSUME NULL STRING.
+02928P 0B32 4A                    DECA            SUBTRACT 1.
+02929P 0B33 A1   84      A        CMPA   ,X       POINTER PAST END OF STRING?
+02930P 0B35 24   CD   0B04        BCC    RLEFT1   COPY NOTHING.
+02931P 0B37 1F   89      A        TFR    A,B      SAVE OFFSET AND COMPUTE LENGTH.
+02932P 0B39 E0   84      A        SUBB   ,X       GET LENGTH OF WHAT'S LEFT.
+02933P 0B3B 50                    NEGB
+02934P 0B3C D1   53      A        CMPB   FACLO    GREATER THAN WHAT'S DESIRED?
+02935P 0B3E 23   C4   0B04        BLS    RLEFT1   NO, COPY THAT MUCH.
+02936P 0B40 D6   53      A        LDB    FACLO    GET LENGTH OF WHAT'S DESIRED.
+02937P 0B42 20   C0   0B04        BRA    RLEFT1   COPY IT.
+02938
+02939                      *
+02940                      * USED BY RIGHT$, LEFT$, MID$ FOR PARAMETER CHECKING AND SETUP.
+02941                      *
+02942P 0B44 BD   06AD    P PREAM  JSR    CHKCLS   PARAM LIST SHOULD END.
+02943P 0B47 EE   E4      A        LDU    ,S       U:=RETURN ADDRESS.
+02944P 0B49 AE   65      A        LDX    &5,S     X:=DESCRIPTOR POINTER.
+02945P 0B4B 9F   4D      A        STX    DSCPNT   SAVE IT.
+02946P 0B4D A6   64      A        LDA    &4,S     A:=NUMBER OF CHARS WANTED.
+02947P 0B4F E6   64      A        LDB    &4,S     PUT SAME THING IN B.
+02948P 0B51 32   67      A        LEAS   &7,S     CLEAN UP THE STACK.
+02949P 0B53 1F   35      A        TFR    U,PC     RETURN
+02950
+02951P 0B55 7E   0896    P GOFUC  JMP    FCERR    FUNCTION CALL ERROR.
+02952
+02953                             XDEF   GTBYTC
+
+PAGE  047  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02954P 0B58 9D   9F      A GTBYTC JSR    CHRGET
+02955                             XDEF   GETBYT
+02956P 0B5A BD   057B    P GETBYT JSR    FRMNUM   READ FORMULA INTO FAC.
+02957                             XDEF   CONINT
+02958P 0B5D BD   082F    P CONINT JSR    POSINT   CONVERT THE FAC TO A SINGLE BYTE INT.
+02959P 0B60 4D                    TSTA
+02960P 0B61 26   F2   0B55        BNE    GOFUC    RESULT MUST BE .LE. 255.
+02961P 0B63 0E   A5      A        JMP    CHRGOT   SET CONDITION CODES ON TERMINATOR.
+02962                      *
+02963                      * THE "VAL" FUNCTION TAKES A STRING AND TURNS IT INTO
+02964                      * A NUMBER BY INTERPRETING THE ASCII DIGITS ETC.
+02965                      * EXCEPT FOR THE PROBLEM THAT A TERMINATOR MUST BE SUPPLIED
+02966                      * BY REPLACING THE CHARACTER BEYOND THE STRING, VAL IS MERELY
+02967                      * A CALL TO FLOATING POINT INPUT ("FIN").
+02968                      *
+02969                             XDEF   VAL
+02970P 0B65 BD   0AD5    P VAL    JSR    LEN1     DO SETUP. SET RESULT=NUMERIC.
+02971P 0B68 1027 F494    A        LBEQ   ZEROFC   Nothing there, zero the FAC.
+02972P 0B6C DE   A6      A        LDU    TXTPTR   Save the current text pointer.
+02973P 0B6E 9F   A6      A        STX    TXTPTR   Set text pointer to start of string
+02974                      *    so FIN can call CHRGET to scan the
+02975                      *    screen.
+02976P 0B70 3A                    ABX             X:=pointer beyond string.
+02977P 0B71 A6   84      A        LDA    ,X       Get the character that's there.
+02978P 0B73 34   52      A        PSHS   U,X,A    Save the old text pointer, the pointer
+02979                      *    beyond the string, and the old char.
+02980P 0B75 6F   84      A        CLR    ,X       Put in a terminator for FIN to see.
+02981P 0B77 9D   A5      A        JSR    CHRGOT   Set up for FIN.
+02982P 0B79 BD   0000    A        JSR    FIN      Go read a number.
+02983P 0B7C 35   52      A        PULS   A,X,U    Restore the old char and text pointer.
+02984P 0B7E A7   84      A        STA    ,X
+02985P 0B80 DF   A6      A        STU    TXTPTR
+02986P 0B82 39                    RTS
+
+PAGE  048  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02988
+02989                             TTL    PEEK, POKE, AND FNWAIT.
+02990
+02991                             XDEF   GETNUM
+02992P 0B83 BD   07   0B8C GETNUM BSR    EVLADR   Get address.
+02993P 0B85 9F   2B      A        STX    POKER
+02994                             XDEF   COMBYT
+02995P 0B87 BD   06B3    P COMBYT JSR    CHKCOM   CHECK FOR A COMMA.
+02996P 0B8A 20   CE   0B5A        BRA    GETBYT   GET SOMETHING TO STORE AND RETURN.
+02997
+02998                             XDEF   EVLADR
+02999P 0B8C BD   057B    P EVLADR JSR    FRMNUM   Evaluate numeric formula.
+03000                             XDEF   GETADR
+03001P 0B8F 96   54      A GETADR LDA    FACSGN   EXAMINE SIGN.
+03002P 0B91 2B   C2   0B55        BMI    GOFUC    FUNCTION CALL ERROR.
+03003P 0B93 96   4F      A        LDA    FACEXP   EXAMINE EXPONENT.
+03004P 0B95 81   90      A        CMPA   #&144
+03005P 0B97 22   BC   0B55        BHI    GOFUC    FUNCTION CALL ERROR.
+03006P 0B99 BD   0000    A        JSR    QINT     INTEGERIZE IT.
+03007P 0B9C 9E   52      A        LDX    FACMO
+03008P 0B9E 39                    RTS             IT'S DONE !.
+03009
+03010                             XDEF   PEEK
+03011P 0B9F 8D   EE   0B8F PEEK   BSR    GETADR
+03012P 0BA1 E6   84      A        LDB    ,X       GET THAT BYTE.
+03013P 0BA3 7E   093F    P        JMP    SNGFLT   FLOAT IT.
+03014
+03015                             XDEF   POKE
+03016P 0BA6 8D   DB   0B83 POKE   BSR    GETNUM
+03017P 0BA8 9E   2B      A        LDX    POKER
+03018P 0BAA E7   84      A        STB    ,X       STORE VALUE AWAY.
+03019P 0BAC 39                    RTS             SCANNED  EVERYTHING.
+03020
+03021            0000    A        IFNE  WAITSW
+03040                       ENDC   IFN WAITSW
+03041
+03042                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00003--02251
