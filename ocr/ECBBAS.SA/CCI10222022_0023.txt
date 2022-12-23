@@ -1,0 +1,60 @@
+PAGE  015  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
+
+01357P 02F9 9F   A6      A        STX    TXTPTR
+01358P 02FB 39             GORTS  RTS             PROCESS THE STATEMENT.
+01359                      *
+01360                      * "RETURN" RESTORES THE LINE NUMBER AND TEXT PNTR FROM THE STACK
+01361                      * AND ELIMINATES ALL THE "FOR" ENTRIES IN FRONT OF THE "GOSUB" ENTRY.
+01362                      *
+01363                             XDEF   RETURN
+01364P 02FC 26   FD   02FB RETURN BNE    GORTS    NO TERMINATOR=BLOW HIM UP.
+01365P 02FE 86   FF      A        LDA    #&255
+01366P 0300 97   3B      A        STA    FORPNT   MAKE SURE THE VARIABLE'S PNTR
+01367                      *    NEVER GETS MATCHED.
+01368P 0302 BD   0000    P        JSR    FNDFOR   GO PAST ALL THE "FOR" ENTRIES.
+01369P 0305 1F   14               TXS
+01370P 0307 81   00      A        CMPA   #SUBTK-FORTK RETURN WITHOUT GOSUB?
+01371                      *    (FNDFOR subtracted FORTK.)
+01372P 0309 27   0B   0316        BEQ    RETU1
+01373P 030B C6   00      A        LDB    #ERRRG
+01374P 030D                       SKIP2
+01375                             XDEF   ULERR
+01376P 030E C6   00      A ULERR  LDB    #ERRUL   NO MATCH SO "UL" ERROR.
+01377P 0310 7E   004D    P        JMP    ERROR    YES.
+01378P 0313 7E   06BD    P SNERR2 JMP    SNERR
+01379P 0316 35   52      A RETU1  PULS   A,X,U    PULL OFF GOSUB TOKEN, LINE NUMBER,
+01380P 0318 9F   68      A        STX    CURLIN   AND TEXT POINTER.
+01381P 031A DF   A6      A        STU    TXTPTR
+01382                             XDEF   DATA
+01383P 031C 8D   06   0324 DATA   BSR    DATAN    SKIP TO END OF STATEMENT, SINCE
+01384                      *    WHEN "GOSUB" STUCK THE TEXT PNTR
+01385                      *    ONTO THE STACK, THE LINE NUMBER ARG
+01386                      *    HAD'T BEEN READ YET.
+01387P 031E                       SKIP2  Skip     over REM to set TXTPTR.
+01388                             XDEF   REM
+01389P 031F 8D   06   0327 REM    BSR    REMN     Skip to end of line.
+01390P 0321 9F   A6      A        STX    TXTPTR   Set the text pointer.
+01391P 0323 39             REMRTS RTS             "NEWSTT" RTS ADDR IS STILL THERE.
+01392
+01393P 0324 C6   3A      A DATAN  LDB    #':      "DATA" TERMINATES ON ":" AND NULL.
+01394P 0326                       SKIP1
+01395P 0327 5F             REMN   CLRB            THE ONLY TERMINATOR IS NULL.
+01396P 0328 D7   01      A        SIB    CHARAC   PRESERVE IT.
+01397P 032A 5F                    CLRB            THIS MAKES CHARAC=0 AFTER SWAP.
+01398P 032B 9E   A6      A        LDX    TXTPTR   START AT CURRENT POSITION.
+01399P 032D 1F   98      A EXCHQT TFR    B,A
+01400P 032F D6   01      A        LDB    CHARAC   SWAP TERMINATORS.
+01401P 0331 97   01      A        STA    CHARAC
+01402P 0333 A6   84      A REMER  LDA    ,X
+01403P 0335 27   EC   0323        BEQ    REMRTS   NULL ALWAYS TERMINATES.
+01404P 0337 34   04 A1E0          CBA             IS IT THE OTHER TERMINATOR?
+01405P 033B 27   E6   0323        BEQ    REMRTS   YES, IT'S FINISHED.
+01406P 033D 30   01               INX             PROGRESS TO NEXT CHARACTER.
+01407P 033F 81   22      A        CMPA   #&34     IS IT A QUOTE?
+01408P 0341 27   EA   032D        BEQ    EXCHQT   YES, TIME TO TRADE.
+01409 
+01410                      *
+01411                      * Count the number of IF's skipped for IF THEN ELSE code.
+01412                      *
+01413P 0343 4C                    INCA            Is is a function token?
+01414P 0344 26   02   0348        BNE    CHKIF    No, see if it's an IF token.

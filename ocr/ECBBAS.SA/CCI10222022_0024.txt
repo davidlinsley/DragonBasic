@@ -1,0 +1,11 @@
+PAGE  016  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
+
+01415P 0346 30   01      A        LEAX   &1,X     Yes, don't check the next byte since
+01416                      *    it might look like an IF token.
+01417                      *    Note that A contains 0 so it won't
+01418                      *    look like an IF token.
+01419P 0348 81   01      A CHKIF  CMPA   #IFTK+&1 Is it an IF token?  (+1 because of
+01420                      *    INCA.)
+01421P 034A 26   E7   0333        BNE    REMER    No.
+01422P 034C 0C   04      A        INC    IFCNT    Yes, increment count of IFs seen.
+01423P 034E 20   E3   0333        BRA    REMER

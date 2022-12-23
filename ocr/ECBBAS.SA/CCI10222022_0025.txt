@@ -1,0 +1,32 @@
+PAGE  017  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
+
+01425                             TTL    "IF ... THEN" CODE.
+01426
+01427                             XDEF   IF
+01428P 0350 BD   057B    P IF     JSR    FRMNUM   EVALUATE A FORMULA.
+01429P 0353 9D   A5      A        JSR    CHRGOT   GET CURRENT CHARACTER.
+01430P 0355 81   00      A        CMPA   #GOTK    IS TERMINATING CHARACTER A GOTK?
+01431P 0357 27   05   035E        BEQ    OKGOTO   Yes. Since the presence of a TO
+01432                      *    token isn't checked for here, IF 
+01433                      *    THEN GOSUB is allowed as well as
+01434                      *    IF THEN GOTO.
+01435P 0359                       SYNCHK THENTK   NO, IT MUST BE "THEN".
+01436P 035E 96   4F      A OKGOTO LDA    FACEXP   0=FALSE. ALL OTHERS TRUE.
+01437P 0360 26   13   0375        BNE    DOCOND   TRUE !
+01438P 0362 0F   04      A        CLR    IFCNT    False.  Set IF count to zero.
+01439P 0364 8D   B6   031C SKPMRF BSR    DATA     Skip until end of statement (colon)
+01440                      *    or end of line (zero).
+01441P 0366 4D                    TSTA            Stop on end of line?
+01442P 0367 27   BA   0323        BEQ    REMRTS   Yes, there is no matching ELSE clause.
+01443P 0369 9D   9F      A        JSR    CHRGET   No, stopoed on an ELSE (:ELSETK).
+01444P 036B 81   00      A        CMPA   #ELSETK
+01445P 036D 26   F5   0364        BNE    SKPMRF   No, continue skipping.
+01446P 036F 0A   04      A        DEC    IFCNT    Yes, is this the matching ELSE?
+01447P 0371 2A   F1   0364        BPL    SKPMRF   No, continue skipping.  (BPL instead 
+01448                      *    of BNE since IFCNT was set to zero
+01449                      *    when the original IF was seen.)
+01450P 0373 9D   9F      A        JSR    CHRGET   Yes, this is the ELSE we want.  Eat
+01451                              the ELSE token.
+01452P 0375 9D   A5      A DOCOND JSR    CHRGOT   TEST CURRENT CHARACTER.
+01453P 0377 1025 FF65 02E0        LBCS   GOTO     IF A NUMBER, GOTO IT.
+01454P 037B 7E   01E5    P        JMP    GONE3    INTERPRET NEW STATEMENT.

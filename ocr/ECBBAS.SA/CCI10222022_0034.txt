@@ -1,0 +1,60 @@
+PAGE  026  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+01804 
+01805                      *
+01806                      * THESE ROUTINES CHECK FOR CERTAIN "VALTYP".
+01807                      * [C] IS NOT PRESERVED.
+01808                      *
+01609                             XDEF   FRMNUM
+01810P 0578 8D   13   0590 FRMNUM BSR    FRMEVL
+01811                             XDEF   CHKNUM
+01812P 057D 1C   FE      A CHKNUM ANDCC  #$FF!X(C) Say must be numeric.
+01813P 057F      7D      A        FCB    @175     TST extended to get to CHKVAL.
+01814                      *    Note 6809 TST doesn't affect carry.
+01815                             XDEF   CHKSTR
+01816P 0580                CHKSTR SETCC  C        Say must be string.
+01817                             XDEF   CHKVAL
+01818P 0582 0D   06      A CHKVAL TST    VALTYP   Set N if string, clear N if numeric.
+01819P 0584 25   03   0589        BCS    STRCHK   Check for string.
+01820P 0586 2A   99   0521        BPL    INPRTS   If numeric OK.
+01821P 0588                       SKIP2  Skip     into TMERDO.
+01822P 0589 2B   96   0521 STRCHK BMI    INPRTS   If it's a string OK.
+01823P 058B C6   00      A TMERDO LDB    #ERRTM
+01824P 058D 7E   004D    P ERRGO4 JMP    ERROR
+01825                      *
+01826                      * THE FORMULA EVALUATOR STARTS WITH
+01827                      * [TXTPTR] POINTING TO THE FIRST CHARACTER OF THE FORMULA.
+01828                      * AT THE END [TXTPTR] POINTS TO THE TERMINATOR.
+01829                      * THE RESULT IS LEFT IN THE FAC.
+01830                      * ON RETURN [A] DOES NOT REFLECT THE TERMINATOR.
+01831                      *
+01832                      * THE FORMULA EVALUATOR USES THE OPERATOR LIST (OPTAB)
+01833                      * TO DETERMINE PRECEDENCE AND DISPATCH ADDRESSES FOR
+01834                      * EACH OPERATOR.
+01835                      * A TEMPORARY RESULT ON THE STACK HAS THE FOLLOWING FORMAT.
+01836                      * THE ADDRESS OF THE OPERATOR ROUTINE.
+01837                      * THE FLOATING POINT TEMPORARY RESULT.
+01838                      * THE PRECEDENCE OF THE OPERATOR.
+01839                      *
+01840                             XDEF   FRMEVL
+01841P 0590 8D   6E   0600 FRMEVL BSR    PTRBCK   Backup character pointer.
+01842                             XDEF   FRMCHK
+01843P 0592 4F             FRMCHK CLRA            INITIAL DUMMY PRECEDENCE IS 0.
+01844P 0593                       SKIP2  SKIP     OVER PSH INSTRUCTION.
+01845P 0594 34   04      A LPOPER PSHS   B        SAVE LOW PRECEDENCE. (MASK.)
+01846P 0596 34   02      A        PSHS   A        SAVE HIGH PRECEDENCE.
+01847P 0598 C6   01      A        LDB    #&1
+01848P 059A BD   003A    P        JSR    GETSTK   MAKE SURE THERE IS ROOM FOR
+01849                      *    RECURSIVE CALLS.
+01850P 059D BD   065D    P        JSR    EVAL     EVALUATE SOMETHING.
+01851                             XDEF   FRMRET
+01852            05A0    P FRMRET EQU    *        Return address when FRMEVL calls EVAL.
+01853P 05A0 0F   3F      A        CLR    OPMASK   PREPARE TO BUILD MASK MAYBE.
+01854P 05A2 9D   A5      A TSTOP  JSR    CHRGOT   RESET LAST CHARACTER.
+01855P 05A4 80   00      A LOPREL SUBA   #GREATK  IS CURRENT CHARACTER A RELATION?
+01856P 05A6 25   13   05BB        BCS    ENDREL   NO. RELATIONS ALL THROUGH.
+01857P 05A8 81   01      A        CMPA   #LESSTK-GREATK+&1 REALLY RELATIONAL?
+01858P 05AA 24   0F   05BB        BCC    ENDREL   NO -- JUST BIG.
+01859P 05AC 81   01      A        CMPA   #&1      SET CARRY FOR ZERO ONLY.
+01860P 05AE 49                    ROLA            0 TO 1, 1 TO 2, 2 TO 4.
+01861P 05AF 98   3F      A        EORA   OPMASK   BRING IN THE OLD BITS.

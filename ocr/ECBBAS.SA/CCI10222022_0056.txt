@@ -1,0 +1,41 @@
+PAGE  048  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02988
+02989                             TTL    PEEK, POKE, AND FNWAIT.
+02990
+02991                             XDEF   GETNUM
+02992P 0B83 BD   07   0B8C GETNUM BSR    EVLADR   Get address.
+02993P 0B85 9F   2B      A        STX    POKER
+02994                             XDEF   COMBYT
+02995P 0B87 BD   06B3    P COMBYT JSR    CHKCOM   CHECK FOR A COMMA.
+02996P 0B8A 20   CE   0B5A        BRA    GETBYT   GET SOMETHING TO STORE AND RETURN.
+02997
+02998                             XDEF   EVLADR
+02999P 0B8C BD   057B    P EVLADR JSR    FRMNUM   Evaluate numeric formula.
+03000                             XDEF   GETADR
+03001P 0B8F 96   54      A GETADR LDA    FACSGN   EXAMINE SIGN.
+03002P 0B91 2B   C2   0B55        BMI    GOFUC    FUNCTION CALL ERROR.
+03003P 0B93 96   4F      A        LDA    FACEXP   EXAMINE EXPONENT.
+03004P 0B95 81   90      A        CMPA   #&144
+03005P 0B97 22   BC   0B55        BHI    GOFUC    FUNCTION CALL ERROR.
+03006P 0B99 BD   0000    A        JSR    QINT     INTEGERIZE IT.
+03007P 0B9C 9E   52      A        LDX    FACMO
+03008P 0B9E 39                    RTS             IT'S DONE !.
+03009
+03010                             XDEF   PEEK
+03011P 0B9F 8D   EE   0B8F PEEK   BSR    GETADR
+03012P 0BA1 E6   84      A        LDB    ,X       GET THAT BYTE.
+03013P 0BA3 7E   093F    P        JMP    SNGFLT   FLOAT IT.
+03014
+03015                             XDEF   POKE
+03016P 0BA6 8D   DB   0B83 POKE   BSR    GETNUM
+03017P 0BA8 9E   2B      A        LDX    POKER
+03018P 0BAA E7   84      A        STB    ,X       STORE VALUE AWAY.
+03019P 0BAC 39                    RTS             SCANNED  EVERYTHING.
+03020
+03021            0000    A        IFNE  WAITSW
+03040                       ENDC   IFN WAITSW
+03041
+03042                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00003--02251

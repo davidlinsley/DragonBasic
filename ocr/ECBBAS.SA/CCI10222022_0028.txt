@@ -1,0 +1,60 @@
+PAGE  020  ECBBAS  .SA:1  BASIC  ON ... GO TO ..." CODE.
+
+01514                             TTL    "LET" CODE.
+01515
+01516                             XDEF   LET
+01517P 03C5 BD   079D    P LET    JSR    PTRGET   GET PNTR TO VARIABLE INTO "VARPNT".
+01518P 03C8 9F   3B      A        STX    FORPNT   PRESERVE POINTER.
+01519P 03CA                       SYNCHK EQULTK   "=" IS NECESSARY.
+01520P 03CF 96   06      A        LDA    VALTYP   RETAIN THE VARIABLE'S VALUE TYPE.
+01521P 03D1 34   02      A        PSHS   A
+01522P 03D3 BD   0590    P        JSR    FRMEVL   GET VALUE OF FORMULA INTO "FAC".
+01523                             XDEF   LETRET
+01524            03D6    P LETRET EQU    *        Return address when LET calls FRMEVL.
+01525P 03D6 35   02      A        PULS   A
+01526P 03D8 46                    RORA            CARRY SET FOR STRING, OFF FOR
+01527                      *    NUMERIC.
+01528P 03D9 BD   0582    P        JSR    CHKVAL   MAKE SURE "VALTYP" MATCHES CARRY.
+01529                      *    AND SET ZERO FLAG FOR NUMERIC.
+01530P 03DC 1027 FC20    A        LBEQ   MOVVF    IF NUMERIC, COPY IT.
+01531                             XDEF   INPCOM
+01532P 03E0 BD   0000    A INPCOM JSR    HKSCP1   RAM hook for string copy check.
+01533P 03E3 9E   52      A        LDX    FACMO    GET PNTR TO DESCRIPTOR.
+01534P 03E5 DC   21      A        LDD    STKTOP   SEE IF IT POINTS INTO STRING SPACE.
+01535P 03E7 10A3 02      A        CMPD   &2,X
+01536P 03EA 24   11   03FD        BCC    DNTCPY   IF [STKTOP].GE.[2&3,X], DON'T COPY.
+01537P 03EC 9C   1B      A        CMPX   VARTAB   If [VARTAB].GT.[FACMO], don't copy.
+01538P 03EE 25   0D   03FD        BCS    DNTCPY   ([X]=[FACMO] from INPCOM.)
+01539                             XDEF   DOCOPY
+01540P 03F0 E6   84      A DOCOPY LDB    ,X       GET LENGTH OF STRING.
+01541P 03F2 BD   0959    P        JSR    STRINI   GET ROOM TO COPY STRING INTO.
+01542P 03F5 9E   4D      A        LDX    DSCPNT   GET POINTER TO OLD DESCRIPTOR.
+01543P 03F7 BD   0A92    P        JSR    MOVINS   COPY IT.
+01544P 03FA 8E   0056    A        LDX    #DSCTMP  GET POINTER TO OLD DESCRIPTOR.
+01545P 03FD 9F   4D      A DNTCPY STX    DSCPNT   REMEMBER POINTER TO DESCRIPTOR.
+01546P 03FF BD   0AC4    P        JSR    FRETMS   FREE UP THE TEMPORARY WITHOUT
+01547                      *    FREEING UP ANY STRING SPACE.
+01548P 0402 DE   4D      A        LDU    DSCPNT   GET OLD ONE.
+01549P 0404 9E   3B      A        LDX    FORPNT   GET DESTINATION.
+01550P 0406 37   26      A        PULU   A,B,Y    A:=length, B:=garbage byte, Y:=string
+01551                      *    pointer.
+01552P 0408 A7   84      A        STA    ,X       Put away the length.
+01553P 040A 10AF 02      A        STY    &2,X     Put away the pointer.
+01554P 040D 39             LETRTS RTS             DONE.
+01555
+01556                             TTL    INPUT AND READ CODE.
+01557
+01558P 040E      3F      A TRYAGN FCC    /?REDO/
+01559P 0413                       ACRLF
+01560P 0414      00      A        FCB    &0
+01561                      *
+01562                      * HERE WHEN THE DATA THAT WAS TYPED IN OR IN "DATA" STATEMENTS
+01563                      * IS IMPROPERLY FORMATTED.  FOR "INPUT" WE START AGAIN.
+01564                      * FOR "READ" WE GIVE A SYNTAX ERROR AT THE DATA LINE.
+01565                      *
+01566                      * IN DISK VERSION IF THE DATA WAS READ FROM A DISK FILE THEN
+01567                      * A BAD FILE DATA ERROR IS GENERATED.
+01568                      *
+01569P 0415 C6   00      A TRMNOK LDB    #ERRFD   If input didn't come from the keyboard
+01570P 0417 0D   6F      A        TST    DEVNUM   give a "Bad file Data" error.
+01571P 0419 27   03   041E        BEQ    ISKBDI

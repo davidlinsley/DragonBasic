@@ -1,0 +1,60 @@
+PAGE  029  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+01982                             XDEF   STRTXT
+01983P 067E 9E   A6      A STRTXT LDX    TXTPTR
+01984P 0680 BD   0964    P        JSR    STRLTI   YES. GO PROCESS IT.
+01985P 0683 9E   64      A ST2TXT LDX    STRNG2   Reset the text pointer.
+01986P 0685 9F   A6      A        STX    TXTPTR
+01987P 0687 39                    RTS
+01988
+01989P 0688 81   00      A EVAL3  CMPA   #NOTTK   CHECK FOR "NOT" OPERATOR.
+01990P 068A 26   0D   0699        BNE    EVAL4
+01991P 068C 86   5A      A        LDA    #&90     "NOT" HAS PRECEDENCE 90.
+01992P 068E BD   0594    P        JSR    LPOPER   GO PERFORM.
+01993P 0691 BD   0836    P        JSR    INTCNV   INTEGERIZE.
+01994P 0694 43                    COMA            COMPLEMENT HIGH
+01995P 0695 53                    COMB            AND COMPLEMENT LOW.
+01996P 0696 7E   0940    P        JMP    GIVABF   FLOAT [A,B] AS RESULT IN FAC.
+01997                      *    AND RETURN.
+01998P 0699 81   00      A EVAL4  CMPA   #FNTK    USER-DEFINED FUNCTION?
+01999P 069B 1027 F961    A        LBEQ   FNDOER
+02000P 069F 81   26      A        CMPA   #'&      Hex or octal constant?
+02001P 06A1 1027 F95B    A        LBEQ   HOCONS   Yes, go handle it.
+02002P 06A5 4C                    INCA            Is it a function token?
+02003P 06A6 27   2E   06D6        BEQ    ISFUN    Yes, go handle it.
+02004
+02005                             XDEF   PARCHK
+02006P 06A8 8D   06   06B0 PARCHK BSR    CHKOPN   ONLY POSSIBILITY LEFT IS
+02007P 06AA BD   0590    P        JSR    FRMEVL   A FORMULA IN PARENTHESIS.
+02008                      *    RECURSIVELY EVALUATE THE FORMULA.
+02009                             XDEF   CHKCLS
+02010P 06AD C6   29      A CHKCLS LDB    #@51     CHECK FOR A RIGHT PARENTHESE
+02011P 06AF                       SKIP2
+02012                             XDEF   CHKOPN
+02013P 06B0 C6   28      A CHKOPN LDB    #@50
+02014P 06B2                       SKIP2
+02015                             XDEF   CHKCOM
+02016P 06B3 C6   2C      A CHKCOM LDB    #&44
+02017                      *
+02018                      * "SYNCHK" LOOKS AT THE CURRENT CHARACTER TO MAKE SURE IT
+02019                      * IS THE SPECIFIC THING LOADED INTO ACCB JUST BEFORE THE CALL TO
+02020                      * "SYNCHK". IF NOT, IT CALLS THE "SYNTAX ERROR" ROUTINE.
+02021                      * OTHERWISE IT GOBBLES THE NEXT CHAR AND RETURNS.
+02022                      *
+02023                      * [A]=NEW CHAR AND TXTPTR IS ADVANCED BY "CHRGET".
+02024                      *
+02025                             XDEF   SYNCHR
+02026P 0685 E1   9F 00A6 A SYNCHR CMPB   [TXTPTR] Is [B] same as current char?
+02027P 06B9 26   02   06BD        BNE    SNERR    No, but it should be.
+02028P 06BB 0E   9F      A        JMP    CHRGET   Yes, skip current char.
+02029                             XDEF   SNERR
+02030P 06BD C6   00      A SNERR  LDB    #ERRSN   "SYNTAX ERROR"
+02031P 06BF 7E   004D    P        JMP    ERROR
+02032P 06C2 86   7D      A DOMIN  LDA    #&125    A PRECEDENCE BELOW "^".
+02033P 06C4 BD   0594    P        JSR    LPOPER   BUT ABOVE ALL ELSE.
+02034P 06C7 7E   0000    A        JMP    NEGOP    NEGATE THE FAC.
+02035                      *    AND RETURN.
+02036
+02037                             XDEF   ISVAR
+02038P 06CA BD   079D    P ISVAR  JSR    PTRGET   GET A PNTR TO VARIABLE.
+02039P 06CD 9F   52      A ISVRET STX    FACMO

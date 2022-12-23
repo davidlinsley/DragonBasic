@@ -1,0 +1,2274 @@
+       NAM    BASIC
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   BRKTXT,BUF,BUFLNM,BUFM1N
+       XREF   CASOFF,CHROUT,CLASS1,CLASS2,CLASS3,CLSALL,CONDCR,CRUNCH
+       XREF   CONS16,DATATK,DEVPRM
+       XREF   ELSETK,EQULTK,ERR,ERRBS,ERRCN,ERRDD
+       XREF   ERRDIR,ERRDS,ERRFC
+       XREF   ERRFD,ERRID,ERRIE,ERRLS,ERRNF,ERROD,ERROM,ERRRG
+       XREF   ERRSN,ERRSO,ERRST,ERRTAB,ERRTM,ERRUL
+       XREF   FADD,FCOMP,FIN,FINLOD,FLOAT,FLOATS
+       XREF   FNDOER,FNTK,FONE,FORTK,FOUTC,FUNDSO
+       XREF   GETDNM,GOTK,GREATK
+       XREF   HKASGN,HKCLRC,HKERR,HKETRP
+       XREF   HKEVAL,HKGONE,HKITMS,HKNWST,HKRUN,HKSCP1,HKSCP2,HOCONS
+       XREF   IFTK,INLIN,INPRT
+       XREF   LESSTK,LFUNTK,LHMID$,LINPRT,LNRMTK,LOFBUF,LSTATK
+       XREF   MID$TK,MINUTK,MOVFA,MOVFM,MOVMF,MOVVF
+       XREF   NEGOP,NOTTK
+       XREF   OPNICK,OPTAB,OUTDO,OUTQST,OUTSPC
+       XREF   PLUSTK,POLCAT
+       XREF   QINT
+       XREF   REDDY
+       XREF   SETDNM,SIGN,SNDOFF,STEPTK,STMDSO,STROUT,STRPRT,SUBTK
+       XREF   TEMPST,THENTK,TIMETK,TIMSET,TCLAS1,TCLAS2,TCLAS3,TLFNTK,TOTK
+       XREF   XRRUN
+       XREF   ZEROFC
+
+       TTL    GENERAL STORAGE MANAGEMENT ROUTINES.
+
+*
+* FIND A"FOR" ENTRY ON THE STACK VIA "VARPNT".
+*
+FORSIZ EQU    &16+(&2*ADDPRC)
+
+FNDFOR LEAX   &4,S     IGNORE ADDRESS OF NEWSTT AND RTS ADDR.
+FFLOOP LDB    #FORSIZ  LOAD B WITH INC VALUE.
+       STX    TEMPX1   SAVE FOR ADDITION LATER.
+       LDA    ,X       GET STACK ENTRY.
+       SUBA   #FORTK   IS IT A "FOR" TOKEN?
+*    CLEAR ACCA FOR ADD TO [XREG].
+       BNE    FFRTS    NO, NO "FOR" LOOPS WITH THIS PNTR.
+       LDX    &1,X     YES, GET "FOR" VARIABLE'S PNTR.
+       STX    TEMPX2   SAVE IT.
+       LDX    FORPNT   GET PNTR OF FORIABLE SOUGHT AFTER.
+       BEQ    STVPNT   IF IT IS NULL, SAVE STACK'S FORIABLE.
+       CMPX   TEMPX2   ARE THE PNTRS EQUAL?
+       BEQ    FFRTS    YES, WE HAVE FINISHED.
+       LDX    TEMPX1   ADD OFFSET TO TEMPX1 AND
+       ABX             PUT RESULT IN XREG.
+       BRA    FFLOOP   TRY, TRY AGAIN.
+STVPNT LDX    TEMPX2   TRANSFER TO
+       STX    FORPNT   FORIABLE'S PNTR.
+FFRTS  LDX    TEMPX1
+       TSTA            Set Z if FOR entry found.
+       RTS             RETURN TO CALLER.
+
+
+* THIS IS THE BLOCK TRANSFER ROUTINE.
+* IT MAKES SPACE BY SHOVING EVERYTHING FORWARD.
+
+* ON ENTRY:
+* [A,B]=[HIGHDS]    (FOR REASON).
+* [HIGHDS]= DESTINATION OF [HIGH ADDRESS]. 
+* [LOWTR]= LOWEST ADDR TO BE TRANSFERRED. 
+* [HIGHTR]= HIGHEST ADDR TO BE TRANSFERRED.
+
+* A CHECK IS MADE TO ASCERTAIN THAT A REASONABLE 
+* AMOUNT OF SPACE REMAINS BETWEEN THE TOP
+* OF THE STACK AND THE HIGHEST LOCATION TRANSFERRED INTO.
+
+* ON EXIT:
+* [LOWDS]=DESTINATION OF [LOWTR]
+* [X]=[LOWTR]
+
+       XDEF   BLTU
+BLTU   BSR    REASON   ASCERTAIN THAT STACK WON'T
+•    BE OVERRUN. 
+       XDEF   BLTUC
+BLTUC  LDU    HIGHDS
+       LEAU   &1,U 
+       LDX    HIGHTR 
+       LEAX   &1,X
+BLTLOP LDA    ,-X      GET ELEMENT TO BE MOVED. 
+       PSHU   A        MOVE IT.
+       CMPX   LOWTR    AT BOTTOM OF LIST?
+       BNE    BLTLOP   NOPE, CONTINUE.
+       STU    LOWDS    SET DEST OF [LOWTR] 
+BLTRTS RTS             RETURN TO CALLER.
+
+*
+* THIS ROUTINE IS USED TO ASCERTAIN THAT A GIVEN
+* NUMBER OF LOCS REMAIN AVAILABLE FOR THE STACK.
+•    THE CALL IS:
+* LDAI B, NUMBER OF 2-BYTE ENTRIES NEEDED.
+* JSR GETSTK
+*
+* THIS ROUTINE MUST BE CALLED BY ANY ROUTINE WHICH PUTS
+* AN ARBITRARY AMOUNT OF STUFF ON THE STACK,
+* I.E., ANY RECURSIVE ROUTINE LIKE "FRMEVL".
+* IT IS ALSO CALLED BY ROUTINES SUCH AS "GOSUB" AND "FOR"
+* WHICH MAKE PERMANENT ENTRIES ON THE STACK.
+*
+* ROUTINES WHICH MERELY USE AND FREE UP THE GUARANTEED
+* NUMLEV LOCATIONS NEED NOT CALL THIS.
+* 
+*
+* ON EXIT:
+* [A,B] HAVE BEEN MODIFIED. [XREG] PRESERVED.
+*
+       XDEF   GETSTK
+GETSTK CLRA
+       ASLB            MULTIPLY [A,B] BY 2.
+*    NUMBER IS LESS THAN 128 SO NO CARRY.                                                                         •
+       ADDD   STREND   [A,B]= HIGH ADDRESS REQ'D.
+* BRA REASON  ;CALL REASON, AND RETURN.
+*
+* [A,B]=SOME ADDR.
+* "REASON" MAKES SURE AT LEAST NUMLEV*2 LOCATIONS EXIST
+* BETWEEN [A,B] AND THE TOP OF THE STACK.
+*
+
+       XDEF   REASON
+REASON ADDD   #&2*NUMLEV
+       BCS    OMERR
+       STS    STKTMP
+       CMPD   STKTMP
+       BCS    BLTRTS   OK, return.
+*    Fall into OMERR.
+       TTL    ERROR HANDLER, READY, NEW, REINIT.
+
+       XDEF   OMERR
+OMERR  LDB    #ERROM
+       XDEF   ERROR
+ERROR  JSR    HKETRP   Let users trap their errors when
+*    calling BASIC subroutines.
+       JSR    HKERR    Hook for extended error handier.
+       IFNE   REALIO
+       JSR    CASOFF   Turn off the cassette motor and
+*    enable interrupts.
+       JSR    SNDOFF   Turn off TV sound.
+       ENDC   IFN      REALIO
+       JSR    STKINI   RESET THE STACK AND FLAGS
+       CLR    DEVNUM   Make input come from keyboard and
+*    output go to screen.
+       IFNE   CNTRLO
+ ENDC   IFN CNTRLO
+       JSR    CONDCR   OUTPUT CRLF.
+       JSR    OUTQST   PRINT A QUESTION MARK
+       LDX    #ERRTAB  GET START OF ERROR TABLE.
+       XDEF   ERPRNT
+ERPRNT ABX             ADD IN OFFSET.
+       BSR    XOUT     Print first char of message.
+       BSR    XOUT     Print second char of message.
+       LDX    #ERR-&1  GET PNTR TO " ERROR".
+ERRFIN JSR    STROUT   OUTPUT IT.
+       LDA    CURLIN   Was it a direct statment?
+       INCA            (Only need to check high order byte
+*    since highest line number allowed
+*    is 63999, for which the high order
+*    byte is 249.
+       BEQ    READY    YES, DON'T TYPE LINE NUMBER.
+       JSR    INPRT
+       XDEF   READY
+READY  EQU    *
+       IFNE   CNTRLO
+ ENDC   IFN CNTRLO
+       JSR    CONDCR   Position to left margin.
+       LDX    #REDDY-&1 SAY "OK".
+       JSR    STROUT
+       XDEF   MAIN
+MAIN   JSR    INLIN     GET A LINE FROM TERMINAL.
+       LDU    #&65535   Make it look like a direct statement.
+       STU    CURLIN
+       BCS    MAIN      If BREAK ignore the line.
+       TST    EOFFLG    End of file reached?
+       LBNE   FINLOD    Yes, must be loading an ASCII file.
+*    Go finish up the load.
+       STX    TXTPTR   SET UP TEXT PNTR.
+       JSR    CHRGET
+       BEQ    MAIN     IF BLANK LINE, GET ANOTHER.
+       BCS    MAIN1    IS A LINE NUMBER. NOT DIRECT.
+       LDB    #ERRDS   Give Direct Statement in file error
+       TST    DEVNUM   if not reading from keyboard.
+       BNE    ERROR
+       JSR    CRUNCH   COMPACTIFY.
+       XDEF   GOGONE
+GOGONE JMP    GONE     EXECUTE IT.
+
+XOUT   LDA    ,X+      Get char and update pointer.
+       JMP    OUTDO    Go output the char and return.
+
+MAIN1  JSR    LINGET   READ LINE NUMBER INTO "LINNUM".
+       XDEF   EDTENT
+EDTENT LDX    LINNUM   ALLOW "BLTU" TO PUT LINE NUMBER AWAY.
+       STX    BUFLNM
+       JSR    CRUNCH
+       STB    COUNT    RETAIN CHARACTER COUNT.
+       BSR    FNDLIN
+       BCS    NODEL    NO MATCH, SO DON'T DELETE.
+       LDD    LOWTR    COMPUTE NEGATIVE LENGTH.
+       SUBD   ,X
+       ADDD   VARTAB   COMPUTE NEW [VARTAB] SO
+       STD    VARTAB   "MLOOP" CAN KNOW WHERE TO STOP.
+       LDU    ,X       PREPARE TO COMPACTIFY.
+MLOOP  PULU   A        GET BYTE TO MOVE.
+       STA    ,X+      STUFF IT DOWN IN.
+       CMPX   VARTAB   DONE YET?
+       BNE    MLOOP    APPARENTLY NOT.
+NODEL  LDA    BUF-&1   SEE IF LINE HAD ANY CONTENTS.
+       BEQ    FINI     IF NOT, DON'T INSERT.
+       LDD    VARTAB   GET PNTR TO TOP.
+       STD    HIGHTR   SETUP FOR BLT UP.
+       ADDB   COUNT
+       ADCA   #&0
+       STD    HIGHDS   NOTE [A,B] IS SET FOR "REASON".
+       JSR    BLTU
+*    XREG POINTS TO BEGINNING OF LINE.
+       LDU    #BUFLNM-&2 PUTTING IN [ADRGAB] AT FRONT OF BUF
+*    FOOLS "CHEAD" WITH NONZERO LINK.
+STOLOP PULU   A        GET FIRST CHARACTER
+       STA    ,X+      PUT IT IN MEMORY.
+       CMPX   LOWDS
+       BNE    STOLOP
+       LDX    HIGHDS   SET NEW [VARTAB].
+       STX    VARTAB
+       XDEF   FINI
+FINI   BSR    RUNC     DO CLEAR & SET UP STACK.
+       BSR    CHEADA   FIX UP THE LINKS
+       BRA    MAIN
+*    AND SET [TXTPTR] TO [TXTTAB]-1.
+       XDEF   CHEADA
+CHEADA LDX    TXTTAB   SET [XREG] TO [TXTTAB].
+*
+* CHEAD GOES THROUGH PROGRAM STORAGE AND FIXES
+* UP ALL THE LINKS. THE END OF EACH LINE IS FOUND
+* BY SEARCHING FOR THE ZERO AT THE END.
+* THE DOUBLE ZERO LINK IS USED TO DETECT THE END OF THE PROGRAM.
+*
+       XDEF   CHEAD
+CHEAD  LDD    ,X       ARRIVED AT DOUBLE ZEROES?
+       BEQ    FNDRTS   Yes, end of program.
+       LEAU   &4,X     No, search for end of line.
+CZLOOP LDA    ,U+      IS BYTE A ZERO?
+       BNE    CZLOOP   NO, CONTINUE SEARCHING.
+       STU    ,X       Yes, store link.
+       LDX    ,X       Point to next line.
+       BRA    CHEAD    Go handle the next line.
+
+*
+*  FNDLIN SEARCHES THE PROGRAM TEXT FOR THE LINE
+*  WHOSE NUMBER IS PASSED IN "LINNUM".
+*  THERE ARE TWO POSSIBLE RETURNS:
+*
+* 1) CARRY NOT SET.
+*    XREG POINTS TO THE LINK FIELD IN THE LINE
+*    WHICH IS THE ONE SEARCHED FOR
+*
+* 2) CARRY SET.
+*    LINE NOT FOUND. XREG POINTS TO THE LINE IN THE
+*    PROGRAM GREATER THAN THE ONE SOUGHT AFTER.
+*
+       XDEF   FNDLIN
+FNDLIN LDD    LINNUM   D:=1ine number to search for.
+       LDX    TXTTAB   START AT THE BEGINNING.
+FNDLOP LDU    ,X       IS THE LINK FIELD ZERO?
+       BEQ    FLINRT   YES, SEC AND RTS.
+       CMPD   &2,X     COMPARE SIZES.
+       BLS    FNLRTS   This is the one we want or we have
+*    gone beyond it in which case the carry
+*    is set.
+       LDX    ,X       TRY NEXT ONE.
+       BRA    FNDLOP 
+FLINRT SEC
+FNLRTS STX    LOWTR
+FNDRTS RTS
+*
+* THE "NEW" COMMAND CLEARS THE PROGRAM TEXT AS WELL
+* AS VARIABLE SPACE.
+*
+       XDEF   SCRATH
+SCRATH BNE    FNLRTS   MAKE SURE THERE IS A TERMINATOR.
+       XDEF   SCRTCH
+SCRTCH LDX    TXTTAB   CLEAR FIRST TWO BYTES PNT'D
+       CLR    ,X+      TO BY TXTPTR.
+       CLR    ,X+
+       STX    VARTAB
+       XDEF   RUNC
+RUNC   LDX    TXTTAB   SET TXTPTR TO START OF TEXT.
+       JSR    DEXPTR   POINT TO ZERO TO FOOL "NEWSTT".
+*
+* CLEARC IS A SUBROUTINE WHICH INITIALIZES THE VARIABLE AND
+* ARRAY SPACE BY RESETING ARYTAB (THE END OF SIMPLE VARIABLE SPACE)
+* AND STREND (THE END OF ARRAY STORAGE). IT FALLS INTO "STKINI"
+* WHICH RESETS THE STACK.
+*
+       XDEF   CLEARC
+CLEARC JSR    HKCLRC   RAM hook.
+       LDX    MEMSIZ   FREE UP STRING SPACE.
+       STX    FRETOP
+       JSR    RESTOR   RESTORE DATA
+       LDX    VARTAB   LIBERATE THE
+       STX    ARYTAB   VARIABLES AND
+       STX    STREND   ARRAYS.
+
+*    STKINI RESETS THE STACK POINTER ELIMINATING
+*    GOSUB AND FOR CONTEXT. STRING TEMPORARIES ARE FREED
+*    UP, SUBFLG IS RESET. CONTINUING IS PROHIBITED.
+*    AND A DUMMY ENTRY IS PUT ON TTHE STACK SO "FNDFOR" WILL ALWAYS
+*    FIND A NON-"FOR" ENTRY AT THE BOTTOM OF THE STACK.
+
+       XDEF   STKINI
+STKINI LDX    #TEMPST  INITIALIZE STRING TEMPORARIES.
+       STX    TEMPPT
+       LDX    ,S       Get the return address.
+       LDS    STKTOP   INITIALIZE STACK.
+       CLR    ,-S      Put a zero on the stack. (Non NEXT,
+*    FOR, GOSUB token.)
+       CLR    OLDTXT   PROHIBIT CONTINUING.
+       CLR    OLDTXT+&1
+       CLR    SUBFLG   PILLOW SUBSCRIPTS.
+       JMP    ,X       RETURN.
+       TTL    THE "FOR" STATEMENT.
+
+*
+* A "FOR" ENTRY ON THE STACK HAS THE FOLLOWING FORMAT:
+*
+* LOW ADDRESS
+* TOKEN (FORTK) 1 BYTE
+* A POINTER TO THE LOOP VARIABLE 2 BYTES
+* THE STEP 4+ADDPRC BYTES
+* A BYTE REFLECTING THE SIGN OF THE INCREMENT 1 BYTE
+* THE UPPER VALUE 4+ADDPRC BYTES
+* THE LINE NUMBER OF THE "FOR" STATEMENT 2 BYTES
+* A TEXT POINTER INTO THE "FOR" STATEMENT 2 BYTES
+* HIGH ADDRESS
+*
+* TOTAL 16+(2*ADDPRC)  BYTES.
+*
+
+       XDEF   FOR
+FOR    LDA    #&128    DON'T RECOGNIZE
+       STA    SUBFLG   SUBSCRIPTED VARIABLES.
+       JSR    LET      READ THE VARIABLE AND ASSIGN IT
+*    THE CORRECT INITIAL VALUE AND STORE
+*    A POINTER TO THE VARIABLE IN VARPNT.
+       JSR    FNDFOR   PNTR IS IN VARPNT, AND FORPNT.
+       LEAS   &2,S     GET RID OF NEWSTT RETURN ADDRESS
+*    IN CASE THIS IS A TOTALLY NEW ENTRY.
+       BNE    NOTOL    IF NO MATCH, DON'T ELIMINATE ANYTHING.
+       LDX    TEMPX1   ELIMINATE THE MATCHING ENTRY AS
+       LEAS   B,X      WELL AS EVERYTHING AFTER IT.
+NOTOL  LDB    #&8+ADDPRC
+       JSR    GETSTK   Make sure there is enough room on the
+*    stack for another FOR entry.
+       JSR    DATAN    GET AN XREG POINTING TO TERMINATOR.
+*    [TXTPTR] IS UNAFFECTED.
+       LDD    CURLIN   PUSH POINTER TO TERMINATOR FOLLOWED
+       PSHS   X,B,A    BY LINE NUMBER.
+       SYNCHK TOTK     "TO" IS NECESSARY.
+       JSR    CHKNUM   VALUE MUST BE A NUMBER.
+       JSR    FRMNUM   GET UPPER VALUE INTO FAC.
+       LDB    FACSGN   PACK FAC.
+       ORB    #&127
+       ANDB   FACHO
+       STB    FACHO    SET PACKED SIGN BIT.
+       LDY    #LDFONE  Y:=return address for FORPSH.
+       JMP    FORPSH   PUT FAC ONTO STACK, PACKED.
+LDFONE LDX    #FONE    PUT 1.0 INTO FAC.
+       JSR    MOVFM
+       JSR    CHRGOT
+       CMPA   #STEPTK  A STEP IS GIVEN?
+       BNE    ONEON    NO. ASSUME 1.0.
+       JSR    CHRGET   YES. ADVANCE POINTER.
+       JSR    FRMNUM   READ THE STEP.
+ONEON  JSR    SIGN     GET SIGN IN ACCB.
+       JSR    PUSHF    PUSH FAC ONTO STACK (THRU B).
+       LDD    FORPNT   PUT PNTR TO VARIABLE ON STACK.
+       PSHS   B,A
+NXTCON LDA    #FORTK   PUT A FORTK ONTO STACK.
+       PSHS   A
+* BRA NEWSTT  ;SIMULATE BRA TO NEWSTT. JUST FALL IN.
+       TTL    NEW STATEMENT FETCHER.
+
+*
+* BACK HERE FOR NEW STATEMENT. CHARACTER POINTED TO BY TXTPTR
+* IS ":" OR END-OF-LINE. THE ADDRESS OF THIS LOC IS LEFT
+* ON THE STACK WHEN A STATEMENT IS EXECUTED SO THAT
+* IT CAN MERELY DO A RETURN WHEN IT IS DONE.
+*
+       XDEF   NEWSTT
+NEWSTT JSR    HKNWST   RAM hook.
+       ANDCC  #$FF!X(F!+I) Enable interrupts.
+       BSR    ISCNTC   LISTEN FOR CONTROL-C.
+       LDX    TXTPTR   LOOK AT CURRENT CHARACTER.
+       STX    TXTBEG   SAVE IN CASE OF RESTART BY INPUT.
+       LDA    ,X+
+       BEQ    ENDLIN   IT IS A NULL - END OF LINE.
+       CMPA   #':
+       BEQ    GONE     IF A ":", CONTINUE STATEMENT.
+SNERR1 JMP    SNERR    NEITHER SO SYNTAX ERROR.
+ENDLIN LDA    ,X++     IS LINK 0?
+*    (Only check high order byte since
+*    program can't be on physical page O.)
+       STA    BRKMFL   MAKE SURE DONT PRINT BREAK
+       LBEQ   ENDCON   YES - RAN OFF THE END.
+       LDD    ,X+      NO, PUT NEXT LINE NUMBER IN CURLIN.
+       STD    CURLIN   ONLY BUMP ONCE FOR SETTING TXTPTR
+       STX    TXTPTR   SO NEXT CHRGET WILL GET FIRST CHAR
+*    OF LINE.
+       LDA    TRCFLG   Are we tracing the program?
+       BEQ    GONE     No.
+       LDA    #'[      Yes, print the line number enclosed
+       JSR    CHROUT   in square brackets.
+       LDA    CURLIN   (B still contains low order byte.)
+       JSR    LINPRT
+       LDA    #']
+       JSR    CHROUT
+GONE   JSR    CHRGET   GET THE STATEMENT TYPE.
+       BSR    GONE3
+       BRA    NEWSTT
+       XDEF   GONE3
+GONE3  BEQ    RESRTS   IF TERMINATOR, TRY AGAIN.
+       JSR    HKGONE   RAM hook.
+       TSTA            Is it a reserved word token?
+       LBPL   LET      Not a token, must be an implicit LET.
+       CMPA   #LSTATK  Is it a statement token?
+       BHI    NOTOST   It's not a statement token from
+*    statement list 0.
+       LDX    STMDS0   It is a list 0 statement token.
+*    X:=pointer to dispatch table.
+       XDEF   DOSDSP
+DOSDSP ASLA            Multiply token by 2 to get offset
+*    into dispatch table.  (Get rid of
+*    MSB in process.)
+       TFR    A,B      X:=pointer to dispatch address for
+       ABX             this statement.  (Can't use
+*    LDX A,X since offset is signed.)
+       JSR    CHRGET   Get the first char and set the cond
+*    codes.
+       JMP    [, X]    Go handle the statement.
+
+*
+* Here if not a list 0 statement.
+*
+
+NOTOST CMPA   #@377    Is it a function token?
+       BEQ    FNASGN   Yes.
+       CMPA   #LNRMTK  is it a list 0 token?
+       BLS    SNERR1   Yes, give a syntax error.
+       JMP    [STMDS0+STBLEN] No, jump to the list 1 statement
+*    dispatcher.
+
+FNASGN JSR    CHRGET   Get the second byte of the function
+*    token.
+       CMPA   #MID$TK  Is it MID$ assignment?
+       LBEQ   LHMID$   Yes.
+       CMPA   #TIMETK  Is it a TIME token?
+       LBEQ   TIMSET   Yes,  go set the clock.
+       JSR    HKASGN   No, go to RAM hook to check for
+       BRA    SNERR1   other function assignments,  If none,
+*    give a  syntax error.
+
+      TTL    RESTORE,STOP,END,CONTINUE,CLEAR.
+
+      XDEF   RESTOR
+RESTOR LDX    TXTTAB
+       DEX             INIT DATPTR TO [TXTTAB]-1
+RESFIN STX    DATPTR   READ FINISHES COMES TO RESFIN.
+RESRTS RTS
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+
+       IFNE   REALIO
+       XDEF   ISCNTC
+ISCNTC JSR    POLCAT   POLL KEYBOARD.  WAS THERE A KEY TYPED?
+       BEQ    ISCRTS   NO, JUST RETURN.
+TSTBRK CMPA   #BRKCHR  YES, IS IS THE BREAK KEY?
+       BEQ    STOP     YES, HIT THE BINDERS.
+       CMPA   #PAWZC   NO, IS IT THE PAUSE KEY?
+       BEQ    HANG     Yes, hang around for a while.
+       STA    INKCHR   No, not special key, save it for
+ISCRTS RTS             INKEY$ and return.
+HANG   JSR    POLCAT   YES, NOW WAIT FOR ANOTHER KEY.
+       BEQ    HANG
+       BRA    TSTBRK   GOT ONE, GO SEE WHAT IT IS.
+       ENDC   IFN      REALIO
+
+       XDEF   END
+END    JSR    CLSALL   Close all devices and files.
+       JSR    CHRGOT   Reget the char.
+       BRA    ENDER    Check termination, etc.
+
+       XDEF   STOP
+STOP   SEC             MAKE [C] NONZERO AS A FLAG.
+ENDER  BNE    CONTRT   RETURN IF NOT CONT-C OR
+*    IF NO TERMINATOR FOR STOP OR END.
+*    [C]=0 for END, WILL NOT PRINT "BREAK".
+       LDX    TXTPTR
+       STX    TXTBEG
+       XDEF   STPEND
+STPEND ROR    BRKMFL   Set MSB of BRKMFL if "BREAK" is to
+*    be printed.
+       LEAS   &2,S     POP OFF NEWSTT ADDR.
+       XDEF   ENDCON
+ENDCON LDX    CURLIN
+       CMPX   #&65535  IS IT A DIRECT STATEMENT?
+       BEQ    DIRIS    IT IS A DIRECT STATEMENT.
+       STX    OLDLIN   SAVE OLD LINE NUMBER.
+       LDX    TXTBEG   GET PNTR TO START OF STATEMENT.
+       STX    OLDTXT   SAVE IT.
+DIRIS  CLR    DEVNUM   Make output go to screen and input
+*    come from keyboard.
+       IFNE   CNTRLO
+ ENDC   IFN CNTRLO
+       LDX    #BRKTXT-&1
+       TST    BRKMFL   Is "BREAK" message flag set?
+       LBPL   READY    No, don't print "BREAK".
+       JMP    ERRFIN
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+       XDEF   CONT
+CONT   BNE    CONTRT   MAKE SURE THERE IS A TERMINATOR.
+       LDB    #ERRCN   CONTINUE ERROR.
+       LDX    OLDTXT   A STORED TXTPTR OF ZERO IS SETUP
+*    BY STKINI AND INDICATES THERE IS
+*    NOTHING TO CONTINUE.
+       LBEQ   ERROR    "STOP", "END", TYPING CRLF TO
+*    "INPUT" AND ^C SETUP OLDTXT.
+       STX    TXTPTR
+       LDX    OLDLIN
+       STX    CURLIN
+CONTRT RTS             RETURN TO CALLER.
+*
+* THIS CODE IS FOR THE "CLEAR" COMMAND WITH AN ARGUMENT
+* TO CHANGE THE AMOUNT OF STRING SPACE ALLOCATED and a second
+* argument to change memory size.
+* IF NO FORMULA IS GIVEN THE AMOUNT OF STRING SPACE
+* REMAINS UNCHANGED.  The same applies to memory size.
+*
+
+       XDEF   CLEAR
+CLEAR  BEQ    CLRCGO   If no arguments just do clear.
+       JSR    INTID2   Evaluate the new string space size.
+       PSHS   D        Save it  for later.
+       LDX    MEMSIZ   Get the current memory size.
+       JSR    CHRGOT   New memory size specified?
+       BEQ    CURMEM   No, retain current one.
+       JSR    CHKCOM   Yes, eat the mandatory comma.
+       JSR    EVLADR   X:=new memory size.
+       LEAX   -&1,X    (Adjust or the fact that BASIC wants
+*    one byte beyond ENDMEM for VAL trick.)
+       CMPX   ENDMEM   Is it beyond the actual end of RAM?
+       BHI    OMERR1   Yes, give out of memory error.
+CURMEM TFR    X,D      Calculate the new stack top by
+       SUBD   ,S++     subtracting the new string space
+*    size from the current or new memory
+*    size.
+       BCS    OMERR1   Specified string space is more than
+*    memory size!
+       TFR    D,U      Save new stack top.
+       SUBD   #&2*NUMLEV Make sure there is a reasonable amount
+       BCS    OMERR1   of space between the top of the stack
+       SUBD   VARTAB   and the end of the BASIC program.
+       BLO    OMERR1
+       STU    STKTOP   All is OK. Store new STKTOP and
+       STX    MEMSIZ   current or new memory size.
+CLRCGO JMP    CLEARC   Go do the clear.
+
+OMERR1 JMP    OMERR    Give out  of memory error.
+
+       TTL    RUN,GOTO,GOSUB,RETURN.
+
+       XDEF   RUN
+RUN    JSR    HKRUN    Hook for RUN filename.
+       JSR    XRRUN    Init PLAY and DRAW settings.
+       JSR    CLSALL   Close all files and devices.
+       JSR    CHRGOT   Reget the char.
+       LBEQ   RUNC     IF NO LINE # ARGUMENT.
+       JSR    CLEARC   CLEAN UP -- RESET THE STACK.
+       BRA    RUNC2    MUST REPLACE RTS ADDR.
+
+*
+* Spaces are not allowed within reserved words so GO, TO, and
+* SUB are separate reserved words.  When a GO token is encountered
+* we come here to decide whether it's GOTO or GOSUB.
+*
+
+       XDEF   GO
+GO     TFR    A,B      Save token in B.
+ONGO   JSR    CHRGET   Fetch char following token.
+       CMPB   #TOTK    Is it a TO token?
+       BEQ    GOTO     Yes, GOTO it.
+       CMPB   #SUBTK   No, how about a SUB token?
+       BNE    SNERR2   No, GO what?
+*    Yes, fail into GOSUB code.
+
+*
+* A GOSUB ENTRY ON THE STACK HAS THE FOLLOWING FORMAT:
+*
+* LOW ADDRESS:
+* THE SUBTK ONE BYTE
+* THE LINE NUMBER OF THE GOSUB STATEMENT TWO BYTES
+* A POINTER INTO THE TEXT OF THE GOSUB TWO BYTES
+*
+* HIGH ADDRESS.
+*
+* TOTAL FIVE BYTES.
+*
+GOSUB  LDB    #&3
+       JSR    GETSTK   MAKE SURE THERE IS ROOM.
+       LDU    TXTPTR   PUSH ON THE TEXT POINTER AND
+       LDX    CURLIN   THE CURRENT LINE NUMBER.
+       LDA    #SUBTK   FOLLOW WITH A GOSUB TOKEN.
+       PSHS   U,X,A
+RUNC2  BSR    GOTO     USE RTS SCHEME TO "NEWSTT".
+       JMP    NEWSTT
+
+GOTO   JSR    CHRGOT   Reset cond codes for LINGET.
+       JSR    LINGET   PICK UP THE LINE NUMBER IN "LINNUM".
+       BSR    REMN     SKIP TO END OF LINE.
+       INX             GO UP TO NEXT STATEMENT.
+       LDD    LINNUM
+       CMPD   CURLIN   IS LINE BEFORE OR AFT CURRENT ONE?
+       BHI    LUKALL   CAN START SEARCH FROM HERE.
+       LDX    TXTTAB   SEARCH FROM START.
+LUKALL JSR    FNDLOP   [A] ALREADY HAS HIGH ORDER.
+       BCS    ULERR    GOTO LINE IS NONEXISTANT.
+DEXPTR LEAX   -&1,X    "CHRGET" WILL INC THIS.
+       STX    TXTPTR
+GORTS  RTS             PROCESS THE STATEMENT.
+*
+* "RETURN" RESTORES THE LINE NUMBER AND TEXT PNTR FROM THE STACK
+* AND ELIMINATES ALL THE "FOR" ENTRIES IN FRONT OF THE "GOSUB" ENTRY.
+*
+       XDEF   RETURN
+RETURN BNE    GORTS    NO TERMINATOR=BLOW HIM UP.
+       LDA    #&255
+       STA    FORPNT   MAKE SURE THE VARIABLE'S PNTR
+*    NEVER GETS MATCHED.
+       JSR    FNDFOR   GO PAST ALL THE "FOR" ENTRIES.
+       TXS
+       CMPA   #SUBTK-FORTK RETURN WITHOUT GOSUB?
+*    (FNDFOR subtracted FORTK.)
+       BEQ    RETU1
+       LDB    #ERRRG
+       SKIP2
+       XDEF   ULERR
+ULERR  LDB    #ERRUL   NO MATCH SO "UL" ERROR.
+       JMP    ERROR    YES.
+SNERR2 JMP    SNERR
+RETU1  PULS   A,X,U    PULL OFF GOSUB TOKEN, LINE NUMBER,
+       STX    CURLIN   AND TEXT POINTER.
+       STU    TXTPTR
+       XDEF   DATA
+DATA   BSR    DATAN    SKIP TO END OF STATEMENT, SINCE
+*    WHEN "GOSUB" STUCK THE TEXT PNTR
+*    ONTO THE STACK, THE LINE NUMBER ARG
+*    HAD'T BEEN READ YET.
+       SKIP2  Skip     over REM to set TXTPTR.
+       XDEF   REM
+REM    BSR    REMN     Skip to end of line.
+       STX    TXTPTR   Set the text pointer.
+REMRTS RTS             "NEWSTT" RTS ADDR IS STILL THERE.
+
+DATAN  LDB    #':      "DATA" TERMINATES ON ":" AND NULL.
+       SKIP1
+REMN   CLRB            THE ONLY TERMINATOR IS NULL.
+       SIB    CHARAC   PRESERVE IT.
+       CLRB            THIS MAKES CHARAC=0 AFTER SWAP.
+       LDX    TXTPTR   START AT CURRENT POSITION.
+EXCHQT TFR    B,A
+       LDB    CHARAC   SWAP TERMINATORS.
+       STA    CHARAC
+REMER  LDA    ,X
+       BEQ    REMRTS   NULL ALWAYS TERMINATES.
+       CBA             IS IT THE OTHER TERMINATOR?
+       BEQ    REMRTS   YES, IT'S FINISHED.
+       INX             PROGRESS TO NEXT CHARACTER.
+       CMPA   #&34     IS IT A QUOTE?
+       BEQ    EXCHQT   YES, TIME TO TRADE.
+
+*
+* Count the number of IF's skipped for IF THEN ELSE code.
+*
+       INCA            Is is a function token?
+       BNE    CHKIF    No, see if it's an IF token.
+       LEAX   &1,X     Yes, don't check the next byte since
+*    it might look like an IF token.
+*    Note that A contains 0 so it won't
+*    look like an IF token.
+CHKIF  CMPA   #IFTK+&1 Is it an IF token?  (+1 because of
+*    INCA.)
+       BNE    REMER    No.
+       INC    IFCNT    Yes, increment count of IFs seen.
+       BRA    REMER
+       TTL    "IF ... THEN" CODE.
+
+       XDEF   IF
+IF     JSR    FRMNUM   EVALUATE A FORMULA.
+       JSR    CHRGOT   GET CURRENT CHARACTER.
+       CMPA   #GOTK    IS TERMINATING CHARACTER A GOTK?
+       BEQ    OKGOTO   Yes. Since the presence of a TO
+*    token isn't checked for here, IF 
+*    THEN GOSUB is allowed as well as
+*    IF THEN GOTO.
+       SYNCHK THENTK   NO, IT MUST BE "THEN".
+OKGOTO LDA    FACEXP   0=FALSE. ALL OTHERS TRUE.
+       BNE    DOCOND   TRUE !
+       CLR    IFCNT    False.  Set IF count to zero.
+SKPMRF BSR    DATA     Skip until end of statement (colon)
+*    or end of line (zero).
+       TSTA            Stop on end of line?
+       BEQ    REMRTS   Yes, there is no matching ELSE clause.
+       JSR    CHRGET   No, stopoed on an ELSE (:ELSETK).
+       CMPA   #ELSETK
+       BNE    SKPMRF   No, continue skipping.
+       DEC    IFCNT    Yes, is this the matching ELSE?
+       BPL    SKPMRF   No, continue skipping.  (BPL instead 
+*    of BNE since IFCNT was set to zero
+*    when the original IF was seen.)
+       JSR    CHRGET   Yes, this is the ELSE we want.  Eat
+        the ELSE token.
+DOCOND JSR    CHRGOT   TEST CURRENT CHARACTER.
+       LBCS   GOTO     IF A NUMBER, GOTO IT.
+       JMP    GONE3    INTERPRET NEW STATEMENT.
+       TTL    "ON ... GO TO ..." CODE.
+
+       XDEF   ONGOTO
+ONGOTO JSR    GETBYT   GET VALUE IN FACLO.
+       SYNCHK GOTK     Must have GO token.
+       PSHS   A        Save TO or SUB token.
+       CMPA   #SUBTK   AN "ON ... GOSUB" PERHAPS?
+       BEQ    ONGLOP   YES.
+       CMPA   #TOTK    Must be ON ... GOTO.
+SNERR3 BNE    SNERR2
+ONGLOP DEC    FACLO
+       BNE    ONGLP1   SKIP ANOTHER LINE NUMBER.
+       PULS   B        B:=To or SUB token.
+       JMP    ONGO     Go decide what to do.
+
+ONGLP1 JSR    CHRGET   ADVANCE AND SET CODES.
+       BSR    LINGET
+       CMPA   #&44     IS IT A COMMA?
+       BEQ    ONGLCP
+       PULS   B, PC    Get rid of token and return to NEWSTT.
+*    NEWSTT will give SN error if not end
+*    of statement. If end of statement, 
+*    the statement following the ON will 
+*    be executed.
+*
+* "LINGET" READS A LINE NUMBER FROM THE CURRENT TEXT POSITION.
+*
+* LINE NUMBERS RANGE FROM 0 TO 64000-1.
+*
+* THE ANSWER IS RETURNED IN "LINNUM".
+* "TXTPTR" IS UPDATED TO POINT TO THE TERMINATING CHARCTER
+* AND [A] = THE TERMINATING CHARACTER WITH CONDITION
+* CODES SET UP TO REFLECT ITS VALUE.
+*
+       XDEF   LINGET
+LINGET LDX    DBLZER
+       STX    LINNUM   INITIALIZE LINE NUMBER TO ZERO.
+MORLIN BCC    LETRTS   IT IS NOT A DIGIT.
+       SUBA   #'0
+       STA    CHARAC   SAVE CHARACTER.
+       LDD    LINNUM
+       CMPA   #&24     LINE NUMBER WILL BE .LT. 64000?
+       BHI    SNERR3
+       ASLB            MULTIPLY BY 10.
+       ROLA
+       ASLB
+       ROLA
+       ADDD   LINNUM
+       ASLB
+       ROLA
+       ADDB   CHARAC   ADD IN DIGIT.
+       ADCA   #&0
+       STD    LINNUM
+       JSR    CHRGET   GET A CHARACTER.
+       BRA    MORLIN
+
+       TTL    "LET" CODE.
+
+       XDEF   LET
+LET    JSR    PTRGET   GET PNTR TO VARIABLE INTO "VARPNT".
+       STX    FORPNT   PRESERVE POINTER.
+       SYNCHK EQULTK   "=" IS NECESSARY.
+       LDA    VALTYP   RETAIN THE VARIABLE'S VALUE TYPE.
+       PSHS   A
+       JSR    FRMEVL   GET VALUE OF FORMULA INTO "FAC".
+       XDEF   LETRET
+LETRET EQU    *        Return address when LET calls FRMEVL.
+       PULS   A
+       RORA            CARRY SET FOR STRING, OFF FOR
+*    NUMERIC.
+       JSR    CHKVAL   MAKE SURE "VALTYP" MATCHES CARRY.
+*    AND SET ZERO FLAG FOR NUMERIC.
+       LBEQ   MOVVF    IF NUMERIC, COPY IT.
+       XDEF   INPCOM
+INPCOM JSR    HKSCP1   RAM hook for string copy check.
+       LDX    FACMO    GET PNTR TO DESCRIPTOR.
+       LDD    STKTOP   SEE IF IT POINTS INTO STRING SPACE.
+       CMPD   &2,X
+       BCC    DNTCPY   IF [STKTOP].GE.[2&3,X], DON'T COPY.
+       CMPX   VARTAB   If [VARTAB].GT.[FACMO], don't copy.
+       BCS    DNTCPY   ([X]=[FACMO] from INPCOM.)
+       XDEF   DOCOPY
+DOCOPY LDB    ,X       GET LENGTH OF STRING.
+       JSR    STRINI   GET ROOM TO COPY STRING INTO.
+       LDX    DSCPNT   GET POINTER TO OLD DESCRIPTOR.
+       JSR    MOVINS   COPY IT.
+       LDX    #DSCTMP  GET POINTER TO OLD DESCRIPTOR.
+DNTCPY STX    DSCPNT   REMEMBER POINTER TO DESCRIPTOR.
+       JSR    FRETMS   FREE UP THE TEMPORARY WITHOUT
+*    FREEING UP ANY STRING SPACE.
+       LDU    DSCPNT   GET OLD ONE.
+       LDX    FORPNT   GET DESTINATION.
+       PULU   A,B,Y    A:=length, B:=garbage byte, Y:=string
+*    pointer.
+       STA    ,X       Put away the length.
+       STY    &2,X     Put away the pointer.
+LETRTS RTS             DONE.
+
+       TTL    INPUT AND READ CODE.
+
+TRYAGN FCC    /?REDO/
+       ACRLF
+       FCB    &0
+*
+* HERE WHEN THE DATA THAT WAS TYPED IN OR IN "DATA" STATEMENTS
+* IS IMPROPERLY FORMATTED.  FOR "INPUT" WE START AGAIN.
+* FOR "READ" WE GIVE A SYNTAX ERROR AT THE DATA LINE.
+*
+* IN DISK VERSION IF THE DATA WAS READ FROM A DISK FILE THEN
+* A BAD FILE DATA ERROR IS GENERATED.
+*
+TRMNOK LDB    #ERRFD   If input didn't come from the keyboard
+       TST    DEVNUM   give a "Bad file Data" error.
+       BEQ    ISKBDI
+ERRGO6 JMP    ERROR
+ISKBDI LDA    INPFLG
+       BEQ    TRMNO1   IF INPUT TRY AGAIN.
+       LDX    DATLIN   GET DATA LINE NUMBER.
+       STX    CURLIN   MAKE IT CURRENT LINE.
+SNERR4 JMP    SNERR
+
+TRMNO1 LDX    #TRYAGN-&1
+       JSR    STROUT   PRINT "?REDO FROM START".
+       LDX    TXTBEG   POINT AT START
+       STX    TXTPTR   OF THIS CURRENT LINE.
+       RTS             GO TO "NEWSTT".
+
+       XDEF   INPUT
+INPUT  JSR    ERRDIR   Can't allow INPUT as a direct since
+*    it clobbers BUF.
+
+       IFNE   CNTRLO
+ ENDC   IFN CNRTLO
+       BSR    INPTDO   Come back here to clear device number.
+       CLR    DEVNUM   Make input come from keyboard.
+       RTS
+
+INPTDO CMPA   #'#      Device number?
+       BNE    INPKBD   No, INPUT from keyboard.
+       JSR    GETDNM   Yes, read the device number.
+       JSR    OPNICK   Make sure it's open for input.
+       JSR    CHKCOM   Make sure a comma follows.
+*    (It would be better to check for the
+*    comma before calling OPNICK but
+*    memory is at a premium and that would
+*    require a call to CHRGOT here.)
+INPKBD CMPA   #&34     A QUOTE?
+       BNE    NOTQTI   NO MESSAGE.
+       JSR    STRTXT   LITERALIZE THE STRING IN TEXT
+       SYNCHK &59      MUST END WITH SEMICOLON.
+       JSR    STRPRT   PRINT IT OUT.  (The output will be
+*    suppressed if DEVNUM is nonzero.)
+NOTQTI LDX    #BUFMIN  Just in case DEVNUM is nonzero make
+       CLR    ,X       BUF look empty to force ITMSCN to
+*    be called for disk files.  Also set
+*    X to point to BUFMIN for INPCON.
+       TST    DEVNUM   Reading from the keyboard?
+       BNE    INPCON   No, go do file I/O.
+       BSR    QINLIN   Yes, TYPE "?" AND get A LINE OF TEXT.
+       LDB    #COMMA   Put a comma into BUFMIN to look like
+       STB    ,X       a good terminator.  (X is pointing to
+*    BUFMIN from the INLIN call made by
+*    QINLIN.)
+       BRA    INPCON   Go do the assignments.
+
+
+QINLIN JSR    OUTGIST
+       JSR    OUTSPC
+       XDEF   INLNDO
+INLNDO JSR    INLIN
+       BCC    EOFTST   Not BREAK, check for end of file.
+       LEAS   &4,S     BREAK, clean up stack and quit.
+       JMP    STPEND   Carry set so "BREAK" will be printed.
+
+EOFTST LDB    #ERRIE   Give Input past End error if end of
+       TST    EOFFLG   file reached.
+       BNE    ERRGO6
+       RTS             Return with line of input.
+       XDEF   READ
+READ   LDX    DATPTR   GET LAST DATA LOCATION.
+       SKIP1  LDA      A,#CLR TO MAKE IT NONZERO.
+INPCON CLRA
+       STA    INPFLG   STORE THE FLAG.
+*
+* IN THE PROCESSING OF DATA AND READ STATEMENTS:
+* ONE POINTER POINTS TO THE DATA (IE, THE NUMBERS BEING FETCHED)
+* AND ANOTHER POINTS TO THE LIST OF VARIABLES.
+*
+* THE POINTER INTO THE DATA ALWAYS STARTS POINTING TO A
+* TERMINATOR -- A , : OR END-OF-LINE.
+*
+* AT THIS POINT TXTPTR POINTS TO LIST OF VARIABLES AND
+* XREG POINTS TO DATA OR INPUT LINE.
+*
+       STX    INPPTR
+INLOOP JSR    PTRGET   READ VARIABLE LIST.
+       STX    FORPNT   SAVE POINTER FOR "LET" STRING STUFFING.
+*    RETURNS PNTR TOP VAR IN VARPNT.
+       LDX    TXTPTR   SAVE TEXT PNTR.
+       STX    VARTXT
+       LDX    INPPTR   SET TEXT PNTR TO DATA.
+       LDA    ,X       GET CURRENT CHARACTER AND SET CODES.
+       BNE    DATBK    MUST BE A COMMA.
+       LDA    INPFLG
+       BNE    DATLOP   SEARCH FOR ANOTHER DATA STATEMENT.
+       JSR    HKITMS   RAM hook for disk file item scanner.
+*    Goes to ITMSCN if disk and returns
+*    at DATBK or just returns here if not
+*    disk.
+       JSR    OUTQST   Give them a double question mark.
+       BSR    QINLIN   GET ANOTHER LINE.
+       XDEF   DATBK
+DATBK  STX    TXTPTR   SET FOR "CHRGET".
+       JSR    CHRGET
+       LDB    VALTYP   GET VALUE TYPE.
+       BEQ    NUMINS   INPUT A NUMBER IF NUMERIC.
+       LDX    TXTPTR   GET POINTER BEYOND SPACES. 
+       STA    CHARAC   ASSUME QUOTED STRING.
+       CMPA   #&34     TERMINATORS OK?
+       BEQ    NOWGET   YES.
+       LEAX   -&1,X    RESTORE PNTR TO START OF STRING.
+       CLRA            If the special I/O flag is set make
+       STA    CHARAC   the string only end on end of line
+       JSR    DEVPRM   Set up special I/O flag.
+       TST    SPCIO    since all items written with SPCIO
+       BNE    NOWGET   set have a CR after them.
+       LDA    #':      SET TERMINATORS TO ":" AND
+       STA    CHARAC
+       LDA    #&44     COMMA.
+NOWGET STA    ENDCHR
+       JSR    STRLT2   MAKE A STRING DESCRIPTOR FOR THE VALUE 
+*    AND COPY IF NECESSARY.
+       JSR    ST2TXT   SET TEXT POINTER.
+       JSR    INPCOM   DO ASSIGNMENT.
+       BRA    STRDN2
+NUMINS JSR    FIN
+       JSR    MOVVF
+STRDN2 JSR    CHRGOT   READ LAST CHARACTER.
+       BEQ    TRMOK    ":" OR EOL IS OK.
+       CMPA   #&44     A COMMA?
+       LBNE   TRMNOK
+TRMOK  LDX    TXTPTR
+       STX    INPPTR   SAVE FOR MORE READS.
+       LDX    VARTXT
+       STX    TXTPTR   POINT TO VARIABLE LIST.
+       JSR    CHRGOT   LOOK AT LAST VARTAB CHARACTER.
+       BEQ    VAREND   THAT'S THE END OF THE LIST.
+       JSR    CHKCOM   NOT END. CHECK FOR COMMA.
+       BRA    INLOOP
+*
+* SUBROUTINE TO FIND DATA
+* THE SEARCH IS MADE BY USING THE EXECUTION CODE FOR DATA TO
+* SKIP OVER STATEMENTS. THE START WORD OF EACH STATEMENT
+* IS COMPARED WITH "DATATK". EACH NEW LINE NUMBER
+* IS STORED IN "DATLIN" SO THAT IF AN ERROR OCCURS
+* WHILE READING DATA THE ERROR MESSAGE CAN GIVE THE LINE
+* NUMBER OF THE ILL-FORMATTED DATA.
+*
+DATLOP STX    TXTPTR   SAVE TEXT POINTER FOR "DATAN".
+       JSR    DATAN    SKIP SOME TEXT.
+       LEAX   &1,X     POINT PAST THE TERMINATOR.
+       TSTA            TERMINATOR ZERO?
+       BNE    NOWLIN   SHO AIN'T.
+       LDB    #ERROD   IN CASE END OF PROGRAM GIVE "OUT OF
+       LDU    ,X++     DATA" ERROR.
+       BEQ    ERRGO5
+       LDD    ,X++     DATLIN:=LINE NUMBER OF THIS LINE.
+       STD    DATLIN   LEAVE X POINTING TO FIRST CHAR
+*    OF LINE.
+NOWLIN LDA    ,X       GET CHAR FROM LINE.
+       CMPA   #DATATK  IS IT A "DATA" STATEMENT.
+       BNE    DATLOP   NOT QUITE RIGHT. KEEP LOOKING.
+       BRA    DATBK    THIS IS THE ONE !
+VAREND LDX    INPPTR   PUT AWAY A NEW DATA PNTR MAYBE.
+       LDB    INPFLG
+       LBNE   RESFIN
+       LDA    ,X       LAST DATA CHR COULD HAVE BEEN
+*    COMMA OR COLON BUT SHOULD BE NULL.
+       BEQ    INPRTS   IT IS NULL.
+       LDX    #EXIGNT-&1
+       JMP    STROUT   TYPE "?EXTRA IGNORED"
+INPRTS RTS             DO NEXT STATEMENT.
+EXIGNT FCC    /?EXTRA IGNORED/
+       ACRLF
+       FCB    &0
+       TTL    THE NEXT CODE IS THE "NEXT CODE"
+
+*
+* A "FOR" ENTRY ON THE STACK HAS THE FOLLOWING FORMAT:
+*
+* LOW ADDRESS
+* TOKEN (FORTK) 1 BYTE
+* A POINTER TO THE LOOP VARIABLE 2 BYTES
+* THE STEP 4+ADDPRC BYTES
+* A BYTE REFLECTING THE SIGN OF THE INCREMENT 1 BYTE
+* THE UPPER VALUE (PACKED) 4+ADDPRC BYTES
+* THE LINE NUMBER OF THE "FOR" STATEMENT 2 BYTES
+* A TEXT POINTER INTO THE "FOR" STATEMENT 2 BYTES
+* HIGH ADDRESS
+*
+* TOTAL 16+(2*ADDPRC) BYTES.
+*
+       XDEF   NEXT
+NEXT   BNE    GETFOR
+       LDX    DBLZER   WITHOUT ARG CALL "FNDFOR" WITH
+       BRA    STXFOR   [FORPNT]=0.
+GETFOR JSR    PTRGET   GET A POINTER TO LOOP VARIABLE
+STXFOR STX    FORPNT   INTO "FORPNT".
+       JSR    FNDFOR   FIND THE MATCHING ENTRY IF ANY.
+       BEQ    HAVFOR
+       LDB    #ERRNF   "NEXT WITHOUT FOR".
+ERRGO5 BRA    ERRGO4
+HAVFOR TXS             SETUP STACK. CHOP FIRST.
+       LEAX    &3,X    POINT TO INCREMENT.
+       JSR     MOVFM   GET QUANTITY INTO THE FAC.
+       LDA     &7+ADDPRC,S SET SIGN CORRECTLY.
+       STA     FACSGN
+       LDX     FORPNT
+       JSR     FADD    ADD INC TO LOOP VARIABLE.
+       JSR     MOVVF   PACK THE FAC INTO MEMORY.
+       LEAX    &8+ADDPRC,S
+       JSR     FCOMP   COMPARE FAC WITH UPPER VALUE.
+       SUBB    &7+ADDPRC,S SUBTRACT SIGN OF INC FROM SIGN OF
+*    OF (CURRENT VALUE-FINAL VALUE).
+       BEQ     LOOPDN  IF SIGN (FINAL-CURRENT)-SIGN STEP=0
+*    THEN LOOP IS DONE.
+       LDX     &12+(&2*ADDPRC),S
+       STX     CURLIN  STORE LINE NUMBER OF "FOR" STATEMENT.
+       LDX     &14+(&2*ADDPRC),S
+       STX     TXTPTR  STORE TEXT PNTR INTO "FOR" STATEMENT.
+NEWSGO JMP     NEWSTT  PROCESS NEXT STATEMENT.
+
+LOOPDN LEAS    FORSIZ,S WIPE OUT THIS ENTRY.
+       JSR     CHRGOT
+       CMPA    #&44    COMMA AT END?
+       BNE     NEWSGO
+       JSR     CHRGET
+       BSR     GETFOR  DO NEXT BUT DON'T ALLOW BLANK VARIABLE
+*    PNTR. [VARPNT] IS THE STK PNTR WHICH
+*    NEVER MATCHES ANY POINTER.
+*    BSR TO PUT ON DUMMY NEWSTT ADDR.
+
+       TTL    FORMULA EVALUATION CODE.
+
+*
+* THESE ROUTINES CHECK FOR CERTAIN "VALTYP".
+* [C] IS NOT PRESERVED.
+*
+       XDEF   FRMNUM
+FRMNUM BSR    FRMEVL
+       XDEF   CHKNUM
+CHKNUM ANDCC  #$FF!X(C) Say must be numeric.
+       FCB    @175     TST extended to get to CHKVAL.
+*    Note 6809 TST doesn't affect carry.
+       XDEF   CHKSTR
+CHKSTR SETCC  C        Say must be string.
+       XDEF   CHKVAL
+CHKVAL TST    VALTYP   Set N if string, clear N if numeric.
+       BCS    STRCHK   Check for string.
+       BPL    INPRTS   If numeric OK.
+       SKIP2  Skip     into TMERDO.
+STRCHK BMI    INPRTS   If it's a string OK.
+TMERDO LDB    #ERRTM
+ERRGO4 JMP    ERROR
+*
+* THE FORMULA EVALUATOR STARTS WITH
+* [TXTPTR] POINTING TO THE FIRST CHARACTER OF THE FORMULA.
+* AT THE END [TXTPTR] POINTS TO THE TERMINATOR.
+* THE RESULT IS LEFT IN THE FAC.
+* ON RETURN [A] DOES NOT REFLECT THE TERMINATOR.
+*
+* THE FORMULA EVALUATOR USES THE OPERATOR LIST (OPTAB)
+* TO DETERMINE PRECEDENCE AND DISPATCH ADDRESSES FOR
+* EACH OPERATOR.
+* A TEMPORARY RESULT ON THE STACK HAS THE FOLLOWING FORMAT.
+* THE ADDRESS OF THE OPERATOR ROUTINE.
+* THE FLOATING POINT TEMPORARY RESULT.
+* THE PRECEDENCE OF THE OPERATOR.
+*
+       XDEF   FRMEVL
+FRMEVL BSR    PTRBCK   Backup character pointer.
+       XDEF   FRMCHK
+FRMCHK CLRA            INITIAL DUMMY PRECEDENCE IS 0.
+       SKIP2  SKIP     OVER PSH INSTRUCTION.
+LPOPER PSHS   B        SAVE LOW PRECEDENCE. (MASK.)
+       PSHS   A        SAVE HIGH PRECEDENCE.
+       LDB    #&1
+       JSR    GETSTK   MAKE SURE THERE IS ROOM FOR
+*    RECURSIVE CALLS.
+       JSR    EVAL     EVALUATE SOMETHING.
+       XDEF   FRMRET
+FRMRET EQU    *        Return address when FRMEVL calls EVAL.
+       CLR    OPMASK   PREPARE TO BUILD MASK MAYBE.
+TSTOP  JSR    CHRGOT   RESET LAST CHARACTER.
+LOPREL SUBA   #GREATK  IS CURRENT CHARACTER A RELATION?
+       BCS    ENDREL   NO. RELATIONS ALL THROUGH.
+       CMPA   #LESSTK-GREATK+&1 REALLY RELATIONAL?
+       BCC    ENDREL   NO -- JUST BIG.
+       CMPA   #&1      SET CARRY FOR ZERO ONLY.
+       ROLA            0 TO 1, 1 TO 2, 2 TO 4.
+       EORA   OPMASK   BRING IN THE OLD BITS.
+       CMPA   OPMASK   MAKE SURE THE NEW MASK IS BIGGER.
+       BCS    SNERR5   SYNTAX ERROR. BECAUSE TWO OF THE SAME.
+       STA    OPMASK   SAVE MASK.
+       JSR    CHRGET
+       BRA    LOPREL   GET THE NEXT CANDIDATE.
+ENDREL LDB    OPMASK   WERE THERE ANY?
+       BNE    FINREL   YES, HANDLE AS SPECIAL OP.
+       LBCC   QOP      NOT AN OPERATOR.
+       ADDA   #GREATK-PLUSTK
+       BCC    QOP      NOT AN OPERATOR. 
+       ADCA   VALTYP   [C]=1.
+       LBEQ   CAT      ONLY IF [A]=0 AND [VALTYP]=-1 (A STR).
+       ADCA   #-&1     GET BACK ORIGINAL [A]. 
+       PSHS   A        SAVE ACCA.
+       ASLA            MULTIPLY BY 2.
+       ADDA   ,S+      BY THREE.
+       LDX    #OPTAB
+       LEAX   A,X      ADD IN OFFSET.
+QPREC  PULS   A        GET PREVIOUS PRECEDENCE.
+       CMPA   ,X       IS OLD PRECEDENCE GREATER OR EQUAL?
+       BCC    QCHNUM   YES, GO OPERATE.
+       BSR    CHKNUM   CAN'T BE STRING HERE.
+DOPREC PSHS   A        SAVE OLD PRECEDENCE.
+       BSR    DOPRE1   SET A RETURN ADDRESS FOR OP.
+       LDX    OPPTR    GET POINTER TO OP.
+       PULS   A        PULL OFF PREVIOUS PRECEDENCE.
+       BNE    QPREC1   THAT'S A REAL OPERATOR.
+       TSTA            DONE ?
+       LBEQ   QOPRTS   DONE !
+       BRA    PULSTK
+FINREL ASL    VALTYP   GET VALUE TYPE INTO "C".
+       ROLB            PUT VALTYP INTO LOW ORDER BIT OF MASK.
+       BSR    PTRBCK   DECREMENT TEXT POINTER.
+       LDX    #PTDORL  MAKE [XREG] POINT AT OPERATOR ENTRY.
+       STB    OPMASK   SAVE THE OPERATION MASK.
+       CLR    VALTYP   Make it look numeric to slip past
+*    CHKNUM call if we don't operate at
+*    QPREC.
+       BRA    QPREC    SAVE IT ALL.
+
+PTRBCK LDX    TXTPTR   TXTPTR:=TXTPTR-1.
+       JMP    DEXPTR
+
+PTDORL FCB    &100     PRECEDENCE.
+       FDB    DOREL    OPERATOR ADDRESS.
+QPREC1 CMPA   ,X       LAST PRECEDENCE IS GREATER?
+       BCC    PULSTK   YES, GO OPERATE.
+       BRA    DOPREC   NO SAVE ARGUMENT AND GET OTHER OPERAND. 
+DOPRE1 LDD    &1,X     PUT DISPATCH ADDRESS ON STACK.
+       PSHS   B,A
+       BSR    PUSHF1   SAVE FAC ON STACK UNPACKED.
+       LDB    OPMASK   [ACCB] MAY BE MASK FOR REL.
+       LBRA   LPOPER
+SNERR5 JMP    SNERR    GO TO AN ERROR.
+PUSHF1 LDB    FACSGN
+       LDA    ,X       GET HIGH PRECEDENCE.
+PUSHF  PULS   Y        Y:=RETURN ADDRESS.
+*    STORE FAC ON STACK UNPACKED.
+       PSHS   B        START WITH SIGN SET UP.
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+FORPSH LDB    FACEXP   Enter here to avoid storing sign.
+       LDX    FACHO
+       LDU    FACMO
+       PSHS   U,X,B
+       ENDC   IFN      ADDPRC
+       JMP    ,Y       RETURN.
+QOP    LDX    DBLZER
+       LDA    ,S+      GET HIGH PRECEDENCE OF LAST OP.
+       BEQ    QOPRTS   DONE !
+QCHNUM CMPA   #&100    RELATIONAL OPERATOR?
+       BEQ    UNPSTK   YES, DON'T CHECK OPERAND.
+       JSR    CHKNUM   MUST BE NUMBER.
+UNPSTK STX    OPPTR    SAVE OPERATOR'S POINTER FOR NEXT TIME.
+PULSTK PULS   B        GET MASK FOR REL OP IF IT IS ONE.
+       CMPA   #&90     NOT TOKEN?
+       BEQ    UNPRTS   YES, NOTHING TO UNPACK.
+       CMPA   #&125
+       BEQ    UNPRTS   IT IS A MINUS.
+       LSRB            SETUP [C] FOR DOREL'S "CHKVAL".
+       STB    DOMASK   SAVE FOR "DOCMP".
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+       IFNE   ADDPRC
+       PULS   A,X,U    Unpack the stack into ARG.
+       STA    ARGEXP
+       STX    ARGHO
+       STU    ARGMO
+       ENDC   IFN      ADDPRC
+       PULS   B
+       STB    ARGSGN
+       EORB   FACSGN   GET PROBABLE RESULT SIGN.
+       STB    ARISGN   ARITHMETIC SIGN. USED BY
+*    ADD, SUB, MULT, DIV.
+QOPRTS LDB    FACEXP   GET IT AND SET CODES.
+UNPRTS RTS             RETURN.
+
+EVAL   JSR    HKEVAL   RAM hook.
+       CLR    VALTYP   ASSUME VALUE WILL BE NUMERIC.
+       JSR    CHRGET   GET A CHARACTER.
+       BCC    EVAL2
+EVAL1  JMP    FIN      IT IS A NUMBER.
+EVAL2  JSR    ISLETC   VARIABLE NAME?
+       BCC    ISVAR    YES.
+       CMPA   #'.      LEADING CHARACTER OF CONSTANT?
+       BEQ    EVAL1
+       CMPA   #MINUTK  NEGATION?
+       BEQ    DOMIN    SHO IS.
+       CMPA   #PLUSTK
+       BEQ    EVAL
+       CMPA   #&34     A QUOTE? A STRING?
+       BNE    EVAL3
+       XDEF   STRTXT
+STRTXT LDX    TXTPTR
+       JSR    STRLTI   YES. GO PROCESS IT.
+ST2TXT LDX    STRNG2   Reset the text pointer.
+       STX    TXTPTR
+       RTS
+
+EVAL3  CMPA   #NOTTK   CHECK FOR "NOT" OPERATOR.
+       BNE    EVAL4
+       LDA    #&90     "NOT" HAS PRECEDENCE 90.
+       JSR    LPOPER   GO PERFORM.
+       JSR    INTCNV   INTEGERIZE.
+       COMA            COMPLEMENT HIGH
+       COMB            AND COMPLEMENT LOW.
+       JMP    GIVABF   FLOAT [A,B] AS RESULT IN FAC.
+*    AND RETURN.
+EVAL4  CMPA   #FNTK    USER-DEFINED FUNCTION?
+       LBEQ   FNDOER
+       CMPA   #'&      Hex or octal constant?
+       LBEQ   HOCONS   Yes, go handle it.
+       INCA            Is it a function token?
+       BEQ    ISFUN    Yes, go handle it.
+
+       XDEF   PARCHK
+PARCHK BSR    CHKOPN   ONLY POSSIBILITY LEFT IS
+       JSR    FRMEVL   A FORMULA IN PARENTHESIS.
+*    RECURSIVELY EVALUATE THE FORMULA.
+       XDEF   CHKCLS
+CHKCLS LDB    #@51     CHECK FOR A RIGHT PARENTHESE
+       SKIP2
+       XDEF   CHKOPN
+CHKOPN LDB    #@50
+       SKIP2
+       XDEF   CHKCOM
+CHKCOM LDB    #&44
+*
+* "SYNCHK" LOOKS AT THE CURRENT CHARACTER TO MAKE SURE IT
+* IS THE SPECIFIC THING LOADED INTO ACCB JUST BEFORE THE CALL TO
+* "SYNCHK". IF NOT, IT CALLS THE "SYNTAX ERROR" ROUTINE.
+* OTHERWISE IT GOBBLES THE NEXT CHAR AND RETURNS.
+*
+* [A]=NEW CHAR AND TXTPTR IS ADVANCED BY "CHRGET".
+*
+       XDEF   SYNCHR
+SYNCHR CMPB   [TXTPTR] Is [B] same as current char?
+       BNE    SNERR    No, but it should be.
+       JMP    CHRGET   Yes, skip current char.
+       XDEF   SNERR
+SNERR  LDB    #ERRSN   "SYNTAX ERROR"
+       JMP    ERROR
+DOMIN  LDA    #&125    A PRECEDENCE BELOW "^".
+       JSR    LPOPER   BUT ABOVE ALL ELSE.
+       JMP    NEGOP    NEGATE THE FAC.
+*    AND RETURN.
+
+       XDEF   ISVAR
+ISVAR  JSR    PTRGET   GET A PNTR TO VARIABLE.
+ISVRET STX    FACMO
+       LDA    VALTYP
+       BNE    UNPRTS   THE STRING IS SET UP.
+       JMP    MOVFM    MOVE ACTUAL VALUE IN.
+*    AND RETURN.
+
+ISFUN  JSR    CHRGET   Eat the 377 octal which is the first
+*    byte of the function token and get
+*    the second byte of the function token.
+       TFR    A,B      Move token to B.
+       ASLB            Multiply by two to get a dispatch
+*    table offset and to get rid of the
+*    high order bit.
+       JSR    CHRGET   Get next char for SYNCHKs below.
+       CMPB   #TLFNTK  Is this a list 0 function?
+       BLS    ISOFUN   Yes.
+       JMP    [FUNDS0+STBLEN] No, jump to list 1 function
+*    dispatcher.
+
+ISOFUN PSHS   B        SAVE FUNCTION NUMBER.
+       CMPB   #TCLAS1  Is it a Class 0 function?
+       BLO    ISCLS0   Yes, go crack argument.
+       CMPB   #TCLAS3  No, is it a Class 3 function?
+       BHS    FINGO    Yes, no args, just dispatch.
+*    No, must be Class 2. Fall in.
+
+*
+*      MOST FUNCTIONS (Class 0) TAKE A SINGLE ARGUMENT.
+*      THE RETURN ADDRESS OF THESE FUNCTIONS IS "CHKNUM"
+*      WHICH ASCERTAINS THAT [VALTYP]=0  (NUMERIC).
+*      FUNCTIONS THAT RETURN STRING RESULTS
+*      (E.G., CHR$) MUST POP OF THAT RETURN ADDR AND
+*      RETURN DIRECTLY TO "FRMEVL".
+*
+*      Class 1 functions can take more than one argument,
+*      THE FIRST OF WHICH MUST BE STRING AND THE SECOND OF WHICH
+*      MUST BE A NUMBER BETWEEN 0 AND 255.
+*      THE CLOSED PARENTHESIS MUST BE CHECKED AND RETURN IS DIRECTLY
+*      TO "FRMEVL" WITH THE TEXT PNTR POINTING BEYOND THE ")".
+*      THE POINTER TO THE DESCRIPTOR OF THE STRING ARGUMENT
+*      IS STORED ON THE STACK UNDERNEATH THE VALUE OF THE
+*      INTEGER ARGUMENT.
+*
+*      Class 2 functions can have any number and type of arguments so
+*      the only thing done here is to check for an open parenthesis.
+*
+*      Class 3 functions have no arguments so nothing is checked here
+*      at all.
+*
+
+       BSR    CHKOPN   CHECK FOR AN OPEN PARENTHESIS
+       LDA    ,S       A:=function number.
+       CMPA   #TCLAS2  Is it a Class 2 function?
+       BHS    FINGO    Yes, open paren has been checked so
+*    just dispatch.
+       JSR    FRMEVL   EAT OPEN PAREN AND FIRST ARG.
+       BSR    CHKCOM   TWO ARGS SO COMMA MUST DELIMIT.
+       JSR    CHKSTR   MAKE SURE FIRST WAS STRING.
+       PULS   A        GET FUNCTION NUMBER.
+       LDU    FACMO    SAVE POINTER AT STRING DESCRIPTOR
+       PSHS   U,A      RESAVE FUNCTION NUMBER.
+*    THIS MUST BE ON STACK SINCE RECURSIVE.
+       JSR    GETBYT   [B]=VALUE OF FORMULA.
+       PULS   A        GET FUNCTION NUMBER.
+       PSHS   B,A      Save integer and function number.
+       FCB    &216     LDXIM to FINGO.  (Faster than CPMXIM.)
+ISCLS0 BSR    PARCHK   READ A FORMULA SURROUNDED BY PARENS.
+FINGO  PULS   B        GET DISPATCH FUNCTION.
+       LDX    FUNDS0   X:=address of function dispatch table.
+       XDEF   DOFDSP
+DOFDSP ABX             Dispatch to the function.
+       JSR    [,X]
+*    STRING FUNCTIONS REMOVE THIS RET ADDR.
+       JMP    CHKNUM   CHECK IT FOR NUMERICNESS AND RETURN.
+
+       XDEF   OROP
+OROP   SKIP1  "LDA"    TO SET [ACCA] NONZERO.
+       XDEF   ANDOP
+ANDOP  CLRA            SET [ACCA]=0.
+       STA    COUNT    KEEP THE TYPE.
+       JSR    INTCNV   D:=INT VALUE AND CHECK SIZE.
+       STD    INTEGR   STORE IT FOR LATER USE.
+       JSR    MOVFA
+       JSR    INTCNV   [FACMO&LO]= INT OF ARG.
+       TST    COUNT    SEE IF "AND" OR "OR" WITHOUT
+*    AFFECTING [A,B].
+       BNE    ORFIN    WAS "OR"
+       ANDA   INTEGR
+       ANDB   INTEGR+&1 GOT RESULT IN [A,B]
+       BRA    STOLOG
+ORFIN  ORA    INTEGR
+       ORB    INTEGR+&1 GOT RESULT OR "OR".
+STOLOG JMP    G1VABF   FLOAT AND RET TO USER.
+
+*
+* TIME TO PERFORM A RELATIONAL OPERATOR.
+* [ACCB] CONTAINS THE BITS AS TO WHICH RELATIONAL
+* OPERATOR IT WAS. LOW BIT ON=STRING COMPARE.
+*
+DOREL  JSR    CHKVAL   CHECK FOR MATCH AND SET
+*    Z-FLAG IF NUMERIC.
+       BNE    CLRVAL
+       LDA    ARGSGN   PACK ARG FOR FCOMP.
+       ORA    #&127
+       ANDA   ARGHO
+       STA    ARGHO
+       LDX    #ARGEXP
+       JSR    FCOMP
+       BRA    DOCMP
+CLRVAL CLR    VALTYP   RESULT WILL BE NUMERIC.
+       DEC    OPMASK   TURN OFF VALTYP WHICH WAS STRING.
+STRCMP JSR    FREFAC   FREE THE FACLO STRING.
+       STB    DSCTMP   SAVE FOR LATER.
+       STX    DSCTMP+&2
+       LDX    ARGMO    GET POINTER TO OTHER STRING.
+       JSR    FRETMP   FREES FIRST DESC POINTER.
+*    DOES NOT CHANGE [ACCB].
+       LDA    DSCTMP   GET COUNT INTO ACCA.
+       SBA             WHICH IS GREATER. IF 0, ALL SET UP.
+       BEQ    STASGN   JUST PUT SIGN OF DIFFERENCE AWAY.
+       LDA    #&1
+       BCC    STASGN   SIGN IS POSITIVE.
+       LDB    DSCTMP   LENGTH OF FAC IS SHORTER.
+       NEGA            GET A MINUS 1 FOR NEGATIVES.
+STASGN STA    FACSGN   KEEP FOR LATER.
+       LDU    DSCTMP+&2 SET POINTER TO SECOND.
+       INCB            TO LOOP PROPERLY.
+
+*
+* XREG HAS POINTER TO FIRST STRING.
+* UREG HAS POINTER TO SECOND STRING.
+*
+
+NXTCMP DECB            ANY CHARACTERS LEFT TO COMPARE?
+       BNE    GETCMP   NOT DONE YET.
+       LDB    FACSGN   USE SIGN OF LENGTH DIFFERENCE
+*    SINCE ALL CHARACTERS ARE THE SAME.
+       BRA    DOCMP
+GETCMP LDA    ,X+      GET NEXT CHAR TO COMPARE.
+       CMPA   ,U+      SAME?
+       BEQ    NXTCMP   YEP. TRY FURTHER.
+       LDB    #-&1     Say the first is greater than the
+*    second.
+       BCC    DOCMP    It really is.
+       NEGB            Say second is greater than first.
+DOCMP  ADDB   #&1      -1 TO 1, 0 TO 2, 1 TO 4.
+       ROLB
+       ANDB   DOMASK
+       BEQ    GOFLOT
+       LDB    #-&1     MAP 0 TO 0. ALL OTHERS TO -1.
+GOFLOT JMP    FLOAT    FLOAT THE ONE-BYTE RESULT INTO FAC.
+
+
+       TTL    DIMENSION AND VARIABLE SEARCHING.
+
+*
+* THE "DIM" CODE SETS [DIMFLG] AND THEN FALLS INTO THE VARIABLE SEARCH
+* ROUTINE, WHICH LOOKS AT DIMFLG AT THREE DIFFERENT POINTS.
+* 1) IF AN ENTRY IS FOUND, "DIMFLG" BEING ON INDICATES
+*  A "DOUBLY" DIMENSIONED VARIABLE.
+* 2) WHEN A NEW ENTRY IS BEING BUILT "DIMFLG" BEING ON
+*  INDICTAES THE INDICES SHOULD BE USED FOR THE                                                                                               !,
+*  SIZE OF EACH INDEX. OTHERWISE THE DEFAULT OF TEN
+*  IS USED.
+* 3) WHEN THE BUILD ENTRY CODE FINISHES, ONLY IF "DIMFLG" IS OFF
+*  WILL INDEXING BE DONE.
+*
+DIM3   JSR    CHKCOM   MUST BE A COMMA
+       XDEF   DIM
+DIM    LDB    #&1      SET [ACCB] NONZERO. 
+DIM1   BSR    PTRGT1 
+DIMCON JSR    CHRGOT   GET LAST CHARACTER.
+       BNE    DIM3
+       RTS
+*
+* ROUTINE TO READ THE VARIABLE NAME AT THE CURRENT TEXT POSITION
+* AND PUT A POINTER TO ITS VALUE IN VARPNT. [TXTPTR]
+* POINTS TO THE TERMINATING CHARCTER.. NOT THAT EVALUATING SUBSCRIPTS
+* IN A VARIABLE NAME CAN CAUSE RECURSIVE CALLS TO "PTRGET" SO AT
+* THAT POINT ALL VALUES MUST BE STORED ON THE STACK.
+*
+       XDEF   PTRGET 
+PTRGET CLRB            MAKE [ACCB]=0.
+       JSR    CHRGOT   RETRIEVE LAST CHARACTER. 
+PTRGT1 STB    DIMFLG   STORE FLAG AWAY.
+       XDEF   PTRGT2 
+PTRGT2 STA    VARNAM
+       JSR    CHRGOT   GET CURRENT CHARACTER
+*    MAYBE WITH FUNCTION BIT OFF.
+       BSR    ISLETC   CHECK FOR LETTER.
+       LBCS   SNERR    MUST HAVE A LETTER.
+       CLRB            ASSUME NO SECOND CHARACTER.
+       STB    VALTYP   DEFAULT IS NUMERIC.
+       JSR    CHRGET   GET FOLLOWING CHARACTER.
+       BCS    ISSEC    CARRY SET BY CHRGET IF NUMERIC.
+       BSR    ISLETC   SET CARRY IF NOT ALPHABETIC.
+       BCS    NOSEC    ALLOW ALPHABETICS.
+ISSEC  TFR    A,B      IT IS A NUMBER -- SAVE IN ACCB.
+EATEM  JSR    CHRGET   LOOK AT NEXT CHARACTER.
+       BCS    EATEM    SKIP NUMERICS.
+       BSR    ISLETC
+       BCC    EATEM    SKIP ALPHABETICS.
+NOSEC  CMPA   #'$      IS IT A STRING?
+       BNE    NOTSTR   IF NOT, [VALTYP]=0.
+       COM    VALTYP   SET [VALTYP]=377 (STRING !).
+       ADDB   #&128    TURN ON MSB OF SECOND CHARACTER.
+       JSR    CHRGET   GET CHARACTER AFTER $.
+NOTSTR STB    VARNAM+&1 STORE AWAY SECOND CHARACTER. 
+       ORA    SUBFLG   OR in flag which says whether to 
+*    allow arrays.
+       SUBA   #@50     (CHECK FOR "(") WON'T MATCH IF SUBFLG SET.
+       LBEQ   ISARY    IT IS!
+       CLR    SUBFLG   ALLOW SUBSCRIPTS AGAIN. 
+       LDX    VARTAB   PLACE TO START SEARCH. 
+       LDD    VARNAM
+LOPFND CMPX   ARYTAB   AT END OF TABLE YET?
+       BEQ    NOTFNS   YES. WE COULDN'T FIND IT.
+       CMPD   ,X++     COMPARE THE NAMES.
+       BEQ    FINNOW   THIS IS THE ONE.
+NOTIT  LEAX   &4+ADDPRC,X MOVE ON. UGG. 
+       BRA    LOPFND
+
+*
+* TEST FOR A LETTER. / CARRY ON= NOT A LETTER.
+*     CARRY OFF= A LETTER.
+*
+       XDEF   ISLETC
+ISLETC CMPA   #'A 
+       BCS    ISLRTS
+       SUBA   #'Z+&1 
+       SUBA   #-'Z-&1
+ISLRTS RTS             RETURN TO CALLER.
+
+NOTFNS LDX    #DBLZER  IN CASE EVAL IS CALLING WE RETURN A
+       LDU    ,S       A POINTER TO A SIMULATED ZERO SO
+       CMPU   #ISVRET  ARRAY VARIABLES DON'T GET MOVED AND
+       BEQ    PTRRTS   SCREW UP THE LIKES OF A(I)=S WHERE 
+*    S IS UNDEFINED.  NOTE THAT A POINTER
+*    TO A SINGLE BYTE ZERO LOOKS LIKE A
+*    FLOATING POINT ZERO (EXPONENT=0) OR
+*    A NULL STRING (LENGTH=0).
+       LDD    STREND   GET HIGHEST ADDR TO MOVE.
+       STD    HIGHTR
+       ADDD   #&6+ADDPRC Add length of new VARTAB entry.
+       STD    HIGHDS   PLACE TO STUFF IT.
+       LDX    ARYTAB
+       STX    LOWTR    LOWEST THING TO MOVE.
+       JSR    BLTU     MOVE IT ALL.
+*    NOTE ALL [A,B] HAS [HIGHDS] FOR REASON.
+       LDX    HIGHDS   NEW STREND
+       STX    STREND   IS SET HERE.
+       LDX    LOWDS    AND SET UP
+       STX    ARYTAB   NEW START OF ARRAY TABLE.
+       LDX    LOWTR    GET ADDR OF VARIABLE ENTRY.
+       LDD    VARNAM
+       STD    ,X++     STORE NAME OF VARIABLE.
+       CLRA            ZERO OUT THE VALUE.
+       CLRB
+       STD    ,X
+       STD    &2,X
+       IFNE   ADDPRC
+       STA    &4,X
+       ENDC   IFN      ADDPRC
+FINNOW STX    VARPNT   THIS IS IT.
+PTRRTS RTS
+       TTL    MULTIPLE DIMENSION CODE.
+
+*
+* INTIDX READS A FORMULA FROM THE CURRENT POSITION AND
+* TURNS IT INTO A POSITIVE INTEGER
+* LEAVING THE RESULT IN [FACMO,FACLO]. NEGATIVE ARGUMENTS
+* ARE NOT ALLOWED.
+*
+N32768 FCB    &144,&128,&0,&0 -32768.
+       IFNE   ADDPRC
+       FCB    &0
+       ENDC   IFN      ADDPRC
+
+       XDEF   INTIDX
+INTIDX JSR    CHRGET
+       XDEF   INTID2
+INTID2 JSR    FRMNUM   GET A NUMBER
+POSINT JSR    CHKNUM   Make sure it's numeric for callers
+*    coming in at POSINT. (Can't wait
+*    for check to be made at INTCNV since
+*    can't rely on FACSGN for strings.)
+       LDA    FACSGN
+       BMI    FCERR    IF NEGATIVE, BLOW HIM OUT.
+       XDEF   INTCNV
+INTCNV JSR    CHKNUM   Make sure it's numeric for callers
+*    coming in at INTCNV. 
+       LDA    FACEXP
+       CMPA   #&144    FAC .GT. 32767?
+       BCS    QINTGO
+       LDX    #N32768  GET ADDR OF -32768.
+       JSR    FCOMP    SEE IF FAC=[[X]].
+       BNE    FCERR    NO, FAC IS TOO BIG.
+QINTGO JSR    QINT     Get the integer part.
+       LDD    FACMO    Return it in D for the callers.
+       RTS
+*
+* FORMAT OF ARRAYS IN CORE.
+*
+* DESCRIPTOR:
+* LOWBYTE = FIRST CHARACTER.
+* HIGHBYTE = SECOND CHARACTER (200 BIT IS STRING FLAG).
+* LENGTH OF ARRAY IN CORE IN BYTES (INCLUDES EVERYTHING).
+* NUMBER OF DIMENSIONS.
+* FOR EACH DIMENSION STARTING WITH THE FIRST A LIST
+* (2 BYTES EACH) OF THE MAX INDICE+1
+* THE VALUES
+*
+ISARY  LDB    DIMFLG   SAVE DIMFLG AND VALTYP FOR RECURSION.
+       LDA    VALTYP
+       PSHS   B,A
+       CLRB            SET NUMBER OF DIMENSIONS TO ZERO.
+INDLOP LDX    VARNAM   SAVE VARIABLE NAME AND NUMBER OF DIMS.
+       PSHS   X,B
+       BSR    INTIDX   EVALUATE INDEX INTO FACMO&LO.
+       PULS   B,X,Y    B:=NUMBER OF DIMS, X:=VARNAM, AND
+*    Y:=VALTYP,DIMFLG.
+       STX    VARNAM   PUT VARNAM BACK.
+       LDU    INDICE   PUT INDEX ON AND FOLLOW WITH DIMFLG
+       PSHS   U,Y      AND VALTYP.
+       INCB            INCREMENT # OF DIMS.
+       JSR    CHRGOT   GET TERMINATING CHARACTER.
+       CMPA   #&44     A COMMA?
+       BEQ    INDLOP   YES.
+       STB    COUNT    SAVE COUNT OF DIMS.
+       JSR    CHKCLS   MUST BE CLOSED PAREN.
+       PULS   A,B      GET BACK VALTYP AND DIMFLG.
+       STA    VALTYP
+       STB    DIMFLG
+       LDX    ARYTAB   PLACE TO START SEARCH.
+LOPFDA CMPX   STREND
+       BEQ    NOTFDD   A FINE THING! NO ARRAY!. 
+       LDD    VARNAM   COMPARE THE NAMES.
+       CMPD   ,X
+       BEQ    GOTARY   WELL, HERE IT IS !! 
+       LDD    &2,X     GET LENGTH.
+       LEAX   D,X      ADD IT TO [XREG].
+       BRA    LOPFDA
+GOTARY LDB    #ERRDD   PERHAPS A "RE-DIMENSION" ERROR 
+       LDA    DIMFLG   TEST THE DIMFLG
+       BNE    ERRGO3
+       LDB    COUNT    GET NUMBER OF DIMS INPUT. 
+       CMPB   &4,X     # OF DIMS THE SAME?
+       BEQ    GETDEF   SAME SO GO GET DEFINITION. 
+BSERR  LDB    #ERRBS   GET BAD SUB ERROR NUMBER.
+       SKIP2
+       XDEF   FCERR
+FCERR  LDB    #ERRFC   TOO BIG. "FUNCTION CALL" ERROR. 
+ERRGO3 JMP    ERROR
+
+*
+* HERE WHEN VARIABLE IS NOT FOUND IN THE ARRAY TABLE.
+*
+* BUILDING AN ENTRY.
+*
+* PUT DOWN THE DESCRIPTOR.
+* SETUP NUMBER OF DIMENSIONS.
+* MAKE SURE THERE IS ROOM FOR THE NEW ENTRY.
+* REMEMBER "VARPNT".
+* TALLY=4.
+* SKIP 2 LOCS FOR LATER FILL IN OF SIZE.
+* LOOP: GET AN INDICE
+* PUT DOWN NUMBER+1 AND INCREMENT VARPTR.
+* TALLY=TALLY*NUMBER+1.
+* DECREMENT NUMBER-DIMS.
+* BNE LOOP
+* CALL "REASON" WITH [A,B] REFLECTING LAST LOC OF VARIABLE.
+* UPDATE STREND.
+* ZERO ALL.
+* MAKE TALLY INCLUDE MAXDIMS AND DESCRIPTOR. 
+* PUT DOWN TALLY.
+* IF CALLED BY DIMENSION, RETURN.
+* OTHERWISE INDEX INTO THE VARIABLE AS IF IT
+*  WERE FOUND ON THE INITIAL SEARCH.
+*
+NOTFDD LDD    #&4+ADDPRC Initial tally is length of a single
+       STD    CURTOL   element value.
+       LDD    VARNAM
+       STD    ,X
+       LDB    COUNT
+       STB    &4,X     SAVE NUMBER OF DIMENSIONS.
+       JSR    GETSTK   GET ROOM FOR DIMENSION ENTRIES.
+       STX    ARYPNT   SAVE TO KNOW WHERE TO STORE SIZE.
+LOPPTA LDB    #&11     DEFAULT SIZE.
+       CLRA
+       TST    DIMFLG
+       BEQ    NOTDIM   NOT IN A DIM STATEMENT.
+       PULS   A,B      GET THE INDEX.
+       ADDD   #&1      INCREMENT IT
+NOTDIM STD    &5,X     STORE INDEX.
+       BSR    UMULT    [A,B]=[CURTOL]*[5&6,X].
+       STD    CURTOL   SAVE NEW TALLY.
+       LEAX   &2,X     MOVE POINTER AHEAD.
+       DEC    COUNT    ANY MORE INDICES LEFT?
+       BNE    LOPPTA   YES.
+       STX    TEMPX1   TEMPX1:=X for later, X:=X+D.
+       ADDD   TEMPX1
+       LBCS   OMERR    Not enough memory for this array.
+       TFR    D,X      Save pointer for clearing the array.
+       JSR    REASON   GET ROOM.
+*    MISSING FIVE WON'T HURT SINCE
+*    2*NUMLEV=38.
+       SUBD   #&2*NUMLEV-&5 SUB 2*NUMLEV ADDED BY REASON AND ADD 5.
+       STD    STREND   NEW END OF STORAGE.
+       CLRA            STORING [ACCA] IS FASTER THAN CLEAR.
+ZERITA DEX             NO NEED TO ZERO TOP OF MEMORY.
+       STA    &5,X     ZERO  !!
+       CMPX   TEMPX1   STOP? (TEMPX1 was set up above.)
+       BNE    ZERITA   NO. CONTINUE.
+       LDX    ARYPNT   WHERE TO STORE LENGTH.
+       LDA    STREND   RESTORE [ACCA].
+       SUBD   ARYPNT   DETERMINE LENGTH.
+       STD    &2,X     Put it away.
+       LDA    DIMFLG
+       BNE    DIMRTS   BYE.
+*
+* AT THIS POINT [XREG,4] POINTS BEYOND THE SIZE TO THE NUMBER OF
+* DIMENSIONS. STRATEGY:
+* NUMDIM=NUMBER OF DIMENSIONS.
+* CURTOL=0.
+* INLPNM:GET A NEW INDICE.
+* MAKE SURE INDICE IS NOT TOO BIG.
+* MULTIPLY CURTOL BY CURMAX.
+* ADD INDICE TO CURTOL.
+* NUMDIM=NUMDIM-1.
+* BNE INLPNM.
+* USE [CURTOL]*4 AS OFFSET.
+*
+GETDEF LDB    &4,X
+       STB    COUNT    SAVE A COUNTER.
+       CLRA            ZERO [CURTOL].
+       CLRB
+INLPNM STD    CURTOL
+       PULS   A,B      Get the index.
+       STD    INDICE
+       CMPD   &5,X     If it is greater than or equal to the
+       BCC    BSERR7   number of elements in this dimension
+*    give a Bad Subscript error.  (Remember
+*    that indices start at 0 so this check
+*    is correct.)
+INLPN1 LDU    CURTOL   DON'T MULTIPLY IF CURTOL=0.
+       BEQ    NOMULT
+       BSR    UMULT    MULTIPLY [A,B] BY [5&6,X].
+       ADDD   INDICE   ADD IN [INDICE].
+NOMULT LEAX   &2,X     BUMP INDEX.
+       DEC    COUNT    ANY MORE?
+       BNE    INLPNM   YES.
+       IFNE   ADDPRC
+       STD    ,--S     Save for multiply by 5.
+       ENDC   IFN      ADDPRC
+       ASLB            MULTIPLY RESULT BY FOUR.
+       ROLA 
+       ASLB
+       ROLA 
+       IFNE   ADDPRC
+       ADDD   ,S++     Multiply by five.
+       ENDC   IFN      ADDPRC
+       LEAX   D,X      Use as offset into array.
+       LEAX   &5,X     Account for five bytes at start of
+*    array. (2 for name, 2 for length, 1
+*    for number of dims.)
+       STX    VARPNT   SET VARIABLE POINTER.
+DIMRTS RTS             RETURN TO CALLER.
+
+       TTL    INTEGER ARITHMETIC ROUTINES.
+
+* TWO BYTE UNSIGNED INTEWER MULTIPLY.
+* THIS IS FOR MULTIPLY DIMENSIONED ARRAYS.
+*  [A,B]=[CURTOL]*[5&6,X].
+UMULT  LDA    #&16
+       STA    DECCNT   HAVE TO PUT IT IN MEMORY.
+       LDD    &5,X     Put [5&6,X] in faster memory.
+       STD    ADDEND
+       CLRA            CLR THE ACCS.
+       CLRB            RESULT INITIALLY ZERO.
+UMULTC ASLB            MULTIPLY BY TWO.
+       ROLA
+       BCS    BSERR7   TWO MUCH !
+       ASL    CURTOL+&1
+       ROL    CURTOL
+       BCC    UMLCNT   NOTHING IN THIS POSITION TO MULTIPLY.
+       ADDD   ADDEND
+       BCS    BSERR7   MAN, JUST TOO MUCH !
+UMLCNT DEC    DECCNT   DONE?
+       BNE    UMULTC   KEEP IT UP.
+UMLRTS RTS             YES, ALL DONE.
+BSERR7 JMP    BSERR    DISPATCH.
+       TTL    FRE FUNCTION AND INTEGER TO FLOATING ROUTINES.
+
+       IFNE   FRESW
+ ENDC   IFN FRESW
+
+       IFNE   MEMSW
+       XDEF   MEM
+MEM    TFR    S,D      Subtract storage end from stack
+       XREF   PATCHM
+       JMP    PATCHM
+       ENDC   IFN      MEMSW
+
+       XDEF   SNGFLT
+SNGFLT CLRA            Use only B.
+       XDEF   GIVABF
+GIVABF CLR    VALTYP   SET NUMERIC.
+       STD    FACHO
+       LDB    #&144    SET EXPONENT TO 2^16.
+       JMP    FLOATS   TURN IT TO A FLOATING PNT #.
+
+       TTL    STRING FUNCTIONS.
+
+*
+* THE STR$ FUNCTION TAKES A NUMBER AND GIVES A STRING
+* WITH THE CHARACTERS THE OUTPUT OF THE NUMBER
+* WOULD HAVE GIVEN.
+*
+       XDEF   STR$
+STR$   JSR    CHKNUM   ARG HAS TO BE NUMERIC.
+       LDU    #LOFBUF
+       JSR    FOUTC    DO ITS OUTPUT.
+       LEAS   &2,S     GET RID OF "CHKNUM" RETURN ADDR.
+       LDX    #LOFBUF-&1
+       BRA    STRLTI   SCAN IT AND TURN IT INTO A STRING.
+*
+* "STRINI" GET STRING SPACE FOR THE CREATION OF A STRING AND
+* CREATES A DESCRIPTOR FOR IT IN "DSCTMP".
+*
+STRINI STX    DSCPNT   RETAIN THE DESCRIPTOR POINTER.
+       XDEF   STRSPA
+STRSPA BSR    GETSPA   GET STRING SPACE.
+STRAD2 STX    DSCTMP+&2 SAVE LOCATION.
+       STB    DSCTMP   SAVE LENGTH.
+       RTS             ALL DONE.
+*
+* "STRLT2" TAKES THE STRING LITERAL WHOSE FIRST CHARACTER
+* IS POINTED TO BY [XREG]+1 AND BUILDS A DESCRIPTOR FOR IT. 
+* THE DESCRIPTOR IS INITIALLY BUILT IN "DSCTMP", BUT "PUTNEW"
+* TRANSFERS IT INTO A TEMPORARY AND LEAVES A POINTER
+* AT THE TEMPORARY IN FACMO&LO. THE CHARACTERS OTHER THAN
+* ZERO THAT TERMINATE THE STRING SHOULD BE SET UP IN "CHARAC"
+* AND "ENDCHR". IF THE TERMINATOR IS A QUOTE, THE QUOTE IS SKIPPED
+* OVER. LEADING QUOTES SHOULD BE SKIPPED BEFORE JSR. ON RETURN
+* THE CHARACTER AFTER THE STRING LITERAL IS POINTED TO
+* BY [STRNG2].
+*
+       XDEF   STRLIT
+STRLIT DEX
+       XDEF   STRLTI
+STRLTI LDA    #&34     ASSUME STRING ENDS ON QUOTE.
+       XDEF   STRLT3
+STRLT3 STA    CHARAC
+       STA    ENDCHR
+STRLT2 INX             SET BEGINING.
+       STX    STRNG1   SAVE POINTER TO STRING.
+       STX    DSCTMP+&2 IN CASE NO STRCPY.
+       LDB    #&255    INITIALIZE CHARACTER COUNT.
+STRGET INCB            INCREMENT CHARACTER COUNT.
+       LDA    ,X+      GET CHARACTER.
+       BEQ    STRFI2   IF ZERO.
+       CMPA   CHARAC   THIS TERMINATOR?
+       BEQ    STRFIN   YES.
+       CMPA   ENDCHR
+       BNE    STRGET   LOOK FURTHER.
+STRFIN CMPA   #&34     QUOTE?
+       BEQ    STRFI1
+STRFI2 DEX             NO, BACK UP.
+STRFI1 STX    STRNG2   FOR ANYONE WISHING TO SET [TXTPTR].
+       STB    DSCTMP   RETAIN COUNT.
+       JSR    HKSCP2   RAM hook for string copy check.
+       LDU    STRNG1   If string is above LOFBUF it need
+       CMPU   #LOFBUF  not be copied into string space.
+       BHI    PUTNEW   Don't copy.
+       BSR    STRINI   Need to copy the string.
+       LDX    STRNG1
+       JSR    MOVSTR   MOVE STRING.
+*
+* SOME STRING FUNCTION IS RETURNING A RESULT IN DSCTMP.
+* SETUP A TEMP DESCRIPTOR WITH DSCTMP IN IT.
+* PUT A POINTER TO THE DESCRIPTOR IN FACMO&LO AND FLAG THE
+* RESULT AS TYPE STRING.
+*
+PUTNEW LDX    TEMPPT   POINTER TO FIRST FREE TEMP.
+       CMPX   #TEMPST+STRSIZ*NUMTMP
+       BNE    PUTNW1
+       LDB    #ERRST   STRING TEMPORARY ERROR.
+ERRGO2 JMP    ERROR    GO TELL HIM.
+PUTNW1 LDA    DSCTMP   Move DSCTMP into the temporary.
+       STA    &0,X     Move the length.
+       LDD    DSCTM2+&2 Follow with the address.
+       STD    &2,X
+       LDA    #-&1
+       STA    VALTYP   TYPE IS "STRING".
+       STX    LASTPT   SET POINTER TO LAST-USED TEMP.
+       STX    FACMO    POINTER TO STRING
+       LEAX   STRSIZ,X POINT TO NEXT TEMP IF THERE IS ONE.
+       STX    TEMPPT   SAVE POINTER TO NEXT TEMP IF ANY.
+       RTS             ALL DONE.
+
+*
+* GETSPA - GET SPACE FOR CHARACTER STRING.
+* MAY FORCE GARBAGE COLLECTION.
+*
+* # OF CHARACTERS (BYTES) IN ACCB.
+* RETURNS WITH POINTER IN XREG. OTHERWISE (IF CAN'T GET
+* SPACE) BLOWS OFF TO "OUT OF STRING SPACE" TYPE ERROR.
+* ALSO PRESERVES [ACCB] AND SETS [FRESPC]=[XREG]=PNTR AT SPACE.
+*
+       XDEF   GETSPA
+GETSPA CLR    GARBFL   SIGNAL NO GARBAGE COLLECTION YET.
+TRYAG2 CLRA            SAVE AMOUNT OF STRING SPACE NEEDED.
+       PSHS   B,A
+       LDD    FRETOP   IS THERE ENOUGH FREE SPACE?
+       SUBD   ,S+      (LEAVE ONLY SINGLE BYTE COUNT OF
+*    BYTES NEEDED ON STACK.)
+       CMPD   STKTOP   THERE IS NOT ENOUGH IF FRETOP-AMOUNT 
+*    NEEDED IS BELOW STKTOP.
+       BCS    GARBAG   NO, CLEAN UP AND TRY AGAIN.
+       STD    FRETOP   YES, SAVE NEW [FRETOP].
+       LDX    FRETOP   GET ANSWER IN XREG.
+       LEAX   &1,X     MOVE BACK TO POINT TO STRING.
+       STX    FRESPC   PUT IT THERE OLD MAN.
+       PULS   B,PC     GET COUNT BACK IN ACCB AND RETURN.
+
+GARBAG LDB    #ERRSO   "OUT OF STRING SPACE"
+       COM    GARBFL   HAS COLLECTION ALREADY BEEN DONE? 
+       BEQ    ERRGO2   YES, GIVE OS ERROR.
+       BSR    GARBA2   NO, GO DO IT.
+       PULS   B        GET BACK STRING LENGTH.
+       BRA    TRYAG2   NOW SEE IF THERE IS ENOUGH ROOM.
+
+GARBA2 LDX    MEMSIZ   START FROM TOP DOWN.
+       IFEQ   REALIO
+ ENDC   IFE REALIO 
+FNDVAR STX    FRETOP   LIKE SO. 
+       CLRA            GRBPNT:=0.
+       CLRB
+       STD    GRBPNT
+       LDX    STKTOP
+       STX    GRBTOP
+       LDX    #TEMPST
+TVAR   CMPX   TEMPPT   DONE WITH TEMPS? 
+       BEQ    SVARS    YEP.
+       BSR    DVAR
+       BRA    TVAR     LOOP.
+SVARS  LDX    VRRTAB   GET START OF SIMPLE VARIABLES.
+SVAR   CMPX   ARYTAB   DONE WITH SIMPLE VARIABLES?
+       BEQ    ARYVAR   YEP.
+       BSR    DVARS    DO IT , AGAIN.
+       BRA    SVAR     LOOP.
+ARYVAR STX    ARYPNT   SAVE FOR ADDITION.
+ARYVA2 LDX    ARYPNT   GET THE POINTER TO VARIABLE.
+ARYVA3 CMPX   STREND   DONE WITH ARRAYS? 
+       BEQ    GRBPAS   YES, GO FINISH UP. 
+       LDD    &2,X     GET LENGTH.
+       ADDD   ARYPNT   ADD IN START.
+       STD    ARYPNT   GET POINTER TO NEXT ARRAY VARIABLE. 
+       LDA    &1,X     SEE IF STRING VARIABLE.
+       BPL    ARYVA2   NO.
+       LDB    &4,X     GET LENGTH OF DIM STORAGE.
+       ASLB            MULTIPLY BY 2.
+       ADDB   #&5      ADD ON HEADER LENGTH.
+       ABX             ADD VALUE TO [XREG]. 
+*    GIVING START OF VALUES.
+ARYSTR CMPX   ARYPNT   END OF THE ARRAY?
+       BEQ    ARYVA3   YES.
+       BSR    DVAR
+       BRA    ARYSTR   CYCLE.
+DVARS  LDA    &1,X     IS THIS A STRING VARIABLE?
+       LEAX   &2,X     (POINT TO LENGTH)
+       BPL    DVARTS   NO, SKIP IT.
+DVAR   LDB    ,X       IS LENGTH=0?
+       BEQ    DVARTS   YES, RETURN.
+       LDD    &2,X     GET ADDRESS OF STRING DATA.
+       CMPD   FRETOP   IF IT'S ABOVE FRETOP THERE IS NO NEED
+       BHI    DVARTS   TO LOOK AT IT FURTHER.
+       CMPD   GRBTOP   SKIP IT IF IT ISN'T BETTER THAN THE
+       BLS    DVARTS   CURRENT BEST.  (THAT IS IF IT IS
+*    LESS THAN ON EQUAL TO GRPTOB.)
+       STX    GRBPNT   IT IS BETTER, UPDATE GRPTOB.
+       STD    GRBTOP
+DVARTS LEAX   &4+ADDPRC,X SKIP OVER VARIABLE VALUE.
+GRBRTS RTS             DONE.
+*
+* HERE WHEN MADE ONE COMPLETE PASS THROUGH STRING VARIABLES.
+*
+GRBPAS LDX    GRBPNT   VARIABLE POINTER.
+       BEQ    GRBRTS   ALL DONE.
+       CLRA            GET LENGTH OF STRING INTO A,B.
+       LDB    ,X
+*   NOTE: GRBTOP=LOWTR SO NO NEED TO SET LOWTR.
+       DECB            SO ADDITION GIVES [LOWTR]+[A,B]-1.
+       ADDD   LOWTR
+       STD    HIGHTR
+       LDX    FRETOP
+       STX    HIGHDS   WHERE IT ALL GOES.
+       JSR    BLTUC
+       LDX    GRBPNT   GET ADDR OF VARIABLE.
+       LDD    LOWDS    GET POSITION OF START OF RESULT. 
+       STD    &2,X     CHANGE ADDRESS OF STRING IN THE
+*    DESCRIPTOR.
+       LDX    LOWDS
+       LEAX   -&1,X
+       JMP    FNDVAR   GO TO FNDVAR WITH SOMETHING FOR
+*    [FRETOP]. 
+*
+* THE FOLLOWING ROUTINE CONCATENATES TWO STRINGS.
+* THE FAC CONTAINS THE FIRST ONE AT THIS POINT.
+• [TXTPTR] POINTS TO THE + SIGN.
+*
+CAT    LDD     FACMO   PUSH THE POINTER TO THE LEFT HAND
+       PSHS    B,A     STRING DESCRIPTOR.
+       JSR     EVAL    CAN COME BACK HERE SINCE
+*    OPERATOR IS KNOWN.
+       JSR     CHKSTR  RESULT MUST BE STRING.
+       PULS    X       X:=POINTER TO LEFT SIDE DESCRIPTOR.
+       STX     STRNG1  SAVE IT.
+       LDB      X      GET LENGTH OF OLD STRING.
+       LOX     FACMO   GET SECOND DESC'S PNTR.
+       ADDB    ,X
+       BCC     SIZEOK  RESULT IS LESS THAN 256.
+       LDB     #ERRLS  ERROR "LONG STRING".
+       JMP    ERROR
+SIZEOK JSR    STRINI   INITIALIZE STRING.
+       LDX    STRNG1   POINTER TO FIRST STRING.
+       LDB    ,X
+       BSR    MOVINS   MOVE IT.
+       LDX    DSCPNT   GET POINTER TO SECOND.
+       BSR    FRETMP   FREE IT.
+       BSR    MOVSTR
+       LDX    STRNG1
+       BSR    FRETMP
+       JSR    PUTNEW
+       JMP    TSTOP    "CAT" REENTERS FORM EVAL AT TSTOP.
+
+       XDEF   MOVINS
+MOVINS LDX    &2,X     X:-=POINTER TO ACTUAL STRING DATA.
+MOVSTR LDU    FRESPC   U:=POINTER TO WHERE IT GOES.
+       INCB            CATCH SO WE DON'T COPY NULL STRINGS.
+       BRA    QMOVE
+MOVLP  LDA    ,X+      GET CHAR FROM SOURCE.
+       STA    ,U+      STORE IN DEST.
+QMOVE  DECB            CONTINUE UNTIL COUNT IS EXHAUSTED.
+       BNE    MOVLP
+       STU    FRESPC   SAVE POINTER IN CASE MORE STRINGS
+       RTS             ARE MOVED.
+
+*
+* "FRETMP" IS PASSED A STRING DESCRIPTOR PNTR IN XREG.
+* A CHECK IS MADE TO SEE IF THE STRING DESCRIPTOR POINTS TO THE LAST
+* TEMPORARY DESCRIPTOR ALLOCATED BY PUTNEW.
+* IF SO, THE TEMPORARY IS FREED UP BY THE UPDATING OF [TEMPPT].
+* IF A TEMP IS FREED UP, A FURTHER CHECK SEES IF THE STRING DATA THAT
+* THAT STRING TEMP PNT'D TO IS THE LOWEST PART OF STRING SPACE IN USE.
+* IF SO, [FRETOP] IS UPDATED TO REFLECT THE FACT THAT THE SPACE
+* IS NO LONGER IN USE.
+*
+       XDEF   FRESTR
+FRESTR JSR    CHKSTR   MAKE SURE ITS A STRING.
+       XDEF   FREFAC
+FREFAC LDX    FACMO    FREE UP STR PNT'D TO BY FAC.
+       XDEF   FRETMP
+FRETMP LDB    ,X       GET LENGTH FOR LATER.
+       BSR    FRETMS   FREE UP THE TEMPORARY DESC.
+       BNE    FRETRT   RETURN.
+       LDX    STRSIZ+&2,X GET POINTER TO STRING ITSELF.
+       DEX             DECREMENT POINTER TO STRING.
+       CMPX   FRETOP
+       BNE    FREINX   IT IS NOT THE LAST STRING.
+       PSHS   B        SAVE ACCB.
+       ADDD   FRETOP
+       STD    FRETOP   GET RID OF SPACE USED BY STRING.
+       PULS   B        GET ACCB BACK.
+FREINX INX             POINT TO NEW STRING.
+       RTS             DONE
+FRETRT LDX    &2,X     GET POINTER TO STRING ITSELF.
+       RTS
+FRETMS CMPX   LASTPT   LAST ENTRY TO TEMP?
+       BNE    FRERTS
+       STX    TEMPPT
+       LEAX   -STRSIZ,X POINT TO LAST ONE.
+       STX    LASTPT   UPDATE TEMP PNTR.
+       CLRA            ZERO [ACCA] FOR POSSIBLE ADD.
+*    ALSO CLEARS ZFLG SO WE DO REST OF FRETMP.
+FRERTS RTS             ALL DONE.
+*
+* THE FUNCTION LEN($) RETURNS THE LENGTH OF THE STRING
+* PASSED AS AN ARGUMENT.
+*
+       XDEF   LEN
+LEN    BSR    LEN1
+GOSGFL JMP    SNGFLT
+       XDEF   LEN1
+LEN1   BSR    FRESTR   FREE UP STRING.
+       CLR    VALTYP   FORCE NUMERIC.
+       TSTB            SET CODES ON LENGTH.
+       RTS             DONE.
+*
+* CHR$(#) CREATES A STRING WHICH CONTAINS AS ITS ONLY
+* CHARACTER THE ASCII EQUIVALENT OF THE INTEGER ARGUMENT (#)
+* WHICH MUST BE .LT. 255.
+*
+       XDEF   CHR$
+CHR$   JSR    CONINT   GET INTEGER IN RANGE.
+       XDEF   CHR$DO
+CHR$DO LDB    #&1      ONE-CHARACTER STRING.
+       JSR    GETSPA   GET SPACE FOR STRING.
+       LDA    FACLO    GET INTEGER.
+       JSR    STRAD2   SAVE INFO AWAY.
+       STA    ,X
+       XDEF   GOPTNW
+GOPTNW LEAS   &2,S     GET RID OF "CHKNUM" RETURN ADDR.
+RL$RET JMP    PUTNEW   SETUP FAC TO POINT TO DESC.
+*
+* THE FOLLOWING IS THE ASC($) FUNCTION. IT RETURNS
+* AN INTEGER WHICH IS THE DECIMAL ASCII EQUIVALENT.
+*
+       XDEF   ASC
+ASC    BSR    ASC2
+       BRA    GOSGFL   GOTO SNGFLT
+       XDEF   ASC2
+ASC2   BSR    LEN1
+       BEQ    GOFUC    NULL STRING, BAD ARG.
+       LDB    ,X       GET CHARACTER.
+       RTS
+*
+* THE FOLLOWING IS THE LEFT$($,#) FUNCTION.
+* IT TAKES THE LEFTMOST # CHARACTERS OF THE STRING.
+* IF # .GT. THE LEN OF THE STRING, IT RETURNS THE WHOLE STRING.
+*
+       XDEF   LEFT$
+LEFT$  BEIR   PREAM    TEST THE PARAMETERS.
+       XDEF   LEFTUS
+LEFTUS CLRA            LEFT NEVER CHANGES STRING POINTER. 
+RLEFT  CMPB   ,X       COMPARE LENGTHS.
+       BLS    RLEFT1
+       LDB    ,X       GET ALL THE STRING. 
+       CLRA            ANOTHER CLR A FOR RIGHT$.
+RLEFT1 PSHS   B,A      SAVE LENGTH AND OFFSET.
+       JSR    STRSPA   GET A PLACE TO PUT RESULT.
+       LDX    DSCPNT   GET POINTER TO STRING.
+       BSR    FRETMP   FREE IT UP.
+       PULS   B        B:=OFFSET.
+       ABX             ADD IN OFFSET.
+       PULS   B        B:=LENGTH.
+       JSR    MOVSTR   GO MOVE IT.
+       BRA    RL$RET   PUT TEMP IN TEMP LST.
+       XDEF   RIGHT$
+RIGHT$ BSR    PREAM    CHECK ARG.
+       SUBA   ,X       A:=OFFSET INTO STRING.
+       NEGA
+       BRA    RLEFT    CHECK IT FOR SIZE.
+
+* MID ($,#) RETURNS STRING WITH CHARS FROM # POSITION                                          I
+* ONWARD. IF # .GT. LEN ($) THEN RETURN NULL STRING. 
+* MID ($,#,#) RETURNS STRING WITH CHARACTERS FROM
+* # POSITION FOR #2 CHARACTERS. IF #2 GOES PAST END OF STRING 
+* RETURN AS MUCH AS POSSIBLE.
+
+       XDEF   MID$
+MID$   LDB    #&255    DEFAULT.
+       STB    FACLO    SAVE FOR LATER COMPARE.
+       JSR    CHRGOT   GET CURRENT CHARACTER.
+       CMPA   #@51     IS IT A RIGHT PAREN )?
+       BEQ    MID2     NO THIRD PARAM.
+       JSR    CHKCOM   MUST HAVE COMMA.
+       BSR    GETBYT   GET THE LENGTH INTO "FACLO".
+MID2   BSR    PREAM    CHECK IT OUT.
+       BEQ    GOFUC    Don't permit a zero offset.
+       CLRB            ASSUME NULL STRING.
+       DECA            SUBTRACT 1.
+       CMPA   ,X       POINTER PAST END OF STRING?
+       BCC    RLEFT1   COPY NOTHING.
+       TFR    A,B      SAVE OFFSET AND COMPUTE LENGTH.
+       SUBB   ,X       GET LENGTH OF WHAT'S LEFT.
+       NEGB
+       CMPB   FACLO    GREATER THAN WHAT'S DESIRED?
+       BLS    RLEFT1   NO, COPY THAT MUCH.
+       LDB    FACLO    GET LENGTH OF WHAT'S DESIRED.
+       BRA    RLEFT1   COPY IT.
+
+*
+* USED BY RIGHT$, LEFT$, MID$ FOR PARAMETER CHECKING AND SETUP.
+*
+PREAM  JSR    CHKCLS   PARAM LIST SHOULD END.
+       LDU    ,S       U:=RETURN ADDRESS.
+       LDX    &5,S     X:=DESCRIPTOR POINTER.
+       STX    DSCPNT   SAVE IT.
+       LDA    &4,S     A:=NUMBER OF CHARS WANTED.
+       LDB    &4,S     PUT SAME THING IN B.
+       LEAS   &7,S     CLEAN UP THE STACK.
+       TFR    U,PC     RETURN
+
+GOFUC  JMP    FCERR    FUNCTION CALL ERROR.
+
+       XDEF   GTBYTC
+GTBYTC JSR    CHRGET
+       XDEF   GETBYT
+GETBYT JSR    FRMNUM   READ FORMULA INTO FAC.
+       XDEF   CONINT
+CONINT JSR    POSINT   CONVERT THE FAC TO A SINGLE BYTE INT.
+       TSTA
+       BNE    GOFUC    RESULT MUST BE .LE. 255.
+       JMP    CHRGOT   SET CONDITION CODES ON TERMINATOR.
+*
+* THE "VAL" FUNCTION TAKES A STRING AND TURNS IT INTO
+* A NUMBER BY INTERPRETING THE ASCII DIGITS ETC.
+* EXCEPT FOR THE PROBLEM THAT A TERMINATOR MUST BE SUPPLIED
+* BY REPLACING THE CHARACTER BEYOND THE STRING, VAL IS MERELY
+* A CALL TO FLOATING POINT INPUT ("FIN").
+*
+       XDEF   VAL
+VAL    JSR    LEN1     DO SETUP. SET RESULT=NUMERIC.
+       LBEQ   ZEROFC   Nothing there, zero the FAC.
+       LDU    TXTPTR   Save the current text pointer.
+       STX    TXTPTR   Set text pointer to start of string
+*    so FIN can call CHRGET to scan the
+*    screen.
+       ABX             X:=pointer beyond string.
+       LDA    ,X       Get the character that's there.
+       PSHS   U,X,A    Save the old text pointer, the pointer
+*    beyond the string, and the old char.
+       CLR    ,X       Put in a terminator for FIN to see.
+       JSR    CHRGOT   Set up for FIN.
+       JSR    FIN      Go read a number.
+       PULS   A,X,U    Restore the old char and text pointer.
+       STA    ,X
+       STU    TXTPTR
+       RTS
+
+       TTL    PEEK, POKE, AND FNWAIT.
+
+       XDEF   GETNUM
+GETNUM BSR    EVLADR   Get address.
+       STX    POKER
+       XDEF   COMBYT
+COMBYT JSR    CHKCOM   CHECK FOR A COMMA.
+       BRA    GETBYT   GET SOMETHING TO STORE AND RETURN.
+
+       XDEF   EVLADR
+EVLADR JSR    FRMNUM   Evaluate numeric formula.
+       XDEF   GETADR
+GETADR LDA    FACSGN   EXAMINE SIGN.
+       BMI    GOFUC    FUNCTION CALL ERROR.
+       LDA    FACEXP   EXAMINE EXPONENT.
+       CMPA   #&144
+       BHI    GOFUC    FUNCTION CALL ERROR.
+       JSR    QINT     INTEGERIZE IT.
+       LDX    FACMO
+       RTS             IT'S DONE !.
+
+       XDEF   PEEK
+PEEK   BSR    GETADR
+       LDB    ,X       GET THAT BYTE.
+       JMP    SNGFLT   FLOAT IT.
+
+       XDEF   POKE
+POKE   BSR    GETNUM
+       LDX    POKER
+       STB    ,X       STORE VALUE AWAY.
+       RTS             SCANNED  EVERYTHING.
+
+       IFNE  WAITSW
+ ENDC   IFN WAITSW
+
+       END

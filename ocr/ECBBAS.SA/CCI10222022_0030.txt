@@ -1,0 +1,8 @@
+PAGE  022  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01631P 0476 7E   024A    P        JMP    STPEND   Carry set so "BREAK" will be printed.
+01632
+01633P 0479 C6   00      A EOFTST LDB    #ERRIE   Give Input past End error if end of
+01634P 047B 0D   70      A        TST    EOFFLG   file reached.
+01635P 047D 26   9C   041B        BNE    ERRGO6
+01636P 047F 39                    RTS             Return with line of input.

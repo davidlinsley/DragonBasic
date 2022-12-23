@@ -1,0 +1,34 @@
+PAGE  019  ECBBAS  .SA:1  BASIC  "ON ... GO TO ..." CODE.
+
+01481                      *
+01482                      * "LINGET" READS A LINE NUMBER FROM THE CURRENT TEXT POSITION.
+01483                      *
+01484                      * LINE NUMBERS RANGE FROM 0 TO 64000-1.
+01485                      *
+01486                      * THE ANSWER IS RETURNED IN "LINNUM".
+01487                      * "TXTPTR" IS UPDATED TO POINT TO THE TERMINATING CHARCTER
+01488                      * AND [A] = THE TERMINATING CHARACTER WITH CONDITION
+01489                      * CODES SET UP TO REFLECT ITS VALUE.
+01490                      *
+01491                             XDEF   LINGET
+01492P 03A3 9E   8A      A LINGET LDX    DBLZER
+01493P 03A5 9F   2B      A        STX    LINNUM   INITIALIZE LINE NUMBER TO ZERO.
+01494P 03A7 24   64   040D MORLIN BCC    LETRTS   IT IS NOT A DIGIT.
+01495P 03A9 80   30      A        SUBA   #'0
+01496P 03AB 97   01      A        STA    CHARAC   SAVE CHARACTER.
+01497P 03AD DC   2B      A        LDD    LINNUM
+01498P 03AF 81   18      A        CMPA   #&24     LINE NUMBER WILL BE .LT. 64000?
+01499P 03B1 22   DB   038E        BHI    SNERR3
+01500P 03B3 58                    ASLB            MULTIPLY BY 10.
+01501P 03B4 49                    ROLA
+01502P 03B5 58                    ASLB
+01503P 03B6 49                    ROLA
+01504P 03B7 D3   2B      A        ADDD   LINNUM
+01505P 03B9 58                    ASLB
+01506P 03BA 49                    ROLA
+01507P 03BB DB   01      A        ADDB   CHARAC   ADD IN DIGIT.
+01508P 03BD 89   00      A        ADCA   #&0
+01509P 03BF DD   2B      A        STD    LINNUM
+01510P 03C1 9D   9F      A        JSR    CHRGET   GET A CHARACTER.
+01511P 03C3 20   E2   03A7        BRA    MORLIN
+01512

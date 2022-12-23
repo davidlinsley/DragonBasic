@@ -1,0 +1,60 @@
+PAGE  014  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
+
+01299                             TTL    RUN,GOTO,GOSUB,RETURN.
+01300
+01301                             XDEF   RUN
+01302P 02AE BD   0000    A RUN    JSR    HKRUN    Hook for RUN filename.
+01303P 02B1 BD   0000    A        JSR    XRRUN    Init PLAY and DRAW settings.
+01304P 02B4 BD   0000    A        JSR    CLSALL   Close all files and devices.
+01305P 02B7 9D   A5      A        JSR    CHRGOT   Reget the char.
+01306P 02B9 1027 FE6B 0128        LBEQ   RUNC     IF NO LINE # ARGUMENT.
+01307P 02BD BD   012D    P        JSR    CLEARC   CLEAN UP -- RESET THE STACK.
+01308P 02C0 20   19   02DB        BRA    RUNC2    MUST REPLACE RTS ADDR.
+01309
+01310                      *
+01311                      * Spaces are not allowed within reserved words so GO, TO, and
+01312                      * SUB are separate reserved words.  When a GO token is encountered
+01313                      * we come here to decide whether it's GOTO or GOSUB.
+01314                      *
+01315
+01316                             XDEF   GO
+01317P 02C2 1F   89      A GO     TFR    A,B      Save token in B.
+01318P 02C4 9D   9F      A ONGO   JSR    CHRGET   Fetch char following token.
+01319P 02C6 C1   00      A        CMPB   #TOTK    Is it a TO token?
+01320P 02C8 27   16   02E0        BEQ    GOTO     Yes, GOTO it.
+01321P 02CA C1   00      A        CMPB   #SUBTK   No, how about a SUB token?
+01322P 02CC 26   45   0313        BNE    SNERR2   No, GO what?
+01323                      *    Yes, fail into GOSUB code.
+01324
+01325                      *
+01326                      * A GOSUB ENTRY ON THE STACK HAS THE FOLLOWING FORMAT:
+01327                      *
+01328                      * LOW ADDRESS:
+01329                      * THE SUBTK ONE BYTE
+01330                      * THE LINE NUMBER OF THE GOSUB STATEMENT TWO BYTES
+01331                      * A POINTER INTO THE TEXT OF THE GOSUB TWO BYTES
+01332                      *
+01333                      * HIGH ADDRESS.
+01334                      *
+01335                      * TOTAL FIVE BYTES.
+01336                      *
+01337P 02CE C6   03      A GOSUB  LDB    #&3
+01338P 02D0 BD   003A    P        JSR    GETSTK   MAKE SURE THERE IS ROOM.
+01339P 02D3 DE   A6      A        LDU    TXTPTR   PUSH ON THE TEXT POINTER AND
+01340P 02D5 9E   68      A        LDX    CURLIN   THE CURRENT LINE NUMBER.
+01341P 02D7 86   00      A        LDA    #SUBTK   FOLLOW WITH A GOSUB TOKEN.
+01342P 02D9 34   52      A        PSHS   U,X,A
+01343P 02DB 8D   03   02E0 RUNC2  BSR    GOTO     USE RTS SCHEME TO "NEWSTT".
+01344P 02DD 7E   01A8    P        JMP    NEWSTT
+01345
+01346P 02E0 9D   A5      A GOTO   JSR    CHRGOT   Reset cond codes for LINGET.
+01347P 02E2 BD   03A3    P        JSR    LINGET   PICK UP THE LINE NUMBER IN "LINNUM".
+01348P 02E5 8D   40   0327        BSR    REMN     SKIP TO END OF LINE.
+01349P 02E7 30   01               INX             GO UP TO NEXT STATEMENT.
+01350P 02E9 DC   2B      A        LDD    LINNUM
+01351P 02EB 1093 68      A        CMPD   CURLIN   IS LINE BEFORE OR AFT CURRENT ONE?
+01352P 02EE 22   02   02F2        BHI    LUKALL   CAN START SEARCH FROM HERE.
+01353P 02F0 9E   19      A        LDX    TXTTAB   SEARCH FROM START.
+01354P 02F2 BD   010C    P LUKALL JSR    FNDLOP   [A] ALREADY HAS HIGH ORDER.
+013550 02F5 25   17   030E        BCS    ULERR    GOTO LINE IS NONEXISTANT.
+01356P 02F7 30   1F      A DEXPTR LEAX   -&1,X    "CHRGET" WILL INC THIS.

@@ -1,0 +1,26 @@
+PAGE  018  ECBBAS  .SA:1  BASIC  "IF ... THEN" CODE.
+
+01456                             TTL    "ON ... GO TO ..." CODE.
+01457
+01458                             XDEF   ONGOTO
+01459P 037E BD   0B5A    P ONGOTO JSR    GETBYT   GET VALUE IN FACLO.
+01460P 0381                       SYNCHK GOTK     Must have GO token.
+01461P 0386 34   02      A        PSHS   A        Save TO or SUB token.
+01462P 0388 81   00      A        CMPA   #SUBTK   AN "ON ... GOSUB" PERHAPS?
+01463P 038A 27   04   0390        BEQ    ONGLOP   YES.
+01464P 038C 81   00      A        CMPA   #TOTK    Must be ON ... GOTO.
+01465P 038E 26   83   0313 SNERR3 BNE    SNERR2
+01466P 0390 0A   53      A ONGLOP DEC    FACLO
+01467P 0392 26   05   0399        BNE    ONGLP1   SKIP ANOTHER LINE NUMBER.
+01468P 0394 35   04      A        PULS   B        B:=To or SUB token.
+01469P 0396 7E   02C4    P        JMP    ONGO     Go decide what to do.
+01470
+01471P 0399 9D   9F      A ONGLP1 JSR    CHRGET   ADVANCE AND SET CODES.
+01472P 039B 8D   06   03A3        BSR    LINGET
+01473P 039D 81   2C      A        CMPA   #&44     IS IT A COMMA?
+01474P 039F 27   EF   0390        BEQ    ONGLCP
+01475P 03A1 35   84      A        PULS   B, PC    Get rid of token and return to NEWSTT.
+01476                      *    NEWSTT will give SN error if not end
+01477                      *    of statement. If end of statement, 
+01478                      *    the statement following the ON will 
+01479                      *    be executed.

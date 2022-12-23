@@ -1,0 +1,35 @@
+PAGE  047  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02954P 0B58 9D   9F      A GTBYTC JSR    CHRGET
+02955                             XDEF   GETBYT
+02956P 0B5A BD   057B    P GETBYT JSR    FRMNUM   READ FORMULA INTO FAC.
+02957                             XDEF   CONINT
+02958P 0B5D BD   082F    P CONINT JSR    POSINT   CONVERT THE FAC TO A SINGLE BYTE INT.
+02959P 0B60 4D                    TSTA
+02960P 0B61 26   F2   0B55        BNE    GOFUC    RESULT MUST BE .LE. 255.
+02961P 0B63 0E   A5      A        JMP    CHRGOT   SET CONDITION CODES ON TERMINATOR.
+02962                      *
+02963                      * THE "VAL" FUNCTION TAKES A STRING AND TURNS IT INTO
+02964                      * A NUMBER BY INTERPRETING THE ASCII DIGITS ETC.
+02965                      * EXCEPT FOR THE PROBLEM THAT A TERMINATOR MUST BE SUPPLIED
+02966                      * BY REPLACING THE CHARACTER BEYOND THE STRING, VAL IS MERELY
+02967                      * A CALL TO FLOATING POINT INPUT ("FIN").
+02968                      *
+02969                             XDEF   VAL
+02970P 0B65 BD   0AD5    P VAL    JSR    LEN1     DO SETUP. SET RESULT=NUMERIC.
+02971P 0B68 1027 F494    A        LBEQ   ZEROFC   Nothing there, zero the FAC.
+02972P 0B6C DE   A6      A        LDU    TXTPTR   Save the current text pointer.
+02973P 0B6E 9F   A6      A        STX    TXTPTR   Set text pointer to start of string
+02974                      *    so FIN can call CHRGET to scan the
+02975                      *    screen.
+02976P 0B70 3A                    ABX             X:=pointer beyond string.
+02977P 0B71 A6   84      A        LDA    ,X       Get the character that's there.
+02978P 0B73 34   52      A        PSHS   U,X,A    Save the old text pointer, the pointer
+02979                      *    beyond the string, and the old char.
+02980P 0B75 6F   84      A        CLR    ,X       Put in a terminator for FIN to see.
+02981P 0B77 9D   A5      A        JSR    CHRGOT   Set up for FIN.
+02982P 0B79 BD   0000    A        JSR    FIN      Go read a number.
+02983P 0B7C 35   52      A        PULS   A,X,U    Restore the old char and text pointer.
+02984P 0B7E A7   84      A        STA    ,X
+02985P 0B80 DF   A6      A        STU    TXTPTR
+02986P 0B82 39                    RTS

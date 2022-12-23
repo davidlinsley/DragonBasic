@@ -1,0 +1,31 @@
+PAGE  038  ECBBAS  .SA:1  BASIC  MULTIPLE DIMENSION CODE.
+
+02480P 08F8 10A3 05      A        CMPD   &5,X     If it is greater than or equal to the
+02481P 08FB 24   3A   0937        BCC    BSERR7   number of elements in this dimension
+02482                      *    give a Bad Subscript error.  (Remember
+02483                      *    that indices start at 0 so this check
+02484                      *    is correct.)
+02485P 08FD DE   64      A INLPN1 LDU    CURTOL   DON'T MULTIPLY IF CURTOL=0.
+02486P 08FF 27   04   0905        BEQ    NOMULT
+02487P 0901 8D   17   091A        BSR    UMULT    MULTIPLY [A,B] BY [5&6,X].
+02488P 0903 D3   52      A        ADDD   INDICE   ADD IN [INDICE].
+02489P 0905 30   02      A NOMULT LEAX   &2,X     BUMP INDEX.
+02490P 0907 0A   03      A        DEC    COUNT    ANY MORE?
+02491P 0909 26   E7   08F2        BNE    INLPNM   YES.
+02492            0001    A        IFNE   ADDPRC
+02493P 090B ED   E3      A        STD    ,--S     Save for multiply by 5.
+02494                             ENDC   IFN      ADDPRC
+02495P 090D 58                    ASLB            MULTIPLY RESULT BY FOUR.
+02496P 090E 49                    ROLA 
+02497P 090F 58                    ASLB
+02498P 0910 49                    ROLA 
+02499            0001    A        IFNE   ADDPRC
+02500P 0911 E3   El      A        ADDD   ,S++     Multiply by five.
+02501                             ENDC   IFN      ADDPRC
+02502P 0913 30   85      A        LEAX   D,X      Use as offset into array.
+02503P 0915 30   05      A        LEAX   &5,X     Account for five bytes at start of
+02504                      *    array. (2 for name, 2 for length, 1
+02505                      *    for number of dims.)
+02506P 0917 9F   39      A        STX    VARPNT   SET VARIABLE POINTER.
+02507P 0919 39             DIMRTS RTS             RETURN TO CALLER.
+02508

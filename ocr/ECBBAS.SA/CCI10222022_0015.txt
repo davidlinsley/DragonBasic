@@ -1,0 +1,21 @@
+PAGE  007  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REIN1T.
+
+01014P 0138 9F   1F      A        STX    STREND   ARRAYS.
+01015 
+01016                      *    STKINI RESETS THE STACK POINTER ELIMINATING
+01017                      *    GOSUB AND FOR CONTEXT. STRING TEMPORARIES ARE FREED
+01018                      *    UP, SUBFLG IS RESET. CONTINUING IS PROHIBITED.
+01019                      *    AND A DUMMY ENTRY IS PUT ON TTHE STACK SO "FNDFOR" WILL ALWAYS
+01020                      *    FIND A NON-"FOR" ENTRY AT THE BOTTOM OF THE STACK.
+01021
+01022                             XDEF   STKINI
+01023P 013D 8E   0000    A STKINI LDX    #TEMPST  INITIALIZE STRING TEMPORARIES.
+01024P 0140 9F   0B      A        STX    TEMPPT
+01025P 0142 AE   E4      A        LDX    ,S       Get the return address.
+01026P 0144 10DE 21      A        LDS    STKTOP   INITIALIZE STACK.
+01027P 0147 6F   E2      A        CLR    ,-S      Put a zero on the stack. (Non NEXT,
+01028                      *    FOR, GOSUB token.)
+01029P 0149 0F   2D      A        CLR    OLDTXT   PROHIBIT CONTINUING.
+01030P 014B 0F   2E      A        CLR    OLDTXT+&1
+01031P 014D 0F   08      A        CLR    SUBFLG   PILLOW SUBSCRIPTS.
+01032P 014F 6E   84      A        JMP    ,X       RETURN.

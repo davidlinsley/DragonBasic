@@ -1,0 +1,60 @@
+PAGE  036  ECBBAS  .SA:1  BASIC  MULTIPLE DIMENSION CODE.
+
+02364P 0860 34   60      A        PSHS   U,Y      AND VALTYP.
+02365P 0862 5C                    INCB            INCREMENT # OF DIMS.
+02366P 0863 9D   A5      A        JSR    CHRGOT   GET TERMINATING CHARACTER.
+02367P 0865 81   2C      A        CMPA   #&44     A COMMA?
+02368P 0867 27   EB   0854        BEQ    INDLOP   YES.
+02369P 0869 D7   03      A        STB    COUNT    SAVE COUNT OF DIMS.
+02370P 086B BD   06AD    P        JSR    CHKCLS   MUST BE CLOSED PAREN.
+02371P 086E 35   06      A        PULS   A,B      GET BACK VALTYP AND DIMFLG.
+02372P 0870 97   06      A        STA    VALTYP
+02373P 0872 D7   05      A        STB    DIMFLG
+02374P 0874 9E   1D      A        LDX    ARYTAB   PLACE TO START SEARCH.
+02375P 0876 9C   1F      A LOPFDA CMPX   STREND
+02376P 0878 27   21   089B        BEQ    NOTFDD   A FINE THING! NO ARRAY!. 
+02377P 087A DC   37      A        LDD    VARNAM   COMPARE THE NAMES.
+02378P 087C 10A3 84      A        CMPD   ,X
+02379P 087F 27   06   0887        BEQ    GOTARY   WELL, HERE IT IS !! 
+02380P 0881 EC   02      A        LDD    &2,X     GET LENGTH.
+02381P 0883 30   88      A        LEAX   D,X      ADD IT TO [XREG].
+02382P 0885 20   EF   0876        BRA    LOPFDA
+02383P 0887 C6   00      A GOTARY LDB    #ERRDD   PERHAPS A "RE-DIMENSION" ERROR 
+02384P 0889 96   05      A        LDA    DIMFLG   TEST THE DIMFLG
+02385P 088B 26   0B   0898        BNE    ERRGO3
+02386P 088D D6   03      A        LDB    COUNT    GET NUMBER OF DIMS INPUT. 
+02387P 088F El   04      A        CMPB   &4,X     # OF DIMS THE SAME?
+02388P 0891 27   59   08EC        BEQ    GETDEF   SAME SO GO GET DEFINITION. 
+02389P 0893 C6   00      A BSERR  LDB    #ERRBS   GET BAD SUB ERROR NUMBER.
+02390P 0895                       SKIP2
+02391                             XDEF   FCERR
+02392P 0896 C6   00      A FCERR  LDB    #ERRFC   TOO BIG. "FUNCTION CALL" ERROR. 
+02393P 0898 7E   004D    P ERRGO3 JMP    ERROR
+02394
+02395                      *
+02396                      * HERE WHEN VARIABLE IS NOT FOUND IN THE ARRAY TABLE.
+02397                      *
+02398                      * BUILDING AN ENTRY.
+02399                      *
+02400                      * PUT DOWN THE DESCRIPTOR.
+02401                      * SETUP NUMBER OF DIMENSIONS.
+02402                      * MAKE SURE THERE IS ROOM FOR THE NEW ENTRY.
+02403                      * REMEMBER "VARPNT".
+02404                      * TALLY=4.
+02405                      * SKIP 2 LOCS FOR LATER FILL IN OF SIZE.
+02406                      * LOOP: GET AN INDICE
+02407                      * PUT DOWN NUMBER+1 AND INCREMENT VARPTR.
+02408                      * TALLY=TALLY*NUMBER+1.
+02409                      * DECREMENT NUMBER-DIMS.
+02410                      * BNE LOOP
+02411                      * CALL "REASON" WITH [A,B] REFLECTING LAST LOC OF VARIABLE.
+02412                      * UPDATE STREND.
+02413                      * ZERO ALL.
+02414                      * MAKE TALLY INCLUDE MAXDIMS AND DESCRIPTOR. 
+02415                      * PUT DOWN TALLY.
+02416                      * IF CALLED BY DIMENSION, RETURN.
+02417                      * OTHERWISE INDEX INTO THE VARIABLE AS IF IT
+02418                      *  WERE FOUND ON THE INITIAL SEARCH.
+02419                      *
+02420P 089B CC   0005    A NOTFDD LDD    #&4+ADDPRC Initial tally is length of a single
+02421P 089E DD   64      A        STD    CURTOL   element value.

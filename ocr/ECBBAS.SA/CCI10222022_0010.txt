@@ -1,0 +1,60 @@
+PAGE  002  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
+
+00758P 001B 20   E5   0002        BRA    FFLOOP   TRY, TRY AGAIN.
+00759P 001D 9E   11      A STVPNT LDX    TEMPX2   TRANSFER TO
+00760P 001F 9F   3B      A        STX    FORPNT   FORIABLE'S PNTR.
+00761P 0021 9E   0F      A FFRTS  LDX    TEMPX1
+00762P 0023 4D                    TSTA            Set Z if FOR entry found.
+00763P 0024 39                    RTS             RETURN TO CALLER.
+00764
+00765
+00766                      * THIS IS THE BLOCK TRANSFER ROUTINE.
+00767                      * IT MAKES SPACE BY SHOVING EVERYTHING FORWARD.
+00768
+00769                      * ON ENTRY:
+00770                      * [A,B]=[HIGHDS]    (FOR REASON).
+00771                      * [HIGHDS]= DESTINATION OF [HIGH ADDRESS]. 
+00772                      * [LOWTR]= LOWEST ADDR TO BE TRANSFERRED. 
+00773                      * [HIGHTR]= HIGHEST ADDR TO BE TRANSFERRED.
+00774
+00775                      * A CHECK IS MADE TO ASCERTAIN THAT A REASONABLE 
+00776                      * AMOUNT OF SPACE REMAINS BETWEEN THE TOP
+00777                      * OF THE STACK AND THE HIGHEST LOCATION TRANSFERRED INTO.
+00778
+00779                      * ON EXIT:
+00780                      * [LOWDS]=DESTINATION OF [LOWTR]
+00781                      * [X]=[LOWTR]
+00782
+00783                             XDEF   BLTU
+00784P 0025 8D   17   003E BLTU   BSR    REASON   ASCERTAIN THAT STACK WON'T
+00785                      •    BE OVERRUN. 
+00786                             XDEF   BLTUC
+00787P 0027 DE   41      A BLTUC  LDU    HIGHDS
+00788P 0029 33   41      A        LEAU   &1,U 
+00789P 002B 9E   43      A        LDX    HIGHTR 
+00790P 002D 30   01      A        LEAX   &1,X
+00791P 002F A6   82      A BLTLOP LDA    ,-X      GET ELEMENT TO BE MOVED. 
+00792P 0031 36   02      A        PSHU   A        MOVE IT.
+00793P 0033 9C   47      A        CMPX   LOWTR    AT BOTTOM OF LIST?
+00794P 0035 26   F8   002F        BNE    BLTLOP   NOPE, CONTINUE.
+00795P 0037 DF   45      A        STU    LOWDS    SET DEST OF [LOWTR] 
+00796P 0039 39             BLTRTS RTS             RETURN TO CALLER.
+00797
+00798                      *
+00799                      * THIS ROUTINE IS USED TO ASCERTAIN THAT A GIVEN
+00800                      * NUMBER OF LOCS REMAIN AVAILABLE FOR THE STACK.
+00801                      •    THE CALL IS:
+00802                      * LDAI B, NUMBER OF 2-BYTE ENTRIES NEEDED.
+00803                      * JSR GETSTK
+00804                      *
+00805                      * THIS ROUTINE MUST BE CALLED BY ANY ROUTINE WHICH PUTS
+00806                      * AN ARBITRARY AMOUNT OF STUFF ON THE STACK,
+00807                      * I.E., ANY RECURSIVE ROUTINE LIKE "FRMEVL".
+00808                      * IT IS ALSO CALLED BY ROUTINES SUCH AS "GOSUB" AND "FOR"
+00809                      * WHICH MAKE PERMANENT ENTRIES ON THE STACK.
+00810                      *
+00811                      * ROUTINES WHICH MERELY USE AND FREE UP THE GUARANTEED
+00812                      * NUMLEV LOCATIONS NEED NOT CALL THIS.
+00813                      * 
+00814                      *
+00815                      * ON EXIT:

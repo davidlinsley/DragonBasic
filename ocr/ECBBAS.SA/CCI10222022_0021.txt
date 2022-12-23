@@ -1,0 +1,20 @@
+PAGE  013  ECBBAS  .SA:1  BASIC  RESTORE,STOP,END,CONTINUE,CLEAR.
+
+01280P 0291 22   18   02AB        BHI    OMERR1   Yes, give out of memory error.
+01281P 0293 1F   10      A CURMEM TFR    X,D      Calculate the new stack top by
+01282P 0295 A3   E1      A        SUBD   ,S++     subtracting the new string space
+01283                      *    size from the current or new memory
+01284                      *    size.
+01285P 0297 25   12   02AB        BCS    OMERR1   Specified string space is more than
+01286                      *    memory size!
+01287P 0299 1F   03      A        TFR    D,U      Save new stack top.
+01288P 029B 83   003A    A        SUBD   #&2*NUMLEV Make sure there is a reasonable amount
+01289P 029E 25   0B   02AB        BCS    OMERR1   of space between the top of the stack
+01290P 02A0 93   1B      A        SUBD   VARTAB   and the end of the BASIC program.
+01291P 02A2 25   07   02AB        BLO    OMERR1
+01292P 02A4 DF   21      A        STU    STKTOP   All is OK. Store new STKTOP and
+01293P 02A6 9F   27      A        STX    MEMSIZ   current or new memory size.
+01294P 02A8 7E   012D    P CLRCGO JMP    CLEARC   Go do the clear.
+01295
+01296P 02AB 7E   004B    P OMERR1 JMP    OMERR    Give out  of memory error.
+01297

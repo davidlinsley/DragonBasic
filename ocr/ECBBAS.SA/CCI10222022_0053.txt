@@ -1,0 +1,60 @@
+PAGE  045  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
+
+02838P 0ACA 30   1B      A        LEAX   -STRSIZ,X POINT TO LAST ONE.
+02839P 0ACC 9F   0D      A        STX    LASTPT   UPDATE TEMP PNTR.
+02840P 0ACE 4F                    CLRA            ZERO [ACCA] FOR POSSIBLE ADD.
+02841                      *    ALSO CLEARS ZFLG SO WE DO REST OF FRETMP.
+02842P 0ACF 39             FRERTS RTS             ALL DONE.
+02843                      *
+02844                      * THE FUNCTION LEN($) RETURNS THE LENGTH OF THE STRING
+02845                      * PASSED AS AN ARGUMENT.
+02846                      *
+02847                             XDEF   LEN
+02848P 0AD0 8D   03   0AD5 LEN    BSR    LEN1
+02849P 0AD2 7E   093F    P GOSGFL JMP    SNGFLT
+02850                             XDEF   LEN1
+02851P 0AD5 8D   CC   0AA3 LEN1   BSR    FRESTR   FREE UP STRING.
+02852P 0AD7 0F   06      A        CLR    VALTYP   FORCE NUMERIC.
+02853P 0AD9 5D                    TSTB            SET CODES ON LENGTH.
+02854P 0ADA 39                    RTS             DONE.
+02855                      *
+02856                      * CHR$(#) CREATES A STRING WHICH CONTAINS AS ITS ONLY
+02857                      * CHARACTER THE ASCII EQUIVALENT OF THE INTEGER ARGUMENT (#)
+02858                      * WHICH MUST BE .LT. 255.
+02859                      *
+02860                             XDEF   CHR$
+02861P 0ADB BD   0B5D    P CHR$   JSR    CONINT   GET INTEGER IN RANGE.
+02862                             XDEF   CHR$DO
+02863P 0ADE C6   01      A CHR$DO LDB    #&1      ONE-CHARACTER STRING.
+02864P 0AE0 BD   09BC    P        JSR    GETSPA   GET SPACE FOR STRING.
+02865P 0AE3 96   53      A        LDA    FACLO    GET INTEGER.
+02866P 0AE5 BD   095D    P        JSR    STRAD2   SAVE INFO AWAY.
+02867P 0AE8 A7   84      A        STA    ,X
+02868                             XDEF   GOPTNW
+02869P 0AEA 32   62      A GOPTNW LEAS   &2,S     GET RID OF "CHKNUM" RETURN ADDR.
+02870P 0AEC 7E   099B    P RL$RET JMP    PUTNEW   SETUP FAC TO POINT TO DESC.
+02871                      *
+02872                      * THE FOLLOWING IS THE ASC($) FUNCTION. IT RETURNS
+02873                      * AN INTEGER WHICH IS THE DECIMAL ASCII EQUIVALENT.
+02874                      *
+02875                             XDEF   ASC
+02876P 0AEF 8D   02   0AF3 ASC    BSR    ASC2
+02877P 0AF1 20   DF   0AD2        BRA    GOSGFL   GOTO SNGFLT
+02878                             XDEF   ASC2
+02879P 0AF3 8D   E0   0AD5 ASC2   BSR    LEN1
+02880P 0AF5 27   5E   0B55        BEQ    GOFUC    NULL STRING, BAD ARG.
+02881P 0AF7 E6   84      A        LDB    ,X       GET CHARACTER.
+02882P 0AF9 39                    RTS
+02883                      *
+02884                      * THE FOLLOWING IS THE LEFT$($,#) FUNCTION.
+02885                      * IT TAKES THE LEFTMOST # CHARACTERS OF THE STRING.
+02886                      * IF # .GT. THE LEN OF THE STRING, IT RETURNS THE WHOLE STRING.
+02887                      *
+02888                             XDEF   LEFT$
+02889P 0AFA 8D   48   0B44 LEFT$  BEIR   PREAM    TEST THE PARAMETERS.
+02890                             XDEF   LEFTUS
+02891P 0AFC 4F             LEFTUS CLRA            LEFT NEVER CHANGES STRING POINTER. 
+02A92P 0AFD E1   84      A RLEFT  CMPB   ,X       COMPARE LENGTHS.
+02893P 0AFF 23   03   0B04        BLS    RLEFT1
+02894P 0B01 E6   84      A        LDB    ,X       GET ALL THE STRING. 
+02895P 0B03 4F                    CLRA            ANOTHER CLR A FOR RIGHT$.

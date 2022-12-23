@@ -1,0 +1,60 @@
+PAGE  021  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01572P 041B 7E   004D    P ERRGO6 JMP    ERROR
+01573P 041E 96   09      A ISKBDI LDA    INPFLG
+01574P 0420 27   07   0429        BEQ    TRMNO1   IF INPUT TRY AGAIN.
+01575P 0422 9E   31      A        LDX    DATLIN   GET DATA LINE NUMBER.
+01576P 0424 9F   68      A        STX    CURLIN   MAKE IT CURRENT LINE.
+01577P 0426 7E   06BD    P SNERR4 JMP    SNERR
+01578
+01579P 0429 8E   040D    P TRMNO1 LDX    #TRYAGN-&1
+01580P 042C BD   0000    A        JSR    STROUT   PRINT "?REDO FROM START".
+01581P 042F 9E   2F      A        LDX    TXTBEG   POINT AT START
+01582P 0431 9F   A6      A        STX    TXTPTR   OF THIS CURRENT LINE.
+01583P 0433 39                    RTS             GO TO "NEWSTT".
+01584
+01585                             XDEF   INPUT
+01586P 0434 BD   0000    A INPUT  JSR    ERRDIR   Can't allow INPUT as a direct since
+01587                      *    it clobbers BUF.
+01588
+01589            0000    A        IFNE   CNTRLO
+01591                       ENDC   IFN CNRTLO
+01592P 0437 8D   03   043C        BSR    INPTDO   Come back here to clear device number.
+01593P 0439 0F   6F      A        CLR    DEVNUM   Make input come from keyboard.
+01594P 043B 39                    RTS
+01595
+01596P 043C 81   23      A INPTDO CMPA   #'#      Device number?
+01597P 043E 26   09   0449        BNE    INPKBD   No, INPUT from keyboard.
+01598P 0440 BD   0000    A        JSR    GETDNM   Yes, read the device number.
+01599P 0443 BD   0000    A        JSR    OPNICK   Make sure it's open for input.
+01600P 0446 BD   06B3    P        JSR    CHKCOM   Make sure a comma follows.
+01601                      *    (It would be better to check for the
+01602                      *    comma before calling OPNICK but
+01603                      *    memory is at a premium and that would
+01604                      *    require a call to CHRGOT here.)
+01605P 0449 81   22      A INPKBD CMPA   #&34     A QUOTE?
+01606P 044B 26   0B   0458        BNE    NOTQTI   NO MESSAGE.
+01607P 044D BD   067E    P        JSR    STRTXT   LITERALIZE THE STRING IN TEXT
+01608P 0450                       SYNCHK &59      MUST END WITH SEMICOLON.
+01609P 0455 BD   0000    A        JSR    STRPRT   PRINT IT OUT.  (The output will be
+01610                      *    suppressed if DEVNUM is nonzero.)
+01611P 0458 8E   0000    A NOTQTI LDX    #BUFMIN  Just in case DEVNUM is nonzero make
+01612P 045B 6F   84      A        CLR    ,X       BUF look empty to force ITMSCN to
+01613                      *    be called for disk files.  Also set
+01614                      *    X to point to BUFMIN for INPCON.
+01615P 045D 0D   6F      A        TST    DEVNUM   Reading from the keyboard?
+01616P 045F 26   22   0483        BNE    INPCON   No, go do file I/O.
+01617P 0461 8D   06   0469        BSR    QINLIN   Yes, TYPE "?" AND get A LINE OF TEXT.
+01618P 0463 C6   2C      A        LDB    #COMMA   Put a comma into BUFMIN to look like
+01619P 0465 E7   84      A        STB    ,X       a good terminator.  (X is pointing to
+01620                      *    BUFMIN from the INLIN call made by
+01621                      *    QINLIN.)
+01622P 0467 20   1A   0483        BRA    INPCON   Go do the assignments.
+01623
+01624
+01625P 0469 BD   0000    A QINLIN JSR    OUTGIST
+01626P 046C BD   0000    A        JSR    OUTSPC
+01627                             XDEF   INLNDO
+01628P 046F BD   0000    A INLNDO JSR    INLIN
+01629P 0472 24   05   0479        BCC    EOFTST   Not BREAK, check for end of file.
+01630P 0474 32   64      A        LEAS   &4,S     BREAK, clean up stack and quit.

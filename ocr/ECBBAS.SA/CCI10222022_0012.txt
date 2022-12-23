@@ -1,0 +1,60 @@
+PAGE  004  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
+
+00838                             TTL    ERROR HANDLER, READY, NEW, REINIT.
+00839
+00840                             XDEF   OMERR
+00841P 004B C6   00      A OMERR  LDB    #ERROM
+00842                             XDEF   ERROR
+00843P 004D BD   0000    A ERROR  JSR    HKETRP   Let users trap their errors when
+00844                      *    calling BASIC subroutines.
+00845P 0050 BD   0000    A        JSR    HKERR    Hook for extended error handier.
+00846            0001    A        IFNE   REALIO
+00847P 0053 BD   0000    A        JSR    CASOFF   Turn off the cassette motor and
+00848                      *    enable interrupts.
+00849P 0056 BD   0000    A        JSR    SNDOFF   Turn off TV sound.
+00850                             ENDC   IFN      REALIO
+00851P 0059 BD   013D    P        JSR    STKINI   RESET THE STACK AND FLAGS
+00852P 005C 0F   6F      A        CLR    DEVNUM   Make input come from keyboard and
+00853                      *    output go to screen.
+00854            0000    A        IFNE   CNTRLO
+00856                       ENDC   IFN CNTRLO
+00857P 005E BD   0000    A        JSR    CONDCR   OUTPUT CRLF.
+00858P 0061 BD   0000    A        JSR    OUTQST   PRINT A QUESTION MARK
+00859P 0064 8E   0000    A        LDX    #ERRTAB  GET START OF ERROR TABLE.
+00860                             XDEF   ERPRNT
+00861P 0067 3A             ERPRNT ABX             ADD IN OFFSET.
+00862P 0068 8D   3D   00A7        BSR    XOUT     Print first char of message.
+00863P 006A 8D   38   00A7        BSR    XOUT     Print second char of message.
+00864P 006C 8E   FFFF    A        LDX    #ERR-&1  GET PNTR TO " ERROR".
+00865P 006F BD   0000    A ERRFIN JSR    STROUT   OUTPUT IT.
+00866P 0072 96   68      A        LDA    CURLIN   Was it a direct statment?
+00867P 0074 4C                    INCA            (Only need to check high order byte
+00868                      *    since highest line number allowed
+00869                      *    is 63999, for which the high order
+00870                      *    byte is 249.
+00871P 0075 27   03   007A        BEQ    READY    YES, DON'T TYPE LINE NUMBER.
+00872P 0077 BD   0000    A        JSR    INPRT
+00873                             XDEF   READY
+00874            007A    P READY  EQU    *
+00875            0000    A        IFNE   CNTRLO
+00877                       ENDC   IFN CNTRLO
+00878P 007A BD   0000    A        JSR    CONDCR   Position to left margin.
+00879P 007D 8E   FFFF    A        LDX    #REDDY-&1 SAY "OK".
+00880P 0080 BD   0000    A        JSR    STROUT
+00881                             XDEF   MAIN
+00882P 0083 BD   0000    A MAIN   JSR    INLIN     GET A LINE FROM TERMINAL.
+00883P 0086 CE   FFFF    A        LDU    #&65535   Make it look like a direct statement.
+00884P 0089 DF   68      A        STU    CURLIN
+00885P 008B 25   F6   0083        BCS    MAIN      If BREAK ignore the line.
+00886P 008D 0D   70      A        TST    EOFFLG    End of file reached?
+00887P 008F 1026 FF6D    A        LBNE   FINLOD    Yes, must be loading an ASCII file.
+00888                      *    Go finish up the load.
+00889P 0093 9F   A6      A        STX    TXTPTR   SET UP TEXT PNTR.
+00890P 0095 9D   9F      A        JSR    CHRGET
+00891P 0097 27   EA   0083        BEQ    MAIN     IF BLANK LINE, GET ANOTHER.
+00892P 0099 25   11   00AC        BCS    MAIN1    IS A LINE NUMBER. NOT DIRECT.
+00893P 009B C6   00      A        LDB    #ERRDS   Give Direct Statement in file error
+00894P 009D 0D   6F      A        TST    DEVNUM   if not reading from keyboard.
+00895P 009F 26   AC   004D        BNE    ERROR
+00896P 00A1 BD   0000    A        JSR    CRUNCH   COMPACTIFY.
+00897                             XDEF   GOGONE

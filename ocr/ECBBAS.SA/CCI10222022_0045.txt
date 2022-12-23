@@ -1,0 +1,60 @@
+PAGE  037  ECBBAS  .SA:1  BASIC  MULTIPLE DIMENSION CODE.
+
+02422P 08A0 DC   37      A        LDD    VARNAM
+02423P 08A2 ED   84      A        STD    ,X
+02424P 08A4 D6   03      A        LDB    COUNT
+02425P 08A6 E7   04      A        STB    &4,X     SAVE NUMBER OF DIMENSIONS.
+02426P 08A8 BD   003A    P        JSR    GETSTK   GET ROOM FOR DIMENSION ENTRIES.
+02427P 08AB 9F   41      A        STX    ARYPNT   SAVE TO KNOW WHERE TO STORE SIZE.
+02428P 08AD C6   0B      A LOPPTA LDB    #&11     DEFAULT SIZE.
+02429P 08AF 4F                    CLRA
+02430P 08B0 0D   05      A        TST    DIMFLG
+02431P 08B2 27   05   08B9        BEQ    NOTDIM   NOT IN A DIM STATEMENT.
+02432P 08B4 35   06      A        PULS   A,B      GET THE INDEX.
+02433P 08B6 C3   0001    A        ADDD   #&1      INCREMENT IT
+02434P 08B9 ED   05      A NOTDIM STD    &5,X     STORE INDEX.
+02435P 08BB 8D   5D   091A        BSR    UMULT    [A,B]=[CURTOL]*[5&6,X].
+02436P 08BD DD   64      A        STD    CURTOL   SAVE NEW TALLY.
+02437P 08BF 30   02      A        LEAX   &2,X     MOVE POINTER AHEAD.
+02438P 08C1 0A   03      A        DEC    COUNT    ANY MORE INDICES LEFT?
+02439P 08C3 26   E8   08AD        BNE    LOPPTA   YES.
+02440P 08C5 9F   0F      A        STX    TEMPX1   TEMPX1:=X for later, X:=X+D.
+02441P 08C7 D3   0F      A        ADDD   TEMPX1
+02442P 08C9 1025 F77E 004B        LBCS   OMERR    Not enough memory for this array.
+02443P 08CD 1F   01      A        TFR    D,X      Save pointer for clearing the array.
+02444P 08CF BD   003E    P        JSR    REASON   GET ROOM.
+02445                      *    MISSING FIVE WON'T HURT SINCE
+02446                      *    2*NUMLEV=38.
+024472 08D2 83   0035    A        SUBD   #&2*NUMLEV-&5 SUB 2*NUMLEV ADDED BY REASON AND ADD 5.
+02448P 08D5 DD   1F      A        STD    STREND   NEW END OF STORAGE.
+02449P 08D7 4F                    CLRA            STORING [ACCA] IS FASTER THAN CLEAR.
+02450P 08D8 30   1F        ZERITA DEX             NO NEED TO ZERO TOP OF MEMORY.
+02451P 08DA A7   05      A        STA    &5,X     ZERO  !!
+02452P 08DC 9C   0F      A        CMPX   TEMPX1   STOP? (TEMPX1 was set up above.)
+02453P 08DE 26   F8   08D8        BNE    ZERITA   NO. CONTINUE.
+02454P 08E0 9E   41      A        LDX    ARYPNT   WHERE TO STORE LENGTH.
+02455P 08E2 96   1F      A        LDA    STREND   RESTORE [ACCA].
+02456P 08E4 93   41      A        SUBD   ARYPNT   DETERMINE LENGTH.
+02457P 08E6 ED   02      A        STD    &2,X     Put it away.
+02458P 08E8 96   05      A        LDA    DIMFLG
+02459P 08EA 26   2D   0919        BNE    DIMRTS   BYE.
+02460                      *
+02461                      * AT THIS POINT [XREG,4] POINTS BEYOND THE SIZE TO THE NUMBER OF
+02462                      * DIMENSIONS. STRATEGY:
+02463                      * NUMDIM=NUMBER OF DIMENSIONS.
+02464                      * CURTOL=0.
+02465                      * INLPNM:GET A NEW INDICE.
+02466                      * MAKE SURE INDICE IS NOT TOO BIG.
+02467                      * MULTIPLY CURTOL BY CURMAX.
+02468                      * ADD INDICE TO CURTOL.
+02469                      * NUMDIM=NUMDIM-1.
+02470                      * BNE INLPNM.
+02471                      * USE [CURTOL]*4 AS OFFSET.
+02472                      *
+02473P 08EC E6   04      A GETDEF LDB    &4,X
+02474P 08EE D7   03      A        STB    COUNT    SAVE A COUNTER.
+02475P 08F0 4F                    CLRA            ZERO [CURTOL].
+02476P 08F1 5F                    CLRB
+02477P 08F2 DD   64      A INLPNM STD    CURTOL
+02478P 08F4 35   06      A        PULS   A,B      Get the index.
+02479P 08F6 DD   52      A        STD    INDICE

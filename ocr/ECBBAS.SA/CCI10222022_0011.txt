@@ -1,0 +1,23 @@
+PAGE  003  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
+
+00816                      * [A,B] HAVE BEEN MODIFIED. [XREG] PRESERVED.
+00817                      *
+00818                             XDEF   GETSTK
+00819P 003A 4F             GETSTK CLRA
+00820P 003B 58                    ASLB            MULTIPLY [A,B] BY 2.
+00821                      *    NUMBER IS LESS THAN 128 SO NO CARRY.                                                                         •
+00822P 003C D3   1F      A        ADDD   STREND   [A,B]= HIGH ADDRESS REQ'D.
+00823                      * BRA REASON  ;CALL REASON, AND RETURN.
+00824                      *
+00825                      * [A,B]=SOME ADDR.
+00826                      * "REASON" MAKES SURE AT LEAST NUMLEV*2 LOCATIONS EXIST
+00827                      * BETWEEN [A,B] AND THE TOP OF THE STACK.
+00828                      *
+00829
+00830                             XDEF   REASON
+00831P 003E C3    003A   A REASON ADDD   #&2*NUMLEV
+00832P 0041 25    08  004B        BCS    OMERR
+00833P 0043 10DF  17     A        STS    STKTMP
+00834P 0046 1093  17     A        CMPD   STKTMP
+00835P 0049 25    EE  0039        BCS    BLTRTS   OK, return.
+00836                      *    Fall into OMERR.

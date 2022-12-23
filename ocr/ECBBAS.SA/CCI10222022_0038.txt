@@ -1,0 +1,60 @@
+PAGE  030  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+02040P 06CF 96   06      A        LDA    VALTYP
+02041P 06D1 26   89   065C        BNE    UNPRTS   THE STRING IS SET UP.
+02042P 06D3 7E   0000    A        JMP    MOVFM    MOVE ACTUAL VALUE IN.
+02043                      *    AND RETURN.
+02044 
+02045P 06D6 9D   9F      A ISFUN  JSR    CHRGET   Eat the 377 octal which is the first
+02046                      *    byte of the function token and get
+02047                      *    the second byte of the function token.
+02048P 06D8 1F   89      A        TFR    A,B      Move token to B.
+02049P 06DA 58                    ASLB            Multiply by two to get a dispatch
+02050                      *    table offset and to get rid of the
+02051                      *    high order bit.
+02052P 06DB 9D   9F      A        JSR    CHRGET   Get next char for SYNCHKs below.
+02053P 06DD Cl   00      A        CMPB   #TLFNTK  Is this a list 0 function?
+02054P 06DF 23   04   06E5        BLS    ISOFUN   Yes.
+02055P 06E1 6E   9F 000A A        JMP    [FUNDS0+STBLEN] No, jump to list 1 function
+02056                      *    dispatcher.
+02057
+02058P 06E5 34   04      A ISOFUN PSHS   B        SAVE FUNCTION NUMBER.
+02059P 06E7 C1   00      A        CMPB   #TCLAS1  Is it a Class 0 function?
+02060P 06E9 25   22   070D        BLO    ISCLS0   Yes, go crack argument.
+02061P 06EB C1   00      A        CMPB   #TCLAS3  No, is it a Class 3 function?
+02062P 06ED 24   20   070F        BHS    FINGO    Yes, no args, just dispatch.
+02063                      *    No, must be Class 2. Fall in.
+02064
+02065                      *
+02066                      *      MOST FUNCTIONS (Class 0) TAKE A SINGLE ARGUMENT.
+02067                      *      THE RETURN ADDRESS OF THESE FUNCTIONS IS "CHKNUM"
+02068                      *      WHICH ASCERTAINS THAT [VALTYP]=0  (NUMERIC).
+02069                      *      FUNCTIONS THAT RETURN STRING RESULTS
+02070                      *      (E.G., CHR$) MUST POP OF THAT RETURN ADDR AND
+02071                      *      RETURN DIRECTLY TO "FRMEVL".
+02072                      *
+02073                      *      Class 1 functions can take more than one argument,
+02074                      *      THE FIRST OF WHICH MUST BE STRING AND THE SECOND OF WHICH
+02075                      *      MUST BE A NUMBER BETWEEN 0 AND 255.
+02076                      *      THE CLOSED PARENTHESIS MUST BE CHECKED AND RETURN IS DIRECTLY
+02077                      *      TO "FRMEVL" WITH THE TEXT PNTR POINTING BEYOND THE ")".
+02078                      *      THE POINTER TO THE DESCRIPTOR OF THE STRING ARGUMENT
+02079                      *      IS STORED ON THE STACK UNDERNEATH THE VALUE OF THE
+02080                      *      INTEGER ARGUMENT.
+02081                      *
+02082                      *      Class 2 functions can have any number and type of arguments so
+02083                      *      the only thing done here is to check for an open parenthesis.
+02084                      *
+02085                      *      Class 3 functions have no arguments so nothing is checked here
+02086                      *      at all.
+02087                      *
+02088
+02089P 06EF 8D   BF   06B0        BSR    CHKOPN   CHECK FOR AN OPEN PARENTHESIS
+02090P 06F1 A6   E4      A        LDA    ,S       A:=function number.
+02091P 06F3 81   00      A        CMPA   #TCLAS2  Is it a Class 2 function?
+02092P 06F5 24   18   070F        BHS    FINGO    Yes, open paren has been checked so
+02093                      *    just dispatch.
+02094P 06F7 BD   0590    P        JSR    FRMEVL   EAT OPEN PAREN AND FIRST ARG.
+02095P 06FA 8D   B7   06B3        BSR    CHKCOM   TWO ARGS SO COMMA MUST DELIMIT.
+02096P 06FC BD   0580    P        JSR    CHKSTR   MAKE SURE FIRST WAS STRING.
+02097P 06FF 35   02      A        PULS   A        GET FUNCTION NUMBER.

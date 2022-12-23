@@ -1,0 +1,60 @@
+PAGE  010  ECBBAS  .SA:1  BASIC  THE "FOR" STATEMENT.
+
+01095                             TTL    NEW STATEMENT FETCHER.
+01096
+01097                      *
+01098                      * BACK HERE FOR NEW STATEMENT. CHARACTER POINTED TO BY TXTPTR
+01099                      * IS ":" OR END-OF-LINE. THE ADDRESS OF THIS LOC IS LEFT
+01100                      * ON THE STACK WHEN A STATEMENT IS EXECUTED SO THAT
+01101                      * IT CAN MERELY DO A RETURN WHEN IT IS DONE.
+01102                      *
+01103                             XDEF   NEWSTT
+01104P 01A8 BD   0000    A NEWSTT JSR    HKNWST   RAM hook.
+01105P 01AB 1C   AF      A        ANDCC  #$FF!X(F!+I) Enable interrupts.
+01106P 01AD 8D   75   0224        BSR    ISCNTC   LISTEN FOR CONTROL-C.
+01107P 01AF 9E   A6      A        LDX    TXTPTR   LOOK AT CURRENT CHARACTER.
+01108P 01B1 9F   2F      A        STX    TXTBEG   SAVE IN CASE OF RESTART BY INPUT.
+01109P 01B3 A6   80      A        LDA    ,X+
+01110P 01B5 27   07   01BE        BEQ    ENDLIN   IT IS A NULL - END OF LINE.
+01111P 01B7 81   3A      A        CMPA   #':
+01112P 01B9 27   24   01DF        BEQ    GONE     IF A ":", CONTINUE STATEMENT.
+01113P 01BB 7E   06BD    P SNERR1 JMP    SNERR    NEITHER SO SYNTAX ERROR.
+01114P 01BE A6   81      A ENDLIN LDA    ,X++     IS LINK 0?
+01115                      *    (Only check high order byte since
+01116                      *    program can't be on physical page O.)
+01117P 01C0 97   00      A        STA    BRKMFL   MAKE SURE DONT PRINT BREAK
+01118P 01C2 1027 0088 024E        LBEQ   ENDCON   YES - RAN OFF THE END.
+01119P 01C6 EC   80      A        LDD    ,X+      NO, PUT NEXT LINE NUMBER IN CURLIN.
+01120P 01C8 DD   68      A        STD    CURLIN   ONLY BUMP ONCE FOR SETTING TXTPTR
+01121P 01CA 9F   A6      A        STX    TXTPTR   SO NEXT CHRGET WILL GET FIRST CHAR
+01122                      *    OF LINE.
+01123P 01CC 96   AF      A        LDA    TRCFLG   Are we tracing the program?
+01124P 01CE 27   0F   01DF        BEQ    GONE     No.
+01125P 01D0 86   5B      A        LDA    #'[      Yes, print the line number enclosed
+01126P 01D2 BD   0000    A        JSR    CHROUT   in square brackets.
+01127P 01D5 96   68      A        LDA    CURLIN   (B still contains low order byte.)
+01128P 01D7 BD   0000    A        JSR    LINPRT
+01129P 01DA 86   5D      A        LDA    #']
+01130P 01DC BD   0000    A        JSR    CHROUT
+01131P 01DF 9D   9F      A GONE   JSR    CHRGET   GET THE STATEMENT TYPE.
+01132P 01E1 8D   02   01E5        BSR    GONE3
+01133P 01E3 20   C3   01A8        BRA    NEWSTT
+01134                             XDEF   GONE3
+01135P 01E5 27   3C   0223 GONE3  BEQ    RESRTS   IF TERMINATOR, TRY AGAIN.
+01136P 01E7 BD   0000    A        JSR    HKGONE   RAM hook.
+01137P 01EA 4D                    TSTA            Is it a reserved word token?
+01138P 01EB 102A 01D6 03C5        LBPL   LET      Not a token, must be an implicit LET.
+01139P 01EF 81   00      A        CMPA   #LSTATK  Is it a statement token?
+01140P 01F1 22   0B   01FE        BHI    NOTOST   It's not a statement token from
+01141                      *    statement list 0.
+01142P 01F3 BE   0000    A        LDX    STMDS0   It is a list 0 statement token.
+01143                      *    X:=pointer to dispatch table.
+01144                             XDEF   DOSDSP
+01145P 01F6 48             DOSDSP ASLA            Multiply token by 2 to get offset
+01146                      *    into dispatch table.  (Get rid of
+01147                      *    MSB in process.)
+01148P 01F7 1F   89      A        TFR    A,B      X:=pointer to dispatch address for
+01149P 01F9 3A                    ABX             this statement.  (Can't use
+01150                      *    LDX A,X since offset is signed.)
+01151P 01FA 9D   9F      A        JSR    CHRGET   Get the first char and set the cond
+01152                      *    codes.

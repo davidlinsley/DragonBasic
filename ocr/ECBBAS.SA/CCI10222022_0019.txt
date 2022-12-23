@@ -1,0 +1,60 @@
+PAGE  011  ECBBAS  .SA:1  BASIC  NEW STATEMENT FETCHER.
+
+01153P 01FC 6E   94      A        JMP    [, X]    Go handle the statement.
+01154
+01155                      *
+01156                      * Here if not a list 0 statement.
+01157                      *
+01158
+01159P 01FE 81   FF      A NOTOST CMPA   #@377    Is it a function token?
+01160P 0200 27   08   020A        BEQ    FNASGN   Yes.
+01161P 0202 81   00      A        CMPA   #LNRMTK  is it a list 0 token?
+01162P 0204 23   B5   01BB        BLS    SNERR1   Yes, give a syntax error.
+01163P 0206 6E   9F 000A A        JMP    [STMDS0+STBLEN] No, jump to the list 1 statement
+01164                      *    dispatcher.
+01165
+01166P 020A 9D   9F      A FNASGN JSR    CHRGET   Get the second byte of the function
+01167                      *    token.
+01168P 020C 81   00      A        CMPA   #MID$TK  Is it MID$ assignment?
+01169P 020E 1027 FDEE    A        LBEQ   LHMID$   Yes.
+01170P 0212 81   00      A        CMPA   #TIMETK  Is it a TIME token?
+01171P 0214 1027 FDE8    A        LBEQ   TIMSET   Yes,  go set the clock.
+01172P 0218 BD   0000    A        JSR    HKASGN   No, go to RAM hook to check for
+01173P 021B 20   9E   01BB        BRA    SNERR1   other function assignments,  If none,
+01174                      *    give a  syntax error.
+01175
+01176                            TTL    RESTORE,STOP,END,CONTINUE,CLEAR.
+01177
+01178                            XDEF   RESTOR
+01179P 021D 9E   19      A RESTOR LDX    TXTTAB
+01180P 021F 30   1F               DEX             INIT DATPTR TO [TXTTAB]-1
+01181P 0221 9F   33      A RESFIN STX    DATPTR   READ FINISHES COMES TO RESFIN.
+01182P 0223 39             RESRTS RTS
+01183
+01184            0001    A        IFEQ   REALIO
+01187                       ENDC   IFE REALIO
+01188
+01189            0001    A        IFNE   REALIO
+01190                             XDEF   ISCNTC
+01191P 0224 BD   0000    A ISCNTC JSR    POLCAT   POLL KEYBOARD.  WAS THERE A KEY TYPED?
+01192P 0227 27   0A   0233        BEQ    ISCRTS   NO, JUST RETURN.
+01193P 0229 81   03      A TSTBRK CMPA   #BRKCHR  YES, IS IS THE BREAK KEY?
+01194P 022B 27   15   0242        BEQ    STOP     YES, HIT THE BINDERS.
+01195P 022D 81   13      A        CMPA   #PAWZC   NO, IS IT THE PAUSE KEY?
+01196P 022F 27   03   0234        BEQ    HANG     Yes, hang around for a while.
+01197P 0231 97   87      A        STA    INKCHR   No, not special key, save it for
+01198P 0233 39             ISCRTS RTS             INKEY$ and return.
+01199P 0234 BD   0000    A HANG   JSR    POLCAT   YES, NOW WAIT FOR ANOTHER KEY.
+01200P 0237 27   FB   0234        BEQ    HANG
+01201P 0239 20   EE   0229        BRA    TSTBRK   GOT ONE, GO SEE WHAT IT IS.
+01202                             ENDC   IFN      REALIO
+01203
+01204                             XDEF   END
+01205P 023B BD   0000    A END    JSR    CLSALL   Close all devices and files.
+01206P 023E 9D   A5      A        JSR    CHRGOT   Reget the char.
+01207P 0240 20   02   0244        BRA    ENDER    Check termination, etc.
+01208
+01209                             XDEF   STOP
+01210P 0242 1A   01        STOP   SEC             MAKE [C] NONZERO AS A FLAG.
+01211P 0244 26   33   0279 ENDER  BNE    CONTRT   RETURN IF NOT CONT-C OR
+01212                      *    IF NO TERMINATOR FOR STOP OR END.

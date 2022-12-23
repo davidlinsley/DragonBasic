@@ -1,0 +1,60 @@
+PAGE  023  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
+
+01638                             XDEF   READ
+01639P 0480 9E   33      A READ   LDX    DATPTR   GET LAST DATA LOCATION.
+01640P 0482                       SKIP1  LDA      A,#CLR TO MAKE IT NONZERO.
+01641P 0483 4F             INPCON CLRA
+01642P 0484 97   09      A        STA    INPFLG   STORE THE FLAG.
+01643                      *
+01644                      * IN THE PROCESSING OF DATA AND READ STATEMENTS:
+01645                      * ONE POINTER POINTS TO THE DATA (IE, THE NUMBERS BEING FETCHED)
+01646                      * AND ANOTHER POINTS TO THE LIST OF VARIABLES.
+01647                      *
+01648                      * THE POINTER INTO THE DATA ALWAYS STARTS POINTING TO A
+01649                      * TERMINATOR -- A , : OR END-OF-LINE.
+01650                      *
+01651                      * AT THIS POINT TXTPTR POINTS TO LIST OF VARIABLES AND
+01652                      * XREG POINTS TO DATA OR INPUT LINE.
+01653                      *
+01654P 0486 9F   35      A        STX    INPPTR
+01655P 0488 BD   079D    P INLOOP JSR    PTRGET   READ VARIABLE LIST.
+01656P 048B 9F   3B      A        STX    FORPNT   SAVE POINTER FOR "LET" STRING STUFFING.
+01657                      *    RETURNS PNTR TOP VAR IN VARPNT.
+01658P 048D 9E   A6      A        LDX    TXTPTR   SAVE TEXT PNTR.
+01659P 048F 9F   2B      A        STX    VARTXT
+01660P 0491 9E   35      A        LDX    INPPTR   SET TEXT PNTR TO DATA.
+01661P 0493 A6   84      A        LDA    ,X       GET CURRENT CHARACTER AND SET CODES.
+01662P 0495 26   0C   04A3        BNE    DATBK    MUST BE A COMMA.
+01663P 0497 96   09      A        LDA    INPFLG
+01664P 0499 26   58   04F3        BNE    DATLOP   SEARCH FOR ANOTHER DATA STATEMENT.
+01665P 049B BD   0000    A        JSR    HKITMS   RAM hook for disk file item scanner.
+01666                      *    Goes to ITMSCN if disk and returns
+01667                      *    at DATBK or just returns here if not
+01668                      *    disk.
+01669P 049E BD   0000    A        JSR    OUTQST   Give them a double question mark.
+01670P 04A1 8D   C6   0469        BSR    QINLIN   GET ANOTHER LINE.
+01671                             XDEF   DATBK
+01672P 04A3 9F   A6      A DATBK  STX    TXTPTR   SET FOR "CHRGET".
+01673P 04A5 9D   9F      A        JSR    CHRGET
+01674P 04A7 D6   06      A        LDB    VALTYP   GET VALUE TYPE.
+01675P 04A9 27   27   04D2        BEQ    NUMINS   INPUT A NUMBER IF NUMERIC.
+01676P 04AB 9E   A6      A        LDX    TXTPTR   GET POINTER BEYOND SPACES. 
+01677P 04AD 97   01      A        STA    CHARAC   ASSUME QUOTED STRING.
+01678P 04AF 81   22      A        CMPA   #&34     TERMINATORS OK?
+01679P 04B1 27   12   04C5        BEQ    NOWGET   YES.
+01680P 04B3 30   1F      A        LEAX   -&1,X    RESTORE PNTR TO START OF STRING.
+01681P 04B5 4F                    CLRA            If the special I/O flag is set make
+01682P 04B6 97   01      A        STA    CHARAC   the string only end on end of line
+01683P 04B8 BD   0000    A        JSR    DEVPRM   Set up special I/O flag.
+01684P 04BB 0D   6E      A        TST    SPCIO    since all items written with SPCIO
+01685P 04BD 26   06   04C5        BNE    NOWGET   set have a CR after them.
+01686P 04BF 86   3A      A        LDA    #':      SET TERMINATORS TO ":" AND
+01687P 04C1 97   01      A        STA    CHARAC
+01688P 04C3 86   2C      A        LDA    #&44     COMMA.
+01689P 04C5 97   02      A NOWGET STA    ENDCHR
+01690P 04C7 BD   096A    P        JSR    STRLT2   MAKE A STRING DESCRIPTOR FOR THE VALUE 
+01691                      *    AND COPY IF NECESSARY.
+01692P 04CA BD   0683    P        JSR    ST2TXT   SET TEXT POINTER.
+01693P 04CD BD   03E0    P        JSR    INPCOM   DO ASSIGNMENT.
+01694P 04D0 20   06   04D8        BRA    STRDN2
+01695P 04D2 BD   0000    A NUMINS JSR    FIN

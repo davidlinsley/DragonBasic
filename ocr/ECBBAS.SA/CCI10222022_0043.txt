@@ -1,0 +1,60 @@
+PAGE  035  ECBBAS  .SA:1  BASIC  DIMENSION AND VARIABLE SEARCHING.
+
+02306                             TTL    MULTIPLE DIMENSION CODE.
+02307 
+02308                      *
+02309                      * INTIDX READS A FORMULA FROM THE CURRENT POSITION AND
+02310                      * TURNS IT INTO A POSITIVE INTEGER
+02311                      * LEAVING THE RESULT IN [FACMO,FACLO]. NEGATIVE ARGUMENTS
+02312                      * ARE NOT ALLOWED.
+02313                      *
+02314P 0825      90      A N32768 FCB    &144,&128,&0,&0 -32768.
+02315            0001    A        IFNE   ADDPRC
+02316P 0829      00      A        FCB    &0
+02317                             ENDC   IFN      ADDPRC
+02318
+02319                             XDEF   INTIDX
+02320P 082A 9D   9F      A INTIDX JSR    CHRGET
+02321                             XDEF   INTID2
+02322P 082C BD   057B    P INTID2 JSR    FRMNUM   GET A NUMBER
+02323P 082F BD   057D    P POSINT JSR    CHKNUM   Make sure it's numeric for callers
+02324                      *    coming in at POSINT. (Can't wait
+02325                      *    for check to be made at INTCNV since
+02326                      *    can't rely on FACSGN for strings.)
+02327P 0832 96   54      A        LDA    FACSGN
+02328P 0834 2B   60   0896        BMI    FCERR    IF NEGATIVE, BLOW HIM OUT.
+02329                             XDEF   INTCNV
+02330P 0836 BD   057D    P INTCNV JSR    CHKNUM   Make sure it's numeric for callers
+02331                      *    coming in at INTCNV. 
+02332P 0839 96   4F      A        LDA    FACEXP
+02333P 083B 81   90      A        CMPA   #&144    FAC .GT. 32767?
+02334P 083D 25   08   0847        BCS    QINTGO
+02335P 083F 8E   0825    P        LDX    #N32768  GET ADDR OF -32768.
+02336P 0842 BD   0000    A        JSR    FCOMP    SEE IF FAC=[[X]].
+02337P 0845 26   4F   0896        BNE    FCERR    NO, FAC IS TOO BIG.
+02338P 0847 BD   0000    A QINTGO JSR    QINT     Get the integer part.
+02339P 084A DC   52      A        LDD    FACMO    Return it in D for the callers.
+02340P 084C 39                    RTS
+02341                      *
+02342                      * FORMAT OF ARRAYS IN CORE.
+02343                      *
+02344                      * DESCRIPTOR:
+02345                      * LOWBYTE = FIRST CHARACTER.
+02346                      * HIGHBYTE = SECOND CHARACTER (200 BIT IS STRING FLAG).
+02347                      * LENGTH OF ARRAY IN CORE IN BYTES (INCLUDES EVERYTHING).
+02348                      * NUMBER OF DIMENSIONS.
+02349                      * FOR EACH DIMENSION STARTING WITH THE FIRST A LIST
+02350                      * (2 BYTES EACH) OF THE MAX INDICE+1
+02351                      * THE VALUES
+02352                      *
+02353P 084D D6   05      A ISARY  LDB    DIMFLG   SAVE DIMFLG AND VALTYP FOR RECURSION.
+02354P 084F 96   06      A        LDA    VALTYP
+02355P 0851 34   06      A        PSHS   B,A
+02356P 0853 5F                    CLRB            SET NUMBER OF DIMENSIONS TO ZERO.
+02357P 0854 9E   37      A INDLOP LDX    VARNAM   SAVE VARIABLE NAME AND NUMBER OF DIMS.
+02358P 0856 34   14      A        PSHS   X,B
+02359P 0858 8D   D0   082A        BSR    INTIDX   EVALUATE INDEX INTO FACMO&LO.
+02360P 085A 35   34      A        PULS   B,X,Y    B:=NUMBER OF DIMS, X:=VARNAM, AND
+02361                      *    Y:=VALTYP,DIMFLG.
+02362P 085C 9F   37      A        STX    VARNAM   PUT VARNAM BACK.
+02363P 085E DE   52      A        LDU    INDICE   PUT INDEX ON AND FOLLOW WITH DIMFLG

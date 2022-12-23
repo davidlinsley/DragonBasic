@@ -1,0 +1,60 @@
+PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    BASIC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   BRKTXT,BUF,BUFLNM,BUFM1N
+00712                             XREF   CASOFF,CHROUT,CLASS1,CLASS2,CLASS3,CLSALL,CONDCR,CRUNCH
+00713                             XREF   CONS16,DATATK,DEVPRM
+00714                             XREF   ELSETK,EQULTK,ERR,ERRBS,ERRCN,ERRDD
+00715                             XREF   ERRDIR,ERRDS,ERRFC
+00716                             XREF   ERRFD,ERRID,ERRIE,ERRLS,ERRNF,ERROD,ERROM,ERRRG
+00717                             XREF   ERRSN,ERRSO,ERRST,ERRTAB,ERRTM,ERRUL
+00718                             XREF   FADD,FCOMP,FIN,FINLOD,FLOAT,FLOATS
+00719                             XREF   FNDOER,FNTK,FONE,FORTK,FOUTC,FUNDSO
+00720                             XREF   GETDNM,GOTK,GREATK
+00721                             XREF   HKASGN,HKCLRC,HKERR,HKETRP
+00722                             XREF   HKEVAL,HKGONE,HKITMS,HKNWST,HKRUN,HKSCP1,HKSCP2,HOCONS
+00723                             XREF   IFTK,INLIN,INPRT
+00724                             XREF   LESSTK,LFUNTK,LHMID$,LINPRT,LNRMTK,LOFBUF,LSTATK
+00725                             XREF   MID$TK,MINUTK,MOVFA,MOVFM,MOVMF,MOVVF
+00726                             XREF   NEGOP,NOTTK
+00727                             XREF   OPNICK,OPTAB,OUTDO,OUTQST,OUTSPC
+00728                             XREF   PLUSTK,POLCAT
+00729                             XREF   QINT
+00730                             XREF   REDDY
+00731                             XREF   SETDNM,SIGN,SNDOFF,STEPTK,STMDSO,STROUT,STRPRT,SUBTK
+00732                             XREF   TEMPST,THENTK,TIMETK,TIMSET,TCLAS1,TCLAS2,TCLAS3,TLFNTK,TOTK
+00733                             XREF   XRRUN
+00734                             XREF   ZEROFC
+00735
+00736                             TTL    GENERAL STORAGE MANAGEMENT ROUTINES.
+00737
+00738                      *
+00739                      * FIND A"FOR" ENTRY ON THE STACK VIA "VARPNT".
+00740                      *
+00741            0012    A FORSIZ EQU    &16+(&2*ADDPRC)
+00742
+00743P 0000 30   64      A FNDFOR LEAX   &4,S     IGNORE ADDRESS OF NEWSTT AND RTS ADDR.
+00744P 0002 C6   12      A FFLOOP LDB    #FORSIZ  LOAD B WITH INC VALUE.
+00745P 0004 9F   0F      A        STX    TEMPX1   SAVE FOR ADDITION LATER.
+00746P 0006 A6   84      A        LDA    ,X       GET STACK ENTRY.
+00747P 0008 80   00      A        SUBA   #FORTK   IS IT A "FOR" TOKEN?
+00748                      *    CLEAR ACCA FOR ADD TO [XREG].
+00749P 000A 26   15   0021        BNE    FFRTS    NO, NO "FOR" LOOPS WITH THIS PNTR.
+00750P 000C AE   01      A        LDX    &1,X     YES, GET "FOR" VARIABLE'S PNTR.
+00751P 000E 9F   11      A        STX    TEMPX2   SAVE IT.
+00752P 0010 9E   3B      A        LDX    FORPNT   GET PNTR OF FORIABLE SOUGHT AFTER.
+00753P 0012 27   09   001D        BEQ    STVPNT   IF IT IS NULL, SAVE STACK'S FORIABLE.
+00754P 0014 9C   11      A        CMPX   TEMPX2   ARE THE PNTRS EQUAL?
+00755P 0016 27   09   0021        BEQ    FFRTS    YES, WE HAVE FINISHED.
+00756P 0018 9E   0F      A        LDX    TEMPX1   ADD OFFSET TO TEMPX1 AND
+00757P 001A 3A                    ABX             PUT RESULT IN XREG.

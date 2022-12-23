@@ -1,0 +1,60 @@
+PAGE  006  ECBBAS  .SA:1  BASIC  ERROR HANDLER, READY, NEW, REINIT.
+
+00956P 0102 EF   84      A        STU    ,X       Yes, store link.
+00957P 0104 AE   84      A        LDX    ,X       Point to next line.
+00958P 0106 20   F0   00F8        BRA    CHEAD    Go handle the next line.
+00959
+00960                      *
+00961                      *  FNDLIN SEARCHES THE PROGRAM TEXT FOR THE LINE
+00962                      *  WHOSE NUMBER IS PASSED IN "LINNUM".
+00963                      *  THERE ARE TWO POSSIBLE RETURNS:
+00964                      *
+00965                      * 1) CARRY NOT SET.
+00966                      *    XREG POINTS TO THE LINK FIELD IN THE LINE
+00967                      *    WHICH IS THE ONE SEARCHED FOR
+00968                      *
+00969                      * 2) CARRY SET.
+00970                      *    LINE NOT FOUND. XREG POINTS TO THE LINE IN THE
+00971                      *    PROGRAM GREATER THAN THE ONE SOUGHT AFTER.
+00972                      *
+00973                             XDEF   FNDLIN
+00974P 0108 DC   2B      A FNDLIN LDD    LINNUM   D:=1ine number to search for.
+00975P 010A 9E   19      A        LDX    TXTTAB   START AT THE BEGINNING.
+00976P 010C EE   84      A FNDLOP LDU    ,X       IS THE LINK FIELD ZERO?
+00977P 010E 27   09   0119        BEQ    FLINRT   YES, SEC AND RTS.
+00978P 0110 10A3 02      A        CMPD   &2,X     COMPARE SIZES.
+00979P 0113 23   06   011B        BLS    FNLRTS   This is the one we want or we have
+00980                      *    gone beyond it in which case the carry
+00981                      *    is set.
+00982P 0115 AE   84      A        LDX    ,X       TRY NEXT ONE.
+00983P 0117 20   F3   010C        BRA    FNDLOP 
+00984P 0119 lA   01        FLINRT SEC
+00985P 011B 9F   47      A FNLRTS STX    LOWTR
+00986P 011D 39             FNDRTS RTS
+00987                      *
+00988                      * THE "NEW" COMMAND CLEARS THE PROGRAM TEXT AS WELL
+00989                      * AS VARIABLE SPACE.
+00990                      *
+00991                             XDEF   SCRATH
+00992P 011E 26   FB   011B SCRATH BNE    FNLRTS   MAKE SURE THERE IS A TERMINATOR.
+00993                             XDEF   SCRTCH
+00994P 0120 9E   19      A SCRTCH LDX    TXTTAB   CLEAR FIRST TWO BYTES PNT'D
+00995P 0122 6F   80      A        CLR    ,X+      TO BY TXTPTR.
+00996P 0124 6F   80      A        CLR    ,X+
+00997P 0126 9F   1B      A        STX    VARTAB
+00998                             XDEF   RUNC
+00999P 0128 9E   19      A RUNC   LDX    TXTTAB   SET TXTPTR TO START OF TEXT.
+01000P 012A BD   02F7    P        JSR    DEXPTR   POINT TO ZERO TO FOOL "NEWSTT".
+01001                      *
+01002                      * CLEARC IS A SUBROUTINE WHICH INITIALIZES THE VARIABLE AND
+01003                      * ARRAY SPACE BY RESETING ARYTAB (THE END OF SIMPLE VARIABLE SPACE)
+01004                      * AND STREND (THE END OF ARRAY STORAGE). IT FALLS INTO "STKINI"
+01005                      * WHICH RESETS THE STACK.
+01006                      *
+01007                             XDEF   CLEARC
+01008P 012D BD   0000    A CLEARC JSR    HKCLRC   RAM hook.
+01009P 0130 9E   27      A        LDX    MEMSIZ   FREE UP STRING SPACE.
+01010P 0132 9F   23      A        STX    FRETOP
+01011P 0134 BD   021D    P        JSR    RESTOR   RESTORE DATA
+01012P 0137 9E   1B      A        LDX    VARTAB   LIBERATE THE
+01013P 0139 9F   1D      A        STX    ARYTAB   VARIABLES AND

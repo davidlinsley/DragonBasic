@@ -1,0 +1,60 @@
+PAGE  040  ECBBAS  .SA:1  BASIC  INTEGER ARITHMETIC ROUTINES.
+
+02534                             TTL    FRE FUNCTION AND INTEGER TO FLOATING ROUTINES.
+02535
+02536            0000    A        IFNE   FRESW
+02549                       ENDC   IFN FRESW
+02550
+02551            0001    A        IFNE   MEMSW
+02552                             XDEF   MEM
+02553P 093A 1F   40      A MEM    TFR    S,D      Subtract storage end from stack
+02554                             XREF   PATCHM
+02555P 093C 7E   0000    A        JMP    PATCHM
+02556                             ENDC   IFN      MEMSW
+02557
+02558                             XDEF   SNGFLT
+02559P 093F 4F             SNGFLT CLRA            Use only B.
+02560                             XDEF   GIVABF
+02561P 0940 0F   06      A GIVABF CLR    VALTYP   SET NUMERIC.
+02562P 0942 DD   50      A        STD    FACHO
+02563P 0944 C6   90      A        LDB    #&144    SET EXPONENT TO 2^16.
+02564P 0946 7E   0000    A        JMP    FLOATS   TURN IT TO A FLOATING PNT #.
+02565
+02566                             TTL    STRING FUNCTIONS.
+02567
+02588                      *
+02569                      * THE STR$ FUNCTION TAKES A NUMBER AND GIVES A STRING
+02570                      * WITH THE CHARACTERS THE OUTPUT OF THE NUMBER
+02571                      * WOULD HAVE GIVEN.
+02572                      *
+02573                             XDEF   STR$
+02574P 0949 BD   057D    P STR$   JSR    CHKNUM   ARG HAS TO BE NUMERIC.
+02575P 094C CE   0000    A        LDU    #LOFBUF
+02576P 094F BD   0000    A        JSR    FOUTC    DO ITS OUTPUT.
+02577P 0952 32   62      A        LEAS   &2,S     GET RID OF "CHKNUM" RETURN ADDR.
+02578P 0954 8E   FFFF    A        LDX    #LOFBUF-&1
+02579P 0957 20   0B   0964        BRA    STRLTI   SCAN IT AND TURN IT INTO A STRING.
+02580                      *
+02581                      * "STRINI" GET STRING SPACE FOR THE CREATION OF A STRING AND
+02582                      * CREATES A DESCRIPTOR FOR IT IN "DSCTMP".
+02583                      *
+02584P 0959 9F   4D      A STRINI STX    DSCPNT   RETAIN THE DESCRIPTOR POINTER.
+02585                             XDEF   STRSPA
+02586P 095B 8D   5F   09BC STRSPA BSR    GETSPA   GET STRING SPACE.
+02587P 095D 9F   58      A STRAD2 STX    DSCTMP+&2 SAVE LOCATION.
+02588P 095F D7   56      A        STB    DSCTMP   SAVE LENGTH.
+02589P 0961 39                    RTS             ALL DONE.
+02590                      *
+02591                      * "STRLT2" TAKES THE STRING LITERAL WHOSE FIRST CHARACTER
+02592                      * IS POINTED TO BY [XREG]+1 AND BUILDS A DESCRIPTOR FOR IT. 
+02593                      * THE DESCRIPTOR IS INITIALLY BUILT IN "DSCTMP", BUT "PUTNEW"
+02594                      * TRANSFERS IT INTO A TEMPORARY AND LEAVES A POINTER
+02595                      * AT THE TEMPORARY IN FACMO&LO. THE CHARACTERS OTHER THAN
+02596                      * ZERO THAT TERMINATE THE STRING SHOULD BE SET UP IN "CHARAC"
+02597                      * AND "ENDCHR". IF THE TERMINATOR IS A QUOTE, THE QUOTE IS SKIPPED
+02598                      * OVER. LEADING QUOTES SHOULD BE SKIPPED BEFORE JSR. ON RETURN
+02599                      * THE CHARACTER AFTER THE STRING LITERAL IS POINTED TO
+02600                      * BY [STRNG2].
+02601                      *
+02602                             XDEF   STRLIT
+02603P 0962 30   1F        STRLIT DEX

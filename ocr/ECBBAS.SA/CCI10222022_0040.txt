@@ -1,0 +1,37 @@
+PAGE  032  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
+
+02156P 075F 96   56      A        LDA    DSCTMP   GET COUNT INTO ACCA.
+02157P 0761 34   04 A0E0          SBA             WHICH IS GREATER. IF 0, ALL SET UP.
+02158P 0765 27   07   076E        BEQ    STASGN   JUST PUT SIGN OF DIFFERENCE AWAY.
+02159P 0767 86   01      A        LDA    #&1
+02160P 0769 24   03   076E        BCC    STASGN   SIGN IS POSITIVE.
+02161P 076B D6   56      A        LDB    DSCTMP   LENGTH OF FAC IS SHORTER.
+02162P 076D 40                    NEGA            GET A MINUS 1 FOR NEGATIVES.
+02163P 076E 97   54      A STASGN STA    FACSGN   KEEP FOR LATER.
+02164P 0770 DE   58      A        LDU    DSCTMP+&2 SET POINTER TO SECOND.
+02165P 0772 5C                    INCB            TO LOOP PROPERLY.
+02166
+02167                      *
+02168                      * XREG HAS POINTER TO FIRST STRING.
+02169                      * UREG HAS POINTER TO SECOND STRING.
+02170                      *
+02171
+02172P 0773 5A             NXTCMP DECB            ANY CHARACTERS LEFT TO COMPARE?
+02173P 0774 26   04   077A        BNE    GETCMP   NOT DONE YET.
+02174P 0776 D6   54      A        LDB    FACSGN   USE SIGN OF LENGTH DIFFERENCE
+02175                      *    SINCE ALL CHARACTERS ARE THE SAME.
+02176P 0778 20   0B   0785        BRA    DOCMP
+02177P 077A A6   80      A GETCMP LDA    ,X+      GET NEXT CHAR TO COMPARE.
+02178P 077C A1   C0      A        CMPA   ,U+      SAME?
+02179P 077E 27   F3   0773        BEQ    NXTCMP   YEP. TRY FURTHER.
+02180P 0780 C6   FF      A        LDB    #-&1     Say the first is greater than the
+02181                      *    second.
+02182P 0782 24   01   0785        BCC    DOCMP    It really is.
+02183P 0784 50                    NEGB            Say second is greater than first.
+02184P 0785 CB   01      A DOCMP  ADDB   #&1      -1 TO 1, 0 TO 2, 1 TO 4.
+02185P 0787 59                    ROLB
+02186P 0788 D4   0A      A        ANDB   DOMASK
+02187P 078A 27   02   078E        BEQ    GOFLOT
+02188P 078C C6   FF      A        LDB    #-&1     MAP 0 TO 0. ALL OTHERS TO -1.
+02189P 078E 7E   0000    A GOFLOT JMP    FLOAT    FLOAT THE ONE-BYTE RESULT INTO FAC.
+02190
