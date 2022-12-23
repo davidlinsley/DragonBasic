@@ -110,7 +110,7 @@ PAGE  002  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00804P 0088                       DCI    NE,W
 00805P 008B                       DCI    DE,F
 00806            0000    A        IFNE   WAITSW
-00808                      ENDC    IFE WAITSW
+00808                       ENDC   IFE WAITSW
 00809P 008E                       DCI    CLOA,D
 00810                             XDEF   CLOATK
 00811            0099    A CLOATK EQU    Q
@@ -165,7 +165,7 @@ PAGE  003  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00857            00B9    A DLOATK EQU    Q
 00858P 0124                       DCI    RENU,M
 00859            0001    A        IFEQ   REALIO
-00862                      ENDC    IFE REALIO
+00862                       ENDC   IFE REALIO
 00863
 00864                             XDEF   LSTATK
 00865            00BA    A LSTATK EQU    Q        The last statement token.
@@ -190,7 +190,7 @@ PAGE  004  ECBTAB  .SA:11 ECBTAB "Normal" (non-function) Reserved Word Table
 00881            00BE    A FNTK   EQU    Q 
 00882
 00883            0000    A        IFNE   SPCSW
-00889                      ENDC    IFN SPCSW
+00889                       ENDC   IFN SPCSW
 00890P 0134                       DCI    THE,N
 00891                             XDEF   THENTK
 00892            00BF    A THENTK EQU    Q
@@ -273,7 +273,7 @@ PAGE  005  ECBTAB  .SA:l  ECBTAB "Normal" (non-function) Reserved Word Table
 00967P 0184                       FDBEXT DEF
 00968
 00969            0000    A        IFNE   WAITSW
-00971                      ENDC    IFN WAITSW
+00971                       ENDC   IFN WAITSW
 00972
 00973P 0186                       FDBEXT CLOAD
 00974P 0188                       FDBEXT CSAVE
@@ -315,7 +315,7 @@ PAGE  006  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
 01007P 01C6                       FDBEXT DLOAD
 01008P 01C8                       FDBEXT RENUM
 01009            0001    A        IFEQ   REALIO
-01012                      ENDC    IFE REALIO
+01012                       ENDC   IFE REALIO
 
 PAGE  007  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
 
@@ -331,7 +331,7 @@ PAGE  007  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
 01023P 01D0                       DCI    AB,S
 01024
 01025            0000    A        IFNE   FRESW
-01027                      ENDC    IFN FRESW
+01027                       ENDC   IFN FRESW
 01028
 01029P 01D3                       DCI    PO,S
 01030P 01D6                       DCI    RN,D
@@ -386,7 +386,7 @@ PAGE  008  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
 01076P 0230                       DCI    VARPT,R
 01077P 0236                       DCI    INST,R
 01078            0000    A        IFNE   TODCLK
-01080                      ENDC    IFN TODCLK
+01080                       ENDC   IFN TODCLK
 01081            0000    A        IFEQ   TODCLK
 01082P 023B                       DCI    TIME,R
 01083                             ENDC   IFE      TODCLK
@@ -416,7 +416,7 @@ PAGE  009  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
 01105P 0254                       FDBEXT ABS
 01106
 01107            0000    A        IFNE   FRESW
-01109                      ENDC    IFN FRESW
+01109                       ENDC   IFN FRESW
 01110
 01111P 0256                       FDBEXT POS
 01112P 0258                       FDBEXT RND
@@ -452,7 +452,7 @@ PAGE  009  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
 01142P 0288                       FDBEXT VARPTR
 01143P 028A                       FDBEXT INSTR
 01144            0000    A        IFNE   TODCLK
-01146                      ENDC    IFN TODCLK
+01146                       ENDC   IFN TODCLK
 01147            0000    A        IFEQ   TODCLK
 01148P 028C                       FDBEXT TIMER
 01149                             ENDC   IFE      TODCLK

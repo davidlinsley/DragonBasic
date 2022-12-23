@@ -49,7 +49,7 @@ PAGE  002  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00804P 0088                       DCI    NE,W
 00805P 008B                       DCI    DE,F
 00806            0000    A        IFNE   WAITSW
-00808                      ENDC    IFE WAITSW
+00808                       ENDC   IFE WAITSW
 00809P 008E                       DCI    CLOA,D
 00810                             XDEF   CLOATK
 00811            0099    A CLOATK EQU    Q

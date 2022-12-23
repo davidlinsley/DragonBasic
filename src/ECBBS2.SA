@@ -27,7 +27,7 @@
        XREF   USINTK
 
        IFNE   SPCSW
-ENDC    IFN SPCSW
+ ENDC   IFN SPCSW
 
        TTL    LIST and LLIST
 
@@ -448,7 +448,7 @@ NEWCHR CMPA   #TABTK   TAB "function"?
        BEQ    TABER    Yes
 
        IFNE   SPCSW
-ENDC    IFN SPCSW
+ ENDC   IFN SPCSW
        CMPA   #COMMA   No, a comma?
        BEQ    COMPRT   Yes
        CMPA   #SEMCOL  No, a semicolon?
@@ -524,14 +524,14 @@ MORCOM SUBB   DEVCFW   B:=the number of spaces which must
 TABER  EQU    *
 
        IFNE   SPCSW 
-ENDC    IFN SPCSW
+ ENDC   IFN SPCSW
        JSR    GTBYTC   B:=number of spaces for SPC, or column
 *    number for TAB.
        CMPA   #CLSPAR  Check for a closing paren without
        LBNE   SNERR    causing a CHRGET call.
 
        IFNE   SPCSW
-ENDC    IFN SPCSW
+ ENDC   IFN SPCSW
        JSR    DEVPRM   No, it was TAB. Call DEVPRM to set
 *    up DEVPOS.
        SUBB   DEVPOS   Calculate number of spaces to output
@@ -543,7 +543,7 @@ SPACEB TST    SPCIO    Comma, TAB, and SPC are ignored if
 *    set up.)
 
        IFNE   SPCSW
-ENDC    IFN SPCSW
+ ENDC   IFN SPCSW
 BSPAC  BSR    OUTSPC   Ouput [B] spaces.
        DECB
        BNE    BSPAC

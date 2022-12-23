@@ -31,7 +31,7 @@ PAGE  005  ECBTAB  .SA:l  ECBTAB "Normal" (non-function) Reserved Word Table
 00967P 0184                       FDBEXT DEF
 00968
 00969            0000    A        IFNE   WAITSW
-00971                      ENDC    IFN WAITSW
+00971                       ENDC   IFN WAITSW
 00972
 00973P 0186                       FDBEXT CLOAD
 00974P 0188                       FDBEXT CSAVE

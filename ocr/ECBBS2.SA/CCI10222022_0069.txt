@@ -9,7 +9,7 @@ PAGE  013  ECBBS2  .SA:1  BASTWO The PRINT code.
 01155P 01C4 27   5D   0223        BEQ    TABER    Yes
 01156
 01157            0000    A        IFNE   SPCSW
-01160                      ENDC    IFN SPCSW
+01160                       ENDC   IFN SPCSW
 01161P 01C6  81  2C      A        CMPA   #COMMA   No, a comma?
 01162P 01C8  27  41   020B        BEQ    COMPRT   Yes
 01163P 01CA  81  3B      A        CMPA   #SEMCOL  No, a semicolon?

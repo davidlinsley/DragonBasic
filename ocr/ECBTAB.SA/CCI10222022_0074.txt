@@ -43,7 +43,7 @@ PAGE  003  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00857            00B9    A DLOATK EQU    Q
 00858P 0124                       DCI    RENU,M
 00859            0001    A        IFEQ   REALIO
-00862                      ENDC    IFE REALIO
+00862                       ENDC   IFE REALIO
 00863
 00864                             XDEF   LSTATK
 00865            00BA    A LSTATK EQU    Q        The last statement token.

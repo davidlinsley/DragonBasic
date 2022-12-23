@@ -12,4 +12,4 @@ PAGE  006  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
 01007P 01C6                       FDBEXT DLOAD
 01008P 01C8                       FDBEXT RENUM
 01009            0001    A        IFEQ   REALIO
-01012                      ENDC    IFE REALIO
+01012                       ENDC   IFE REALIO

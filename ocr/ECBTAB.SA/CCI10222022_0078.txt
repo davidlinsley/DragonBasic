@@ -12,7 +12,7 @@ PAGE  007  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
 01023P 01D0                       DCI    AB,S
 01024
 01025            0000    A        IFNE   FRESW
-01027                      ENDC    IFN FRESW
+01027                       ENDC   IFN FRESW
 01028
 01029P 01D3                       DCI    PO,S
 01030P 01D6                       DCI    RN,D
