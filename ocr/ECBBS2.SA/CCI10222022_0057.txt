@@ -30,5 +30,5 @@ PAGE  001  ECBCOM  .SA:0  BASTWO Extension ROM Direct Page RAM
 00727                             XREF   USINTK
 00728
 00729            0000    A        IFNE   SPCSW
-00731                      ENDC    IFN SPCSW
+00731                       ENDC   IFN SPCSW
 00732

@@ -30,7 +30,7 @@ PAGE  001  ECBCOM  .SA:0  BASTWO Extension ROM Direct Page RAM
 00727                             XREF   USINTK
 00728
 00729            0000    A        IFNE   SPCSW
-00731                      ENDC    IFN SPCSW
+00731                       ENDC   IFN SPCSW
 00732
 
 PAGE  002  ECBBS2  .SA:1  BASTWO External Declarations
@@ -486,7 +486,7 @@ PAGE  013  ECBBS2  .SA:1  BASTWO The PRINT code.
 01155P 01C4 27   5D   0223        BEQ    TABER    Yes
 01156
 01157            0000    A        IFNE   SPCSW
-01160                      ENDC    IFN SPCSW
+01160                       ENDC   IFN SPCSW
 01161P 01C6  81  2C      A        CMPA   #COMMA   No, a comma?
 01162P 01C8  27  41   020B        BEQ    COMPRT   Yes
 01163P 01CA  81  3B      A        CMPA   #SEMCOL  No, a semicolon?
@@ -568,14 +568,14 @@ PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
 01235            0223    P TABER  EQU    *
 01236
 01237            0000    A        IFNE   SPCSW 
-01240                      ENDC    IFN SPCSW
+01240                       ENDC   IFN SPCSW
 01241P 0223 BD   0000    A        JSR    GTBYTC   B:=number of spaces for SPC, or column
 01242                      *    number for TAB.
 01243P 0226 81   29      A        CMPA   #CLSPAR  Check for a closing paren without
 01244P 0228 1026 FDD4    A        LBNE   SNERR    causing a CHRGET call.
 01245
 01246            0000    A        IFNE   SPCSW
-01250                      ENDC    IFN SPCSW
+01250                       ENDC   IFN SPCSW
 01251P 022C BD   0000    A        JSR    DEVPRM   No, it was TAB. Call DEVPRM to set
 01252                      *    up DEVPOS.
 01253P 022F D0   6C      A        SUBB   DEVPOS   Calculate number of spaces to output
@@ -587,7 +587,7 @@ PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
 01259                      *    set up.)
 01260
 01261            0000    A        IFNE   SPCSW
-01264                      ENDC    IFN SPCSW
+01264                       ENDC   IFN SPCSW
 01265P 0237 8D   18   0251 BSPAC  BSR    OUTSPC   Ouput [B] spaces.
 01266P 0239 5A                    DECB
 01267P 023A 26   FB   0237        BNE    BSPAC
