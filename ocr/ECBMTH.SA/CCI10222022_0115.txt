@@ -1,4 +1,4 @@
-PAGE  001  ECBCOM  .SA:0  MATH  P Extension ROM Direct Page RAM
+PAGE  001  ECBCOM  .SA:0  MATH P Extension ROM Direct Page RAM
 
 00700                             OPT    L,LLE=120
 00701                             NAM    MATH     PACKAGE FOR 6809 BASIC
