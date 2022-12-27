@@ -1,4 +1,4 @@
-PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
+PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code
 
 01082P 016A C1   00      A        CMPB   #DATATK  Starting a DATA statement?
 01083P 016C 26   02   0170        BNE    NODATT   No.

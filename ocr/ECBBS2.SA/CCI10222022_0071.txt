@@ -35,7 +35,7 @@ PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
 01274                             XDEF   STROUT 
 01275P 0241 BD   0000    A STROUT JSR    STRLTI   Get a string literal.
 01276                      *
-01277                      * Print thestring whose descriptor is pointed to by FACMO,FACLO.
+01277                      * Print the string whose descriptor is pointed to by FACMO,FACLO.
 01278                      *
 01279                             XDEF   STRPRT
 01280P 0244 BD   0000    A STRPRT JSR    FREFAC   Return temp pointer. 

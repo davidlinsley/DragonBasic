@@ -127,7 +127,7 @@ PAGE  003  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
 00818                             XDEF   GETSTK
 00819P 003A 4F             GETSTK CLRA
 00820P 003B 58                    ASLB            MULTIPLY [A,B] BY 2.
-00821                      *    NUMBER IS LESS THAN 128 SO NO CARRY.                                                                         •
+00821                      *    NUMBER IS LESS THAN 128 SO NO CARRY.
 00822P 003C D3   1F      A        ADDD   STREND   [A,B]= HIGH ADDRESS REQ'D.
 00823                      * BRA REASON  ;CALL REASON, AND RETURN.
 00824                      *
@@ -1568,7 +1568,7 @@ PAGE  033  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
 02198                      * 1) IF AN ENTRY IS FOUND, "DIMFLG" BEING ON INDICATES
 02199                      *  A "DOUBLY" DIMENSIONED VARIABLE.
 02200                      * 2) WHEN A NEW ENTRY IS BEING BUILT "DIMFLG" BEING ON
-02201                      *  INDICTAES THE INDICES SHOULD BE USED FOR THE                                                                                               !,
+02201                      *  INDICTAES THE INDICES SHOULD BE USED FOR THE
 02202                      *  SIZE OF EACH INDEX. OTHERWISE THE DEFAULT OF TEN
 02203                      *  IS USED.
 02204                      * 3) WHEN THE BUILD ENTRY CODE FINISHES, ONLY IF "DIMFLG" IS OFF
@@ -2301,7 +2301,7 @@ PAGE  046  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
 02908P 0B1B 40                    NEGA
 02909P 0B1C 20   DF   0AFD        BRA    RLEFT    CHECK IT FOR SIZE.
 02910
-02911                      * MID ($,#) RETURNS STRING WITH CHARS FROM # POSITION                                          I
+02911                      * MID ($,#) RETURNS STRING WITH CHARS FROM # POSITION
 02912                      * ONWARD. IF # .GT. LEN ($) THEN RETURN NULL STRING. 
 02913                      * MID ($,#,#) RETURNS STRING WITH CHARACTERS FROM
 02914                      * # POSITION FOR #2 CHARACTERS. IF #2 GOES PAST END OF STRING 

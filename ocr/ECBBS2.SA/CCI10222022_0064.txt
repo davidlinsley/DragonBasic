@@ -28,10 +28,10 @@ PAGE  008  ECBBS2  .SA:l  BASTWO The CRUNCH code
 01007
 01008                      *
 01009                      *    Here to move chars from the source line to the destination buffer
-01010                      *    without crunching. This only stops on end of line or when the                                                                                                                                                                                                                                                                                                                                                                                                                          40
+01010                      *    without crunching. This only stops on end of line or when the
 01011                      *    char moved matches the char in TRMCHR. Quoted strings put a
 01012                      *    double quote in TRMCHR. REM and single quote put a zero in TRMCHR
-01013                      *    so everthing left on the source line is moved without crunching.                                                                                                                                                                                                                                                                                                                                                                                                                       40
+01013                      *    so everthing left on the source line is moved without crunching.
 01014                      *
 01015
 01016P 0120 A6   80      A STRLOP LDA    ,X+      Get char from source line.

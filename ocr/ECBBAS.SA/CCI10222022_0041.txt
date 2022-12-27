@@ -9,7 +9,7 @@ PAGE  033  ECBBAS  .SA:1  BASIC  FORMULA EVALUATION CODE.
 02198                      * 1) IF AN ENTRY IS FOUND, "DIMFLG" BEING ON INDICATES
 02199                      *  A "DOUBLY" DIMENSIONED VARIABLE.
 02200                      * 2) WHEN A NEW ENTRY IS BEING BUILT "DIMFLG" BEING ON
-02201                      *  INDICTAES THE INDICES SHOULD BE USED FOR THE                                                                                               !,
+02201                      *  INDICTAES THE INDICES SHOULD BE USED FOR THE
 02202                      *  SIZE OF EACH INDEX. OTHERWISE THE DEFAULT OF TEN
 02203                      *  IS USED.
 02204                      * 3) WHEN THE BUILD ENTRY CODE FINISHES, ONLY IF "DIMFLG" IS OFF

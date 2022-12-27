@@ -50,10 +50,10 @@ PAGE  004  ECBBS2  .SA:1  BASTWO LIST and LLIST
 00844                      * 4) Move the ASCII characters of the reserved word into the
 00845                      *    output buffer.
 00846
-00847                                                                                                                                              a
+00847
 00848P 0088 CE   FFF6    A HAVTOK LDU    #NNRML0-STBLEN Assume it isn't a function token
 00849                      *    and set up U so "normal" counts
-00850                      *    will be subtracted.  (U gets pre-                                                                            a
+00850                      *    will be subtracted.  (U gets pre-
 00851                      *    incremented by STBLEN.)
 00852P 008B 81   FF      A        CMPA   #@377    Is it a function token?
 00853P 008D 26   04   0093        BNE    NTFNTK   No.

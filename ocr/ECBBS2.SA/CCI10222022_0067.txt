@@ -1,4 +1,4 @@
-PAGE  011  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
+PAGE  011  ECBBS2  .SA:1  BASTWO The CRUNCH code
 
 01089                      *
 01090                      * Here when all lists of a particular type (normal or function)

@@ -1,10 +1,10 @@
-PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.                                                                                                                                                           •
+PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.
 
 01202                             XDEF   CRDO
-01203P 01FD 86   0D      A CRDO   LDA    #CR      Send carriage return and line feed.                                                                                            •
+01203P 01FD 86   0D      A CRDO   LDA    #CR      Send carriage return and line feed.
 01204P 01FF 20   55   0256        BRA    OUTDO
 01205
-01206                             XDEF   CONDCR                                                                                                                                       •
+01206                             XDEF   CONDCR
 01207P 0201 BD   0000    A CONDCR JSR    DEVPRM   Get device parms.
 01208P 0204 27   F7   01FD        BEQ    CRDO     Always do CRLF if infinite width.
 01209P 0206 96   6C      A        LDA    DEVPOS   Do CRLF if not a left margin.
@@ -13,10 +13,10 @@ PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.                                
 01212
 01213                      *
 01214                      * Here when a comma has been seen.
-01215                      *                                                                                                                                                                  •
+01215                      *
 01216P 020B BD   0000    A COMPRT JSR    DEVPRM   Get device parms.
 01217P 020E 27   0A   021A        BEQ    COMADO   If device has infinite width there
-01218                      *    is always room for another comma                                                                                                                           •
+01218                      *    is always room for another comma
 01219                      *    field.
 01220P 0210 D6   6C      A        LDB    DEVPOS   Room for another comma field on this
 01221P 0212 D1   6B      A        CMPB   DEVLCF   line?
@@ -28,7 +28,7 @@ PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.                                
 01227                      *    next comma field starts.
 01228P 021C D0   6A      A MORCOM SUBB   DEVCFW   B:=the number of spaces which must
 01229P 021E 24   FC   021C        BCC    MORCOM   be printed to get to the start of the
-01230P 0220 50                    NEGB            next column field.                                                                                                             •
+01230P 0220 50                    NEGB            next column field.
 01231P 0221 20   10   0233        BRA    SPACEB   Go output the spaces. (Go to SPACEB
 01232                      *    rather than BSPAC so SPCIO gets
-01233                      *    checked.)                                                                                                                                                  •
+01233                      *    checked.)

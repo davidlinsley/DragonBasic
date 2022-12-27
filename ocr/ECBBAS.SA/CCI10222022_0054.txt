@@ -15,7 +15,7 @@ PAGE  046  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
 02908P 0B1B 40                    NEGA
 02909P 0B1C 20   DF   0AFD        BRA    RLEFT    CHECK IT FOR SIZE.
 02910
-02911                      * MID ($,#) RETURNS STRING WITH CHARS FROM # POSITION                                          I
+02911                      * MID ($,#) RETURNS STRING WITH CHARS FROM # POSITION
 02912                      * ONWARD. IF # .GT. LEN ($) THEN RETURN NULL STRING. 
 02913                      * MID ($,#,#) RETURNS STRING WITH CHARACTERS FROM
 02914                      * # POSITION FOR #2 CHARACTERS. IF #2 GOES PAST END OF STRING 
