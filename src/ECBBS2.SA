@@ -142,10 +142,10 @@ NOTCOL BSR    BUFCHR   Just a normal char, out it in the
 * 4) Move the ASCII characters of the reserved word into the
 *    output buffer.
 
-                                                                                                                        a
+
 HAVTOK LDU    #NNRML0-STBLEN Assume it isn't a function token
 *    and set up U so "normal" counts
-*    will be subtracted.  (U gets pre-                                                                            a
+*    will be subtracted.  (U gets pre-
 *    incremented by STBLEN.)
        CMPA   #@377    Is it a function token?
        BNE    NTFNTK   No.
@@ -303,10 +303,10 @@ SKPREM CLR    TRMCHR   REM stops only on end of line.
 
 *
 *    Here to move chars from the source line to the destination buffer
-*    without crunching. This only stops on end of line or when the                                                                                                                                                                                                                                                                                                                                                                                                                          40
+*    without crunching. This only stops on end of line or when the
 *    char moved matches the char in TRMCHR. Quoted strings put a
 *    double quote in TRMCHR. REM and single quote put a zero in TRMCHR
-*    so everthing left on the source line is moved without crunching.                                                                                                                                                                                                                                                                                                                                                                                                                       40
+*    so everthing left on the source line is moved without crunching.
 *
 
 STRLOP LDA    ,X+      Get char from source line.
@@ -490,10 +490,10 @@ NONNUM JSR    CHRGOT   Look at  last char.
 *    Terminator, fall  into CRDO to
 *    finish up.
        XDEF   CRDO
-CRDO   LDA    #CR      Send carriage return and line feed.                                                                                            •
+CRDO   LDA    #CR      Send carriage return and line feed.
        BRA    OUTDO
 
-       XDEF   CONDCR                                                                                                                                       •
+       XDEF   CONDCR
 CONDCR JSR    DEVPRM   Get device parms.
        BEQ    CRDO     Always do CRLF if infinite width.
        LDA    DEVPOS   Do CRLF if not a left margin.
@@ -502,10 +502,10 @@ PRTRTS RTS
 
 *
 * Here when a comma has been seen.
-*                                                                                                                                                                  •
+*
 COMPRT JSR    DEVPRM   Get device parms.
        BEQ    COMADO   If device has infinite width there
-*    is always room for another comma                                                                                                                           •
+*    is always room for another comma
 *    field.
        LDB    DEVPOS   Room for another comma field on this
        CMPB   DEVLCF   line?
@@ -517,10 +517,10 @@ COMADO LDB    DEVPOS   Get position for calculating where
 *    next comma field starts.
 MORCOM SUBB   DEVCFW   B:=the number of spaces which must
        BCC    MORCOM   be printed to get to the start of the
-       NEGB            next column field.                                                                                                             •
+       NEGB            next column field.
        BRA    SPACEB   Go output the spaces. (Go to SPACEB
 *    rather than BSPAC so SPCIO gets
-*    checked.)                                                                                                                                                  •
+*    checked.)
 TABER  EQU    *
 
        IFNE   SPCSW 
@@ -556,7 +556,7 @@ MORSCN JSR    CHRGET   Reget last character.
        XDEF   STROUT 
 STROUT JSR    STRLTI   Get a string literal.
 *
-* Print thestring whose descriptor is pointed to by FACMO,FACLO.
+* Print the string whose descriptor is pointed to by FACMO,FACLO.
 *
        XDEF   STRPRT
 STRPRT JSR    FREFAC   Return temp pointer. 

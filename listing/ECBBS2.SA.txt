@@ -153,10 +153,10 @@ PAGE  004  ECBBS2  .SA:1  BASTWO LIST and LLIST
 00844                      * 4) Move the ASCII characters of the reserved word into the
 00845                      *    output buffer.
 00846
-00847                                                                                                                                              a
+00847
 00848P 0088 CE   FFF6    A HAVTOK LDU    #NNRML0-STBLEN Assume it isn't a function token
 00849                      *    and set up U so "normal" counts
-00850                      *    will be subtracted.  (U gets pre-                                                                            a
+00850                      *    will be subtracted.  (U gets pre-
 00851                      *    incremented by STBLEN.)
 00852P 008B 81   FF      A        CMPA   #@377    Is it a function token?
 00853P 008D 26   04   0093        BNE    NTFNTK   No.
@@ -326,10 +326,10 @@ PAGE  008  ECBBS2  .SA:l  BASTWO The CRUNCH code
 01007
 01008                      *
 01009                      *    Here to move chars from the source line to the destination buffer
-01010                      *    without crunching. This only stops on end of line or when the                                                                                                                                                                                                                                                                                                                                                                                                                          40
+01010                      *    without crunching. This only stops on end of line or when the
 01011                      *    char moved matches the char in TRMCHR. Quoted strings put a
 01012                      *    double quote in TRMCHR. REM and single quote put a zero in TRMCHR
-01013                      *    so everthing left on the source line is moved without crunching.                                                                                                                                                                                                                                                                                                                                                                                                                       40
+01013                      *    so everthing left on the source line is moved without crunching.
 01014                      *
 01015
 01016P 0120 A6   80      A STRLOP LDA    ,X+      Get char from source line.
@@ -401,7 +401,7 @@ PAGE  009  ECBBS2  .SA:1  BASTWO The CRUNCH code
 01080
 01081P 0168 E7   C0      A NTELSE STB    ,U+      Put normal token away.
 
-PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
+PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code
 
 01082P 016A C1   00      A        CMPB   #DATATK  Starting a DATA statement?
 01083P 016C 26   02   0170        BNE    NODATT   No.
@@ -410,7 +410,7 @@ PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code                                
 01086P 0172 27   AA   011E        BEO    SKPREM   Yes, no crunching for rest of line. 
 01087P 0174 20   86   00FC GGCLOP BRA    GOCLOP   No, continue crunching.
 
-PAGE  011  ECBBS2  .SA:1  BASTWO The CRUNCH code                                                                                            •
+PAGE  011  ECBBS2  .SA:1  BASTWO The CRUNCH code
 
 01089                      *
 01090                      * Here when all lists of a particular type (normal or function)
@@ -528,13 +528,13 @@ PAGE  013  ECBBS2  .SA:1  BASTWO The PRINT code.
 01199                      *    Terminator, fall  into CRDO to
 01200                      *    finish up.
 
-PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.                                                                                                                                                           •
+PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.
 
 01202                             XDEF   CRDO
-01203P 01FD 86   0D      A CRDO   LDA    #CR      Send carriage return and line feed.                                                                                            •
+01203P 01FD 86   0D      A CRDO   LDA    #CR      Send carriage return and line feed.
 01204P 01FF 20   55   0256        BRA    OUTDO
 01205
-01206                             XDEF   CONDCR                                                                                                                                       •
+01206                             XDEF   CONDCR
 01207P 0201 BD   0000    A CONDCR JSR    DEVPRM   Get device parms.
 01208P 0204 27   F7   01FD        BEQ    CRDO     Always do CRLF if infinite width.
 01209P 0206 96   6C      A        LDA    DEVPOS   Do CRLF if not a left margin.
@@ -543,10 +543,10 @@ PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.                                
 01212
 01213                      *
 01214                      * Here when a comma has been seen.
-01215                      *                                                                                                                                                                  •
+01215                      *
 01216P 020B BD   0000    A COMPRT JSR    DEVPRM   Get device parms.
 01217P 020E 27   0A   021A        BEQ    COMADO   If device has infinite width there
-01218                      *    is always room for another comma                                                                                                                           •
+01218                      *    is always room for another comma
 01219                      *    field.
 01220P 0210 D6   6C      A        LDB    DEVPOS   Room for another comma field on this
 01221P 0212 D1   6B      A        CMPB   DEVLCF   line?
@@ -558,10 +558,10 @@ PAGE  014  ECBBS2  .SA:1  BASTWO The PRINT code.                                
 01227                      *    next comma field starts.
 01228P 021C D0   6A      A MORCOM SUBB   DEVCFW   B:=the number of spaces which must
 01229P 021E 24   FC   021C        BCC    MORCOM   be printed to get to the start of the
-01230P 0220 50                    NEGB            next column field.                                                                                                             •
+01230P 0220 50                    NEGB            next column field.
 01231P 0221 20   10   0233        BRA    SPACEB   Go output the spaces. (Go to SPACEB
 01232                      *    rather than BSPAC so SPCIO gets
-01233                      *    checked.)                                                                                                                                                  •
+01233                      *    checked.)
 
 PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
 
@@ -600,7 +600,7 @@ PAGE  015  ECBBS2  .SA:1  BASTWO The PRINT code.
 01274                             XDEF   STROUT 
 01275P 0241 BD   0000    A STROUT JSR    STRLTI   Get a string literal.
 01276                      *
-01277                      * Print thestring whose descriptor is pointed to by FACMO,FACLO.
+01277                      * Print the string whose descriptor is pointed to by FACMO,FACLO.
 01278                      *
 01279                             XDEF   STRPRT
 01280P 0244 BD   0000    A STRPRT JSR    FREFAC   Return temp pointer. 
