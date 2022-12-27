@@ -57,4 +57,4 @@ PAGE  007  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
 01029P 0133      F3      A        FCB    @363
 01030            0001    A        IFNE   ADDPRC
 01031P 0134      34      A        FCB    @064
-01032                        ENDC   IFN      ADDPRC
+01032                             ENDC   IFN      ADDPRC
