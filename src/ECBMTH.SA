@@ -1,0 +1,1628 @@
+       NAM    MATH     PACKAGE FOR 6809 BASIC
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    EXTERNAL DECLARATIONS
+
+       XREF   CRDO,ERRDVO
+       XREF   ERROR,ERROV,FBUFFR,FCERR,INTXT,LINGET,MINUTK
+       XREF   OMERR,PLUSTK,READY
+       XREF   REASON,RNDX,SCRTCH,SNERR,STKINI,STROUT
+       XREF   HOCONS
+
+
+       TTL    FLOATING POINT MATH PACKAGE CONFIGURATION.
+
+
+*    THROUGHOUT THE MATH PACKAGE.
+*
+* THE FLOATING POINT FORMAT IS AS FOLLOWS:
+*
+* THE SIGN IS THE FIRST BIT OF THE MANTISSA.
+* THE MANTISSA IS 24 BITS LONG.
+* THE BINARY POINT IS TO THE LEFT OF THE MSB.
+* NUMBER = MANTISSA * 2 ^ EXPONENT.
+* THE MANTISSA IS POSITIVE WITH A ONE ASSUMED TO BE WHERE THE SIGN
+* BIT IS.
+* THE SIGN OF THE EXPONENT IS THE FIRST BIT OF THE EXPONENT.
+* THE EXPONENT IS STORED IN EXCESS 200, I.E. WITH A BIAS OF +200.
+* SO, THE EXPONENT IS A SIGNED 8-BIT NUMBER WITH 200 ADDED TO IT.
+* AN EXPONENT OF ZERO MEANS THE NUMBER IS ZERO.
+* THE OTHER BYTES MAY NOT BE ASSUMED TO BE ZERO.
+* TO KEEP THE SAME NUMBER IN THE FAC WHILE SHIFTING,
+*  TO SHIFT RIGHT, EXP:=EXP+1
+*  TO SHIFT LEFT,  EXP:=EXP-1
+*
+* IN MEMORY THE NUMBER LOOKS LIKE THIS:
+*  [THE EXPONENT AS A SIGNED NUMBER +200]
+*  [THE SIGN BIT IN 7, BITS 2-8 OF MANTISSA ARE IN BITS 6-0].
+*   (REMEMBER BIT 1 OF MANTISSA IS ALWAYS A ONE.)
+*  [BITS 9-16 OF THE MANTISSA]
+*  [BITS 17-24] OF THE MANTISSA]
+*
+* ARITHMETIC ROUTINE CALLING CONVENTIONS:
+*
+* FOR ONE ARGUMENT FUNCTIONS:
+*  THE ARGUMENT IS IN THE FAC.
+*  THE RESULT IS LEFT IN THE FAC.
+* FOR TWO ARGUMENT OPERATIONS:
+*  THE FIRST ARGUMENT IS IN ARG (ARGEXP,HO,MO,LO AND ARGSGN).
+*  THE SECOND ARGUMENT IS IN THE FAC.
+*  THE RESULT IS LEFT IN THE FAC.
+*
+* THE "T" ENTRY POINTS TO THE TWO-ARGUMENT OPERATIONS HAVE BOTH ARGUMENTS
+* SETUP IN THE RESPECTIVE REGISTERS. BEFORE CALLING ARG MAY HAVE BEEN
+* POPPED OFF THE STACK AND INTO ARG, FOR EXAMPLE.
+* THE OTHER ENTRY POINT ASSUMES [XREG] POINTS TO THE ARGUMENT
+* SOMEWHERE IN MEMORY. IT IS UNPACKED INTO ARG BY "CONUPK".
+*
+* ON THE STACK, THE SGN IS PUSHED ON FIRST, THE LO,MO,HO AND FINALLY EXP.
+* NOTE ALL THINGS ARE KEPT UNPACKED IN ARG, FAC AND ON THE STACK.
+*
+* IT IS ONLY WHEN SOMETHING IS STORED AWAY THAT IT IS PACKED TO FOUR
+* BYTES. THE UNPACKED FORMAT HAS A SGN BYTE REFLECTING THE SIGN OF THE
+* NUMBER (POSITIVE=0, NEGATIVE=-1) A HO,MO AND LO WITH THE HIGH BIT
+* OF THE HO TURNED ON. THE EXP IS THE SAME AS STORED FORMAT.
+* THIS IS DONE FOR SPEED OF OPERATION. 
+*
+
+       TIL    FLOATING POINT ADDITION AND SUBTRACTION.
+       XDEF   FADDH
+FADDH  LDX    #FHALF   ENTRY TO ADD 1/2.
+       BRA    FADD     UNPACK AND GO ADD UIT.
+       XDEF   FSUB
+FSUB   JSR    CONUPK   UNPACK ARGUMENT INTO ARG.
+       XDEF   FSUBT
+FSUBT  COM    FACSGN   COMPLEMENT THE FAC.
+       COM    ARISGN   STATE OF SAMENESS IS NEGATED.
+       BRA    FADDT
+       XDEF   FADD
+FADD   JSR    CONUPK
+       XDEF   FADDT
+FADDT  TSTB            IF FAC=0, RESULT IS IN ARG.
+       LBEQ   MOVFA
+       LDX    #ARGEXP  DEFAULT IS SHIFT ARGUMENT.
+FADDC  TFR    A,B      IF ARG=0, FAC IS RESULT.
+       TSTB            ALSO COPY ACCA INTO ACCB.
+       BEQ    ZERRTS   RETURN.
+       SUBB   FACEXP
+       BEQ    FADD5    NO SHIFTING.
+       BCS    FADD1    BR IF ARGEXP.LT.FACEXP.
+       STA    FACEXP   RESULTING EXPONENT.
+       LDA    ARGSGN   SINCE ARG IS BIGGER, IT'S
+       STA    FACSGN   SIGN IS SIGN OF RESULT.
+       LDX    #FAC     SHIFT THE FAC INSTEAD.
+       NEGB            SHIFT A NEGATIVE NUMBER OF PLACES.
+FADD1  CMPB   #-@10    FOR SPEED AND NECESSITY.  GETS
+*    MOST LIKELY CASE TO SHIFTR FASTEST
+*    AND ALLOWS SHIFTING OF NEG NUMS
+*    BY "QINT".
+       BLE    FADD5    SHIFT BIG.
+       CLRA            ZERO FACOV.
+       LSR    @1,X     GETS 0 IN MOST SIG BIT.
+       JSR    ROLSHF   DO THE ROLLING.
+FADD4  LDB    ARISGN   GET RESULTING SIGN.
+       BPL    FADD2    IF POSITIVE, ADD.
+*    CARRY IS CLEAR.
+FADD3  COM    @1,X     OTHERWISE SUBTRACT.
+       COM    @2,X     ALWAYS COMPLEMENT SMALLER ONE, SO
+       COM    @3,X     THERE WILL BE NO CALL TO NEGFAC.
+       IFNE   ADDPRC
+       COM    @4,X
+       ENDC   IFN      ADDPRC
+       COMA
+       ADCA   #@0      INCREMENT RESULT AND CARRY THRU.
+FADD2  STA    FACOV
+       LDA    FACLO
+       ADCA   ARGLO
+       STA    FACLO
+       LDA    FACMO
+       ADCA   ARGMO
+       STA    FACMO
+       IFNE   ADDPRC
+       LDA    FACMOH
+       ADCA   ARGMOH
+       STA    FACMOH
+       ENDC   IFN      ADDPRC
+       LDA    FACHO
+       ADCA   ARGHO
+       STA    FACHO
+       TSTB            TEST "ARISGN" WITHOUT
+*    AFFECTING CARRY FLAG.
+       BPL    ROUND    GO ROUND IF SIGNS SAME.
+*    [CARRY] AND [ACCB] REFLECT SIGN OF [FAC]-[ARG].
+FADFLT BCS    NORMAL   HERE IF SIGNS DIFFER. IF CARRY,
+*    FAC IS SET OK.
+       BSR    NEGFAC   NEGATE [FAC].
+       XDEF   NORMAL 
+NORMAL CLRB
+NORM3  LDA    FACHO
+       BNE    NORM1
+       LDA    FACHO+@1
+       STA    FACHO    SHIFT 8 BITS AT A TIME FOR SPEED.
+       IFNE   ADDPRC
+       LDA    FACMO
+       STA    FACMOH
+       ENDC   IFN      ADDPRC
+       LDA    FACLO
+       STA    FACMO
+       LDA    FACOV
+       STA    FACLO
+       CLR    FACOV
+       ADDB   #@10     AUGMENT SHIFT COUNT BY 10.
+       CMPB   #@40+(@10*ADDPRC) 4 BYTES OF ZERO SHIFTED IN YET?
+       BLT    NORM3
+       XDEF   ZEROFC
+ZEROFC CLRA            NOT NEED BY NORMAL BUT BY OTHERS.
+       XDEF   ZEROF1
+ZEROF1 STA    FACEXP   NUMBER MUST BE ZERO.
+       STA    FACSGN   MAKE SIGN POSITIVE.
+ZERRTS RTS             ALL DONE.
+FADD5  BSR    SHIFTR   DO A LONG SHIFT.
+       CLRB            (CLC) CLEAR OUTPUT OF FACOV.
+       BRA    FADD4    CONTINUE WITH ADDITION.
+
+NORM2  INCB            DECREMENT SHIFT COUNT.
+       ASL    FACOV    SHIFT ALL LEFT ONE BIT.
+       ROL    FACLO
+       ROL    FACMO
+       IFNE   ADDPRC
+       ROL    FACMOH
+       ENDC   IFN      ADDPRC
+       ROL    FACHO
+NORM1  BPL    NORM2    IF MSB=0 SHIFT AGAIN.
+       LDA    FACEXP
+       SBA
+       STA    FACEXP   STORE RESULTING EXP.
+       BLS    ZEROFC   UNDERFLOW ON C=1 OR Z=1.
+       SKIP2
+ROUND  BCS    RNDSHF   SHIFT THE OVER FLOW'D BIT IN.
+RNDIT  ASL    FACOV    SHIFT ONE POSITION LEFT.
+       LDA    #@0      Clear FACOV without affecting the
+       STA    FACOV    carry.
+       BRA    QRND     ANY ROUNDING TO DO?
+RNDSHF INC    FACEXP
+       BEQ    OVERR
+       ROR    FACHO
+       IFNE   ADDPRC
+       ROR    FACMOH
+       ENDC   IFN      ADDPRC
+       ROR    FACMO
+       ROR    FACLO
+QRND   BCC    RNDRTS   NO ROUNDING TO DO.
+       BSR    INCFAC   ADD 1.
+       BEQ    RNDSHF   GOT A CARRY.
+RNDRTS RTS             ALL DONE ADDING.
+
+NEGFAC COM    FACSGN   COMPLEMENT FAC ENTIRELY.
+NEGFCH COM    FACHO    COMPLEMENT JUST THE NUMBER.
+       IFNE   ADDPRC
+       COM    FACMOH
+       ENDC   IFN      ADDPRC
+       COM    FACMO
+       COM    FACLO
+INCFAC LDX    FACMO    NO CALLER HAS OPS THAT
+*    THAT OV. OR IF THEY DO
+*    ITS FOR NEGATION PURPOSES.
+       INX
+       STX    FACMO    SAVE RESULT.
+       BNE    INCFRT   IF NO CARRY, RETURN.
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+       IFNE   ADDPRC
+       LDX    FACHO
+       LEAX   @1,X
+       STX    FACHO
+       ENDC   IFN      ADDPRC
+INCFRT RTS
+
+       XDEF   OVERR
+OVERR  LDB    #ERROV
+       JMP    ERROR    TELL USER.
+*
+* "SHIFTR" SHIFTS [X+1:X+3] [-ACCB]  BITS RIGHT.
+* SHIFTS BYTES TO START WITH IF POSSIBLE.
+*
+MULSHF LDX    #RESHO-@1 ENTRY POINT FOR MULTIPLIER.
+SHFTR2 LDA    @3+ADDPRC,X SHIFT BYTES FIRST.
+       STA    FACOV
+       IFNE   ADDPRC
+       LDA    @3,X
+       STA    @4,X
+       ENDC   IFN      ADDPRC
+       LDA    @2,X     GET MO.
+       STA    @3,X     STORE LO.
+       LDA    @1,X     GET HO.
+       STA    @2,X     STORE MO.
+       LDA    BITS
+       STA    @1,X     STORE HO.
+SHIFTR ADDB   #@10
+       BLE    SHFTR2
+       LDA    FACOV
+       SUBB   #@10
+       BEQ    SHFTRT
+SHFTR3 ASR    @1,X
+ROLSHF ROR    @2,X
+       ROR    @3,X
+       IFNE   ADDPRC
+       ROR    @4,X
+       ENDC   IFN      ADDPRC
+       RORA            ROTATE ARGUMENT 1 BIT RIGHT.
+       INCB
+       BNE    SHFTR3   $$$ ( MOST EXPENSIVE ! )
+SHFTRT RTS             ALL DONE SHIFTING.
+
+       TTL    NATURAL LOG FUNCTION.
+*
+* CALCULATION IS BY:
+* LN(F*2^N)=(N+LOG2(F))*LN(2)
+* AN APPROXIMATION POLYNOMIAL IS USED TO CALCULATE LOG2(F).
+*  CONSTANTS USED BY LOG:
+       XDEF   FONE
+FONE   FCB    @201     1.0
+       FCB    @000
+       FCB    @000
+       FCB    @000
+       IFNE   ADDPRC
+       FCB    @000
+       ENDC   IFN      ADDPRC
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+LOGCN2 FCB    @3       DEGREE-1
+       FCB    @177     .43425594188
+       FCB    @136
+       FCB    @126
+       FCB    @313
+       FCB    @171
+       FCB    @200     .57658454134
+       FCB    @023
+       FCB    @233
+       FCB    @013
+       FCB    @144
+       FCB    @200     .96180075921
+       FCB    @166
+       FCB    @070
+       FCB    @223
+       FCB    @026
+       FCB    @202     2.8853900728
+       FCB    @070
+       FCB    @252
+       FCB    @073
+       FCB    @040
+       ENDC   IFN      ADDPRC
+
+SQR0.5 FCB    @200     SQR(0.5)
+       FCB    @065
+       FCB    @004
+       FCB    @363
+       IFNE   ADDPRC
+       FCB    @064
+       ENDC   IFN      ADDPRC
+
+SQR2.0 FCB    @201     SQR(2.0)
+       FCB    @065
+       FCB    @004
+       FCB    @363
+       IFNE   ADDPRC
+       FCB    @064
+       ENDC   IFN      ADDPRC
+
+NEGHLF FCB    @200     -1/2
+       FCB    @200
+       FCB    @000
+       FCB    @000
+       IFNE   ADDPRC
+       FCB    @000
+       ENDC   IFN      ADDPRC
+
+LOG2   FCB    @200     LN(2)
+       FCB    @061
+       FCB    @162
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+       IFNE   ADDPRC
+       FCB    @027
+       FCB    @370
+       ENDC   IFN      ADDPRC
+
+       XDEF   LOG
+LOG    JSR    SIGN     IS IT POSITIVE?
+       LBLE   FCERR    CAN'T TOLERATE NEG OR ZERO.
+       LDX    #SQR0.5  GET POINTER TO SQR(0.5).
+       LDA    FACEXP   GET EXPONENT INTO ACCA.
+       SUBA   #@200    REMOVE BIAS.
+       PSHS   A        SAVE AWHILE.
+       LDA    #@200
+       STA    FACEXP   RESULT IS FAC IN RANGE [0.5,1).
+
+*    CALCULATE (F-SQR(.5))/(F+SQR(.5))
+
+       JSR    FADD     ADD TO FAC.
+       LDX    #SQR2.0  GET SQR(2.).
+       JSR    FDIV
+       LDX    #FONE
+       JSR    FSUB
+       LDX    #LOGCN2
+       JSR    POLYX    EVALUATE APPROXIMATION POLYNOMIAL.
+       LDX    #NEGHLF  ADD IN LAST CONSTANT.
+       JSR    FADD
+       PULS   B        GET EXPONENT BACK.
+       JSR    FINLOG   ADD IT IN.
+MULLN2 LDX    #LOG2    MULTIPLY RESULT BY LOG(2.0).
+* JMP FMULT  ;MULTIPLY TOGETHER.
+
+       TTL    FLOATING MULTIPLICATION AND DIVISION.
+* MULTIPLICATION  FAC:=ARG*FAC.
+       XDEF   FMULT
+FMULT  BSR    CONUPK   UNPACK THE CONSTANT INTO ARG FOR USE.
+       XDEF   FMULTT
+FMULTT BEQ    MULTRT   IF FAC=0, RETURN. FAC IS SET.
+       BSR    MULDIV   FIX UP THE EXPONENTS.
+RNDMUL LDA    #@0      TO CLEAR RESULT.
+       STA    RESHO
+       IFNE   ADDPRC
+       STA    RESMOH
+       ENDC   IFN      ADDPRC
+       STA    RESMO
+       STA    RESLO
+       LDB    FACLO    MLTPLY ARG BY FACLO.
+       BSR    MLTPLY
+       IFNE   NEWRND
+       LDB    FACOV    Put away low order byte for RND.
+       STB    RNDTMP+@3
+       ENDC   IFN      NEWRND
+       LDB    FACMO    MLTPLY ARG BY FACMO.
+       BSR    MLTPLY
+       IFNE   NEWRND
+       LDB    FACOV
+       STB    RNDTMP+@2
+       ENDC   IFN      NEWRND
+       IFNE   ADDPRC
+       LDB    FACMOH
+       BSR    MLTPLY
+       IFNE   NEWRND
+       LDB    FACOV
+       STB    RNDTMP+@1
+       ENDC   IFN      NEWRND
+       ENDC   IFN      ADDPRC
+       LDB    FACHO    MLTPLY ARG BY FACHO.
+       BSR    MLTPL1
+       IFNE   NEWRND
+       LDB    FACOV
+       STB    RNDTMP
+       ENDC   IFN      NEWRND
+       JSR    MOVFR    MOVE RESULT INTO FAC.
+       JMP    NORMAL   NORMALIZE RESULT.
+MLTPLY LBEQ   MULSHF   SHIFT RESULT RIGHT 1 BYTE.
+MLTPL1 COMA            (SEC)
+MLTPL2 LDA    RESHO
+       RORB            MAKE SURE WE GET ALL BITS.
+       BEQ    MULTRT
+       BCC    MLTPL3   IT MULT BIT=0, JUST SHIFT.
+       LDA    RESLO
+       ADDA   ARGLO
+       STA    RESLO
+       LDA    RESMO
+       ADCA   ARGMO
+       STA    RESMO
+       IFNE   ADDPRC
+       LDA    RESMOH
+       ADCA   ARGMOH
+       STA    RESMOH
+       ENDC   IFN      ADDPRC
+       LDA    RESHO
+       ADCA   ARGHO
+MLTPL3 RORA            SHIFT RESULT ONE RIGHT.
+       STA    RESHO
+       IFNE   ADDPRC
+       ROR    RESMOH
+       ENDC   IFN      ADDPRC
+       ROR    RESMO
+       ROR    RESLO
+       ROR    FACOV    SAVE FOR ROUNDING.
+       CLRA            (CLC) CLEAR C SO WE GET B CLOSER TO 0.
+       BRA    MLTPL2   SLOW AS A TURTLE !
+MULTRT RTS
+
+* ROUTINE TO UNPACK MEMORY INTO ARG.
+
+CONUPK EQU    *
+
+       IFEQ    ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+       LDD    @1,X     A:=HO, B:=MOH.
+       STA    ARGSGN   MSB of HO is sign.
+       ORA    #@200    MSB of unpacked HO is always 1.
+       STD    ARGHO
+       ENDC   IFN      ADPPRC
+       LDB    ARGSGN   Set up probable sign of result.
+       EORB   FACSGN
+       STB    ARISGN
+       LDD    @2+ADDPRC,X
+       STD    ARGMO
+       LDA    ,X
+       STA    ARGEXP
+       LDB    FACEXP   SET CODES OF FACEXP.
+       RTS
+
+*    CHECK SPECIAL CASES AND ADD EXPONENTS FOR FMULT, FDIV.
+       XDEF   MULDIV
+MULDIV TSTA            EXP OF ARG=0?
+       BEQ    MULDV1   SO WE GET ZERO EXPONENT.
+       ADDA   FACEXP   RESULT IS IN ACCA.
+       RORA
+       ROLA            FIND [C] XOR [N]
+       BVC    MULDV1   OVERFLOW IF BITS MATCH.
+       ADDA   #@200    ADD BIAS.
+       STA    FACEXP
+       BEQ    MULDV2   ZERO THE REST OF IT.
+       LDA    ARISGN
+       STA    FACSGN   ARISGN IS RESULT'S SIGN.
+MDRET  RTS             DONE.
+       XDEF   MLDVEX
+MLDVEX LDA    FACSGN   GET SIGN.
+       COMA            COMPLEMENT IT.
+       BRA    MULDV2
+MULDV1 LEAS   @2,S     GET ADDR OFF STACK.
+MULDV2 LBPL   ZEROFC   UNDERFLOW.
+GOOVER JMP    OVERR    OVERFLOW.
+
+* MULTIPLY FAC BY 10.
+       XDEF   MUL10
+MUL10  JSR    MOVAF    COPY FAC INTO ARG.
+       BEQ    MUL10R   IF [FAC]=0, GOT ANSWER.
+       ADDA   #@2      AUGMENT EXP BY 2.
+       BCS    GOOVER   OVERFLOW.
+       CLR    ARISGN   SIGNS ARE SAME.
+       JSR    FADDC    ADD TOGETHER.
+       INC    FACEXP   MULTIPLY BY TWO.
+       BEQ    GOOVER   OVERFLOW.
+MUL10R RTS
+
+*  DIVIDE FAC BY 10.
+TEN.C  FCB    @204
+       FCB    @040
+       FCB    @000
+       FCB    @000
+       IFNE   ADDPRC
+       FCB    @000
+       ENDC   IFN      ADDPRC
+
+       XDEF   DIV10
+DIV10  JSR    MOVAF    MOVE FAC TO ARG.
+       LDX    #TEN.C   POINT TO CONSTANT OF 10.0
+       CLRB            SIGNS ARE BOTH POSITIVE.
+FDIVF  STB    ARISGN
+       JSR    MOVFM    PUT IT INTO FAC.
+       SKIP2  SKIP     OVER NEXT TWO BYTES.
+       XDEF   FDIV
+FDIV   BSR    CONUPK   UNPACK CONSTANT.
+       XDEF   FDIVT
+FDIVT  BEQ    DVOERR   CAN'T DIVIDE BY ZERO !
+*    (NOT ENOUGH ROOM TO STORE RESULT.)
+       NEG    FACEXP
+       BSR    MULDIV  FIX UP EXPONENTS.
+       INC    FACEXP  SCALE IT RIGHT.
+       BEQ    GOOVER  OVERFLOW.
+       LDX    #RESHO  SETUP PROCEDURE.
+       LDB    #@3+ADDPRC NUMBER OF BYTES IN RESULT.
+       STB    COUNT
+       LDB    #@1
+DIVIDE EQU    *        THIS IS THE BEST CODE IN THE WHOLE PILE.
+       LDA    FACHO    SEE WHAT RELATION HOLDS.
+       CMPA   ARGHO
+       BNE    SAVQUO   [C]=0,1. N(C=0)=0.
+       IFNE   ADDPRC
+       LDA    FACMOH
+       CMPA   ARGMOH
+       BNE    SAVQUO
+       ENDC   IFN      ADDPRC
+       LDA    FACMO
+       CMPA   ARGMO
+       BNE    SAVQUO
+       LDA    FACLO
+       CMPA   ARGLO
+       BNE    SAVQUO
+       COMA            (SEC)
+SAVQUO TPA
+       ROLB            SAVE RESULT.
+       BCC    QSHFT    IF NOT DONE, CONTINUE.
+       STB    ,X+      SAVE RESULT.
+       DEC    COUNT    WHAT NEXT?
+       BMI    DIVNRM   GO NORMALIZE RESULT.
+       BEQ    LD100
+       LDB    #@1
+QSHFT  TAP             RETURN CONDITION CODES.
+       BCS    DIVSUB   FAC .LE. ARG.
+SHFARG ASL    ARGLO    SHIFT ARG ONE PLACE LEFT.
+       ROL    ARGMO
+       IFNE   ADDPRC
+       ROL    ARGMOH
+       ENDC   IFN      ADDPRC
+       ROL    ARGHO
+       BCS    SAVQUO   SAVE A RESULT OF ONE FOR THIS POSITION
+*    AND DIVIDE.
+       BMI    DIVIDE   IF MSB ON, GO DECIDE WHETHER TO SUB.
+       BRA    SAVQUO
+DIVSUB LDA    ARGLO
+       SUBA   FACLO
+       STA    ARGLO
+       LDA    ARGMO
+       SBCA   FACMO
+       STA    ARGMO
+       IFNE   ADDPRC
+       LDA    ARGMOH
+       SBCA   FACMOH
+       STA    ARGMOH
+       ENDC   IFN      ADDPRC
+       LDA    ARGHO
+       SBCA   FACHO
+       STA    ARGHO
+       BRA    SHFARG
+LD100  LDB    #@100    ONLY WANT TWO MORE BITS.
+       BRA    QSHFT
+DIVNRM RORB            GET LAST TWO BITS INTO MSB AND B6.
+       RORB
+       RORB
+       STB    FACOV
+       BSR    MOVFR    MOVE RESULT INTO FAC.
+       JMP    NORMAL   NORMALIZE RESULT AND RETURN.
+DVOERR LDB    #ERRDVO
+       JMP    ERROR
+
+* WOW !!
+
+       TTL    FLOATING POINT MOVEMENT ROUTINES.
+
+*
+* MOVE RESULT TO FAC.
+*
+MOVFR  LDX    RESHO
+       STX    FACHO
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+       IFNE   ADDPRC
+       LDX    RESMO
+       STX    FACMO
+       ENDC   IFN      ADDPRC
+       RTS             ALL DONE.
+
+*
+* MOVE MEMORY INTO FAC (UNPACKED).  A is preserved.
+*
+       XDEF   MOVFM
+MOVFM  EQU    *
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+       PSHS   A
+       LDD    @1,X
+       STA    FACSGN
+       ORA    #@200
+       STD    FACHO
+       ENDC   IFN      ADDPRC
+       CLR    FACOV
+       LDB    ,X
+       LDX    @2+ADDPRC,X
+       STX    FACMO
+       STB    FACEXP
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+       PULS   A,PC
+       ENDC   IFN      ADDPRC
+
+*
+* MOVE NUMBER FROM FAC TO MEMORY.  B is preserved.
+*
+MOV2F  LDX    #TEMPF2
+       BRA    MOVMF
+       XDEF   MOV1F
+MOV1F  LDX    #TEMPF1
+       SKIP2
+       XDEF   MOVVF
+MOVVF  LDX    FORPNT
+       XDEF   MOVMF
+MOVMF  LDA    FACEXP
+       STA    ,X
+       LDA    FACSGN   INCLUDE SIGN IN HO.
+       ORA    #&177
+       ANDA   FACHO
+       STA    @1,X
+       IFNE   ADDPRC
+       LDA    FACMOH
+       STA    @2,X
+       ENDC   IFN      ADDPRC
+       LDU    FACMO
+       STU    @2+ADDPRC,X
+       RTS
+
+*
+* MOVE ARG INTO FAC.  Leave SGN in A and preserve B.
+*
+       XDEF   MOVFA
+MOVFA  LDA    ARGSGN
+       XDEF   MOVFA1
+MOVFA1 STA    FACSGN
+       LDX    ARGEXP
+       STX    FACEXP
+       CLR    FACOV    Clear the overflow bits.
+       IFNE   ADDPRC
+       LDA    ARGMOH
+       STA    FACMOH
+       LDA    FACSGN   Put SGN back in A.
+       ENDC   IFN      ADDPRC
+       LDX    ARGMO
+       STX    FACMO
+       RTS
+
+*
+* MOVE FAC INTO ARG.  Preserve B, set cond codes on exponent in A.
+*
+       XDEF   MOVAF
+MOVAF  EQU    *
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+       LDD    FACEXP
+       STD    ARGEXP
+       LDX    FACMOH
+       STX    ARGMOH
+       LDX    FACLO
+       STX    ARGLO
+       TSTA
+       RTS
+       ENDC   IFN      ADDPRC
+
+       TTL    SIGN, SGN, FLOAT, NEG, ABS.
+
+* PUT SIGN OF FAC IN ACCA.
+       XDEF   SIGN
+SIGN   LDB    FACEXP
+       BEQ    SIGNRT   IF NUMBER IS ZERO, SO IS RESULT.
+FCSIGN LDB    FACSGN 
+FCOMPS ROLB
+       LDB    #—@1     ASSUME NEGATIVE.
+       BCS    SIGNRT
+       NEGB            GET +1.
+SIGNRT RTS
+
+* SGN FUNCTION.
+       XDEF   SGN
+SGN    BSR    SIGN
+
+* FLOAT THE SIGNED INTEGER IN ACCB.
+       XDEF   FLOAT
+FLOAT  STB    FACHO    PUT [ACCB] IN HIGH ORDER.
+       CLR    FACHO+@1 Must be FACHO+1 not FACMO for 9
+*    digit code to work.
+       LDB    #@210    GET THE EXPONENT.
+
+* FLOAT THE SIGNED NUMBER IN FAC.
+       XDEF   FLOATS
+FLOATS LDA    FACHO
+       SUBA   #@200   GET COMP OF SIGN IN CARRY.
+FLOATC STB    FACEXP  PUT IT IN RESULT.
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+       LDD    DBLZER
+       STD    FACMO
+       ENDC   IFN      ADDPRC
+       STA    FACOV
+       STA    FACSGN
+       JMP    FADFLT
+
+* ABSOLUTE VALUE OF FAC.
+       XDEF   ABS
+ABS    CLR    FACSGN
+       RTS
+
+
+       TTL    COMPARE TWO NUMBERS.
+* B=1 IF ARG .LT. FAC.
+* B=0 IF ARG=FAC.
+* B=-1 IF ARG .GT. FAC.
+       XDEF   FCOMP
+FCOMP  LDB    ,X       HAS ARGEXP.
+       BEQ    SIGN     NUMBER IS JUST ZERO.
+       LDB    @1,X     GET SIGN OF ARGUMENT.
+       EORB   FACSGN   SIGNS THE SAME?
+       BMI    FCSIGN   SIGNS DIFFER SO RESULT IS
+*    SIGN OF FAC AGAIN.
+       XDEF   FOUTCP
+FOUTCP LDB    FACEXP   COMPARE EXPONENTS.
+       CMPB   ,X       FACEXP GREATER?
+       BNE    FCOMPC
+       LDB    @1,X
+       ORB    #@177
+       ANDB   FACHO
+       CMPB   @1,X
+       BNE    FCOMPC
+       IFNE   ADDPRC
+       LDB    FACMOH
+       CMPB   @2,X
+       BNE    FCOMPC
+       ENDS   IFN      ADDPRC
+       LDB    FACMO
+       CMPB   @2+ADDPRC,X
+       BNE    FCOMPC
+       LDB    FACLO
+       SUBB   @3+ADDPRC,X GET ZERO IF EQUAL.
+       BNE    FCOMPC
+       RTS
+FCOMPC RORB            SAVE [C] IN B7(ACCA).
+       EORB   FACSGN   COMP RESULT IF SIGNS ARE NEGATIVE.
+       BRA    FCOMPS   A PART OF SIGN SETS ACCA UP.
+
+
+       TTL    GREATEST INTEGER FUNCTION.
+* QUICK GREATEST INTEGER FUNCTION.
+* LEAVES INT(FAC) IN FACHO&MO&LO SIGNED.
+* ASSUMES FAC .LT. 2^23 = 8388608
+       XDEF   QINT
+QINT   LDB    FACEXP
+       BEQ    CLRFAC   IF ZERO, GOT IT.
+       SUBB   #@230+(@10*ADDPRC) GET NUMBER OF PLACES TO SHIFT.
+       LDA    FACSGN
+       BPL    QISHFT
+       COM    BITS     PUT 377 IN WHEN SHFTR SHIFTS BYTES.
+       JSR    NEGFCH   TRULY NEGATE QUANTITY IN FAC.
+QISHFT LDX    #FAC
+       CMPB   #-@10
+       BGT    QINT1    IF NUMBER OF PLACES .GE. 7
+*    SHIFT 1 PLACE AT A TIME.
+       JSR    SHIFTR   START SHIFTING BYTES, THEN BITS.
+       CLR    BITS     ZERO BITS SINCE ADDER WANTS ZERO.
+QINTRT RTS
+QINT1  CLR    BITS     FOR ADDER.
+       LDA    FACSGN
+       ROLA            GET SIGN BIT.
+       ROR    FACHO    SAVE FIRST SHIFTED BYTE.
+       JMP    ROLSHF   SHIFT THE REST.
+
+* GREATEST INTEGER FUNCTION.
+       XDEF   INT
+INT    LDB    FACEXP
+       CMPB   #@230+(@10*ADDPRC)
+       BCC    INTRTS   FORGET IT.
+       BSR    QINT
+       STB    FACOV    CLR OVERFLOW BYTE.
+       LDA    FACSGN
+       STB    FACSGN   MAKE FAC LOOK POSITIVE.
+       SUBA   #@200    GET COMPLEMENT OF SIGN IN CARRY.
+       LDA    #@230+(@10*ADDPRC)
+       STA    FACEXP
+       LDA    FACLO
+       STA    INTEGR
+       JMP    FADFLT
+CLRFAC STB    FACHO    MAKE IT REALLY ZERO.
+       IFNE   ADDPRC
+       STB    FACMOH
+       ENDC   IFN      ADDPRC
+       STB    FACMO
+       STB    FACLO
+INTRTS RTS
+
+       TTL    FLOATING POINT INPUT ROUTINE.
+* NUMBER INPUT IS LEFT IN FAC.
+* AT ENTRY [TXTPTR] POINTS TO THE FIRST CHARACTER IN A TEXT BUFFER.
+* THE FIRST CHARACTER IS ALSO IN ACCA. FIN PACKS THE DIGITS
+* INTO THE FAC AS AN INTEGER AND KEEPS TRACK OF WHERE THE
+* DECIMAL POINT IS. [DPTFLG] TELL WHETHER A DP HAS BEEN
+* SEEN. [DECCNT] IS THE NUMBER OF DIGITS AFTER THE DP.
+* AT THE END [DECCNT] AND THE EXPONENT ARE USED TO
+* DETERMINE HOW MANY TIMES TO MUTIPLY OR DIVIDE BY TEN
+* TO GET THE CORRECT NUMBER.
+       XDEF   FIN
+FIN    LDX    DBLZER
+       STX    FACSGN   ZERO FACSGN&SGNFLG.
+       STX    FACEXP   ZERO EXP AND HO.
+       IFNE   ADDPRC
+       STX    FACMOH   Clear FACMOH.
+       ENDC   IFN      ADDPRC
+       STX    FACMO    ZERO MO AND LO.
+       STX    TENEXP   ZERO TENEXP AND EXPSGN
+       STX    DECCNT   ZERO DECCNT, DPTFLG.
+       BCS    FINDIG   FLAGS STILL SET FROM CHRGET.
+       CMPA   #'&      A hex or octal constant?
+       LBEQ   HOCONS   Yes, go handle it.
+       CMPA   #'-      NEGATIVE SIGN?
+       BNE    QPLUS    NO, TRY PLUS SIGN.
+       COM    SGNFLG   IT'S NEGATIVE.
+       BRA    FINC
+QPLUS  CMPA   #'+      PLUS SIGN?
+       BNE    FIN1     YES, SKIP IT.
+FINC   JSR    CHRGET
+       BCS    FINDIG
+FIN1   CMPA   #'.      THE DP?
+       BEQ    FINDP    NO KIDDING.
+       CMPA   #'E      EXPONENT FOLLOWS.
+       BNE    FINE     NO.
+*    HERE TO CHECK FOR SIGN OF EXP.
+       JSR    CHRGET   YES. GET ANOTHER.
+       BCS    FINEDG   IT IS A DIGIT. (EASIER THAN
+*    BACKING UP POINTER.)
+       CMPA   #MINUTK  MINUS?
+       BEQ    FINEC1   NEGATE.
+       CMPA   #'-      MINUS SIGN?
+       BEQ    FINEC1
+       CMPA   #PLUSTK  PLUS?
+       BEQ    FINEC
+       CMPA   #'+      PLUS SIGN?
+       BEQ    FINEC
+       BRA    FINEC2
+FINEC1 COM    EXPSGN
+FINEC  JSR    CHRGET   GET ANOTHER.
+       BCS    FINEDG   IT IS A DIGIT.
+FINEC2 TST    EXPSGN
+       BEQ    FINE
+       NEG    TENEXP
+       BRA    FINE
+FINDP  COM    DPTFLG
+       BNE    FINC
+FINE   LDA    TENEXP
+       SUBA   DECCNT   GET NUMBER OF PLACES TO SHIFT.
+       STA    TENEXP
+       BEQ    FINQNG   NEGATE?
+       BPL    FINMUL   POSITIVE SO MULTIPLY.
+FINDIV JSR    DIV10
+       INC    TENEXP   DONE?
+       BNE    FINDIV   NO.
+       BRA    FINQNG   YES.
+FINMUL JSR    MUL10
+       DEC    TENEXP   DONE?
+       BNE    FINMUL   NO
+FINQNG LDA    SGNFLG
+       BPL    INTRTS   IF POSITIVE, RETURN.
+       JMP    NEGOP    OTHERWISE, NEGATE AND RETURN.
+
+FINDIG LDB    DECCNT
+       SUBB   DPTFLG
+       STB    DECCNT
+       PSHS   A        SAVE CHARACTER.
+       JSR    MUL10
+       PULS   B        GET IT BACK.
+       SUBB   #'0
+       BSR    FINLOG   ADD IT IN.
+       BRA    FINC
+
+       XDEF   FINLOG
+FINLOG JSR    MOV1F    SAVE FAC FOR LATER.
+       JSR    FLOAT    FLOAT THE VALUE IN ACCB.
+       LDX    #TEMPF1  GET POINTER TO ADDEND.
+       JMP    FADD     ADD TOGETHER AND RETURN.
+
+* HERE PACK IN THE NEXT DIGIT OF THE EXPONENT.
+* MULTIPLY THE OLD EXP BY 10 AND ADD IN THE NEXT
+* DIGIT. NOTE: EXP OVERFLOW IS NOT CHECKED FOR.
+FINEDG LDB    TENEXP   GET EXP SO FAR.
+       ASLB            MULT BY 2 TWICE
+       ASLB
+       ADDB   TENEXP   LIKE MULTIPLYING BY FIVE.
+       ASLB            AND NOW BY TEN.
+       SUBA   #'0
+       ABA             ADD IN PREVIOUS AMOUNT.
+       STA    TENEXP   SAVE RESULT.
+       BRA    FINEC
+
+       TTL    FLOATING POINT OUTPUT ROUTINE.
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+       XDEF   N.0999
+N.0999 FCB    @233     99999999.9499
+       FCB    @076
+       FCB    @274
+       FCB    @037
+       FCB    @375
+       XDEF   N.9999
+N.9999 FCB    @236     999999999.499
+       FCB    @156
+       FCB    @153
+       FCB    @047
+       FCB    @375
+       XDEF   N.MIL
+N.MIL  FCB    @236     10^9
+       FCB    @156
+       FCB    @153
+       FCB    @050
+       FCB    @000
+       ENDC   IFN      ADDPRC
+
+*
+* ENTRY TO LINPRT.
+*
+       XDEF   INPRT
+INPRT  LDX    #INTXT-@1
+       BSR    STROU2
+       LDD    CURLIN
+       XDEF   LINPRT
+LINPRT STD    FACHO
+       LDB    #@220    EXPONENT OF 16.
+       COMA            (SEC) NUMBER IS POSITIVE.
+       JSR    FLOATC
+       BSR    FOUT
+STROU2 JMP    STROUT   PRINT AND RETURN.
+
+       XDEF   FOUT
+FOUT   LDU    #FBUFFR
+       XDEF   FOUTC
+FOUTC  LDA    #'       PRINT SPACE IF POSITIVE.
+       LDB    FACSGN
+       BPL    FOUT1
+       LDA    #'-
+FOUT1  STA    ,U+      STORE THE CHARACTER.
+       STU    FBUFPT   Save buffer pointer.
+       STA    FACSGN   MAKE FAC POS FOR QINT.
+       LDA    #'0      GET ZERO TO TYPE IF FAC=0.
+       LDB    FACEXP
+       LBEQ   FOUT19
+       CLRA
+       CMPB   #@200    IS NUMBER .LT. 1.0 ?
+       BHI    FOUT7    NO.
+       LDX    #N.MIL   MULTIPLY BY 10^6.
+       JSR    FMULT
+       LDA    #-@6-(@3*ADDPRC)
+FOUT7  STA    DECCNT   SAVE COUNT OR ZERO IT.
+FOUT4  LDX    #N.9999
+       JSR    FOUTCP   IS NUMBER .GT. 999999.499 ?
+       BGT    FOUT9    YES. MAKE IT SMALLER.
+FOUT3  LDX    #N.0999
+       JSR    FOUTCP   IS NUMBER .GT. 99999.9499 ?
+       BGT    FOUT5    YES. DONE MULTIPLYING.
+       JSR    MUL10    MAKE IT BIGGER.
+       DEC    DECCNT
+       BRA    FOUT3    SEE IF THAT DOES IT.
+FOUT9  JSR    DIV10    MAKE IT SMALLER.
+       INC    DECCNT
+       BRA    FOUT4    SEE IF THAT DOES IT.
+
+FOUT5  JSR    FADDH    ADD A HALF TO ROUND UP.
+       JSR    QINT
+       LDB    #@1      DECIMAL POINT COUNT.
+       LDA    DECCNT
+       ADDA   #@7+(@3*ADDPRC) SHOULD NUMBER BE PRINTED IN E NOTATION?
+*    IE, IS NUMBER .LT. .01 ?
+       BMI    FOUT6    YES.
+       CMPA   #@10+(@3*ADDPRC) IS IT .GT. 999999 ?
+       BCC    FOUT6    YES. USE E NOTATION.
+       DECA            NUMBER OF PLACES BEFORE DECIMAL POINT.
+       TFR    A,B      PUT INTO ACCB.
+       LDA    #@2      NO E NOTATION.
+FOUT6  DECA            EFFECTIVELY ADD 5 TO ORIG EXP.
+       DECA
+       STA    TENEXP   THAT IS THE EXPONENT TO PRINT.
+       STB    DECCNT   NUMBER OF DECIMAL PLACES.
+       BGT    FOUT8    SOME PLACES BEFORE DEC PNT.
+       LDU    FBUFPT   GET POINTER TO OUTPUT.
+       LDA    #'.      PUT  IN "."
+       STA    ,U+
+       TSTB
+       BEQ    FOUT8
+       LDA    #'0      GET THE ENSUING ZERO.
+       STA    ,U+
+FOUT8  LDX    #FOUTBL
+       LDB    #@200    FIRST PASS THRU, ACCB HAS MSB SET.
+FOUT2  LDA    FACLO
+       ADDA   @2+ADDPRC,X
+       STA    FACLO
+       LDA    FACMO
+       ADCA   @1+ADDPRC,X
+       STA    FACMO
+       IFNE   ADDPRC
+       LDA    FACMOH
+       ADCA   @1,X
+       STA    FACMOH
+       ENDC   IFN      ADDPRC
+       LDA    FACHO
+       ADCA   ,X
+       STA    FACHO
+       INCB            IT WAS DONE YET ANOTHER TIME.
+       RORB            SEE IF CARRIES MATCH.
+       ROLB            GET ACCB COUNT BACK.
+       BVC    FOUT2    NO, CONTINUE.
+       BCC    FOUTYP   CAN USE ACCB AS IS.
+       SUBB   #@12+@1  MUST SUB 10.0 AND NEGATE.
+       NEGB
+FOUTYP ADDB   #'0-@1   GET A CHARACTER TO PRINT.
+       LEAX   @3+ADDPRC,X BUMP POINTER UP.
+       TFR    B,A
+       ANDA   #@177    GET RID OF MSB.
+       STA    ,U+
+       DEC    DECCNT
+       BNE    FOUTCM   NOT TIME FOR DP YET.
+       LDA    #'.
+       STA    ,U+      STORE DP.
+FOUTCM COMB            COMPLEMENT ACCB
+       ANDB   #@200    SAVE ONLY MSB.
+       CMPX   #FDCEND
+       BNE    FOUT2    CONTINUE WITH OUTPUT.
+FOUT11 LDA    ,-U      REMOVE TRAILING ZEROES.
+       CMPA   #'0
+       BEQ    FOUT11
+       CMPA   #'.
+       BNE    FOUT12   Not 0 or DP so save it.
+       LEAU   -@1,U    Eat the DP.
+FOUT12 LDA    #'+
+       LDB    TENEXP
+       BEQ    FOUT17   NO EXPONENT TO OUTPUT.
+       BPL    FOUT14
+       LDA    #'-      EXP IS NEGATIVE.
+       NEGB            MAKE EXP VALUE POSITIVE.
+FOUT14 STA    @2,U     STORE SIGN OF EXP
+       LDA    #'E
+       STA    @1,U     STORE THE "E" CHARACTER.
+       LDA    #'0-@1
+FOUT15 INCA            MOVE CLOSER TO OUTPUT VALUE.
+       SUBB   #@12     SUBTRACT 10.
+       BCC    FOUT15   NOT NEGATIVE YET.
+       ADDB   #'0+@12  GET SECOND OUTPUT CHARACTER.
+       STD    @3,U     Put away the exponent.
+       CLR    @5,U     PUT IN A TERMINATOR.
+       BRA    FOUT20   RETURN.
+FOUT19 STA    ,U       STORE THE CHARACTER.
+FOUT17 CLR    @1,U     A TERMINATOR.
+FOUT20 LDX    #FBUFFR
+FPWRRT RTS             ALL DONE.
+
+       XDEF   FHALF
+FHALF  FCB    @200     1/2
+       FCB    @000
+       FCB    @000
+       FCB    @000
+       IFNE   ADDPRC
+       FCB    @000
+       ENDC   IFN      ADDPRC
+
+*
+* POWERS OF TEN TABLE
+*
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+       XDEF   FOUTBL
+FOUTBL FCB    @372     -100,000,000
+       FCB    @012
+       FCB    @037
+       FCB    @000
+       FCB    @000     10,000,000
+       FCB    @230
+       FCB    @226
+       FCB    @200
+       FCB    @377     -1,000,000
+       FCB    @360
+       FCB    @275
+       FCB    @300
+       FCB    @000     100,000
+       FCB    @001
+       FCB    @206
+       FCB    @240
+       FCB    @377     -10,000
+       FCB    @377
+       FCB    @330
+       FCB    @360
+       FCB    @000     1000
+       FCB    @000
+       FCB    @003
+       FCB    @350
+       FCB    @377     -100
+       FCB    @377
+       FCB    @377
+       FCB    @234
+       FCB    @000     10
+       FCB    @000
+       FCB    @000
+       FCB    @012
+       FCB    @377     -1
+       FCB    @377
+       FCB    @377
+       FCB    @377
+       ENDC   IFN      ADDPRC
+       XDEF   FDCEND
+FDCEND EQU    *
+
+
+       TTL    EXPONENTIATION AND SQUARE ROOT FUNCTION.
+* SQUARE ROOT FUNCTION --- SQR(A)
+* USE SQR(X)=X^.5
+
+       XDEF   SQR
+SQR    JSR    MOVAF    MOVE FAC INTO ARG.
+       LDX    #FHALF
+       JSR    MOVFM    PUT MEMORY INTO FAC.
+*    LAST THING FETCHED IS FACEXP. INTO ACCB.
+* JMP FPWRT  ;FALL INTO FPWRT.
+
+* EXPONENTIATION --- X^Y.
+* N.B.  0^0=1
+* FIRST CHECK IF Y=0. IF SO, THE RESULT IS 1.
+* NEXT CHECK IF X=0. IF SO THE RESULT IS 0.
+* Must give Division By Zero error if 0 is raised to a negative power.
+* THEN CHECK IF X.GT.0. IF NOT CHECK THAT Y IS AN INTEGER.
+* IF SO, NEGATE X, SO THAT LOG DOESN'T GIVE FCERR.
+* IF X IS NEGATIVE AND Y IS ODD, NEGATE THE RESULT
+* RETURNED BY EXP.
+* TO COMPUTE THE RESULT USE X^Y=EXP((Y*LOG(X)).
+       XDEF   FPWRT
+FPWRT  BEQ    EXP      IF FAC=0, JUST EXPONENTIATE THAT.
+       TSTA            IS X=0?
+       BNE    FPWRT1
+       LDA    FACSGN   Is Y negative?
+       LBMI   DV0ERR   Yes, give "Division By Zero" error.
+       JMP    ZEROF1   No, the result  is zero.
+FPWRT1 LDX    #TEMPF3  SAVE FOR LATER IN A TEMP.
+       JSR    MOVMF
+       CLRB            IN CASE NO ONE CALLS INT.
+       LDA    ARGSGN
+       BPL    FPWR1    NO PROBLEMS IF X.GT.0.
+       JSR    INT      INTEGERIZE THE FAC.
+       LDX    #TEMPF3  GET ADDR OF COMPERAND.
+       LDA    ARGSGN
+       JSR    FOUTCP   EQUAL?
+       BNE    FPWR1    LEAVE X NEG. LOG WILL BLOW HIM OUT.
+       COMA            NEGATE X. MAKE POSITIVE.
+       LDB    INTEGR   GET EVENNESS.
+FPWR1  J5R    MOVFA1   ALTERNATE ENTRY POINT.
+       PSHS   B        SAVE EVENNESS FOR LATER.
+       JSR    LOG      FIND LOG.
+       LDX    #TEMPF3  MULTIPLY FAC TIMES LOG(X).
+       JSR    FMULT
+       BSR    EXP      EXPONENTIATE THE FAC.
+       PULS   A
+       RORA            IS IT EVEN?
+       BCC    FPWRRT   YES. OR X.GT.0.
+* NEGATE THE NUMBER IN FAC.
+       XDEF   NEGOP
+NEGOP  LDA    FACEXP
+       BEQ    NEGRTS
+       COM    FACSGN
+NEGRTS RTS
+
+
+       TTL    EXPONENTIATION FUNCTION.
+* FIRST SAVE THE ORIGINAL ARGUMENT AND MULTIPLY THE FAC BY 
+* LOG2(E). THE RESULT IS USED TO DETERMINE IF OVERFLOW
+* WILL OCCUR SINCE EXP(X)=2^(X*LOG2(E)) WHERE
+* LOG2(E)=LOG(E) BASE 2. THEN SAVE THE INTEGER PART OF 
+* THIS TO SCALE THE ANSWER AT THE END. SINCE
+* 2^Y=2^INT(Y)*2^(Y-INT(Y)) AND 2^INT(Y) IS EASY TO COMPUTE.
+* NOW COMPUTE 2^(X*LOG2(E)-INT(X*LOG2(E)) BY
+* P(LN(2)*(INT(X*LOG2(E))+1)-X) WHERE P IS AN APPROXIMATION
+* POLYNOMIAL. THE RESULT IS THEN SCALED BY THE POWER OF 2
+* PREVIOUSLY SAVED.
+
+LOGEB2 FCB    @201     LOG(E) BASE 2.
+       FCB    @070
+       FCB    @252
+       PCB    @073
+       IFNE   ADDPRC
+       FCB    @051
+       ENDC   IFN      ADDPRC
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+EXPCON FCB    @7       Number of constants -1.
+       FCB    @161     .000021498763697
+       FCB    @064
+       FCB    @130
+       FCB    @076
+       FCB    @126
+       FCB    @164     .00014352314036
+       FCB    @026
+       FCB    @176
+       FCB    @263
+       FCB    @033
+       FCB    @167     .0013422634824
+       FCB    @057
+       FCB    @356
+       FCB    @343
+       FCB    @205
+       FCB    @172     .0096140170119
+       FCB    @035
+       FCB    @204
+       FCB    @034
+       FCB    @052
+       FCB    @174     .055505126860
+       FCB    @143
+       FCB    @131
+       FCB    @130
+       FCB    @012
+       FCB    @176     .24022638462
+       FCB    @165
+       FCB    @375
+       FCB    @347
+       FCB    @306
+       FCB    @200     .69314718608
+       FCB    @061
+       FCB    @162
+       FCB    @030
+       FCB    @020
+       FCB    @201     1.0
+       FCB    @000
+       FCB    @000
+       FCB    @000
+       FCB    @000 
+       ENDC   IFN      ADDPRC
+
+       XDEF   EXP
+EXP    LDX    #LOGEB2  Multiply argument by log2(e).
+       BSR    GFMULT
+       JSR    MOV1F    Pack the result into TEMPF1.
+       LDA    FACEXP   Get the exponent.
+       CMPA   #@210    If exponent .GE. 128 decimal we have
+       BCS    EXP1     overflow.
+
+GOMLDV JMP    MLDVEX   Overflow or underflow.
+
+EXP1   JSR    INT      Get the integer part.
+       LDA    INTEGR
+       ADDA   #@201    It will be the exponent of the final
+*    result.
+       BEQ    GOMLDV   Overflow.
+       DECA            Adjust (?) and save final exponent.
+       PSHS   A
+       LDX    #TEMPF1  Subtract out the integer part
+       JSR    FSUB     to get the fractional part.
+       LDX    #EXPCON  Calculate 2^fractional part of
+       BSR    POLY     Xlog2(e).
+       CLR    ARISGN   Multiply by positive 1.0. (?)
+       PULS   A        Get scale factor.
+       JSR    MULDIV   Modify FACEXP and check for overflow.
+       RTS             Must JSR, RTS due to PULSs in MULDIV.
+
+       TTL    POLYNOMIAL EVALUATOR AND THE RANDOM NUMBER GENERATOR.
+* EVALUATE P(X^2)*X
+* POINTER TO DEGREE IS IN XREG.
+* THE CONSTANTS FOLLOW THE DEGREE.
+* FOR X=FAC,  COMPUTE:
+*  C0*X+C1*X^3+C2*X^5+C3*X^7+...+C(N)*X^(2*N+1)
+       XDEF   POLYX
+POLYX  STX    POLYPT   RETAIN POLYNOMIAL POINTER FOR LATER.
+       JSR    MOV1F    SAVE FAC IN FACTMP.
+       BSR    GFMULT   COMPUTE X^2
+       BSR    POLY1    COMPUTE P(X^2).
+       LDX    #TEMPF1
+GFMULT JMP    FMULT    MULTIPLY BY FAC AGAIN.
+
+* POLYNOMIAL EVALUATOR.
+* POINTER TO DEGREE IS IN XREG.
+* COMPUTE:
+*  C0+C1*X+C2*X^2+C3*X^3+C4*X^4+...+C(N-1)*X^(N-1)+C(N)*X^N.
+       XDEF   POLY
+POLY   STX    POLYPT
+POLY1  JSR    MOV2F    SAVE FAC.
+       LDX    POLYPT   GET POLYNOMIAL PNTR BACK.
+       LDB    ,X+
+       STB    DEGREE
+       STX    POLYPT   SAVE POINTER TO FIRST CONSTANT.
+POLY2  BSR    GFMULT
+       LDX    POLYPT   GET CURRENT POINTER.
+       LEAX   @4+ADDPRC,X POINT TO NEXT CONSTANT.
+       STX    POLYPT
+       JSR    FADD     ADD IN CONSTANT.
+       LDX    #TEMPF2  MULTIPLY THE ORIGINAL FAC.
+       DEC    DEGREE   DONE?
+       BNE    POLY2
+RANDRT RTS             YES.
+
+       IFEQ   NEWRND
+ ENDC   IFE NEWRND
+
+
+       TTL    New Random Number Generator
+
+       IFNE   NEWRND
+
+*
+* Based on the TRS-80 Level II RND.
+*
+
+       XDEF   RND
+RND    JSR    SIGN     Test the sign of the argument.
+       BMI    SEEDIT   Negative args seed the generator.
+       BEQ    RND0     Zero, return floating point value
+*    between zero and one.
+       BSR    GOINT    Get integer part of argument.
+       JSR    MOV1F    Save it in TEMPF1.
+       BSR    RND0     Get random number between 0 and 1.
+       LDX    #TEMPF1  Scale it by the argument.
+       BSR    GFMULT 
+       LDX    #FONE    Add one to get value between 1 and
+       JSR    FADD     the argument.
+GOINT  JMP    INT      Return it as an integer.
+
+
+RND0   LDX    RNDX+@1  Copy last random number into the FAC. 
+       STX    FACHO
+       LDX    RNDX+@3
+       STX    FACMO
+SEEDIT LDX    MULTR    Copy the multiplier into ARG.
+       STX    ARGHO 
+       LDX    MULTR+@2
+       STX    ARGMO
+       JSR    RNDMUL   Get four low order bytes of multiply 
+*    into RNDTMP.
+       LDD    RNDTMP+@2 Add in the random constant.
+       ADDD   #(@145*&256+@213)
+       STD    RNDX+@3
+       STD    FACMO
+       LDD    RNDTMP
+       ADCB   #@260
+       ADCA   #@5
+       STD    RNDX+@1
+       STD    FACHO
+       CLR    FACSGN   Make it look positive.
+       LDA    #@200    Make it be between 0 and 1.
+       STA    FACEXP
+       LDA    RESMO    Get something to shift in.
+       STA    FACOV
+       JMP    NORMAL   Go normalize it.
+
+MULTR  FCB    @100
+       FCB    @346
+       FCB    @115
+       FCB    @253
+       ENDC   IFN      NEWRND
+
+       TTL    SINE, COSINE AND TANGENT FUNCTIONS.
+
+* COSINE FUNCTION.
+* USE COS(X)=SIN(X+PI/2)
+       XDEF   COS
+COS    LDX    #PI2     PNTR TO PI/2.
+       JSR    FADD     ADD IT IN
+*    FALL INTO SIN.
+
+
+* SINE FUNCTION.
+* USE IDENTITIES TO GET FAC IN QUADRANTS I OR IV.
+* THE FAC IS DIVIDED BY 2*PI AND THE INTEGER PART IS IGNORED
+* BECAUSE SIN(X+2*PI)=SIN(X). THEN THE ARGUMENT CAN BE COMPARED
+* WITH PI/2 BY COMPARING THE RESULT OF THE DIVISION
+* WITH PI/2/(2*PI)=1/4.
+* IDENTITIES ARE THEN USED TO GET THE RESULT IN QUADRANTS
+* I OR IV. AN APPROXIMATION POLYNOMIAL IS THEN USED TO
+* COMPUTE SIN(X).
+       XDEF   SIN
+SIN    JSR    MOVAF
+       LDX    #TWOPI   SET PNTR TO DIVISOR.
+       LDB    ARGSGN   GET SIGN OF RESULT.
+       JSR    FDIVF
+       JSR    MOVAF    GET RESULT INTO ARG.
+       BSR    GOINT    INTEGERIZE FAC.
+       CLR    ARISGN   ALWAYS HAVE THE SAME SIGN.
+       LDA    ARGEXP   SET UP FOR THE "SETUP" SUBBER.
+       LDB    FACEXP
+       JSR    FSUBT    KEEP ONLY THE FRACTIONAL PART.
+       LDX    #FR4     GET PNTR TO 1/4.
+       JSR    FSUB     COMPUTE 1/4-FAC.
+       LDA    FACSGN   SAVE SIGN FOR LATER.
+       PSHS   A
+       BPL    SIN1     FIRST QUADRANT.
+       JSR    FADDH    ADD 1/2 TO FAC.
+       LDA    FACSGN   SIGN IS NEGATIVE?
+       BMI    SIN2
+       COM    TANSGN   QUADRANTS II AND III COME HERE.
+       XDEF   SIN1
+SIN1   JSR    NEGOP    IF POSITIVE, NEGATE IT.
+SIN2   LDX    #FR4     POINTER TO 1/4.
+       JSR    FADD     ADD IT IN.
+       PULS   A        GET ORIGINAL QUADRANT.
+       TSTA            SET CODES.
+       BPL    SIN3
+       JSR    NEGOP    IF NEGATIVE, NEGATE RESULT.
+SIN3   LDX    #SINCON
+GPOLYX JMP    POLYX    DO APPROXIMATION POLYNOMIAL.
+
+* TANGENT FUNCTION.
+       XDEF   TAN
+TAN    JSR    MOV1F    MOVE FAC INTO TEMPORARY.
+       CLR    TANSGN   REMEMBER WHETHER TO NEGATE.
+       BSR    SIN      COMPUTE THE SIN.
+       LDX    #TEMPF3
+       JSR    MOVMF    PUT SIGN INTO OTHER TEMP.
+       LDX    #TEMPF1
+       JSR    MOVFM    PUT THIS MEMORY LOC INTO FAC.
+       CLR    FACSGN   START OFF POSITIVE.
+       LDA    TANSGN
+       BSR    COSC     COMPUTE COSINE.
+       TST    FACEXP   Give OV error instead of letting FDIV
+       LBEQ   OVERR    give /0 error if cosine is 0.
+       LDX    #TEMPF3  ADDRESS OF SINE VALUE.
+GFDIV  JMP    FDIV     DIVIDE SINE BY COSINE AND RETURN.
+COSC   PSHS   A
+       BRA    SIN1
+
+PI2    FCB    @201     PI/2
+       FCB    @111
+       FCB    @017
+       FCB    @333-ADDPRC
+       IFNE   ADDPRC
+       FCB    @242
+       ENDC   IFN      ADDPRC
+
+TWOPI  FCB    @203     2*PI.
+       FCB    @111
+       FCB    @017
+       FCB    @333-ADDPRC
+       IFNE   ADDPRC
+       FCB    @242
+       ENDC   IFN      ADDPRC
+
+FR4    FCB    @177     1/4
+       FCB    @000
+       FCB    @000
+       FCB    @000
+       IFNE   ADDPRC
+       FCB    @000
+       ENDC   IFN      ADDPRC
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+SINCON FCB    @5       DEGREE-1.
+       FCB    @204     -14.381383816
+       FCB    @346
+       FCB    @032
+       FCB    @055
+       FCB    @033
+       FCB    @206     42.07777095
+       FCB    @050
+       FCB    @007
+       FCB    @373
+       FCB    @370
+       FCB    @207     -76.704133676
+       FCB    @231
+       FCB    @150
+       FCB    @211
+       FCB    @001
+       FCB    @207     81.605223690
+       FCB    @043
+       FCB    @065
+       FCB    @337
+       FCB    @341
+       FCB    @206     -41.34170209
+       FCB    @245
+       FCB    @135
+       FCB    @347
+       FCB    @050
+       FCB    @203     6.2831853070
+       FCB    @111
+       FCB    @017
+       FCB    @332
+       FCB    @242
+       FCB    @241     7.2362932E7
+       FCB    @124
+       FCB    @106
+       FCB    @217
+       FCB    @23
+       FCB    @217     73276.2515
+       FCB    @122
+       FCB    @103
+       FCB    @211
+       FCB    @315
+       ENDC   IFN      ADDPRC
+
+       TTL    ARCTANGENT FUNCTION.
+
+* USE IDENTITIES TO GET ARG BETWEEN 0 AND 1 AND THEN USE AN
+* APPROXIMATION POLYNOMIAL TO COMPUTE ARCTAN(X).
+       XDEF   ATN
+ATN    LDA    FACSGN   WHAT IS SIGN?
+       PSHS   A        (MEANWHILE SAVE FOR LATER.)
+       BPL    ATN1
+       BSR    GNEGOP   IF NEGATIVE, NEGATE FAC.
+*    USE ARCTAN(X)=-ARCTAN(-X) .
+ATN1   LDA    FACEXP
+       PSHS   A        SAVE THIS TOO FOR LATER.
+       CMPA   #@201    SEE IF FAC .GE. 1.0 .
+       BCS    ATN2     IT IS LESS THAN 1.
+       LDX    #FONE    GET PNTR TO 1.0 .
+       BSR    GFDIV    COMPUTE RECIPROCAL.
+*    USE ARCTAN(X)=PI/2-ARCTAN(1/X).
+ATN2   LDX    #ATNCON  PNTR TO ARCTAN CONSTANTS.
+       BSR    GPOLYX
+       PULS   A
+       CMPA   #@201    WAS ORIGINAL ARGUMENT .LT. 1 ?
+       BCS    ATN3     YES.
+       LDX    #PI2
+       JSR    FSUB     SUBTRACT ARCTAGN FROM PI/2.
+ATN3   PULS   A
+       TSTA            WAS ORIGINAL ARGUMENT POSITIVE?
+       BPL    ATN4     YES.
+GNEGOP JMP    NEGOP    IF NEGATIVE, NEGATE RESULT.
+ATN4   RTS             ALL DONE.
+
+       IFEQ   ADDPRC
+ ENDC   IFE ADDPRC
+
+       IFNE   ADDPRC
+ATNCON FCB    @13      DEGREE-1.
+       FCB    @166     -.0006847939119
+       FCB    @263
+       FCB    @203
+       FCB    @275
+       FCB    @323
+       FCB    @171     .004850942156
+       FCB    @036
+       FCB    @364
+       FCB    @246
+       FCB    @365
+       FCB    @173     -.01611170184
+       FCB    @203
+       FCB    @374
+       FCB    @260
+       FCB    @020
+       FCB    @174     .03420963805
+       FCB    @014
+       FCB    @037
+       FCB    @147
+       FCB    @312
+       FCB    @174     -.05427913276
+       FCB    @336
+       FCB    @123
+       FCB    @313
+       FCB    @301
+       FCB    @175     .07245719654
+       FCB    @024
+       FCB    @144
+       FCB    @160
+       FCB    @114
+       FCB    @175     -.08980239538
+       FCB    @267
+       FCB    @352
+       FCB    @121
+       FCB    @172
+       FCB    @175     .1109324134
+       FCB    @143
+       FCB    @060
+       FCB    @210
+       FCB    @176
+       FCB    @176     -.1428398077
+       FCB    @222
+       FCB    @104
+       FCB    @231
+       FCB    @072
+       FCB    @176     .1999991205
+       FCB    @114
+       FCB    @314
+       FCB    @221
+       FCB    @307
+       FCB    @177     -.3333333157
+       FCB    @252
+       FCB    @252
+       FCB    @252
+       FCB    @023
+       FCB    @201     1.0
+       FCB    @000
+       FCB    @000
+       FCB    @000
+       FCB    @000
+       ENDC   IFN      ADDPRC
+
+       END

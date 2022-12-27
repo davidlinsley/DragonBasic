@@ -1,0 +1,60 @@
+PAGE  031  ECBMTH  .SA:1  MATH P SINE, COSINE AND TANGENT FUNCTIONS.
+
+02342P 072E 96   0A      A        LDA    TANSGN
+02343P 0730 8D   0C   073E        BSR    COSC     COMPUTE COSINE.
+02344P 0732 0D   4F      A        TST    FACEXP   Give OV error instead of letting FDIV
+02345P 0734 1027 F9A6 00DE        LBEQ   OVERR    give /0 error if cosine is 0.
+02346P 0738 8E   004A    A        LDX    #TEMPF3  ADDRESS OF SINE VALUE.
+02347P 073B 7E   023D    P GFDIV  JMP    FDIV     DIVIDE SINE BY COSINE AND RETURN.
+02348P 073E 34   02      A COSC   PSHS   A
+02349P 0740 20   C0   0702        BRA    SIN1
+02350 
+02351P 0742      81      A PI2    FCB    @201     PI/2
+02352P 0743      49      A        FCB    @111
+02353P 0744      0F      A        FCB    @017
+02354P 0745      DA      A        FCB    @333-ADDPRC
+02355            0001    A        IFNE   ADDPRC
+02356P 0746      A2      A        FCB    @242
+02357                             ENDC   IFN      ADDPRC
+02358 
+02359P 0747      83      A TWOPI  FCB    @203     2*PI.
+02360P 0748      49      A        FCB    @111
+02361P 0749      0F      A        FCB    @017
+02362P 074A      DA      A        FCB    @333-ADDPRC
+02363            0001    A        IFNE   ADDPRC
+02364P 074B      A2      A        FCB    @242
+02365                             ENDC   IFN      ADDPRC
+02366 
+02367P 074C      7F      A FR4    FCB    @177     1/4
+02368P 074D      00      A        FCB    @000
+02369P 074E      00      A        FCB    @000
+02370P 074F      00      A        FCB    @000
+02371            0001    A        IFNE   ADDPRC
+02372P 0750      00      A        FCB    @000
+02373                             ENDC   IFN      ADDPRC
+02374
+02375            0001    A        IFEQ   ADDPRC
+02397                       ENDC   IFE ADDPRC
+02398
+02399            0001    A        IFNE   ADDPRC
+02400P 0751      05      A SINCON FCB    @5       DEGREE-1.
+02401P 0752      84      A        FCB    @204     -14.381383816
+02402P 0753      E6      A        FCB    @346
+02403P 0754      1A      A        FCB    @032
+02404P 0755      2D      A        FCB    @055
+02405P 0756      1B      A        FCB    @033
+02406P 0757      86      A        FCB    @206     42.07777095
+02407P 0758      28      A        FCB    @050
+02408P 0759      07      A        FCB    @007
+02409P 075A      FB      A        FCB    @373
+02410P 075B      F8      A        FCB    @370
+02411P 075C      87      A        FCB    @207     -76.704133676
+02412P 075D      99      A        FCB    @231
+02413P 075E      68      A        FCB    @150
+02414P 075F      89      A        FCB    @211
+02415P 0760      01      A        FCB    @001
+02416P 0761      87      A        FCB    @207     81.605223690
+02417P 0762      23      A        FCB    @043
+02418P 0763      35      A        FCB    @065
+02419P 0764      DF      A        FCB    @337
+02420P 0765      El      A        FCB    @341

@@ -1,0 +1,14 @@
+PAGE  006  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
+
+00949P 0100 C0   08      A        SUBB   #@10
+00950P 0102 27   0C   0110        BEQ    SHFTRT
+00951P 0104 67   01      A SHFTR3 ASR    @1,X
+00952P 0106 66   02      A ROLSHF ROR    @2,X
+00953P 0108 66   03      A        ROR    @3,X
+00954            0001    A        IFNE   ADDPRC
+00955P 010A 66   04      A        ROR    @4,X
+00956                             ENDC   IFN      ADDPRC
+00957P 010C 46                    RORA            ROTATE ARGUMENT 1 BIT RIGHT.
+00958P 010D 5C                    INCB
+00959P 010E 26   F4   0104        BNE    SHFTR3   $$$ ( MOST EXPENSIVE ! )
+00960P 0110 39             SHFTRT RTS             ALL DONE SHIFTING.

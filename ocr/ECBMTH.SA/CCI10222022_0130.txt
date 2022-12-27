@@ -1,0 +1,49 @@
+PAGE  015  ECBMTH  .SA:1  MATH P FLOATING POINT MOVEMENT ROUTINES.
+
+01431
+01432                             TTL    SIGN, SGN, FLOAT, NEG, ABS.
+01433
+01434                      * PUT SIGN OF FAC IN ACCA.
+01435                             XDEF   SIGN
+01436P 0318 D6   4F      A SIGN   LDB    FACEXP
+01437P 031D 27   08   0327        BEQ    SIGNRT   IF NUMBER IS ZERO, SO IS RESULT.
+01438P 031F D6   54      A FCSIGN LDB    FACSGN 
+01439P 0321 59             FCOMPS ROLB
+01440P 0322 C6   FF      A        LDB    #—@1     ASSUME NEGATIVE.
+01441P 0324 25   01   0327        BCS    SIGNRT
+01442P 0326 50                    NEGB            GET +1.
+01443P 0327 39             SIGNRT RTS
+01444
+01445                      * SGN FUNCTION.
+01446                             XDEF   SGN
+01447P 0328 8D   F1   031B SGN    BSR    SIGN
+01448
+01449                      * FLOAT THE SIGNED INTEGER IN ACCB.
+01450                             XDEF   FLOAT
+01451P 032A D7   50      A FLOAT  STB    FACHO    PUT [ACCB] IN HIGH ORDER.
+01452P 032C 0F   51      A        CLR    FACHO+@1 Must be FACHO+1 not FACMO for 9
+01453                      *    digit code to work.
+01454P 032E C6   88      A        LDB    #@210    GET THE EXPONENT.
+01455
+01456                      * FLOAT THE SIGNED NUMBER IN FAC.
+01457                             XDEF   FLOATS
+01458P 0330 96   50      A FLOATS LDA    FACHO
+01459P 0332 80   80      A        SUBA   #@200   GET COMP OF SIGN IN CARRY.
+01460P 0334 D7   4F      A FLOATC STB    FACEXP  PUT IT IN RESULT.
+01461
+01462            0001    A        IFEQ   ADDPRC
+01465                       ENDC   IFE ADDPRC
+01466
+01467            0001    A        IFNE   ADDPRC
+01468P 0336 DC   8A      A        LDD    DBLZER
+01469P 0338 DD   52      A        STD    FACMO
+01470                             ENDC   IFN      ADDPRC
+01471P 033A 97   63      A        STA    FACOV
+01472P 033C 97   54      A        STA    FACSGN
+01473P 033E 7E   0064    P        JMP    FADFLT
+01474
+01475                      * ABSOLUTE VALUE OF FAC.
+01476                             XDEF   ABS
+01477P 0341 0F   54      A ABS    CLR    FACSGN
+01478P 0343 39                    RTS
+01479

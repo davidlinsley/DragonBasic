@@ -1,0 +1,60 @@
+PAGE  029  ECBMTH  .SA:1  MATH P POLYNOMIAL EVALUATOR AND THE RANDOM NUMBER GE
+
+02226 
+02227                             TTL    New Random Number Generator
+02228
+02229            0001    A        IFNE   NEWRND
+02230
+02231                      *
+02232                      * Based on the TRS-80 Level II RND.
+02233                      *
+02234
+02235                             XDEF   RND
+02236P 0675 BD   031B    P RND    JSR    SIGN     Test the sign of the argument.
+02237P 0678 2B   21   069B        BMI    SEEDIT   Negative args seed the generator.
+02238P 067A 27   15   0691        BEQ    RND0     Zero, return floating point value
+02239                      *    between zero and one.
+02240P 067C 8D   10   068E        BSR    GOINT    Get integer part of argument.
+02241P 067E BD   02DD    P        JSR    MOV1F    Save it in TEMPF1.
+02242P 0681 8D   0E   0691        BSR    RND0     Get random number between 0 and 1.
+02243P 0683 8E   0040    A        LDX    #TEMPF1  Scale it by the argument.
+02244P 0686 8D   CA   0652        BSR    GFMULT 
+02245P 0688 8E   0111    P        LDX    #FONE    Add one to get value between 1 and
+02246P 068B BD   000E    P        JSR    FADD     the argument.
+02247P 068E 7E   039C    P GOINT  JMP    INT      Return it as an integer.
+02248
+02249
+02250P 0691 BE   0001    A RND0   LDX    RNDX+@1  Copy last random number into the FAC. 
+02251P 0694 9F   50      A        STX    FACHO
+02252P 0696 BE   0003    A        LDX    RNDX+@3
+02253P 0699 9F   52      A        STX    FACMO
+02254P 069B BE   06CA    P SEEDIT LDX    MULTR    Copy the multiplier into ARG.
+02255P 069E 9F   5D      A        STX    ARGHO 
+02256P 06A0 BE   06CC    P        LDX    MULTR+@2
+02257P 06A3 9F   5F      A        STX    ARGMO
+02258P 06A5 BD   017C    P        JSR    RNDMUL   Get four low order bytes of multiply 
+02259                      *    into RNDTMP.
+02260P 06A8 DC   AD      A        LDD    RNDTMP+@2 Add in the random constant.
+02261P 06AA C3   658B    A        ADDD   #(@145*&256+@213)
+02262P 06AD FD   0003    A        STD    RNDX+@3
+02263P 06B0 DD   52      A        STD    FACMO
+02264P 06B2 DC   AB      A        LDD    RNDTMP
+02265P 06B4 C9   B0      A        ADCB   #@260
+02266P 06B6 89   05      A        ADCA   #@5
+02267P 06B8 FD   0001    A        STD    RNDX+@1
+02268P 06BB DD   50      A        STD    FACHO
+02269P 06BD 0F   54      A        CLR    FACSGN   Make it look positive.
+02270P 06BF 86   80      A        LDA    #@200    Make it be between 0 and 1.
+02271P 06C1 97   4F      A        STA    FACEXP
+02272P 06C3 96   15      A        LDA    RESMO    Get something to shift in.
+02273P 06C5 97   63      A        STA    FACOV
+02274P 06C7 7E   0068    P        JMP    NORMAL   Go normalize it.
+02275  
+02276P 06CA      40      A MULTR  FCB    @100
+02277P 06CB      E6      A        FCB    @346
+02278P 06CC      40      A        FCB    @115
+02279P 06CD      AB      A        FCB    @253
+02280                             ENDC   IFN      NEWRND
+02281
+02282                             TTL    SINE, COSINE AND TANGENT FUNCTIONS.
+02283

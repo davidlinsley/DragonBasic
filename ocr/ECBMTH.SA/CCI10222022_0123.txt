@@ -1,0 +1,60 @@
+PAGE  009  ECBMTH  .SA:1  MATH P NATURAL LOG FUNCTION.
+
+01079 
+01080                             TTL    FLOATING MULTIPLICATION AND DIVISION.
+01081                      * MULTIPLICATION  FAC:=ARG*FAC.
+01082                             XDEF   FMULT
+01083P 0176 8D   65   01DD FMULT  BSR    CONUPK   UNPACK THE CONSTANT INTO ARG FOR USE.
+01084                             XDEF   FMULTT
+01085P 0178 27   62   01DC FMULTT BEQ    MULTRT   IF FAC=0, RETURN. FAC IS SET.
+01086P 017A 8D   7A   01F6        BSR    MULDIV   FIX UP THE EXPONENTS.
+01087P 017C 86   00      A RNDMUL LDA    #@0      TO CLEAR RESULT.
+01088P 017E 97   13      A        STA    RESHO
+01089            0001    A        IFNE   ADDPRC
+01090P 0180 97   14      A        STA    RESMOH
+01091                             ENDC   IFN      ADDPRC
+01092P 0182 97   15      A        STA    RESMO
+01093P 0184 97   16      A        STA    RESLO
+01094P 0186 D6   53      A        LDB    FACLO    MLTPLY ARG BY FACLO.
+01095P 0188 8D   22   01AC        BSR    MLTPLY
+01096            0001    A        IFNE   NEWRND
+01097P 018A D6   63      A        LDB    FACOV    Put away low order byte for RND.
+01098P 018C D7   AE      A        STB    RNDTMP+@3
+01099                             ENDC   IFN      NEWRND
+01100P 018E D6   52      A        LDB    FACMO    MLTPLY ARG BY FACMO.
+01101P 0190 8D   1A   01AC        BSR    MLTPLY
+01102            0001    A        IFNE   NEWRND
+01103P 0192 D6   63      A        LDB    FACOV
+01104P 0194 D7   AD      A        STB    RNDTMP+@2
+01105                             ENDC   IFN      NEWRND
+01106            0001    A        IFNE   ADDPRC
+01107P 0196 D6   51      A        LDB    FACMOH
+01108P 0198 8D   12   01AC        BSR    MLTPLY
+01109            0001    A        IFNE   NEWRND
+01110P 019A D6   63      A        LDB    FACOV
+01111P 019C D7   AC      A        STB    RNDTMP+@1
+01112                             ENDC   IFN      NEWRND
+01113                             ENDC   IFN      ADDPRC
+01114P 019E D6   50      A        LDB    FACHO    MLTPLY ARG BY FACHO.
+01115P 01A0 8D   0E   01B0        BSR    MLTPL1
+01116            0001    A        IFNE   NEWRND
+01117P 01A2 D6   63      A        LDB    FACOV
+01118P 01A4 D7   AB      A        STB    RNDTMP
+01119                             ENDC   IFN      NEWRND
+01120P 01A6 BD   02B9    P        JSR    MOVFR    MOVE RESULT INTO FAC.
+01121P 01A9 7E   0068    P        JMP    NORMAL   NORMALIZE RESULT.
+01122P 01AC 1027 FF33 00E3 MLTPLY LBEQ   MULSHF   SHIFT RESULT RIGHT 1 BYTE.
+01123P 01B0 43             MLTPL1 COMA            (SEC)
+01124P 01B1 96   13      A MLTPL2 LDA    RESHO
+01125P 01B3 56                    RORB            MAKE SURE WE GET ALL BITS.
+01126P 01B4 27   26   01DC        BEQ    MULTRT
+01127P 01B6 24   16   01CE        BCC    MLTPL3   IT MULT BIT=0, JUST SHIFT.
+01128P 01B8 96   16      A        LDA    RESLO
+01129P 01BA 9B   60      A        ADDA   ARGLO
+01130P 01BC 97   16      A        STA    RESLO
+01131P 01BE 96   15      A        LDA    RESMO
+01132P 01C0 99   5F      A        ADCA   ARGMO
+01133P 01C2 97   15      A        STA    RESMO
+01134            0001    A        IFNE   ADDPRC
+01135P 01C4 96   14      A        LDA    RESMOH
+01136P 01C6 99   5E      A        ADCA   ARGMOH

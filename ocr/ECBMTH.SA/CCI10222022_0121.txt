@@ -1,0 +1,60 @@
+PAGE  007  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
+
+00962
+00963                             TTL    NATURAL LOG FUNCTION.
+00964                      *
+00965                      * CALCULATION IS BY:
+00966                      * LN(F*2^N)=(N+LOG2(F))*LN(2)
+00967                      * AN APPROXIMATION POLYNOMIAL IS USED TO CALCULATE LOG2(F).
+00968                      *  CONSTANTS USED BY LOG:
+00969                             XDEF   FONE
+00970P 0111      81      A FONE   FCB    @201     1.0
+00971P 0112      00      A        FCB    @000
+00972P 0113      00      A        FCB    @000
+00973P 0114      00      A        FCB    @000
+00974            0001    A        IFNE   ADDPRC
+00975P 0115      00      A        FCB    @000
+00976                             ENDC   IFN      ADDPRC
+00977
+00978            0001    A        IFEQ   ADDPRC
+00992                       ENDC   IFE ADDPRC
+00993
+00994            0001    A        IFNE   ADDPRC
+00995P 0116      03      A LOGCN2 FCB    @3       DEGREE-1
+00996P 0117      7F      A        FCB    @177     .43425594188
+00997P 0118      5E      A        FCB    @136
+00998P 0119      56      A        FCB    @126
+00999P 011A      CB      A        FCB    @313
+01000P 011B      79      A        FCB    @171
+01001P 011C      80      A        FCB    @200     .57658454134
+01002P 011D      13      A        FCB    @023
+01003P 011E      9B      A        FCB    @233
+01004P 011F      0B      A        FCB    @013
+01005P 0120      64      A        FCB    @144
+01006P 0121      80      A        FCB    @200     .96180075921
+01007P 0122      76      A        FCB    @166
+01008P 0123      38      A        FCB    @070
+01009P 0124      93      A        FCB    @223
+01010P 0125      16      A        FCB    @026
+01011P 0126      82      A        FCB    @202     2.8853900728
+01012P 0127      38      A        FCB    @070
+01013P 0128      AA      A        FCB    @252
+01014P 0129      3B      A        FCB    @073
+01015P 012A      20      A        FCB    @040
+01016                             ENDC   IFN      ADDPRC
+01017
+01018P 012B      80      A SQR0.5 FCB    @200     SQR(0.5)
+01019P 012C      35      A        FCB    @065
+01020P 012D      04      A        FCB    @004
+01021P 012E      F3      A        FCB    @363
+01022            0001    A        IFNE   ADDPRC
+01023P 012F      34      A        FCB    @064
+01024                             ENDC   IFN      ADDPRC
+01025
+01026P 0130      81      A SQR2.0 FCB    @201     SQR(2.0)
+01027P 0131      35      A        FCB    @065
+01028P 0132      04      A        FCB    @004
+01029P 0133      F3      A        FCB    @363
+01030            0001    A        IFNE   ADDPRC
+01031P 0134      34      A        FCB    @064
+01032                             ENDC   IFN      ADDPRC

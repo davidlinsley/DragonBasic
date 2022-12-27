@@ -1,0 +1,60 @@
+PAGE  033  ECBMTH  .SA:1  MATH P ARCTANGENT FUNCTION.
+
+02516P 07AB      B3      A        FCB    @263
+02517P 07AC      83      A        FCB    @203
+02518P 07AD      BD      A        FCB    @275
+02519P 07AE      D3      A        FCB    @323
+02520P 07AF      79      A        FCB    @171     .004850942156
+02521P 07B0      1E      A        FCB    @036
+02522P 07B1      F4      A        FCB    @364
+02523P 07B2      A6      A        FCB    @246
+02524P 07B3      F5      A        FCB    @365
+02525P 07B4      7B      A        FCB    @173     -.01611170184
+02526P 07B5      83      A        FCB    @203
+02527P 07B6      FC      A        FCB    @374
+02528P 07B7      B0      A        FCB    @260
+02529P 07B8      10      A        FCB    @020
+02530P 07B9      7C      A        FCB    @174     .03420963805
+02531P 07BA      0C      A        FCB    @014
+02532P 07BB      1F      A        FCB    @037
+02533P 07BC      67      A        FCB    @147
+02534P 07BD      CA      A        FCB    @312
+02535P 07BE      7C      A        FCB    @174     -.05427913276
+02536P 07BF      DE      A        FCB    @336
+02537P 07C0      53      A        FCB    @123
+02538P 07C1      CB      A        FCB    @313
+02539P 07C2      C1      A        FCB    @301
+02540P 07C3      7D      A        FCB    @175     .07245719654
+02541P 07C4      14      A        FCB    @024
+02542P 07C5      64      A        FCB    @144
+02543P 07C6      70      A        FCB    @160
+02544P 07C7      4C      A        FCB    @114
+02545P 07C8      7D      A        FCB    @175     -.08980239538
+02546P 07C9      B7      A        FCB    @267
+02547P 07CA      EA      A        FCB    @352
+02548P 07CB      51      A        FCB    @121
+02549P 07CC      7A      A        FCB    @172
+02550P 07CD      7D      A        FCB    @175     .1109324134
+02551P 07CE      63      A        FCB    @143
+02552P 07CF      30      A        FCB    @060
+02553P 07D0      88      A        FCB    @210
+02554P 07D1      7E      A        FCB    @176
+02555P 07D2      7E      A        FCB    @176     -.1428398077
+02556P 07D3      92      A        FCB    @222
+02557P 07D4      44      A        FCB    @104
+02556P 07D5      99      A        FCB    @231
+02559P 07D6      3A      A        FCB    @072
+02560P 07D7      7E      A        FCB    @176     .1999991205
+02561P 07D8      4C      A        FCB    @114
+02562P 07D9      CC      A        FCB    @314
+02563P 07DA      91      A        FCB    @221
+02564P 07DB      C7      A        FCB    @307
+02565P 07DC      7F      A        FCB    @177     -.3333333157
+02566P 07DD      AA      A        FCB    @252
+02567P 07DE      AA      A        FCB    @252
+02568P 07DF      AA      A        FCB    @252
+02569P 07E0      13      A        FCB    @023
+02570P 07E1      81      A        FCB    @201     1.0
+02571P 07E2      00      A        FCB    @000
+02572P 07E3      00      A        FCB    @000
+02573P 07E4      00      A        FCB    @000

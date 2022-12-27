@@ -1,0 +1,52 @@
+PAGE  014  ECBMTH  .SA:1  MATH P FLOATING POINT MOVEMENT ROUTINES.
+
+01373P 02E7 96   54      A        LDA    FACSGN   INCLUDE SIGN IN HO.
+01374P 02E9 8A   7F      A        ORA    #&177
+01375P 02EB 94   50      A        ANDA   FACHO
+01376P 02ED A7   01      A        STA    @1,X
+01377            0001    A        IFNE   ADDPRC
+01378P 02EF 96   51      A        LDA    FACMOH
+01379P 02F1 A7   02      A        STA    @2,X
+01380                             ENDC   IFN      ADDPRC
+01381P 02F3 DE   52      A        LDU    FACMO
+01382P 02F5 EF   03      A        STU    @2+ADDPRC,X
+0:383P 02F7 39                    RTS
+01384
+01385                      *
+01386                      * MOVE ARG INTO FAC.  Leave SGN in A and preserve B.
+01387                      *
+01388                             XDEF   MOVFA
+01389P 02F8 96   61      A MOVFA  LDA    ARGSGN
+01390                             XDEF   MOVFA1
+01391P 02FA 97   54      A MOVFA1 STA    FACSGN
+01392P 02FC 9E   5C      A        LDX    ARGEXP
+01393P 02FE 9F   4F      A        STX    FACEXP
+01394P 0300 0F   63      A        CLR    FACOV    Clear the overflow bits.
+01395            0001    A        IFNE   ADDPRC
+01396P 0302 96   5E      A        LDA    ARGMOH
+01397P 0304 97   51      A        STA    FACMOH
+01398P 0306 96   54      A        LDA    FACSGN   Put SGN back in A.
+01399                             ENDC   IFN      ADDPRC
+01400P 0308 9E   5F      A        LDX    ARGMO
+01401P 030A 9F   52      A        STX    FACMO
+01402P 030C 39                    RTS
+01403
+01404                      *
+01405                      * MOVE FAC INTO ARG.  Preserve B, set cond codes on exponent in A.
+01406                      *
+01407                             XDEF   MOVAF
+01408            030D    P MOVAF  EQU    *
+01409
+01410            0001    A        IFEQ   ADDPRC
+01418                       ENDC   IFE ADDPRC
+01419
+01420            0001    A        IFNE   ADDPRC
+01421P 030D DC   4F      A        LDD    FACEXP
+01242P 030F DD   5C      A        STD    ARGEXP
+01423P 0311 9E   51      A        LDX    FACMOH
+01424P 0313 9F   5E      A        STX    ARGMOH
+01425P 0315 9E   53      A        LDX    FACLO
+01426P 0317 9F   60      A        STX    ARGLO
+01427P 0319 4D                    TSTA
+01428P 031A 39                    RTS
+01429                             ENDC   IFN      ADDPRC

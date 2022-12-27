@@ -1,0 +1,60 @@
+PAGE  022  ECBMTH  .SA:1  MATH P FLOATING POINT OUTPUT ROUTINE.
+
+01803P 051A 56                    RORB            SEE IF CARRIES MATCH.
+01804P 051B 59                    ROLB            GET ACCB COUNT BACK.
+01805P 051C 28   E3   0501        BVC    FOUT2    NO, CONTINUE.
+01806P 051E 24   03   0523        BCC    FOUTYP   CAN USE ACCB AS IS.
+01807P 0520 C0   0B      A        SUBB   #@12+@1  MUST SUB 10.0 AND NEGATE.
+01808P 0522 50                    NEGB
+01809P 0523 CB   2F      A FOUTYP ADDB   #'0-@1   GET A CHARACTER TO PRINT.
+01810P 0525 30   04      A        LEAX   @3+ADDPRC,X BUMP POINTER UP.
+01811P 0527 1F   98      A        TFR    B,A
+01812P 0529 84   7F      A        ANDA   #@177    GET RID OF MSB.
+01813P 052B A7   C0      A        STA    ,U+
+01814P 052D 0A   45      A        DEC    DECCNT
+01815P 052F 26   04   0535        BNE    FOUTCM   NOT TIME FOR DP YET.
+01816P 0531 86   2E      A        LDA    #'.
+01817P 0533 A7   C0      A        STA    ,U+      STORE DP.
+01818P 0535 53             FOUTCM COMB            COMPLEMENT ACCB
+01819P 0536 C4   80      A        ANDB   #@200    SAVE ONLY MSB.
+01820P 0538 8C   059A    P        CMPX   #FDCEND
+01821P 053B 26   C4   0501        BNE    FOUT2    CONTINUE WITH OUTPUT.
+01822P 053D A6   C2      A FOUT11 LDA    ,-U      REMOVE TRAILING ZEROES.
+01623P 053F 81   30      A        CMPA   #'0
+01824P 0541 27   FA   053D        BEQ    FOUT11
+01825P 0543 81   2E      A        CMPA   #'.
+01826P 0545 26   02   0549        BNE    FOUT12   Not 0 or DP so save it.
+01827P 0547 33   5F      A        LEAU   -@1,U    Eat the DP.
+01828P 0549 86   2B      A FOUT12 LDA    #'+
+01829P 054B D6   47      A        LDB    TENEXP
+01830P 054D 27   1C   056B        BEQ    FOUT17   NO EXPONENT TO OUTPUT.
+01831P 054F 2A   03   0554        BPL    FOUT14
+01832P 0551 86   2D      A        LDA    #'-      EXP IS NEGATIVE.
+01833P 0553 50                    NEGB            MAKE EXP VALUE POSITIVE.
+01834P 0554 A7   42      A FOUT14 STA    @2,U     STORE SIGN OF EXP
+01835P 0556 86   45      A        LDA    #'E
+01836P 0558 A7   41      A        STA    @1,U     STORE THE "E" CHARACTER.
+01837P 055A 86   2F      A        LDA    #'0-@1
+01838P 055C 4C             FOUT15 INCA            MOVE CLOSER TO OUTPUT VALUE.
+01839P 055D C0   0A      A        SUBB   #@12     SUBTRACT 10.
+01840P 055F 24   FB   055C        BCC    FOUT15   NOT NEGATIVE YET.
+01841P 0561 CB   3A      A        ADDB   #'0+@12  GET SECOND OUTPUT CHARACTER.
+01842P 0563 ED   43      A        STD    @3,U     Put away the exponent.
+01843P 0565 6F   45      A        CLR    @5,U     PUT IN A TERMINATOR.
+01844P 0567 20   04   056D        BRA    FOUT20   RETURN.
+01845P 0569 A7   C4      A FOUT19 STA    ,U       STORE THE CHARACTER.
+01846P 056B 6F   41      A FOUT17 CLR    @1,U     A TERMINATOR.
+01647P 056D 8E   0000    A FOUT20 LDX    #FBUFFR
+01848P 0570 39             FPWRRT RTS             ALL DONE.
+01849
+01850                             XDEF   FHALF
+01351P 0571      80      A FHALF  FCB    @200     1/2
+01852P 0572      00      A        FCB    @000
+01853P 0573      00      A        FCB    @000
+01854P 0574      00      A        FCB    @000
+01855            0001    A        IFNE   ADDPRC
+01856P 0575      00      A        FCB    @000
+01857                             ENDC   IFN      ADDPRC
+01858
+01859                      *
+01860                      * POWERS OF TEN TABLE

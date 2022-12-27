@@ -1,0 +1,46 @@
+PAGE  008  ECBMTH  .SA:1  MATH P NATURAL LOG FUNCTION.
+
+01033
+01034P 0135      80      A NEGHLF FCB    @200     -1/2
+01035P 0136      80      A        FCB    @200
+01036P 0137      00      A        FCB    @000
+01037P 0138      00      A        FCB    @000
+01038            0001    A        IFNE   ADDPRC
+01039P 0139      00      A        FCB    @000
+01040                             ENDC   IFN      ADDPRC
+01041
+01042P 013A      80      A LOG2   FCB    @200     LN(2)
+01043P 013B      31      A        FCB    @061
+01044P 013C      72      A        FCB    @162
+01045            0001    A        IFEQ   ADDPRC
+01047                       ENDC   IFE ADDPRC
+01048            0001    A        IFNE   ADDPRC
+01049P 013D      17      A        FCB    @027
+01050P 013E      F8      A        FCB    @370
+01051                             ENDC   IFN      ADDPRC
+01052
+01053                             XDEF   LOG
+01054P 013F BD   031B    P LOG    JSR    SIGN     IS IT POSITIVE?
+01055P 0142 102F FEBA    A        LBLE   FCERR    CAN'T TOLERATE NEG OR ZERO.
+01056P 0146 8E   012B    P        LDX    #SQR0.5  GET POINTER TO SQR(0.5).
+01057P 0149 96   4F      A        LDA    FACEXP   GET EXPONENT INTO ACCA.
+01058P 014B 80   80      A        SUBA   #@200    REMOVE BIAS.
+01059P 014D 34   02      A        PSHS   A        SAVE AWHILE.
+01060P 014F 86   80      A        LDA    #@200
+01061P 0151 97   4F      A        STA    FACEXP   RESULT IS FAC IN RANGE [0.5,1).
+01062
+01063                      *    CALCULATE (F-SQR(.5))/(F+SQR(.5))
+01064
+01065P 0153 BD   000E    P        JSR    FADD     ADD TO FAC.
+01066P 0156 8E   0130    P        LDX    #SQR2.0  GET SQR(2.).
+01067P 0159 BD   023D    P        JSR    FDIV
+01068P 015C 8E   0111    P        LDX    #FONE
+01069P 015F BD   0005    P        JSR    FSUB
+01070P 0162 8E   0116    P        LDX    #LOGCN2
+01071P 0165 BD   0646    P        JSR    POLYX    EVALUATE APPROXIMATION POLYNOMIAL.
+01072P 0168 8E   0135    P        LDX    #NEGHLF  ADD IN LAST CONSTANT.
+01073P 016B BD   000E    P        JSR    FADD
+01074P 016E 35   04      A        PULS   B        GET EXPONENT BACK.
+01075P 0170 BD   044A    P        JSR    FINLOG   ADD IT IN.
+01076P 0173 8E   013A    P MULLN2 LDX    #LOG2    MULTIPLY RESULT BY LOG(2.0).
+01077                      * JMP FMULT  ;MULTIPLY TOGETHER.

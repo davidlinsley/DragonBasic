@@ -1,0 +1,39 @@
+PAGE  016  ECBMTH  .SA:1  MATH P SIGN, SGN, FLOAT, NEG, ABS.
+
+01481
+01482                             TTL    COMPARE TWO NUMBERS.
+01483                      * B=1 IF ARG .LT. FAC.
+01484                      * B=0 IF ARG=FAC.
+01485                      * B=-1 IF ARG .GT. FAC.
+01486                             XDEF   FCOMP
+01487P 0344 E6   84      A FCOMP  LDB    ,X       HAS ARGEXP.
+01488P 0346 27   D3   031B        BEQ    SIGN     NUMBER IS JUST ZERO.
+01489P 0348 E6   01      A        LDB    @1,X     GET SIGN OF ARGUMENT.
+01490P 034A D8   54      A        EORB   FACSGN   SIGNS THE SAME?
+01491P 034C 2B   D1   031F        BMI    FCSIGN   SIGNS DIFFER SO RESULT IS
+01492                      *    SIGN OF FAC AGAIN.
+01493                             XDEF   FOUTCP
+01494P 034E D6   4F      A FOUTCP LDB    FACEXP   COMPARE EXPONENTS.
+01495P 0350 E1   84      A        CMPB   ,X       FACEXP GREATER?
+01496P 0352 26   1D   0371        BNE    FCOMPC
+01497P 0354 E6   01      A        LDB    @1,X
+01498P 0356 CA   7F      A        ORB    #@177
+01499P 0358 D4   50      A        ANDB   FACHO
+01500P 035A E1   01      A        CMPB   @1,X
+01501P 035C 26   13   0371        BNE    FCOMPC
+01502            0001    A        IFNE   ADDPRC
+01507P 035E D6   51      A        LDB    FACMOH
+01504P 0360 E1   02      A        CMPB   @2,X
+01505P 0362 26   0D   0371        BNE    FCOMPC
+01506                             ENDS   IFN      ADDPRC
+01507P 0364 D6   52      A        LDB    FACMO
+01508P 0366 E1   03      A        CMPB   @2+ADDPRC,X
+01509P 0368 26   07   0371        BNE    FCOMPC
+01510P 036A D6   53      A        LDB    FACLO
+01511P 036C E0   04      A        SUBB   @3+ADDPRC,X GET ZERO IF EQUAL.
+01512P 036E 26   01   0371        BNE    FCOMPC
+01513P 0370 39                    RTS
+01514P 0371 56             FCOMPC RORB            SAVE [C] IN B7(ACCA).
+01515P 0372 D8   54      A        EORB   FACSGN   COMP RESULT IF SIGNS ARE NEGATIVE.
+01516P 0374 20   AB   0321        BRA    FCOMPS   A PART OF SIGN SETS ACCA UP.
+01517

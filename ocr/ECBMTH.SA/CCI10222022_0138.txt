@@ -1,0 +1,49 @@
+PAGE  023  ECBMTH  .SA:1  MATH P FLOATING POINT OUTPUT ROUTINE.
+
+01861                      *
+01862
+01863            0001    A        IFEQ   ADDPRC
+01883                       ENDC   IFE ADDPRC
+01684
+01885            0001    A        IFNE   ADDPRC
+01886                             XDEF   FOUTBL
+01887P 0576      FA      A FOUTBL FCB    @372     -100,000,000
+01888P 0577      0A      A        FCB    @012
+01889P 0578      1F      A        FCB    @037
+01890P 0579      00      A        FCB    @000
+01891P 057A      00      A        FCB    @000     10,000,000
+01892P 057B      98      A        FCB    @230
+01893P 057C      96      A        FCB    @226
+01894P 057D      80      A        FCB    @200
+01895P 057E      FF      A        FCB    @377     -1,000,000
+01896P 057F      F0      A        FCB    @360
+01897P 0580      BD      A        FCB    @275
+01898P 0581      C0      A        FCB    @300
+01699P 0582      00      A        FCB    @000     100,000
+01900P 0583      01      A        FCB    @001
+01901P 0584      86      A        FCB    @206
+01902P 0585      A0      A        FCB    @240
+01903P 0586      FF      A        FCB    @377     -10,000
+01904P 0587      FF      A        FCB    @377
+01905P 0588      D8      A        FCB    @330
+01906P 0589      F0      A        FCB    @360
+01907P 058A      00      A        FCB    @000     1000
+01908P 058B      00      A        FCB    @000
+01909P 058C      03      A        FCB    @003
+01910P 058D      E8      A        FCB    @350
+01911P 058E      FF      A        FCB    @377     -100
+01912P 058F      FF      A        FCB    @377
+01913P 0590      FF      A        FCB    @377
+01914P 0591      9C      A        FCB    @234
+01915P 0592      00      A        FCB    @000     10
+01916P 0593      00      A        FCB    @000
+01917P 0594      00      A        FCB    @000
+01918P 0595      0A      A        FCB    @012
+01919P 0596      FF      A        FCB    @377     -1
+01920P 0597      FF      A        FCB    @377
+01921P 0598      FF      A        FCB    @377
+01922P 0599      FF      A        FCB    @377
+01923                             ENDC   IFN      ADDPRC
+01924                             XDEF   FDCEND
+01925            059A    P FDCEND EQU    *
+01926

@@ -1,0 +1,37 @@
+PAGE  026  ECBMTH  .SA:1  MATH P EXPONENTIATION FUNCTION.
+
+02073P 060E      72      A        FCB    @162
+02074P 060F      18      A        FCB    @030
+02075P 0610      10      A        FCB    @020
+02076P 0611      81      A        FCB    @201     1.0
+02077P 0612      00      A        FCB    @000
+02078P 0613      00      A        FCB    @000
+02079P 0614      00      A        FCB    @000
+02080P 0615      00      A        FCB    @000 
+02081                             ENDC   IFN      ADDPRC
+02082
+02083                             XDEF   EXP
+02084P 0616 8E   05E8    P EXP    LDX    #LOGEB2  Multiply argument by log2(e).
+02085P 0619 8D   37   0652        BSR    GFMULT
+02086P 061B BD   02DD    P        JSR    MOV1F    Pack the result into TEMPF1.
+02087P 061E 96   4F      A        LDA    FACEXP   Get the exponent.
+02088P 0620 81   88      A        CMPA   #@210    If exponent .GE. 128 decimal we have
+02089P 0622 25   03   0627        BCS    EXP1     overflow.
+02090
+02091P 0624 7E   020A    P GOMLDV JMP    MLDVEX   Overflow or underflow.
+02092
+02093P 0627 BD   039C    P EXP1   JSR    INT      Get the integer part.
+02094P 062A 96   01      A        LDA    INTEGR
+02095P 062C 8B   81      A        ADDA   #@201    It will be the exponent of the final
+02096                      *    result.
+02097P 062E 27   F4   0624        BEQ    GOMLDV   Overflow.
+02098P 0630 4A                    DECA            Adjust (?) and save final exponent.
+02099P 0631 34   02      A        PSHS   A
+02100P 0633 8E   0040    A        LDX    #TEMPF1  Subtract out the integer part
+02101P 0636 BD   0005    P        JSR    FSUB     to get the fractional part.
+02102P 0639 8E   05ED    P        LDX    #EXPCON  Calculate 2^fractional part of
+02103P 063C 8D   17   0655        BSR    POLY     Xlog2(e).
+02104P 063E 0F   62      A        CLR    ARISGN   Multiply by positive 1.0. (?)
+02105P 0640 35   02      A        PULS   A        Get scale factor.
+02106P 0642 BD   01F6    P        JSR    MULDIV   Modify FACEXP and check for overflow.
+02107P 0645 39                    RTS             Must JSR, RTS due to PULSs in MULDIV.

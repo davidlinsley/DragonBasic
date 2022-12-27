@@ -1,0 +1,60 @@
+PAGE  010  ECBMTH  .SA:1  MATH P FLOATING MULTIPLICATION AND DIVISION.
+
+01137P 01C8 97   14      A        STA    RESMOH
+01138                             ENDC   IFN      ADDPRC
+01139P 01CA 96   13      A        LDA    RESHO
+01140P 01CC 99   5D      A        ADCA   ARGHO
+01141P 01CE 46             MLTPL3 RORA            SHIFT RESULT ONE RIGHT.
+01142P 01CF 97   13      A        STA    RESHO
+01143            0001    A        IFNE   ADDPRC
+01144P 01D1 06   14      A        ROR    RESMOH
+01145                             ENDC   IFN      ADDPRC
+01146P 01D3 06   15      A        ROR    RESMO
+01147P 01D5 06   16      A        ROR    RESLO
+01148P 01D7 06   63      A        ROR    FACOV    SAVE FOR ROUNDING.
+01149P 01D9 4F                    CLRA            (CLC) CLEAR C SO WE GET B CLOSER TO 0.
+01150P 01DA 20   D5   01B1        BRA    MLTPL2   SLOW AS A TURTLE !
+01151P 01DC 39             MULTRT RTS
+01152
+01153                      * ROUTINE TO UNPACK MEMORY INTO ARG.
+01154
+01155            01DD    P CONUPK EQU    *
+01156
+01157            0001    A        IFEQ    ADDPRC
+01162                       ENDC   IFE ADDPRC
+01163
+01164            0001    A        IFNE   ADDPRC
+01165P 01DD EC   01      A        LDD    @1,X     A:=HO, B:=MOH.
+01166P 01DF 97   61      A        STA    ARGSGN   MSB of HO is sign.
+01167P 01E1 8A   80      A        ORA    #@200    MSB of unpacked HO is always 1.
+01168P 01E3 DD   5D      A        STD    ARGHO
+01169                             ENDC   IFN      ADPPRC
+01170P 01E5 D6   61      A        LDB    ARGSGN   Set up probable sign of result.
+01171P 01E7 D8   54      A        EORB   FACSGN
+01172P 01E9 D7   62      A        STB    ARISGN
+01173P 01EB EC   03      A        LDD    @2+ADDPRC,X
+01174P 01ED DD   5F      A        STD    ARGMO
+01175P 01EF A6   84      A        LDA    ,X
+01176P 01F1 97   5C      A        STA    ARGEXP
+01177P 01F3 D6   4F      A        LDB    FACEXP   SET CODES OF FACEXP.
+01178P 01F5 39                    RTS
+01179
+01180                      *    CHECK SPECIAL CASES AND ADD EXPONENTS FOR FMULT, FDIV.
+01181                             XDEF   MULDIV
+01182P 01F6 4D             MULDIV TSTA            EXP OF ARG=0?
+01183P 01F7 27   16   020F        BEQ    MULDV1   SO WE GET ZERO EXPONENT.
+01184P 01F9 9B   4F      A        ADDA   FACEXP   RESULT IS IN ACCA.
+01185P 01FB 46                    RORA
+01186P 01FC 49                    ROLA            FIND [C] XOR [N]
+01187P 01FD 28   10   020F        BVC    MULDV1   OVERFLOW IF BITS MATCH.
+01188P 01FF 8B   80      A        ADDA   #@200    ADD BIAS.
+01189P 0201 97   4F      A        STA    FACEXP
+01190P 0203 27   0C   0211        BEQ    MULDV2   ZERO THE REST OF IT.
+01191P 0205 96   62      A        LDA    ARISGN
+01192P 0207 97   54      A        STA    FACSGN   ARISGN IS RESULT'S SIGN.
+01193P 0209 39             MDRET  RTS             DONE.
+01194                             XDEF   MLDVEX
+01195P 020A 96   54      A MLDVEX LDA    FACSGN   GET SIGN.
+01196P 020C 43                    COMA            COMPLEMENT IT.
+01197P 020D 20   02   0211        BRA    MULDV2
+01198P 020F 32   62      A MULDV1 LEAS   @2,S     GET ADDR OFF STACK.

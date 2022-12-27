@@ -1,0 +1,59 @@
+PAGE  024  ECBMTH  .SA:1  MATH P FLOATING POINT OUTPUT ROUTINE.
+
+01928 
+01929                             TTL    EXPONENTIATION AND SQUARE ROOT FUNCTION.
+01930                      * SQUARE ROOT FUNCTION --- SQR(A)
+01931                      * USE SQR(X)=X^.5
+01932
+01933                             XDEF   SQR
+01934P 059A BD   030D    P SQR    JSR    MOVAF    MOVE FAC INTO ARG.
+01935P 059D 8E   0571    P        LDX    #FHALF
+01936P 05A0 BD   02C2    P        JSR    MOVFM    PUT MEMORY INTO FAC.
+01937                      *    LAST THING FETCHED IS FACEXP. INTO ACCB.
+01938                      * JMP FPWRT  ;FALL INTO FPWRT.
+01939
+01940                      * EXPONENTIATION --- X^Y.
+01941                      * N.B.  0^0=1
+01942                      * FIRST CHECK IF Y=0. IF SO, THE RESULT IS 1.
+01943                      * NEXT CHECK IF X=0. IF SO THE RESULT IS 0.
+01944                      * Must give Division By Zero error if 0 is raised to a negative power.
+01945                      * THEN CHECK IF X.GT.0. IF NOT CHECK THAT Y IS AN INTEGER.
+01946                      * IF SO, NEGATE X, SO THAT LOG DOESN'T GIVE FCERR.
+01947                      * IF X IS NEGATIVE AND Y IS ODD, NEGATE THE RESULT
+01948                      * RETURNED BY EXP.
+01949                      * TO COMPUTE THE RESULT USE X^Y=EXP((Y*LOG(X)).
+01950                             XDEF   FPWRT
+01951P 05A3 27   71   0616 FPWRT  BEQ    EXP      IF FAC=0, JUST EXPONENTIATE THAT.
+01952P 05A5 4D                    TSTA            IS X=0?
+01953P 05A6 26   09   05B1        BNE    FPWRT1
+01954P 05A8 96   54      A        LDA    FACSGN   Is Y negative?
+01955P 05AA 102B FD06 02B4        LBMI   DV0ERR   Yes, give "Division By Zero" error.
+01956P 05AE 7E   0086    P        JMP    ZEROF1   No, the result  is zero.
+01957P 05B1 8E   004A    A FPWRT1 LDX    #TEMPF3  SAVE FOR LATER IN A TEMP.
+01958P 05B4 BD   02E3    P        JSR    MOVMF
+01959P 05B7 5F                    CLRB            IN CASE NO ONE CALLS INT.
+01960P 05B8 96   61      A        LDA    ARGSGN
+01961P 05BA 2A   10   05CC        BPL    FPWR1    NO PROBLEMS IF X.GT.0.
+01962P 05BC BD   039C    P        JSR    INT      INTEGERIZE THE FAC.
+01963P 05BF 8E   004A    A        LDX    #TEMPF3  GET ADDR OF COMPERAND.
+01964P 05C2 96   61      A        LDA    ARGSGN
+01965P 05C4 BD   034E    P        JSR    FOUTCP   EQUAL?
+01966P 05C7 26   03   05CC        BNE    FPWR1    LEAVE X NEG. LOG WILL BLOW HIM OUT.
+01967P 05C9 43                    COMA            NEGATE X. MAKE POSITIVE.
+01968P 05CA D6   01      A        LDB    INTEGR   GET EVENNESS.
+01969P 05CC BD   02FA    P FPWR1  J5R    MOVFA1   ALTERNATE ENTRY POINT.
+01970P 05CF 34   04      A        PSHS   B        SAVE EVENNESS FOR LATER.
+01971P 05D1 BD   013F    P        JSR    LOG      FIND LOG.
+01972P 05D4 8E   004A    A        LDX    #TEMPF3  MULTIPLY FAC TIMES LOG(X).
+01973P 05D7 BD   0176    P        JSR    FMULT
+01974P 05DA 8D   3A   0616        BSR    EXP      EXPONENTIATE THE FAC.
+01975P 05DC 35   02      A        PULS   A
+01976P 05DE 46                    RORA            IS IT EVEN?
+01977P 05DF 24   8F   0570        BCC    FPWRRT   YES. OR X.GT.0.
+01978                      * NEGATE THE NUMBER IN FAC.
+01979                             XDEF   NEGOP
+01980P 05E1 96   4F      A NEGOP  LDA    FACEXP
+01981P 05E3 27   02   05E7        BEQ    NEGRTS
+01982P 05E5 03   54      A        COM    FACSGN
+01983P 05E7 39             NEGRTS RTS
+01984

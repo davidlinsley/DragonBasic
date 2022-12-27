@@ -1,0 +1,60 @@
+PAGE  013  ECBMTH  .SA:1  MATH P FLOATING MULTIPLICATION AND DIVISION.
+
+01308
+01309                             TTL    FLOATING POINT MOVEMENT ROUTINES.
+01310
+01311                      *
+01312                      * MOVE RESULT TO FAC.
+01313                      *
+01314P 02B9 9E   13      A MOVFR  LDX    RESHO
+01315P 02BB 9F   50      A        STX    FACHO
+01316            0001    A        IFEQ   ADDPRC
+01319                       ENDC   IFE ADDPRC
+01320            0001    A        IFNE   ADDPRC
+01321P 02BD 9E   15      A        LDX    RESMO
+01322P 02BF 9F   52      A        STX    FACMO
+01323                             ENDC   IFN      ADDPRC
+01324P 02C1 39                    RTS             ALL DONE.
+01325
+01326                      *
+01327                      * MOVE MEMORY INTO FAC (UNPACKED).  A is preserved.
+01328                      *
+01329                             XDEF   MOVFM
+01330            02C2    P MOVFM  EQU    *
+01331
+01332            0001    A        IFEQ   ADDPRC
+01337                       ENDC   IFE ADDPRC
+01338
+01339            0001    A        IFNE   ADDPRC
+01340P 02C2 34   02      A        PSHS   A
+01341P 02C4 EC   01      A        LDD    @1,X
+01342P 02C6 97   54      A        STA    FACSGN
+01343P 02C8 8A   80      A        ORA    #@200
+01344P 02CA DD   50      A        STD    FACHO
+01345                             ENDC   IFN      ADDPRC
+01346P 02CC 0F   63      A        CLR    FACOV
+01347P 02CE E6   84      A        LDB    ,X
+01348P 02D0 AE   03      A        LDX    @2+ADDPRC,X
+01349P 02D2 9F   52      A        STX    FACMO
+01350P 02D4 D7   4F      A        STB    FACEXP
+01351
+01352            0001    A        IFEQ   ADDPRC
+01354                       ENDC   IFE ADDPRC
+01355 
+01356            0001    A        IFNE   ADDPRC
+01357P 02D6 35   82      A        PULS   A,PC
+01358                             ENDC   IFN      ADDPRC
+01359 
+01360                      *
+01361                      * MOVE NUMBER FROM FAC TO MEMORY.  B is preserved.
+01362                      *
+01363P 02D8 8E   0045    A MOV2F  LDX    #TEMPF2
+01364P 02DB 20   06   02E3        BRA    MOVMF
+01365                             XDEF   MOV1F
+01366P 02DD 8E   0040    A MOV1F  LDX    #TEMPF1
+01367P 02E0                       SKIP2
+01368                             XDEF   MOVVF
+01369P 02E1 9E   3B      A MOVVF  LDX    FORPNT
+01370                             XDEF   MOVMF
+01371P 02E3 96   4F      A MOVMF  LDA    FACEXP
+01372P 02E5 A7   84      A        STA    ,X

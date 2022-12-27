@@ -1,0 +1,60 @@
+PAGE  025  ECBMTH  .SA:1  MATH P EXPONENTIATION AND SQUARE ROOT FUNCTION.                                                                                                                                                                                              •
+
+01986 
+01987                             TTL    EXPONENTIATION FUNCTION.
+01988                      * FIRST SAVE THE ORIGINAL ARGUMENT AND MULTIPLY THE FAC BY 
+01989                      * LOG2(E). THE RESULT IS USED TO DETERMINE IF OVERFLOW
+01990                      * WILL OCCUR SINCE EXP(X)=2^(X*LOG2(E)) WHERE
+01991                      * LOG2(E)=LOG(E) BASE 2. THEN SAVE THE INTEGER PART OF 
+01992                      * THIS TO SCALE THE ANSWER AT THE END. SINCE
+01993                      * 2^Y=2^INT(Y)*2^(Y-INT(Y)) AND 2^INT(Y) IS EASY TO COMPUTE.
+01994                      * NOW COMPUTE 2^(X*LOG2(E)-INT(X*LOG2(E)) BY
+01995                      * P(LN(2)*(INT(X*LOG2(E))+1)-X) WHERE P IS AN APPROXIMATION
+01996                      * POLYNOMIAL. THE RESULT IS THEN SCALED BY THE POWER OF 2
+01997                      * PREVIOUSLY SAVED.
+01998
+01999P 05E8      81      A LOGEB2 FCB    @201     LOG(E) BASE 2.
+02000P 05E9      38      A        FCB    @070
+02001P 05EA      AA      A        FCB    @252
+02002P 05EB      3B      A        PCB    @073
+02003            0001    A        IFNE   ADDPRC
+02004P 05EC      29      A        FCB    @051
+02005                             ENDC   IFN      ADDPRC
+02006
+02007            0001    A        IFEQ   ADDPRC
+02037                       ENDC   IFE ADDPRC
+02038
+02039            0001    A        IFNE   ADDPRC
+02040P 05ED      07      A EXPCON FCB    @7       Number of constants -1.
+02041P 05EE      71      A        FCB    @161     .000021498763697
+02042P 05EF      34      A        FCB    @064
+02043P 05F0      58      A        FCB    @130
+02044P 05F1      3E      A        FCB    @076
+02045P 05F2      56      A        FCB    @126
+02046P 05F3      74      A        FCB    @164     .00014352314036
+02047P 05F4      16      A        FCB    @026
+02048P 05F5      7E      A        FCB    @176
+02049P 05F6      B3      A        FCB    @263
+02050P 05F7      1B      A        FCB    @033
+02051P 05F8      77      A        FCB    @167     .0013422634824
+02052P 05F9      2F      A        FCB    @057
+02053P 05FA      EE      A        FCB    @356
+02054P 05FB      E3      A        FCB    @343
+02055P 05FC      85      A        FCB    @205
+02056P 05FD      7A      A        FCB    @172     .0096140170119
+02057P 05FE      1D      A        FCB    @035
+02058P 05FF      84      A        FCB    @204
+02059P 0600      1C      A        FCB    @034
+02060P 0601      2A      A        FCB    @052
+02061P 0602      7C      A        FCB    @174     .055505126860
+02062P 0603      63      A        FCB    @143
+02063P 0604      59      A        FCB    @131
+02064P 0605      58      A        FCB    @130
+02065P 0606      0A      A        FCB    @012
+02066P 0607      7E      A        FCB    @176     .24022638462
+02067P 0608      75      A        FCB    @165
+02068P 0609      FD      A        FCB    @375
+02069P 060A      E7      A        FCB    @347
+02070P 060B      C6      A        FCB    @306
+02071P 060C      80      A        FCB    @200     .69314718608
+02072P 060D      31      A        FCB    @061

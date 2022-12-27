@@ -1,0 +1,60 @@
+PAGE  020  ECBMTH  .SA:1  MATH P FLOATING POINT INPUT ROUTINE.
+
+01671 
+01672                             TTL    FLOATING POINT OUTPUT ROUTINE.
+01673
+01674            0001    A        IFEQ   ADDPRC
+01691                       ENDC   IFE ADDPRC
+01692
+01693            0001    A        IFNE   ADDPRC
+01694                             XDEF   N.0999
+01695P 0467      9B      A N.0999 FCB    @233     99999999.9499
+01696P 0468      3E      A        FCB    @076
+01697P 0469      BC      A        FCB    @274
+01698P 046A      1F      A        FCB    @037
+01699P 046B      FD      A        FCB    @375
+01700                             XDEF   N.9999
+01701P 046C      9E      A N.9999 FCB    @236     999999999.499
+01702P 046D      6E      A        FCB    @156
+01703P 046E      6B      A        FCB    @153
+01704P 046F      27      A        FCB    @047
+01705P 0470      FD      A        FCB    @375
+01706                             XDEF   N.MIL
+01707P 0471      9E      A N.MIL  FCB    @236     10^9
+01708P 0472      6E      A        FCB    @156
+01709P 0473      6B      A        FCB    @153
+01710P 0474      28      A        FCB    @050
+01711P 0475      00      A        FCB    @000
+01712                             ENDC   IFN      ADDPRC
+01713
+01714                      *
+01715                      * ENTRY TO LINPRT.
+01716                      *
+01717                             XDEF   INPRT
+01718P 0476 8E   FFFF    A INPRT  LDX    #INTXT-@1
+01719P 0479 8D   0C   0487        BSR    STROU2
+01720P 047B DC   68      A        LDD    CURLIN
+01721                             XDEF   LINPRT
+01722P 047D DD   50      A LINPRT STD    FACHO
+01723P 047F C6   90      A        LDB    #@220    EXPONENT OF 16.
+01724P 0481 43                    COMA            (SEC) NUMBER IS POSITIVE.
+01725P 0482 BD   0334    P        JSR    FLOATC
+01726P 0485 8D   03   048A        BSR    FOUT
+01727P 0487 7E   0000    A STROU2 JMP    STROUT   PRINT AND RETURN.
+01728
+01729                             XDEF   FOUT
+01730P 048A CE   0000    A FOUT   LDU    #FBUFFR
+01731                             XDEF   FOUTC
+01732P 048D 86   20      A FOUTC  LDA    #'       PRINT SPACE IF POSITIVE.
+01733P 048F D6   54      A        LDB    FACSGN
+01734P 0491 2A   02   0495        BPL    FOUT1
+01735P 0493 86   2D      A        LDA    #'-
+01736P 0495 A7   C0      A FOUT1  STA    ,U+      STORE THE CHARACTER.
+01737P 0497 DF   64      A        STU    FBUFPT   Save buffer pointer.
+01738P 0499 97   54      A        STA    FACSGN   MAKE FAC POS FOR QINT.
+01739P 049B 86   30      A        LDA    #'0      GET ZERO TO TYPE IF FAC=0.
+01740P 049D D6   4F      A        LDB    FACEXP
+01741P 049F 1027 00C6 0569        LBEQ   FOUT19
+01742P 04A3 4F                    CLRA
+01743P 04A4 C1   80      A        CMPB   #@200    IS NUMBER .LT. 1.0 ?
+01744P 04A6 22   08   04B0        BHI    FOUT7    NO.

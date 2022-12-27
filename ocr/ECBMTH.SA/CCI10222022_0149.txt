@@ -1,0 +1,8 @@
+PAGE  034  ECBMTH  .SA:1  MATH P ARCTANGENT FUNCTION.
+
+02574P 07E5      00      A        FCB    @000
+02575                             ENDC   IFN      ADDPRC
+02576
+02577                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000

@@ -1,0 +1,60 @@
+PAGE  005  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
+
+00890P 00B2 0C   4F      A RNDSHF INC    FACEXP
+00891P 00B4 27   28   00DE        BEQ    OVERR
+00892P 00B6 06   50      A        ROR    FACHO
+00893            0001    A        IFNE   ADDPRC
+00894P 00B8 06   51      A        ROR    FACMOH
+00895                             ENDC   IFN      ADDPRC
+00896P 00BA 06   52      A        ROR    FACMO
+00897P 00BC 06   53      A        ROR    FACLO
+00898P 00BE 24   04   00C4 QRND   BCC    RNDRTS   NO ROUNDING TO DO.
+00899P 00C0 8D   0D   00CF        BSR    INCFAC   ADD 1.
+00900P 00C2 27   EE   00B2        BEQ    RNDSHF   GOT A CARRY.
+00901P 00C4 39             RNDRTS RTS             ALL DONE ADDING.
+00902
+00903P 00C5 03   54      A NEGFAC COM    FACSGN   COMPLEMENT FAC ENTIRELY.
+00904P 00C7 03   50      A NEGFCH COM    FACHO    COMPLEMENT JUST THE NUMBER.
+00905            0001    A        IFNE   ADDPRC
+00906P 00C9 03   51      A        COM    FACMOH
+00907                             ENDC   IFN      ADDPRC
+00908P 00CB 03   52      A        COM    FACMO
+00909P 00CD 03   53      A        COM    FACLO
+00910P 00CF 9E   52      A INCFAC LDX    FACMO    NO CALLER HAS OPS THAT
+00911                      *    THAT OV. OR IF THEY DO
+00912                      *    ITS FOR NEGATION PURPOSES.
+00913P 00D1 30   01               INX
+00914P 00D3 9F   52      A        STX    FACMO    SAVE RESULT.
+00915P 00D5 26   06   00DD        BNE    INCFRT   IF NO CARRY, RETURN.
+00916            0001    A        IFEQ   ADDPRC
+00918                       ENDC   IFE ADDPRC
+00919            0001    A        IFNE   ADDPRC
+00920P 00D7 9E   50      A        LDX    FACHO
+00921P 00D9 30   01      A        LEAX   @1,X
+00922P 00DB 9F   50      A        STX    FACHO
+00923                             ENDC   IFN      ADDPRC
+00924P 00DD 39             INCFRT RTS
+00925
+00926                             XDEF   OVERR
+00927P 00DE C6   00      A OVERR  LDB    #ERROV
+00928P 00E0 7E   0000    A        JMP    ERROR    TELL USER.
+00929                      *
+00930                      * "SHIFTR" SHIFTS [X+1:X+3] [-ACCB]  BITS RIGHT.
+00931                      * SHIFTS BYTES TO START WITH IF POSSIBLE.
+00932                      *
+00933P 00E3 8E   0012    A MULSHF LDX    #RESHO-@1 ENTRY POINT FOR MULTIPLIER.
+00934P 00E6 A6   04      A SHFTR2 LDA    @3+ADDPRC,X SHIFT BYTES FIRST.
+00935P 00E8 97   63      A        STA    FACOV
+00936            0001    A        IFNE   ADDPRC
+00937P 00EA A6   03      A        LDA    @3,X
+00938P 00EC A7   04      A        STA    @4,X
+00939                             ENDC   IFN      ADDPRC
+00940P 00EE A6   02      A        LDA    @2,X     GET MO.
+00941P 00F0 A7   03      A        STA    @3,X     STORE LO.
+00942P 00F2 A6   01      A        LDA    @1,X     GET HO.
+00943P 00F4 A7   02      A        STA    @2,X     STORE MO.
+00944P 00F6 96   5B      A        LDA    BITS
+00945P 00F8 A7   01      A        STA    @1,X     STORE HO.
+00946P 00FA CB   08      A SHIFTR ADDB   #@10
+00947P 00FC 2F   E8   00E6        BLE    SHFTR2
+00948P 00FE 96   63      A        LDA    FACOV

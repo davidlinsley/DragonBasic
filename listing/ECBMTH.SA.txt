@@ -1,0 +1,1733 @@
+PAGE  001  ECBCOM  .SA:0  MATH P Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    MATH     PACKAGE FOR 6809 BASIC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    EXTERNAL DECLARATIONS
+00710
+00711                             XREF   CRDO,ERRDVO
+00712                             XREF   ERROR,ERROV,FBUFFR,FCERR,INTXT,LINGET,MINUTK
+00713                             XREF   OMERR,PLUSTK,READY
+00714                             XREF   REASON,RNDX,SCRTCH,SNERR,STKINI,STROUT
+00715                             XREF   HOCONS
+00716
+
+PAGE  002  ECBMTH  .SA:1  MATH P EXTERNAL DECLARATIONS
+
+00718
+00719                             TTL    FLOATING POINT MATH PACKAGE CONFIGURATION.
+00720
+00721
+00722                      *    THROUGHOUT THE MATH PACKAGE.
+00723                      *
+00724                      * THE FLOATING POINT FORMAT IS AS FOLLOWS:
+00725                      *
+00726                      * THE SIGN IS THE FIRST BIT OF THE MANTISSA.
+00727                      * THE MANTISSA IS 24 BITS LONG.
+00728                      * THE BINARY POINT IS TO THE LEFT OF THE MSB.
+00729                      * NUMBER = MANTISSA * 2 ^ EXPONENT.
+00730                      * THE MANTISSA IS POSITIVE WITH A ONE ASSUMED TO BE WHERE THE SIGN
+00731                      * BIT IS.
+00732                      * THE SIGN OF THE EXPONENT IS THE FIRST BIT OF THE EXPONENT.
+00733                      * THE EXPONENT IS STORED IN EXCESS 200, I.E. WITH A BIAS OF +200.
+00734                      * SO, THE EXPONENT IS A SIGNED 8-BIT NUMBER WITH 200 ADDED TO IT.
+00735                      * AN EXPONENT OF ZERO MEANS THE NUMBER IS ZERO.
+00736                      * THE OTHER BYTES MAY NOT BE ASSUMED TO BE ZERO.
+00737                      * TO KEEP THE SAME NUMBER IN THE FAC WHILE SHIFTING,
+00738                      *  TO SHIFT RIGHT, EXP:=EXP+1
+00739                      *  TO SHIFT LEFT,  EXP:=EXP-1
+00740                      *
+00741                      * IN MEMORY THE NUMBER LOOKS LIKE THIS:
+00742                      *  [THE EXPONENT AS A SIGNED NUMBER +200]
+00743                      *  [THE SIGN BIT IN 7, BITS 2-8 OF MANTISSA ARE IN BITS 6-0].
+00744                      *   (REMEMBER BIT 1 OF MANTISSA IS ALWAYS A ONE.)
+00745                      *  [BITS 9-16 OF THE MANTISSA]
+00746                      *  [BITS 17-24] OF THE MANTISSA]
+00747                      *
+00748                      * ARITHMETIC ROUTINE CALLING CONVENTIONS:
+00749                      *
+00750                      * FOR ONE ARGUMENT FUNCTIONS:
+00751                      *  THE ARGUMENT IS IN THE FAC.
+00752                      *  THE RESULT IS LEFT IN THE FAC.
+00753                      * FOR TWO ARGUMENT OPERATIONS:
+00754                      *  THE FIRST ARGUMENT IS IN ARG (ARGEXP,HO,MO,LO AND ARGSGN).
+00755                      *  THE SECOND ARGUMENT IS IN THE FAC.
+00756                      *  THE RESULT IS LEFT IN THE FAC.
+00757                      *
+00758                      * THE "T" ENTRY POINTS TO THE TWO-ARGUMENT OPERATIONS HAVE BOTH ARGUMENTS
+00759                      * SETUP IN THE RESPECTIVE REGISTERS. BEFORE CALLING ARG MAY HAVE BEEN
+00760                      * POPPED OFF THE STACK AND INTO ARG, FOR EXAMPLE.
+00761                      * THE OTHER ENTRY POINT ASSUMES [XREG] POINTS TO THE ARGUMENT
+00762                      * SOMEWHERE IN MEMORY. IT IS UNPACKED INTO ARG BY "CONUPK".
+00763                      *
+00764                      * ON THE STACK, THE SGN IS PUSHED ON FIRST, THE LO,MO,HO AND FINALLY EXP.
+00765                      * NOTE ALL THINGS ARE KEPT UNPACKED IN ARG, FAC AND ON THE STACK.
+00766                      *
+00767                      * IT IS ONLY WHEN SOMETHING IS STORED AWAY THAT IT IS PACKED TO FOUR
+00768                      * BYTES. THE UNPACKED FORMAT HAS A SGN BYTE REFLECTING THE SIGN OF THE
+00769                      * NUMBER (POSITIVE=0, NEGATIVE=-1) A HO,MO AND LO WITH THE HIGH BIT
+00770                      * OF THE HO TURNED ON. THE EXP IS THE SAME AS STORED FORMAT.
+00771                      * THIS IS DONE FOR SPEED OF OPERATION. 
+00772                      *
+
+PAGE  003  ECBMTH  .SA:1  MATH P FLOATING POINT MATH PACKAGE CONFIGURATION.
+
+00774
+00775                             TIL    FLOATING POINT ADDITION AND SUBTRACTION.
+00776                             XDEF   FADDH
+00777P 0000 8E   0571    P FADDH  LDX    #FHALF   ENTRY TO ADD 1/2.
+00778P 0003 20   09   000E        BRA    FADD     UNPACK AND GO ADD UIT.
+00779                             XDEF   FSUB
+00780P 0005 BD   01DD    P FSUB   JSR    CONUPK   UNPACK ARGUMENT INTO ARG.
+00781                             XDEF   FSUBT
+00782P 0008 03   54      A FSUBT  COM    FACSGN   COMPLEMENT THE FAC.
+00783P 000A 03   62      A        COM    ARISGN   STATE OF SAMENESS IS NEGATED.
+00784P 000C 20   03   0011        BRA    FADDT
+00785                             XDEF   FADD
+00786P 000E BD   01DD    P FADD   JSR    CONUPK
+00787                             XDEF   FADDT
+00788P 0011 5D             FADDT  TSTB            IF FAC=0, RESULT IS IN ARG.
+00789P 0012 1027 02E2 02F8        LBEQ   MOVFA
+00790P 0016 8E   005C    A        LDX    #ARGEXP  DEFAULT IS SHIFT ARGUMENT.
+00791P 0019 1F   89      A FADDC  TFR    A,B      IF ARG=0, FAC IS RESULT.
+00792P 001B 5D                    TSTB            ALSO COPY ACCA INTO ACCB.
+00793P 001C 27   6C   008A        BEQ    ZERRTS   RETURN.
+00794P 001E D0   4F      A        SUBB   FACEXP
+00795P 0020 27   69   008B        BEQ    FADD5    NO SHIFTING.
+00796P 0022 25   0A   002E        BCS    FADD1    BR IF ARGEXP.LT.FACEXP.
+00797P 0024 97   4F      A        STA    FACEXP   RESULTING EXPONENT.
+00798P 0026 96   61      A        LDA    ARGSGN   SINCE ARG IS BIGGER, IT'S
+00799P 0028 97   54      A        STA    FACSGN   SIGN IS SIGN OF RESULT.
+00800P 002A 8E   004F    A        LDX    #FAC     SHIFT THE FAC INSTEAD.
+00801P 002D 50                    NEGB            SHIFT A NEGATIVE NUMBER OF PLACES.
+00802P 002E C1   F8      A FADD1  CMPB   #-@10    FOR SPEED AND NECESSITY.  GETS
+00803                      *    MOST LIKELY CASE TO SHIFTR FASTEST
+00804                      *    AND ALLOWS SHIFTING OF NEG NUMS
+00805                      *    BY "QINT".
+00806P 0030 2F   59   008B        BLE    FADD5    SHIFT BIG.
+00807P 0032 4F                    CLRA            ZERO FACOV.
+00808P 0033 64   01      A        LSR    @1,X     GETS 0 IN MOST SIG BIT.
+00809P 0035 BD   0106    P        JSR    ROLSHF   DO THE ROLLING.
+00810P 0038 D6   62      A FADD4  LDB    ARISGN   GET RESULTING SIGN.
+00811P 003A 2A   0B   0047        BPL    FADD2    IF POSITIVE, ADD.
+00812                      *    CARRY IS CLEAR.
+00813P 003C 63   01      A FADD3  COM    @1,X     OTHERWISE SUBTRACT.
+00814P 003E 63   02      A        COM    @2,X     ALWAYS COMPLEMENT SMALLER ONE, SO
+00815P 0040 63   03      A        COM    @3,X     THERE WILL BE NO CALL TO NEGFAC.
+00816            0001    A        IFNE   ADDPRC
+00817P 0042 63   04      A        COM    @4,X
+00818                             ENDC   IFN      ADDPRC
+00819P 0044 43                    COMA
+00820P 0045 89   00      A        ADCA   #@0      INCREMENT RESULT AND CARRY THRU.
+00821P 0047 97   63      A FADD2  STA    FACOV
+00822P 0049 96   53      A        LDA    FACLO
+00823P 004B 99   60      A        ADCA   ARGLO
+00824P 004D 97   53      A        STA    FACLO
+00825P 004F 96   52      A        LDA    FACMO
+00826P 0051 99   5F      A        ADCA   ARGMO
+00827P 0053 97   52      A        STA    FACMO
+00828            0001    A        IFNE   ADDPRC
+00829P 0055 96   51      A        LDA    FACMOH
+00830P 0057 99   5E      A        ADCA   ARGMOH
+00831P 0059 97   51      A        STA    FACMOH
+
+PAGE  004  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
+
+00832                             ENDC   IFN      ADDPRC
+00833P 005B 96   50      A        LDA    FACHO
+00834P 005D 99   5D      A        ADCA   ARGHO
+00835P 005F 97   50      A        STA    FACHO
+00836P 0061 5D                    TSTB            TEST "ARISGN" WITHOUT
+00837                      *    AFFECTING CARRY FLAG.
+00838P 0062 2A   44   00A8        BPL    ROUND    GO ROUND IF SIGNS SAME.
+00839                      *    [CARRY] AND [ACCB] REFLECT SIGN OF [FAC]-[ARG].
+00840P 0064 25   02   0068 FADFLT BCS    NORMAL   HERE IF SIGNS DIFFER. IF CARRY,
+00841                      *    FAC IS SET OK.
+00842P 0066 8D   5D   00C5        BSR    NEGFAC   NEGATE [FAC].
+00843                             XDEF   NORMAL 
+00844P 0068 5F             NORMAL CLRB
+00845P 0069 96   50      A NORM3  LDA    FACHO
+00846P 006B 26   2E   009B        BNE    NORM1
+00847P 006D 96   51      A        LDA    FACHO+@1
+00848P 006F 97   50      A        STA    FACHO    SHIFT 8 BITS AT A TIME FOR SPEED.
+00849            0001    A        IFNE   ADDPRC
+00850P 0071 96   52      A        LDA    FACMO
+00851P 0073 97   51      A        STA    FACMOH
+00852                             ENDC   IFN      ADDPRC
+00853P 0075 96   53      A        LDA    FACLO
+00854P 0077 97   52      A        STA    FACMO
+00855P 0079 96   63      A        LDA    FACOV
+00856P 007B 97   53      A        STA    FACLO
+00857P 007D 0F   63      A        CLR    FACOV
+00858P 007F CB   08      A        ADDB   #@10     AUGMENT SHIFT COUNT BY 10.
+00859P 0081 C1   28      A        CMPB   #@40+(@10*ADDPRC) 4 BYTES OF ZERO SHIFTED IN YET?
+00860P 0083 2D   E4   0069        BLT    NORM3
+00861                             XDEF   ZEROFC
+00862P 0085 4F             ZEROFC CLRA            NOT NEED BY NORMAL BUT BY OTHERS.
+00863                             XDEF   ZEROF1
+00864P 0086 97   4F      A ZEROF1 STA    FACEXP   NUMBER MUST BE ZERO.
+00865P 0088 97   54      A        STA    FACSGN   MAKE SIGN POSITIVE.
+00866P 008A 39             ZERRTS RTS             ALL DONE.
+00867P 008B 8D   6D   00FA FADD5  BSR    SHIFTR   DO A LONG SHIFT.
+00868P 008D 5F                    CLRB            (CLC) CLEAR OUTPUT OF FACOV.
+00869P 008E 20   A8   0038        BRA    FADD4    CONTINUE WITH ADDITION.
+00870
+00871P 0090 5C             NORM2  INCB            DECREMENT SHIFT COUNT.
+00872P 0091 08   63      A        ASL    FACOV    SHIFT ALL LEFT ONE BIT.
+00873P 0093 09   53      A        ROL    FACLO
+00874P 0095 09   52      A        ROL    FACMO
+00875            0001    A        IFNE   ADDPRC
+00876P 0097 09   51      A        ROL    FACMOH
+00877                             ENDC   IFN      ADDPRC
+00878P 0099 09   50      A        ROL    FACHO
+00879P 009B 2A   F3   0090 NORM1  BPL    NORM2    IF MSB=0 SHIFT AGAIN.
+00880P 009D 96   4F      A        LDA    FACEXP
+00881P 009F 34   04 A0E0          SBA
+00882P 00A3 97   4F      A        STA    FACEXP   STORE RESULTING EXP.
+00883P 00A5 23   DE   0085        BLS    ZEROFC   UNDERFLOW ON C=1 OR Z=1.
+00884P 00A7                       SKIP2
+00885P 00A8 25   08   00B2 ROUND  BCS    RNDSHF   SHIFT THE OVER FLOW'D BIT IN.
+00886P 00AA 08   63      A RNDIT  ASL    FACOV    SHIFT ONE POSITION LEFT.
+00887P 00AC 86   00      A        LDA    #@0      Clear FACOV without affecting the
+00888P 00AE 97   63      A        STA    FACOV    carry.
+00889P 00B0 20   0C   00BE        BRA    QRND     ANY ROUNDING TO DO?
+
+PAGE  005  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
+
+00890P 00B2 0C   4F      A RNDSHF INC    FACEXP
+00891P 00B4 27   28   00DE        BEQ    OVERR
+00892P 00B6 06   50      A        ROR    FACHO
+00893            0001    A        IFNE   ADDPRC
+00894P 00B8 06   51      A        ROR    FACMOH
+00895                             ENDC   IFN      ADDPRC
+00896P 00BA 06   52      A        ROR    FACMO
+00897P 00BC 06   53      A        ROR    FACLO
+00898P 00BE 24   04   00C4 QRND   BCC    RNDRTS   NO ROUNDING TO DO.
+00899P 00C0 8D   0D   00CF        BSR    INCFAC   ADD 1.
+00900P 00C2 27   EE   00B2        BEQ    RNDSHF   GOT A CARRY.
+00901P 00C4 39             RNDRTS RTS             ALL DONE ADDING.
+00902
+00903P 00C5 03   54      A NEGFAC COM    FACSGN   COMPLEMENT FAC ENTIRELY.
+00904P 00C7 03   50      A NEGFCH COM    FACHO    COMPLEMENT JUST THE NUMBER.
+00905            0001    A        IFNE   ADDPRC
+00906P 00C9 03   51      A        COM    FACMOH
+00907                             ENDC   IFN      ADDPRC
+00908P 00CB 03   52      A        COM    FACMO
+00909P 00CD 03   53      A        COM    FACLO
+00910P 00CF 9E   52      A INCFAC LDX    FACMO    NO CALLER HAS OPS THAT
+00911                      *    THAT OV. OR IF THEY DO
+00912                      *    ITS FOR NEGATION PURPOSES.
+00913P 00D1 30   01               INX
+00914P 00D3 9F   52      A        STX    FACMO    SAVE RESULT.
+00915P 00D5 26   06   00DD        BNE    INCFRT   IF NO CARRY, RETURN.
+00916            0001    A        IFEQ   ADDPRC
+00918                       ENDC   IFE ADDPRC
+00919            0001    A        IFNE   ADDPRC
+00920P 00D7 9E   50      A        LDX    FACHO
+00921P 00D9 30   01      A        LEAX   @1,X
+00922P 00DB 9F   50      A        STX    FACHO
+00923                             ENDC   IFN      ADDPRC
+00924P 00DD 39             INCFRT RTS
+00925
+00926                             XDEF   OVERR
+00927P 00DE C6   00      A OVERR  LDB    #ERROV
+00928P 00E0 7E   0000    A        JMP    ERROR    TELL USER.
+00929                      *
+00930                      * "SHIFTR" SHIFTS [X+1:X+3] [-ACCB]  BITS RIGHT.
+00931                      * SHIFTS BYTES TO START WITH IF POSSIBLE.
+00932                      *
+00933P 00E3 8E   0012    A MULSHF LDX    #RESHO-@1 ENTRY POINT FOR MULTIPLIER.
+00934P 00E6 A6   04      A SHFTR2 LDA    @3+ADDPRC,X SHIFT BYTES FIRST.
+00935P 00E8 97   63      A        STA    FACOV
+00936            0001    A        IFNE   ADDPRC
+00937P 00EA A6   03      A        LDA    @3,X
+00938P 00EC A7   04      A        STA    @4,X
+00939                             ENDC   IFN      ADDPRC
+00940P 00EE A6   02      A        LDA    @2,X     GET MO.
+00941P 00F0 A7   03      A        STA    @3,X     STORE LO.
+00942P 00F2 A6   01      A        LDA    @1,X     GET HO.
+00943P 00F4 A7   02      A        STA    @2,X     STORE MO.
+00944P 00F6 96   5B      A        LDA    BITS
+00945P 00F8 A7   01      A        STA    @1,X     STORE HO.
+00946P 00FA CB   08      A SHIFTR ADDB   #@10
+00947P 00FC 2F   E8   00E6        BLE    SHFTR2
+00948P 00FE 96   63      A        LDA    FACOV
+
+PAGE  006  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
+
+00949P 0100 C0   08      A        SUBB   #@10
+00950P 0102 27   0C   0110        BEQ    SHFTRT
+00951P 0104 67   01      A SHFTR3 ASR    @1,X
+00952P 0106 66   02      A ROLSHF ROR    @2,X
+00953P 0108 66   03      A        ROR    @3,X
+00954            0001    A        IFNE   ADDPRC
+00955P 010A 66   04      A        ROR    @4,X
+00956                             ENDC   IFN      ADDPRC
+00957P 010C 46                    RORA            ROTATE ARGUMENT 1 BIT RIGHT.
+00958P 010D 5C                    INCB
+00959P 010E 26   F4   0104        BNE    SHFTR3   $$$ ( MOST EXPENSIVE ! )
+00960P 0110 39             SHFTRT RTS             ALL DONE SHIFTING.
+
+PAGE  007  ECBMTH  .SA:1  MATH P FLOATING POINT ADDITION AND SUBTRACTION.
+
+00962
+00963                             TTL    NATURAL LOG FUNCTION.
+00964                      *
+00965                      * CALCULATION IS BY:
+00966                      * LN(F*2^N)=(N+LOG2(F))*LN(2)
+00967                      * AN APPROXIMATION POLYNOMIAL IS USED TO CALCULATE LOG2(F).
+00968                      *  CONSTANTS USED BY LOG:
+00969                             XDEF   FONE
+00970P 0111      81      A FONE   FCB    @201     1.0
+00971P 0112      00      A        FCB    @000
+00972P 0113      00      A        FCB    @000
+00973P 0114      00      A        FCB    @000
+00974            0001    A        IFNE   ADDPRC
+00975P 0115      00      A        FCB    @000
+00976                             ENDC   IFN      ADDPRC
+00977
+00978            0001    A        IFEQ   ADDPRC
+00992                       ENDC   IFE ADDPRC
+00993
+00994            0001    A        IFNE   ADDPRC
+00995P 0116      03      A LOGCN2 FCB    @3       DEGREE-1
+00996P 0117      7F      A        FCB    @177     .43425594188
+00997P 0118      5E      A        FCB    @136
+00998P 0119      56      A        FCB    @126
+00999P 011A      CB      A        FCB    @313
+01000P 011B      79      A        FCB    @171
+01001P 011C      80      A        FCB    @200     .57658454134
+01002P 011D      13      A        FCB    @023
+01003P 011E      9B      A        FCB    @233
+01004P 011F      0B      A        FCB    @013
+01005P 0120      64      A        FCB    @144
+01006P 0121      80      A        FCB    @200     .96180075921
+01007P 0122      76      A        FCB    @166
+01008P 0123      38      A        FCB    @070
+01009P 0124      93      A        FCB    @223
+01010P 0125      16      A        FCB    @026
+01011P 0126      82      A        FCB    @202     2.8853900728
+01012P 0127      38      A        FCB    @070
+01013P 0128      AA      A        FCB    @252
+01014P 0129      3B      A        FCB    @073
+01015P 012A      20      A        FCB    @040
+01016                             ENDC   IFN      ADDPRC
+01017
+01018P 012B      80      A SQR0.5 FCB    @200     SQR(0.5)
+01019P 012C      35      A        FCB    @065
+01020P 012D      04      A        FCB    @004
+01021P 012E      F3      A        FCB    @363
+01022            0001    A        IFNE   ADDPRC
+01023P 012F      34      A        FCB    @064
+01024                             ENDC   IFN      ADDPRC
+01025
+01026P 0130      81      A SQR2.0 FCB    @201     SQR(2.0)
+01027P 0131      35      A        FCB    @065
+01028P 0132      04      A        FCB    @004
+01029P 0133      F3      A        FCB    @363
+01030            0001    A        IFNE   ADDPRC
+01031P 0134      34      A        FCB    @064
+01032                             ENDC   IFN      ADDPRC
+
+PAGE  008  ECBMTH  .SA:1  MATH P NATURAL LOG FUNCTION.
+
+01033
+01034P 0135      80      A NEGHLF FCB    @200     -1/2
+01035P 0136      80      A        FCB    @200
+01036P 0137      00      A        FCB    @000
+01037P 0138      00      A        FCB    @000
+01038            0001    A        IFNE   ADDPRC
+01039P 0139      00      A        FCB    @000
+01040                             ENDC   IFN      ADDPRC
+01041
+01042P 013A      80      A LOG2   FCB    @200     LN(2)
+01043P 013B      31      A        FCB    @061
+01044P 013C      72      A        FCB    @162
+01045            0001    A        IFEQ   ADDPRC
+01047                       ENDC   IFE ADDPRC
+01048            0001    A        IFNE   ADDPRC
+01049P 013D      17      A        FCB    @027
+01050P 013E      F8      A        FCB    @370
+01051                             ENDC   IFN      ADDPRC
+01052
+01053                             XDEF   LOG
+01054P 013F BD   031B    P LOG    JSR    SIGN     IS IT POSITIVE?
+01055P 0142 102F FEBA    A        LBLE   FCERR    CAN'T TOLERATE NEG OR ZERO.
+01056P 0146 8E   012B    P        LDX    #SQR0.5  GET POINTER TO SQR(0.5).
+01057P 0149 96   4F      A        LDA    FACEXP   GET EXPONENT INTO ACCA.
+01058P 014B 80   80      A        SUBA   #@200    REMOVE BIAS.
+01059P 014D 34   02      A        PSHS   A        SAVE AWHILE.
+01060P 014F 86   80      A        LDA    #@200
+01061P 0151 97   4F      A        STA    FACEXP   RESULT IS FAC IN RANGE [0.5,1).
+01062
+01063                      *    CALCULATE (F-SQR(.5))/(F+SQR(.5))
+01064
+01065P 0153 BD   000E    P        JSR    FADD     ADD TO FAC.
+01066P 0156 8E   0130    P        LDX    #SQR2.0  GET SQR(2.).
+01067P 0159 BD   023D    P        JSR    FDIV
+01068P 015C 8E   0111    P        LDX    #FONE
+01069P 015F BD   0005    P        JSR    FSUB
+01070P 0162 8E   0116    P        LDX    #LOGCN2
+01071P 0165 BD   0646    P        JSR    POLYX    EVALUATE APPROXIMATION POLYNOMIAL.
+01072P 0168 8E   0135    P        LDX    #NEGHLF  ADD IN LAST CONSTANT.
+01073P 016B BD   000E    P        JSR    FADD
+01074P 016E 35   04      A        PULS   B        GET EXPONENT BACK.
+01075P 0170 BD   044A    P        JSR    FINLOG   ADD IT IN.
+01076P 0173 8E   013A    P MULLN2 LDX    #LOG2    MULTIPLY RESULT BY LOG(2.0).
+01077                      * JMP FMULT  ;MULTIPLY TOGETHER.
+
+PAGE  009  ECBMTH  .SA:1  MATH P NATURAL LOG FUNCTION.
+
+01079 
+01080                             TTL    FLOATING MULTIPLICATION AND DIVISION.
+01081                      * MULTIPLICATION  FAC:=ARG*FAC.
+01082                             XDEF   FMULT
+01083P 0176 8D   65   01DD FMULT  BSR    CONUPK   UNPACK THE CONSTANT INTO ARG FOR USE.
+01084                             XDEF   FMULTT
+01085P 0178 27   62   01DC FMULTT BEQ    MULTRT   IF FAC=0, RETURN. FAC IS SET.
+01086P 017A 8D   7A   01F6        BSR    MULDIV   FIX UP THE EXPONENTS.
+01087P 017C 86   00      A RNDMUL LDA    #@0      TO CLEAR RESULT.
+01088P 017E 97   13      A        STA    RESHO
+01089            0001    A        IFNE   ADDPRC
+01090P 0180 97   14      A        STA    RESMOH
+01091                             ENDC   IFN      ADDPRC
+01092P 0182 97   15      A        STA    RESMO
+01093P 0184 97   16      A        STA    RESLO
+01094P 0186 D6   53      A        LDB    FACLO    MLTPLY ARG BY FACLO.
+01095P 0188 8D   22   01AC        BSR    MLTPLY
+01096            0001    A        IFNE   NEWRND
+01097P 018A D6   63      A        LDB    FACOV    Put away low order byte for RND.
+01098P 018C D7   AE      A        STB    RNDTMP+@3
+01099                             ENDC   IFN      NEWRND
+01100P 018E D6   52      A        LDB    FACMO    MLTPLY ARG BY FACMO.
+01101P 0190 8D   1A   01AC        BSR    MLTPLY
+01102            0001    A        IFNE   NEWRND
+01103P 0192 D6   63      A        LDB    FACOV
+01104P 0194 D7   AD      A        STB    RNDTMP+@2
+01105                             ENDC   IFN      NEWRND
+01106            0001    A        IFNE   ADDPRC
+01107P 0196 D6   51      A        LDB    FACMOH
+01108P 0198 8D   12   01AC        BSR    MLTPLY
+01109            0001    A        IFNE   NEWRND
+01110P 019A D6   63      A        LDB    FACOV
+01111P 019C D7   AC      A        STB    RNDTMP+@1
+01112                             ENDC   IFN      NEWRND
+01113                             ENDC   IFN      ADDPRC
+01114P 019E D6   50      A        LDB    FACHO    MLTPLY ARG BY FACHO.
+01115P 01A0 8D   0E   01B0        BSR    MLTPL1
+01116            0001    A        IFNE   NEWRND
+01117P 01A2 D6   63      A        LDB    FACOV
+01118P 01A4 D7   AB      A        STB    RNDTMP
+01119                             ENDC   IFN      NEWRND
+01120P 01A6 BD   02B9    P        JSR    MOVFR    MOVE RESULT INTO FAC.
+01121P 01A9 7E   0068    P        JMP    NORMAL   NORMALIZE RESULT.
+01122P 01AC 1027 FF33 00E3 MLTPLY LBEQ   MULSHF   SHIFT RESULT RIGHT 1 BYTE.
+01123P 01B0 43             MLTPL1 COMA            (SEC)
+01124P 01B1 96   13      A MLTPL2 LDA    RESHO
+01125P 01B3 56                    RORB            MAKE SURE WE GET ALL BITS.
+01126P 01B4 27   26   01DC        BEQ    MULTRT
+01127P 01B6 24   16   01CE        BCC    MLTPL3   IT MULT BIT=0, JUST SHIFT.
+01128P 01B8 96   16      A        LDA    RESLO
+01129P 01BA 9B   60      A        ADDA   ARGLO
+01130P 01BC 97   16      A        STA    RESLO
+01131P 01BE 96   15      A        LDA    RESMO
+01132P 01C0 99   5F      A        ADCA   ARGMO
+01133P 01C2 97   15      A        STA    RESMO
+01134            0001    A        IFNE   ADDPRC
+01135P 01C4 96   14      A        LDA    RESMOH
+01136P 01C6 99   5E      A        ADCA   ARGMOH
+
+PAGE  010  ECBMTH  .SA:1  MATH P FLOATING MULTIPLICATION AND DIVISION.
+
+01137P 01C8 97   14      A        STA    RESMOH
+01138                             ENDC   IFN      ADDPRC
+01139P 01CA 96   13      A        LDA    RESHO
+01140P 01CC 99   5D      A        ADCA   ARGHO
+01141P 01CE 46             MLTPL3 RORA            SHIFT RESULT ONE RIGHT.
+01142P 01CF 97   13      A        STA    RESHO
+01143            0001    A        IFNE   ADDPRC
+01144P 01D1 06   14      A        ROR    RESMOH
+01145                             ENDC   IFN      ADDPRC
+01146P 01D3 06   15      A        ROR    RESMO
+01147P 01D5 06   16      A        ROR    RESLO
+01148P 01D7 06   63      A        ROR    FACOV    SAVE FOR ROUNDING.
+01149P 01D9 4F                    CLRA            (CLC) CLEAR C SO WE GET B CLOSER TO 0.
+01150P 01DA 20   D5   01B1        BRA    MLTPL2   SLOW AS A TURTLE !
+01151P 01DC 39             MULTRT RTS
+01152
+01153                      * ROUTINE TO UNPACK MEMORY INTO ARG.
+01154
+01155            01DD    P CONUPK EQU    *
+01156
+01157            0001    A        IFEQ    ADDPRC
+01162                       ENDC   IFE ADDPRC
+01163
+01164            0001    A        IFNE   ADDPRC
+01165P 01DD EC   01      A        LDD    @1,X     A:=HO, B:=MOH.
+01166P 01DF 97   61      A        STA    ARGSGN   MSB of HO is sign.
+01167P 01E1 8A   80      A        ORA    #@200    MSB of unpacked HO is always 1.
+01168P 01E3 DD   5D      A        STD    ARGHO
+01169                             ENDC   IFN      ADPPRC
+01170P 01E5 D6   61      A        LDB    ARGSGN   Set up probable sign of result.
+01171P 01E7 D8   54      A        EORB   FACSGN
+01172P 01E9 D7   62      A        STB    ARISGN
+01173P 01EB EC   03      A        LDD    @2+ADDPRC,X
+01174P 01ED DD   5F      A        STD    ARGMO
+01175P 01EF A6   84      A        LDA    ,X
+01176P 01F1 97   5C      A        STA    ARGEXP
+01177P 01F3 D6   4F      A        LDB    FACEXP   SET CODES OF FACEXP.
+01178P 01F5 39                    RTS
+01179
+01180                      *    CHECK SPECIAL CASES AND ADD EXPONENTS FOR FMULT, FDIV.
+01181                             XDEF   MULDIV
+01182P 01F6 4D             MULDIV TSTA            EXP OF ARG=0?
+01183P 01F7 27   16   020F        BEQ    MULDV1   SO WE GET ZERO EXPONENT.
+01184P 01F9 9B   4F      A        ADDA   FACEXP   RESULT IS IN ACCA.
+01185P 01FB 46                    RORA
+01186P 01FC 49                    ROLA            FIND [C] XOR [N]
+01187P 01FD 28   10   020F        BVC    MULDV1   OVERFLOW IF BITS MATCH.
+01188P 01FF 8B   80      A        ADDA   #@200    ADD BIAS.
+01189P 0201 97   4F      A        STA    FACEXP
+01190P 0203 27   0C   0211        BEQ    MULDV2   ZERO THE REST OF IT.
+01191P 0205 96   62      A        LDA    ARISGN
+01192P 0207 97   54      A        STA    FACSGN   ARISGN IS RESULT'S SIGN.
+01193P 0209 39             MDRET  RTS             DONE.
+01194                             XDEF   MLDVEX
+01195P 020A 96   54      A MLDVEX LDA    FACSGN   GET SIGN.
+01196P 020C 43                    COMA            COMPLEMENT IT.
+01197P 020D 20   02   0211        BRA    MULDV2
+01198P 020F 32   62      A MULDV1 LEAS   @2,S     GET ADDR OFF STACK.
+
+PAGE  011  ECBMTH  .SA:1  MATH P FLOATING MULTIPLICATION AND DIVISION.
+
+01199P 0211 102A FE70 0085 MULDV2 LBPL   ZEROFC   UNDERFLOW.
+01200P 0215 7E   00DE    P GOOVER JMP    OVERR    OVERFLOW.
+01201
+01202                      * MULTIPLY FAC BY 10.
+01203                             XDEF   MUL10
+01204P 0218 BD   030D    P MUL10  JSR    MOVAF    COPY FAC INTO ARG.
+01205P 021B 27   0D   022A        BEQ    MUL10R   IF [FAC]=0, GOT ANSWER.
+01206P 021D 8B   02      A        ADDA   #@2      AUGMENT EXP BY 2.
+01207P 021F 25   F4   0215        BCS    GOOVER   OVERFLOW.
+01208P 0221 0F   62      A        CLR    ARISGN   SIGNS ARE SAME.
+01209P 0223 BD   0019    P        JSR    FADDC    ADD TOGETHER.
+01210P 0226 0C   4F      A        INC    FACEXP   MULTIPLY BY TWO.
+01211P 0228 27   EB   0215        BEQ    GOOVER   OVERFLOW.
+01212P 022A 39             MUL10R RTS
+01213
+01214                      *  DIVIDE FAC BY 10.
+01215P 022B      84      A TEN.C  FCB    @204
+01216P 022C      20      A        FCB    @040
+01217P 022D      00      A        FCB    @000
+01218P 022E      00      A        FCB    @000
+01219            0001    A        IFNE   ADDPRC
+01220P 022F      00      A        FCB    @000
+01221                             ENDC   IFN      ADDPRC
+01222
+01223                             XDEF   DIV10
+01224P 0230 BD   030D    P DIV10  JSR    MOVAF    MOVE FAC TO ARG.
+01225P 0233 8E   022B    P        LDX    #TEN.C   POINT TO CONSTANT OF 10.0
+01226P 0236 5F                    CLRB            SIGNS ARE BOTH POSITIVE.
+01227P 0237 D7   62      A FDIVF  STB    ARISGN
+01228P 0239 BD   02C2    P        JSR    MOVFM    PUT IT INTO FAC.
+01229P 023C                       SKIP2  SKIP     OVER NEXT TWO BYTES.
+01230                             XDEF   FDIV
+01231P 023D 8D   9E   01DD FDIV   BSR    CONUPK   UNPACK CONSTANT.
+01232                             XDEF   FDIVT
+01233P 023F 27   73   02B4 FDIVT  BEQ    DVOERR   CAN'T DIVIDE BY ZERO !
+01234                      *    (NOT ENOUGH ROOM TO STORE RESULT.)
+01235P 0241 00   4F      A        NEG    FACEXP
+01236P 0243 8D   B1   01F6        BSR    MULDIV  FIX UP EXPONENTS.
+01237P 0245 0C   4F      A        INC    FACEXP  SCALE IT RIGHT.
+01238P 0247 27   CC   0215        BEQ    GOOVER  OVERFLOW.
+01239P 0249 8E   0013    A        LDX    #RESHO  SETUP PROCEDURE.
+01240P 024C C6   04      A        LDB    #@3+ADDPRC NUMBER OF BYTES IN RESULT.
+01241P 024E D7   03      A        STB    COUNT
+01242P 0250 C6   01      A        LDB    #@1
+01243            0252    P DIVIDE EQU    *        THIS IS THE BEST CODE IN THE WHOLE PILE.
+01244P 0252 96   50      A        LDA    FACHO    SEE WHAT RELATION HOLDS.
+01245P 0254 91   5D      A        CMPA   ARGHO
+01246P 0256 26   13   026B        BNE    SAVQUO   [C]=0,1. N(C=0)=0.
+01247            0001    A        IFNE   ADDPRC
+01248P 0258 96   51      A        LDA    FACMOH
+01249P 025A 91   5E      A        CMPA   ARGMOH
+01250P 025C 26   0D   026B        BNE    SAVQUO
+01251                             ENDC   IFN      ADDPRC
+01252P 025E 96   52      A        LDA    FACMO
+01253P 0260 91   5F      A        CMPA   ARGMO
+01254P 0262 26   07   026B        BNE    SAVQUO
+01255P 0264 96   53      A        LDA    FACLO
+01256P 0266 91   60      A        CMPA   ARGLO
+
+PAGE  012  ECBMTH  .SA:1  MATH P FLOATING MULTIPLICATION AND DIVISION.
+
+01257P 0268 26   01   026B        BNE    SAVQUO
+01258P 026A 43                    COMA            (SEC)
+01259P 026B 1F   A8        SAVQUO TPA
+01260P 026D 59                    ROLB            SAVE RESULT.
+01261P 026E 24   0A   027A        BCC    QSHFT    IF NOT DONE, CONTINUE.
+01262P 0270 E7   80      A        STB    ,X+      SAVE RESULT.
+01263P 0272 0A   03      A        DEC    COUNT    WHAT NEXT?
+01264P 0274 2B   34   02AA        BMI    DIVNRM   GO NORMALIZE RESULT.
+01265P 0276 27   2E   02A6        BEQ    LD100
+01266P 0278 C6   01      A        LDB    #@1
+01267P 027A 1F   8A        QSHFT  TAP             RETURN CONDITION CODES.
+01268P 027C 25   0E   028C        BCS    DIVSUB   FAC .LE. ARG.
+01269P 027E 08   60      A SHFARG ASL    ARGLO    SHIFT ARG ONE PLACE LEFT.
+01270P 0280 09   5F      A        ROL    ARGMO
+01271            0001    A        IFNE   ADDPRC
+01272P 0282 09   5E      A        ROL    ARGMOH
+01273                             ENDC   IFN      ADDPRC
+01274P 0284 09   5D      A        ROL    ARGHO
+01275P 0286 25   E3   026B        BCS    SAVQUO   SAVE A RESULT OF ONE FOR THIS POSITION
+01276                      *    AND DIVIDE.
+01277P 0288 2B   C8   0252        BMI    DIVIDE   IF MSB ON, GO DECIDE WHETHER TO SUB.
+01278P 028A 20   DF   026B        BRA    SAVQUO
+01279P 028C 96   60      A DIVSUB LDA    ARGLO
+01280P 028E 90   53      A        SUBA   FACLO
+01281P 0290 97   60      A        STA    ARGLO
+01282P 0292 96   5F      A        LDA    ARGMO
+01283P 0294 92   52      A        SBCA   FACMO
+01284P 0296 97   5F      A        STA    ARGMO
+01285            0001    A        IFNE   ADDPRC
+01286P 0298 96   5E      A        LDA    ARGMOH
+01287P 029A 92   51      A        SBCA   FACMOH
+01288P 029C 97   5E      A        STA    ARGMOH
+01289                             ENDC   IFN      ADDPRC
+01290P 029E 96   5D      A        LDA    ARGHO
+01291P 02A0 92   50      A        SBCA   FACHO
+01292P 02A2 97   5D      A        STA    ARGHO
+01293P 02A4 20   D8   027E        BRA    SHFARG
+01294P 02A6 C6   40      A LD100  LDB    #@100    ONLY WANT TWO MORE BITS.
+01295P 02A8 20   D0   027A        BRA    QSHFT
+01296P 02AA 56             DIVNRM RORB            GET LAST TWO BITS INTO MSB AND B6.
+01297P 02AB 56                    RORB
+01298P 02AC 56                    RORB
+01299P 02AD D7   63      A        STB    FACOV
+01300P 02AF 8D   08   02B9        BSR    MOVFR    MOVE RESULT INTO FAC.
+01301P 02B1 7E   0068    P        JMP    NORMAL   NORMALIZE RESULT AND RETURN.
+01302P 02B4 C6   00      A DVOERR LDB    #ERRDVO
+01303P 02B6 7E   0000    A        JMP    ERROR
+01304
+01305                      * WOW !!
+01306
+
+PAGE  013  ECBMTH  .SA:1  MATH P FLOATING MULTIPLICATION AND DIVISION.
+
+01308
+01309                             TTL    FLOATING POINT MOVEMENT ROUTINES.
+01310
+01311                      *
+01312                      * MOVE RESULT TO FAC.
+01313                      *
+01314P 02B9 9E   13      A MOVFR  LDX    RESHO
+01315P 02BB 9F   50      A        STX    FACHO
+01316            0001    A        IFEQ   ADDPRC
+01319                       ENDC   IFE ADDPRC
+01320            0001    A        IFNE   ADDPRC
+01321P 02BD 9E   15      A        LDX    RESMO
+01322P 02BF 9F   52      A        STX    FACMO
+01323                             ENDC   IFN      ADDPRC
+01324P 02C1 39                    RTS             ALL DONE.
+01325
+01326                      *
+01327                      * MOVE MEMORY INTO FAC (UNPACKED).  A is preserved.
+01328                      *
+01329                             XDEF   MOVFM
+01330            02C2    P MOVFM  EQU    *
+01331
+01332            0001    A        IFEQ   ADDPRC
+01337                       ENDC   IFE ADDPRC
+01338
+01339            0001    A        IFNE   ADDPRC
+01340P 02C2 34   02      A        PSHS   A
+01341P 02C4 EC   01      A        LDD    @1,X
+01342P 02C6 97   54      A        STA    FACSGN
+01343P 02C8 8A   80      A        ORA    #@200
+01344P 02CA DD   50      A        STD    FACHO
+01345                             ENDC   IFN      ADDPRC
+01346P 02CC 0F   63      A        CLR    FACOV
+01347P 02CE E6   84      A        LDB    ,X
+01348P 02D0 AE   03      A        LDX    @2+ADDPRC,X
+01349P 02D2 9F   52      A        STX    FACMO
+01350P 02D4 D7   4F      A        STB    FACEXP
+01351
+01352            0001    A        IFEQ   ADDPRC
+01354                       ENDC   IFE ADDPRC
+01355 
+01356            0001    A        IFNE   ADDPRC
+01357P 02D6 35   82      A        PULS   A,PC
+01358                             ENDC   IFN      ADDPRC
+01359 
+01360                      *
+01361                      * MOVE NUMBER FROM FAC TO MEMORY.  B is preserved.
+01362                      *
+01363P 02D8 8E   0045    A MOV2F  LDX    #TEMPF2
+01364P 02DB 20   06   02E3        BRA    MOVMF
+01365                             XDEF   MOV1F
+01366P 02DD 8E   0040    A MOV1F  LDX    #TEMPF1
+01367P 02E0                       SKIP2
+01368                             XDEF   MOVVF
+01369P 02E1 9E   3B      A MOVVF  LDX    FORPNT
+01370                             XDEF   MOVMF
+01371P 02E3 96   4F      A MOVMF  LDA    FACEXP
+01372P 02E5 A7   84      A        STA    ,X
+
+PAGE  014  ECBMTH  .SA:1  MATH P FLOATING POINT MOVEMENT ROUTINES.
+
+01373P 02E7 96   54      A        LDA    FACSGN   INCLUDE SIGN IN HO.
+01374P 02E9 8A   7F      A        ORA    #&177
+01375P 02EB 94   50      A        ANDA   FACHO
+01376P 02ED A7   01      A        STA    @1,X
+01377            0001    A        IFNE   ADDPRC
+01378P 02EF 96   51      A        LDA    FACMOH
+01379P 02F1 A7   02      A        STA    @2,X
+01380                             ENDC   IFN      ADDPRC
+01381P 02F3 DE   52      A        LDU    FACMO
+01382P 02F5 EF   03      A        STU    @2+ADDPRC,X
+0:383P 02F7 39                    RTS
+01384
+01385                      *
+01386                      * MOVE ARG INTO FAC.  Leave SGN in A and preserve B.
+01387                      *
+01388                             XDEF   MOVFA
+01389P 02F8 96   61      A MOVFA  LDA    ARGSGN
+01390                             XDEF   MOVFA1
+01391P 02FA 97   54      A MOVFA1 STA    FACSGN
+01392P 02FC 9E   5C      A        LDX    ARGEXP
+01393P 02FE 9F   4F      A        STX    FACEXP
+01394P 0300 0F   63      A        CLR    FACOV    Clear the overflow bits.
+01395            0001    A        IFNE   ADDPRC
+01396P 0302 96   5E      A        LDA    ARGMOH
+01397P 0304 97   51      A        STA    FACMOH
+01398P 0306 96   54      A        LDA    FACSGN   Put SGN back in A.
+01399                             ENDC   IFN      ADDPRC
+01400P 0308 9E   5F      A        LDX    ARGMO
+01401P 030A 9F   52      A        STX    FACMO
+01402P 030C 39                    RTS
+01403
+01404                      *
+01405                      * MOVE FAC INTO ARG.  Preserve B, set cond codes on exponent in A.
+01406                      *
+01407                             XDEF   MOVAF
+01408            030D    P MOVAF  EQU    *
+01409
+01410            0001    A        IFEQ   ADDPRC
+01418                       ENDC   IFE ADDPRC
+01419
+01420            0001    A        IFNE   ADDPRC
+01421P 030D DC   4F      A        LDD    FACEXP
+01242P 030F DD   5C      A        STD    ARGEXP
+01423P 0311 9E   51      A        LDX    FACMOH
+01424P 0313 9F   5E      A        STX    ARGMOH
+01425P 0315 9E   53      A        LDX    FACLO
+01426P 0317 9F   60      A        STX    ARGLO
+01427P 0319 4D                    TSTA
+01428P 031A 39                    RTS
+01429                             ENDC   IFN      ADDPRC
+
+PAGE  015  ECBMTH  .SA:1  MATH P FLOATING POINT MOVEMENT ROUTINES.
+
+01431
+01432                             TTL    SIGN, SGN, FLOAT, NEG, ABS.
+01433
+01434                      * PUT SIGN OF FAC IN ACCA.
+01435                             XDEF   SIGN
+01436P 0318 D6   4F      A SIGN   LDB    FACEXP
+01437P 031D 27   08   0327        BEQ    SIGNRT   IF NUMBER IS ZERO, SO IS RESULT.
+01438P 031F D6   54      A FCSIGN LDB    FACSGN 
+01439P 0321 59             FCOMPS ROLB
+01440P 0322 C6   FF      A        LDB    #—@1     ASSUME NEGATIVE.
+01441P 0324 25   01   0327        BCS    SIGNRT
+01442P 0326 50                    NEGB            GET +1.
+01443P 0327 39             SIGNRT RTS
+01444
+01445                      * SGN FUNCTION.
+01446                             XDEF   SGN
+01447P 0328 8D   F1   031B SGN    BSR    SIGN
+01448
+01449                      * FLOAT THE SIGNED INTEGER IN ACCB.
+01450                             XDEF   FLOAT
+01451P 032A D7   50      A FLOAT  STB    FACHO    PUT [ACCB] IN HIGH ORDER.
+01452P 032C 0F   51      A        CLR    FACHO+@1 Must be FACHO+1 not FACMO for 9
+01453                      *    digit code to work.
+01454P 032E C6   88      A        LDB    #@210    GET THE EXPONENT.
+01455
+01456                      * FLOAT THE SIGNED NUMBER IN FAC.
+01457                             XDEF   FLOATS
+01458P 0330 96   50      A FLOATS LDA    FACHO
+01459P 0332 80   80      A        SUBA   #@200   GET COMP OF SIGN IN CARRY.
+01460P 0334 D7   4F      A FLOATC STB    FACEXP  PUT IT IN RESULT.
+01461
+01462            0001    A        IFEQ   ADDPRC
+01465                       ENDC   IFE ADDPRC
+01466
+01467            0001    A        IFNE   ADDPRC
+01468P 0336 DC   8A      A        LDD    DBLZER
+01469P 0338 DD   52      A        STD    FACMO
+01470                             ENDC   IFN      ADDPRC
+01471P 033A 97   63      A        STA    FACOV
+01472P 033C 97   54      A        STA    FACSGN
+01473P 033E 7E   0064    P        JMP    FADFLT
+01474
+01475                      * ABSOLUTE VALUE OF FAC.
+01476                             XDEF   ABS
+01477P 0341 0F   54      A ABS    CLR    FACSGN
+01478P 0343 39                    RTS
+01479
+
+PAGE  016  ECBMTH  .SA:1  MATH P SIGN, SGN, FLOAT, NEG, ABS.
+
+01481
+01482                             TTL    COMPARE TWO NUMBERS.
+01483                      * B=1 IF ARG .LT. FAC.
+01484                      * B=0 IF ARG=FAC.
+01485                      * B=-1 IF ARG .GT. FAC.
+01486                             XDEF   FCOMP
+01487P 0344 E6   84      A FCOMP  LDB    ,X       HAS ARGEXP.
+01488P 0346 27   D3   031B        BEQ    SIGN     NUMBER IS JUST ZERO.
+01489P 0348 E6   01      A        LDB    @1,X     GET SIGN OF ARGUMENT.
+01490P 034A D8   54      A        EORB   FACSGN   SIGNS THE SAME?
+01491P 034C 2B   D1   031F        BMI    FCSIGN   SIGNS DIFFER SO RESULT IS
+01492                      *    SIGN OF FAC AGAIN.
+01493                             XDEF   FOUTCP
+01494P 034E D6   4F      A FOUTCP LDB    FACEXP   COMPARE EXPONENTS.
+01495P 0350 E1   84      A        CMPB   ,X       FACEXP GREATER?
+01496P 0352 26   1D   0371        BNE    FCOMPC
+01497P 0354 E6   01      A        LDB    @1,X
+01498P 0356 CA   7F      A        ORB    #@177
+01499P 0358 D4   50      A        ANDB   FACHO
+01500P 035A E1   01      A        CMPB   @1,X
+01501P 035C 26   13   0371        BNE    FCOMPC
+01502            0001    A        IFNE   ADDPRC
+01507P 035E D6   51      A        LDB    FACMOH
+01504P 0360 E1   02      A        CMPB   @2,X
+01505P 0362 26   0D   0371        BNE    FCOMPC
+01506                             ENDS   IFN      ADDPRC
+01507P 0364 D6   52      A        LDB    FACMO
+01508P 0366 E1   03      A        CMPB   @2+ADDPRC,X
+01509P 0368 26   07   0371        BNE    FCOMPC
+01510P 036A D6   53      A        LDB    FACLO
+01511P 036C E0   04      A        SUBB   @3+ADDPRC,X GET ZERO IF EQUAL.
+01512P 036E 26   01   0371        BNE    FCOMPC
+01513P 0370 39                    RTS
+01514P 0371 56             FCOMPC RORB            SAVE [C] IN B7(ACCA).
+01515P 0372 D8   54      A        EORB   FACSGN   COMP RESULT IF SIGNS ARE NEGATIVE.
+01516P 0374 20   AB   0321        BRA    FCOMPS   A PART OF SIGN SETS ACCA UP.
+01517
+
+PAGE  017  ECBMTH  .SA:1  MATH P COMPARE TWO NUMBERS.
+
+01519
+01520                             TTL    GREATEST INTEGER FUNCTION.
+01521                      * QUICK GREATEST INTEGER FUNCTION.
+01522                      * LEAVES INT(FAC) IN FACHO&MO&LO SIGNED.
+01523                      * ASSUMES FAC .LT. 2^23 = 8388608
+01524                             XDEF   QINT
+01525P 0376 D6   4F      A QINT   LDB    FACEXP
+01526P 0378 27   3D   03B7        BEQ    CLRFAC   IF ZERO, GOT IT.
+01527P 037A C0   A0      A        SUBB   #@230+(@10*ADDPRC) GET NUMBER OF PLACES TO SHIFT.
+01528P 037C 96   54      A        LDA    FACSGN
+01529P 037E 2A   05   0385        BPL    QISHFT
+01530P 0380 03   5B      A        COM    BITS     PUT 377 IN WHEN SHFTR SHIFTS BYTES.
+01531P 0382 BD   00C7    P        JSR    NEGFCH   TRULY NEGATE QUANTITY IN FAC.
+01532P 0385 8E   004F    A QISHFT LDX    #FAC
+01533P 0388 C1   F8      A        CMPB   #-@10
+01534P 038A 2E   06   0392        BGT    QINT1    IF NUMBER OF PLACES .GE. 7
+01535                      *    SHIFT 1 PLACE AT A TIME.
+01536P 038C BD   00FA    P        JSR    SHIFTR   START SHIFTING BYTES, THEN BITS.
+01537P 038F 0F   5B      A        CLR    BITS     ZERO BITS SINCE ADDER WANTS ZERO.
+01538P 0391 39             QINTRT RTS
+01539P 0392 0F   5B      A QINT1  CLR    BITS     FOR ADDER.
+01540P 0394 96   54      A        LDA    FACSGN
+01541P 0396 49                    ROLA            GET SIGN BIT.
+01542P 0397 06   50      A        ROR    FACHO    SAVE FIRST SHIFTED BYTE.
+01543P 0399 7E   0106    P        JMP    ROLSHF   SHIFT THE REST.
+01544
+01545                      * GREATEST INTEGER FUNCTION.
+01546                             XDEF   INT
+01547P 039C D6   4F      A INT    LDB    FACEXP
+01548P 039E C1   A0      A        CMPB   #@230+(@10*ADDPRC)
+01549P 03A0 24   1D   03BF        BCC    INTRTS   FORGET IT.
+01550P 03A2 8D   D2   0376        BSR    QINT
+01551P 03A4 D7   63      A        STB    FACOV    CLR OVERFLOW BYTE.
+01552P 03A6 96   54      A        LDA    FACSGN
+01553P 03A8 D7   54      A        STB    FACSGN   MAKE FAC LOOK POSITIVE.
+01554P 03AA 80   80      A        SUBA   #@200    GET COMPLEMENT OF SIGN IN CARRY.
+01555P 03AC 86   A0      A        LDA    #@230+(@10*ADDPRC)
+01556P 03AE 97   4F      A        STA    FACEXP
+01557P 03B0 96   53      A        LDA    FACLO
+01558P 03B2 97   01      A        STA    INTEGR
+01559P 03B4 7E   0064    P        JMP    FADFLT
+01560P 03B7 D7   50      A CLRFAC STB    FACHO    MAKE IT REALLY ZERO.
+01561            0001    A        IFNE   ADDPRC
+01562P 03B9 D7   51      A        STB    FACMOH
+01563                             ENDC   IFN      ADDPRC
+015640 03BB D7   52      A        STB    FACMO
+01565P 03BD D7   53      A        STB    FACLO
+01566P 03BF 39             INTRTS RTS
+
+PAGE  018  ECBMTH  .SA:1  MATH P GREATEST INTEGER FUNCTION.
+
+01568
+01569                             TTL    FLOATING POINT INPUT ROUTINE.
+01570                      * NUMBER INPUT IS LEFT IN FAC.
+01571                      * AT ENTRY [TXTPTR] POINTS TO THE FIRST CHARACTER IN A TEXT BUFFER.
+01572                      * THE FIRST CHARACTER IS ALSO IN ACCA. FIN PACKS THE DIGITS
+01573                      * INTO THE FAC AS AN INTEGER AND KEEPS TRACK OF WHERE THE
+01574                      * DECIMAL POINT IS. [DPTFLG] TELL WHETHER A DP HAS BEEN
+01575                      * SEEN. [DECCNT] IS THE NUMBER OF DIGITS AFTER THE DP.
+01576                      * AT THE END [DECCNT] AND THE EXPONENT ARE USED TO
+01577                      * DETERMINE HOW MANY TIMES TO MUTIPLY OR DIVIDE BY TEN
+01578                      * TO GET THE CORRECT NUMBER.
+01579                             XDEF   FIN
+01580P 03C0 9E   8A      A FIN    LDX    DBLZER
+01581P 03C2 9F   54      A        STX    FACSGN   ZERO FACSGN&SGNFLG.
+01582P 03C4 9F   4F      A        STX    FACEXP   ZERO EXP AND HO.
+01583            0001    A        IFNE   ADDPRC
+01584P 03C6 9F   51      A        STX    FACMOH   Clear FACMOH.
+01585                             ENDC   IFN      ADDPRC
+01586P 03C8 9F   52      A        STX    FACMO    ZERO MO AND LO.
+01587P 03CA 9F   47      A        STX    TENEXP   ZERO TENEXP AND EXPSGN
+01588P 03CC 9F   45      A        STX    DECCNT   ZERO DECCNT, DPTFLG.
+01589P 03CE 25   67   0437        BCS    FINDIG   FLAGS STILL SET FROM CHRGET.
+01590P 03D0 81   26      A        CMPA   #'&      A hex or octal constant?
+01592P 03D2 1027 FC2A    A        LBEQ   HOCONS   Yes, go handle it.
+01592P 03D6 81   2D      A        CMPA   #'-      NEGATIVE SIGN?
+01593P 03D8 26   04   03DE        BNE    QPLUS    NO, TRY PLUS SIGN.
+01594P 03DA 03   55      A        COM    SGNFLG   IT'S NEGATIVE.
+01595P 03DC 20   04   03E2        BRA    FINC
+01596P 03DE 81   2B      A QPLUS  CMPA   #'+      PLUS SIGN?
+01597P 03E0 26   04   03E6        BNE    FIN1     YES, SKIP IT.
+01598P 03E2 9D   9F      A FINC   JSR    CHRGET
+01599P 03E4 25   51   0437        BCS    FINDIG
+01600P 03E6 81   2E      A FIN1   CMPA   #'.      THE DP?
+01601P 03E8 27   28   0412        BEQ    FINDP    NO KIDDING.
+01602P 03EA 81   45      A        CMPA   #'E      EXPONENT FOLLOWS.
+01603P 03EC 26   28   0416        BNE    FINE     NO.
+01604                      *    HERE TO CHECK FOR SIGN OF EXP.
+01605P 03EE 9D   9F      A        JSR    CHRGET   YES. GET ANOTHER.
+01606P 03F0 25   64   0456        BCS    FINEDG   IT IS A DIGIT. (EASIER THAN
+01607                      *    BACKING UP POINTER.)
+01608P 03F2 81   00      A        CMPA   #MINUTK  MINUS?
+01609P 03F4 27   0E   0404        BEQ    FINEC1   NEGATE.
+01610P 03F6 81   2D      A        CMPA   #'-      MINUS SIGN?
+01611P 03F8 27   0A   0404        BEQ    FINEC1
+01612P 03FA 81   00      A        CMPA   #PLUSTK  PLUS?
+01613P 03FC 27   08   0406        BEQ    FINEC
+01614P 03FE 81   2B      A        CMPA   #'+      PLUS SIGN?
+01615P 0400 27   04   0406        BEQ    FINEC
+01616P 0402 20   06   040A        BRA    FINEC2
+01617P 0404 03   48      A FINEC1 COM    EXPSGN
+01618P 0406 9D   9F      A FINEC  JSR    CHRGET   GET ANOTHER.
+01619P 0408 25   4C   0456        BCS    FINEDG   IT IS A DIGIT.
+01620P 040A 0D   48      A FINEC2 TST    EXPSGN
+01621P 040C 27   08   0416        BEQ    FINE
+01622P 040E 00   47      A        NEG    TENEXP
+01623P 0410 20   04   0416        BRA    FINE
+01624P 0412 03   46      A FINDP  COM    DPTFLG
+01625P 0414 26   CC   03E2        BNE    FINC
+
+PAGE  019  ECBMTH  .SA:1  MATH P FLOATING POINT INPUT ROUTINE.
+
+01626P 0416 96   47      A FINE   LDA    TENEXP
+01627P 0418 90   45      A        SUBA   DECCNT   GET NUMBER OF PLACES TO SHIFT.
+01628P 041A 97   47      A        STA    TENEXP
+01629P 041C 27   12   0430        BEQ    FINQNG   NEGATE?
+01630P 041E 2A   09   0429        BPL    FINMUL   POSITIVE SO MULTIPLY.
+01631P 0420 BD   0230    P FINDIV JSR    DIV10
+01E32P 0423 0C   47      A        INC    TENEXP   DONE?
+01633P 0425 26   F9   0420        BNE    FINDIV   NO.
+01634P 0427 20   07   0430        BRA    FINQNG   YES.
+01635P 0429 BD   0218    P FINMUL JSR    MUL10
+01636P 042C 0A   47      A        DEC    TENEXP   DONE?
+01637P 042E 26   F9   0429        BNE    FINMUL   NO
+01638P 0430 96   55      A FINQNG LDA    SGNFLG
+01639P 0432 2A   8B   03BF        BPL    INTRTS   IF POSITIVE, RETURN.
+01640P 0434 7E   05E1    P        JMP    NEGOP    OTHERWISE, NEGATE AND RETURN.
+01641
+01642P 0437 D6   45      A FINDIG LDB    DECCNT
+01643P 0439 D0   46      A        SUBB   DPTFLG
+01644P 043B D7   45      A        STB    DECCNT
+01645P 043D 34   02      A        PSHS   A        SAVE CHARACTER.
+01646P 043F BD   0218    P        JSR    MUL10
+01647P 0442 35   04      A        PULS   B        GET IT BACK.
+01648P 0444 C0   30      A        SUBB   #'0
+01649P 0446 8D   02   044A        BSR    FINLOG   ADD IT IN.
+01650P 0448 20   98   03E2        BRA    FINC
+01651
+01652                             XDEF   FINLOG
+01653P 044A BD   02DD    P FINLOG JSR    MOV1F    SAVE FAC FOR LATER.
+01654P 044D BD   032A    P        JSR    FLOAT    FLOAT THE VALUE IN ACCB.
+01655P 0450 8E   0040    A        LDX    #TEMPF1  GET POINTER TO ADDEND.
+01656P 0453 7E   000E    P        JMP    FADD     ADD TOGETHER AND RETURN.
+01657  
+01658                      * HERE PACK IN THE NEXT DIGIT OF THE EXPONENT.
+01659                      * MULTIPLY THE OLD EXP BY 10 AND ADD IN THE NEXT
+01660                      * DIGIT. NOTE: EXP OVERFLOW IS NOT CHECKED FOR.
+01661P 0456 D6   47      A FINEDG LDB    TENEXP   GET EXP SO FAR.
+01662P 0458 58                    ASLB            MULT BY 2 TWICE
+01663P 0459 58                    ASLB
+01664P 045A DB   47      A        ADDB   TENEXP   LIKE MULTIPLYING BY FIVE.
+01665P 045C 58                    ASLB            AND NOW BY TEN.
+01666P 045D 80   30      A        SUBA   #'0
+01667P 045F 34   04 ABE0          ABA             ADD IN PREVIOUS AMOUNT.
+01668P 0463 97   47      A        STA    TENEXP   SAVE RESULT.
+01669P 0465 20   9F   0406        BRA    FINEC
+
+PAGE  020  ECBMTH  .SA:1  MATH P FLOATING POINT INPUT ROUTINE.
+
+01671 
+01672                             TTL    FLOATING POINT OUTPUT ROUTINE.
+01673
+01674            0001    A        IFEQ   ADDPRC
+01691                       ENDC   IFE ADDPRC
+01692
+01693            0001    A        IFNE   ADDPRC
+01694                             XDEF   N.0999
+01695P 0467      9B      A N.0999 FCB    @233     99999999.9499
+01696P 0468      3E      A        FCB    @076
+01697P 0469      BC      A        FCB    @274
+01698P 046A      1F      A        FCB    @037
+01699P 046B      FD      A        FCB    @375
+01700                             XDEF   N.9999
+01701P 046C      9E      A N.9999 FCB    @236     999999999.499
+01702P 046D      6E      A        FCB    @156
+01703P 046E      6B      A        FCB    @153
+01704P 046F      27      A        FCB    @047
+01705P 0470      FD      A        FCB    @375
+01706                             XDEF   N.MIL
+01707P 0471      9E      A N.MIL  FCB    @236     10^9
+01708P 0472      6E      A        FCB    @156
+01709P 0473      6B      A        FCB    @153
+01710P 0474      28      A        FCB    @050
+01711P 0475      00      A        FCB    @000
+01712                             ENDC   IFN      ADDPRC
+01713
+01714                      *
+01715                      * ENTRY TO LINPRT.
+01716                      *
+01717                             XDEF   INPRT
+01718P 0476 8E   FFFF    A INPRT  LDX    #INTXT-@1
+01719P 0479 8D   0C   0487        BSR    STROU2
+01720P 047B DC   68      A        LDD    CURLIN
+01721                             XDEF   LINPRT
+01722P 047D DD   50      A LINPRT STD    FACHO
+01723P 047F C6   90      A        LDB    #@220    EXPONENT OF 16.
+01724P 0481 43                    COMA            (SEC) NUMBER IS POSITIVE.
+01725P 0482 BD   0334    P        JSR    FLOATC
+01726P 0485 8D   03   048A        BSR    FOUT
+01727P 0487 7E   0000    A STROU2 JMP    STROUT   PRINT AND RETURN.
+01728
+01729                             XDEF   FOUT
+01730P 048A CE   0000    A FOUT   LDU    #FBUFFR
+01731                             XDEF   FOUTC
+01732P 048D 86   20      A FOUTC  LDA    #'       PRINT SPACE IF POSITIVE.
+01733P 048F D6   54      A        LDB    FACSGN
+01734P 0491 2A   02   0495        BPL    FOUT1
+01735P 0493 86   2D      A        LDA    #'-
+01736P 0495 A7   C0      A FOUT1  STA    ,U+      STORE THE CHARACTER.
+01737P 0497 DF   64      A        STU    FBUFPT   Save buffer pointer.
+01738P 0499 97   54      A        STA    FACSGN   MAKE FAC POS FOR QINT.
+01739P 049B 86   30      A        LDA    #'0      GET ZERO TO TYPE IF FAC=0.
+01740P 049D D6   4F      A        LDB    FACEXP
+01741P 049F 1027 00C6 0569        LBEQ   FOUT19
+01742P 04A3 4F                    CLRA
+01743P 04A4 C1   80      A        CMPB   #@200    IS NUMBER .LT. 1.0 ?
+01744P 04A6 22   08   04B0        BHI    FOUT7    NO.
+
+PAGE  021  ECBMTH  .SA:1  MATH P FLOATING POINT OUTPUT ROUTINE.
+
+01745P 04A8 8E   0471    P        LDX    #N.MIL   MULTIPLY BY 10^6.
+01746P 04AB BD   0176    P        JSR    FMULT
+01747P 04AE 86   F7      A        LDA    #-@6-(@3*ADDPRC)
+01748P 04B0 97   45      A FOUT7  STA    DECCNT   SAVE COUNT OR ZERO IT.
+01749P 04B2 8E   046C    P FOUT4  LDX    #N.9999
+01750P 04B5 BD   034E    P        JSR    FOUTCP   IS NUMBER .GT. 999999.499 ?
+01751P 04B8 2E   0F   04C9        BGT    FOUT9    YES. MAKE IT SMALLER.
+01752P 04BA 8E   0467    P FOUT3  LDX    #N.0999
+01753P 04BD BD   034E    P        JSR    FOUTCP   IS NUMBER .GT. 99999.9499 ?
+01754P 04C0 2E   0E   04D0        BGT    FOUT5    YES. DONE MULTIPLYING.
+01755P 04C2 BD   0218    P        JSR    MUL10    MAKE IT BIGGER.
+01756P 04C5 0A   45      A        DEC    DECCNT
+01757P 04C7 20   F1   04BA        BRA    FOUT3    SEE IF THAT DOES IT.
+01758P 04C9 BD   0230    P FOUT9  JSR    DIV10    MAKE IT SMALLER.
+01759P 04CC 0C   45      A        INC    DECCNT
+01760P 04CE 20   E2   04B2        BRA    FOUT4    SEE IF THAT DOES IT.
+01761
+01762P 04DO BD   0000    P FOUT5  JSR    FADDH    ADD A HALF TO ROUND UP.
+01763P 04D3 BD   0376    P        JSR    QINT
+01764P 04D6 C6   01      A        LDB    #@1      DECIMAL POINT COUNT.
+01765P 04D8 96   45      A        LDA    DECCNT
+01766P 04DA 8B   0A      A        ADDA   #@7+(@3*ADDPRC) SHOULD NUMBER BE PRINTED IN E NOTATION?
+01767                      *    IE, IS NUMBER .LT. .01 ?
+01768P 04DC 2B   09   04E7        BMI    FOUT6    YES.
+01769P 04DE 81   0B      A        CMPA   #@10+(@3*ADDPRC) IS IT .GT. 999999 ?
+01770P 04E0 24   05   04E7        BCC    FOUT6    YES. USE E NOTATION.
+01771P 04E2 4A                    DECA            NUMBER OF PLACES BEFORE DECIMAL POINT.
+01772P 04E3 1F   89      A        TFR    A,B      PUT INTO ACCB.
+01773P 04E5 86   02      A        LDA    #@2      NO E NOTATION.
+01774P 04E7 4A             FOUT6  DECA            EFFECTIVELY ADD 5 TO ORIG EXP.
+01775P 04E8 4A                    DECA
+01776P 04E9 97   47      A        STA    TENEXP   THAT IS THE EXPONENT TO PRINT.
+01777P 04EB D7   45      A        STB    DECCNT   NUMBER OF DECIMAL PLACES.
+01778P 04ED 2E   0D   04FC        BGT    FOUT8    SOME PLACES BEFORE DEC PNT.
+01779P 04EF DE   64      A        LDU    FBUFPT   GET POINTER TO OUTPUT.
+01780P 04F1 86   2E      A        LDA    #'.      PUT  IN "."
+01781P 04F3 A7   C0      A        STA    ,U+
+01782P 04F5 5D                    TSTB
+01783P 04F6 27   04   04FC        BEQ    FOUT8
+01784P 04F8 86   30      A        LDA    #'0      GET THE ENSUING ZERO.
+01735P 04FA A7   C0      A        STA    ,U+
+01786P 04FC 8E   0576    P FOUT8  LDX    #FOUTBL
+01787P 04FF C6   80      A        LDB    #@200    FIRST PASS THRU, ACCB HAS MSB SET.
+01788P 0501 96   53      A FOUT2  LDA    FACLO
+01789P 0503 AB   03      A        ADDA   @2+ADDPRC,X
+01790P 0505 97   53      A        STA    FACLO
+01791P 0507 96   52      A        LDA    FACMO
+01792P 0509 A9   02      A        ADCA   @1+ADDPRC,X
+01793P 050B 97   52      A        STA    FACMO
+01794            0001    A        IFNE   ADDPRC
+01795P 050D 96   51      A        LDA    FACMOH
+01796P 050F A9   01      A        ADCA   @1,X
+01797P 0511 97   51      A        STA    FACMOH
+01798                             ENDC   IFN      ADDPRC
+01799P 0513 96   50      A        LDA    FACHO
+01800P 0515 A9   84      A        ADCA   ,X
+01801P 0517 97   50      A        STA    FACHO
+01802P 0519 5C                    INCB            IT WAS DONE YET ANOTHER TIME.
+
+PAGE  022  ECBMTH  .SA:1  MATH P FLOATING POINT OUTPUT ROUTINE.
+
+01803P 051A 56                    RORB            SEE IF CARRIES MATCH.
+01804P 051B 59                    ROLB            GET ACCB COUNT BACK.
+01805P 051C 28   E3   0501        BVC    FOUT2    NO, CONTINUE.
+01806P 051E 24   03   0523        BCC    FOUTYP   CAN USE ACCB AS IS.
+01807P 0520 C0   0B      A        SUBB   #@12+@1  MUST SUB 10.0 AND NEGATE.
+01808P 0522 50                    NEGB
+01809P 0523 CB   2F      A FOUTYP ADDB   #'0-@1   GET A CHARACTER TO PRINT.
+01810P 0525 30   04      A        LEAX   @3+ADDPRC,X BUMP POINTER UP.
+01811P 0527 1F   98      A        TFR    B,A
+01812P 0529 84   7F      A        ANDA   #@177    GET RID OF MSB.
+01813P 052B A7   C0      A        STA    ,U+
+01814P 052D 0A   45      A        DEC    DECCNT
+01815P 052F 26   04   0535        BNE    FOUTCM   NOT TIME FOR DP YET.
+01816P 0531 86   2E      A        LDA    #'.
+01817P 0533 A7   C0      A        STA    ,U+      STORE DP.
+01818P 0535 53             FOUTCM COMB            COMPLEMENT ACCB
+01819P 0536 C4   80      A        ANDB   #@200    SAVE ONLY MSB.
+01820P 0538 8C   059A    P        CMPX   #FDCEND
+01821P 053B 26   C4   0501        BNE    FOUT2    CONTINUE WITH OUTPUT.
+01822P 053D A6   C2      A FOUT11 LDA    ,-U      REMOVE TRAILING ZEROES.
+01623P 053F 81   30      A        CMPA   #'0
+01824P 0541 27   FA   053D        BEQ    FOUT11
+01825P 0543 81   2E      A        CMPA   #'.
+01826P 0545 26   02   0549        BNE    FOUT12   Not 0 or DP so save it.
+01827P 0547 33   5F      A        LEAU   -@1,U    Eat the DP.
+01828P 0549 86   2B      A FOUT12 LDA    #'+
+01829P 054B D6   47      A        LDB    TENEXP
+01830P 054D 27   1C   056B        BEQ    FOUT17   NO EXPONENT TO OUTPUT.
+01831P 054F 2A   03   0554        BPL    FOUT14
+01832P 0551 86   2D      A        LDA    #'-      EXP IS NEGATIVE.
+01833P 0553 50                    NEGB            MAKE EXP VALUE POSITIVE.
+01834P 0554 A7   42      A FOUT14 STA    @2,U     STORE SIGN OF EXP
+01835P 0556 86   45      A        LDA    #'E
+01836P 0558 A7   41      A        STA    @1,U     STORE THE "E" CHARACTER.
+01837P 055A 86   2F      A        LDA    #'0-@1
+01838P 055C 4C             FOUT15 INCA            MOVE CLOSER TO OUTPUT VALUE.
+01839P 055D C0   0A      A        SUBB   #@12     SUBTRACT 10.
+01840P 055F 24   FB   055C        BCC    FOUT15   NOT NEGATIVE YET.
+01841P 0561 CB   3A      A        ADDB   #'0+@12  GET SECOND OUTPUT CHARACTER.
+01842P 0563 ED   43      A        STD    @3,U     Put away the exponent.
+01843P 0565 6F   45      A        CLR    @5,U     PUT IN A TERMINATOR.
+01844P 0567 20   04   056D        BRA    FOUT20   RETURN.
+01845P 0569 A7   C4      A FOUT19 STA    ,U       STORE THE CHARACTER.
+01846P 056B 6F   41      A FOUT17 CLR    @1,U     A TERMINATOR.
+01647P 056D 8E   0000    A FOUT20 LDX    #FBUFFR
+01848P 0570 39             FPWRRT RTS             ALL DONE.
+01849
+01850                             XDEF   FHALF
+01351P 0571      80      A FHALF  FCB    @200     1/2
+01852P 0572      00      A        FCB    @000
+01853P 0573      00      A        FCB    @000
+01854P 0574      00      A        FCB    @000
+01855            0001    A        IFNE   ADDPRC
+01856P 0575      00      A        FCB    @000
+01857                             ENDC   IFN      ADDPRC
+01858
+01859                      *
+01860                      * POWERS OF TEN TABLE
+
+PAGE  023  ECBMTH  .SA:1  MATH P FLOATING POINT OUTPUT ROUTINE.
+
+01861                      *
+01862
+01863            0001    A        IFEQ   ADDPRC
+01883                       ENDC   IFE ADDPRC
+01684
+01885            0001    A        IFNE   ADDPRC
+01886                             XDEF   FOUTBL
+01887P 0576      FA      A FOUTBL FCB    @372     -100,000,000
+01888P 0577      0A      A        FCB    @012
+01889P 0578      1F      A        FCB    @037
+01890P 0579      00      A        FCB    @000
+01891P 057A      00      A        FCB    @000     10,000,000
+01892P 057B      98      A        FCB    @230
+01893P 057C      96      A        FCB    @226
+01894P 057D      80      A        FCB    @200
+01895P 057E      FF      A        FCB    @377     -1,000,000
+01896P 057F      F0      A        FCB    @360
+01897P 0580      BD      A        FCB    @275
+01898P 0581      C0      A        FCB    @300
+01699P 0582      00      A        FCB    @000     100,000
+01900P 0583      01      A        FCB    @001
+01901P 0584      86      A        FCB    @206
+01902P 0585      A0      A        FCB    @240
+01903P 0586      FF      A        FCB    @377     -10,000
+01904P 0587      FF      A        FCB    @377
+01905P 0588      D8      A        FCB    @330
+01906P 0589      F0      A        FCB    @360
+01907P 058A      00      A        FCB    @000     1000
+01908P 058B      00      A        FCB    @000
+01909P 058C      03      A        FCB    @003
+01910P 058D      E8      A        FCB    @350
+01911P 058E      FF      A        FCB    @377     -100
+01912P 058F      FF      A        FCB    @377
+01913P 0590      FF      A        FCB    @377
+01914P 0591      9C      A        FCB    @234
+01915P 0592      00      A        FCB    @000     10
+01916P 0593      00      A        FCB    @000
+01917P 0594      00      A        FCB    @000
+01918P 0595      0A      A        FCB    @012
+01919P 0596      FF      A        FCB    @377     -1
+01920P 0597      FF      A        FCB    @377
+01921P 0598      FF      A        FCB    @377
+01922P 0599      FF      A        FCB    @377
+01923                             ENDC   IFN      ADDPRC
+01924                             XDEF   FDCEND
+01925            059A    P FDCEND EQU    *
+01926
+
+PAGE  024  ECBMTH  .SA:1  MATH P FLOATING POINT OUTPUT ROUTINE.
+
+01928 
+01929                             TTL    EXPONENTIATION AND SQUARE ROOT FUNCTION.
+01930                      * SQUARE ROOT FUNCTION --- SQR(A)
+01931                      * USE SQR(X)=X^.5
+01932
+01933                             XDEF   SQR
+01934P 059A BD   030D    P SQR    JSR    MOVAF    MOVE FAC INTO ARG.
+01935P 059D 8E   0571    P        LDX    #FHALF
+01936P 05A0 BD   02C2    P        JSR    MOVFM    PUT MEMORY INTO FAC.
+01937                      *    LAST THING FETCHED IS FACEXP. INTO ACCB.
+01938                      * JMP FPWRT  ;FALL INTO FPWRT.
+01939
+01940                      * EXPONENTIATION --- X^Y.
+01941                      * N.B.  0^0=1
+01942                      * FIRST CHECK IF Y=0. IF SO, THE RESULT IS 1.
+01943                      * NEXT CHECK IF X=0. IF SO THE RESULT IS 0.
+01944                      * Must give Division By Zero error if 0 is raised to a negative power.
+01945                      * THEN CHECK IF X.GT.0. IF NOT CHECK THAT Y IS AN INTEGER.
+01946                      * IF SO, NEGATE X, SO THAT LOG DOESN'T GIVE FCERR.
+01947                      * IF X IS NEGATIVE AND Y IS ODD, NEGATE THE RESULT
+01948                      * RETURNED BY EXP.
+01949                      * TO COMPUTE THE RESULT USE X^Y=EXP((Y*LOG(X)).
+01950                             XDEF   FPWRT
+01951P 05A3 27   71   0616 FPWRT  BEQ    EXP      IF FAC=0, JUST EXPONENTIATE THAT.
+01952P 05A5 4D                    TSTA            IS X=0?
+01953P 05A6 26   09   05B1        BNE    FPWRT1
+01954P 05A8 96   54      A        LDA    FACSGN   Is Y negative?
+01955P 05AA 102B FD06 02B4        LBMI   DV0ERR   Yes, give "Division By Zero" error.
+01956P 05AE 7E   0086    P        JMP    ZEROF1   No, the result  is zero.
+01957P 05B1 8E   004A    A FPWRT1 LDX    #TEMPF3  SAVE FOR LATER IN A TEMP.
+01958P 05B4 BD   02E3    P        JSR    MOVMF
+01959P 05B7 5F                    CLRB            IN CASE NO ONE CALLS INT.
+01960P 05B8 96   61      A        LDA    ARGSGN
+01961P 05BA 2A   10   05CC        BPL    FPWR1    NO PROBLEMS IF X.GT.0.
+01962P 05BC BD   039C    P        JSR    INT      INTEGERIZE THE FAC.
+01963P 05BF 8E   004A    A        LDX    #TEMPF3  GET ADDR OF COMPERAND.
+01964P 05C2 96   61      A        LDA    ARGSGN
+01965P 05C4 BD   034E    P        JSR    FOUTCP   EQUAL?
+01966P 05C7 26   03   05CC        BNE    FPWR1    LEAVE X NEG. LOG WILL BLOW HIM OUT.
+01967P 05C9 43                    COMA            NEGATE X. MAKE POSITIVE.
+01968P 05CA D6   01      A        LDB    INTEGR   GET EVENNESS.
+01969P 05CC BD   02FA    P FPWR1  J5R    MOVFA1   ALTERNATE ENTRY POINT.
+01970P 05CF 34   04      A        PSHS   B        SAVE EVENNESS FOR LATER.
+01971P 05D1 BD   013F    P        JSR    LOG      FIND LOG.
+01972P 05D4 8E   004A    A        LDX    #TEMPF3  MULTIPLY FAC TIMES LOG(X).
+01973P 05D7 BD   0176    P        JSR    FMULT
+01974P 05DA 8D   3A   0616        BSR    EXP      EXPONENTIATE THE FAC.
+01975P 05DC 35   02      A        PULS   A
+01976P 05DE 46                    RORA            IS IT EVEN?
+01977P 05DF 24   8F   0570        BCC    FPWRRT   YES. OR X.GT.0.
+01978                      * NEGATE THE NUMBER IN FAC.
+01979                             XDEF   NEGOP
+01980P 05E1 96   4F      A NEGOP  LDA    FACEXP
+01981P 05E3 27   02   05E7        BEQ    NEGRTS
+01982P 05E5 03   54      A        COM    FACSGN
+01983P 05E7 39             NEGRTS RTS
+01984
+
+PAGE  025  ECBMTH  .SA:1  MATH P EXPONENTIATION AND SQUARE ROOT FUNCTION.                                                                                                                                                                                              •
+
+01986 
+01987                             TTL    EXPONENTIATION FUNCTION.
+01988                      * FIRST SAVE THE ORIGINAL ARGUMENT AND MULTIPLY THE FAC BY 
+01989                      * LOG2(E). THE RESULT IS USED TO DETERMINE IF OVERFLOW
+01990                      * WILL OCCUR SINCE EXP(X)=2^(X*LOG2(E)) WHERE
+01991                      * LOG2(E)=LOG(E) BASE 2. THEN SAVE THE INTEGER PART OF 
+01992                      * THIS TO SCALE THE ANSWER AT THE END. SINCE
+01993                      * 2^Y=2^INT(Y)*2^(Y-INT(Y)) AND 2^INT(Y) IS EASY TO COMPUTE.
+01994                      * NOW COMPUTE 2^(X*LOG2(E)-INT(X*LOG2(E)) BY
+01995                      * P(LN(2)*(INT(X*LOG2(E))+1)-X) WHERE P IS AN APPROXIMATION
+01996                      * POLYNOMIAL. THE RESULT IS THEN SCALED BY THE POWER OF 2
+01997                      * PREVIOUSLY SAVED.
+01998
+01999P 05E8      81      A LOGEB2 FCB    @201     LOG(E) BASE 2.
+02000P 05E9      38      A        FCB    @070
+02001P 05EA      AA      A        FCB    @252
+02002P 05EB      3B      A        PCB    @073
+02003            0001    A        IFNE   ADDPRC
+02004P 05EC      29      A        FCB    @051
+02005                             ENDC   IFN      ADDPRC
+02006
+02007            0001    A        IFEQ   ADDPRC
+02037                       ENDC   IFE ADDPRC
+02038
+02039            0001    A        IFNE   ADDPRC
+02040P 05ED      07      A EXPCON FCB    @7       Number of constants -1.
+02041P 05EE      71      A        FCB    @161     .000021498763697
+02042P 05EF      34      A        FCB    @064
+02043P 05F0      58      A        FCB    @130
+02044P 05F1      3E      A        FCB    @076
+02045P 05F2      56      A        FCB    @126
+02046P 05F3      74      A        FCB    @164     .00014352314036
+02047P 05F4      16      A        FCB    @026
+02048P 05F5      7E      A        FCB    @176
+02049P 05F6      B3      A        FCB    @263
+02050P 05F7      1B      A        FCB    @033
+02051P 05F8      77      A        FCB    @167     .0013422634824
+02052P 05F9      2F      A        FCB    @057
+02053P 05FA      EE      A        FCB    @356
+02054P 05FB      E3      A        FCB    @343
+02055P 05FC      85      A        FCB    @205
+02056P 05FD      7A      A        FCB    @172     .0096140170119
+02057P 05FE      1D      A        FCB    @035
+02058P 05FF      84      A        FCB    @204
+02059P 0600      1C      A        FCB    @034
+02060P 0601      2A      A        FCB    @052
+02061P 0602      7C      A        FCB    @174     .055505126860
+02062P 0603      63      A        FCB    @143
+02063P 0604      59      A        FCB    @131
+02064P 0605      58      A        FCB    @130
+02065P 0606      0A      A        FCB    @012
+02066P 0607      7E      A        FCB    @176     .24022638462
+02067P 0608      75      A        FCB    @165
+02068P 0609      FD      A        FCB    @375
+02069P 060A      E7      A        FCB    @347
+02070P 060B      C6      A        FCB    @306
+02071P 060C      80      A        FCB    @200     .69314718608
+02072P 060D      31      A        FCB    @061
+
+PAGE  026  ECBMTH  .SA:1  MATH P EXPONENTIATION FUNCTION.
+
+02073P 060E      72      A        FCB    @162
+02074P 060F      18      A        FCB    @030
+02075P 0610      10      A        FCB    @020
+02076P 0611      81      A        FCB    @201     1.0
+02077P 0612      00      A        FCB    @000
+02078P 0613      00      A        FCB    @000
+02079P 0614      00      A        FCB    @000
+02080P 0615      00      A        FCB    @000 
+02081                             ENDC   IFN      ADDPRC
+02082
+02083                             XDEF   EXP
+02084P 0616 8E   05E8    P EXP    LDX    #LOGEB2  Multiply argument by log2(e).
+02085P 0619 8D   37   0652        BSR    GFMULT
+02086P 061B BD   02DD    P        JSR    MOV1F    Pack the result into TEMPF1.
+02087P 061E 96   4F      A        LDA    FACEXP   Get the exponent.
+02088P 0620 81   88      A        CMPA   #@210    If exponent .GE. 128 decimal we have
+02089P 0622 25   03   0627        BCS    EXP1     overflow.
+02090
+02091P 0624 7E   020A    P GOMLDV JMP    MLDVEX   Overflow or underflow.
+02092
+02093P 0627 BD   039C    P EXP1   JSR    INT      Get the integer part.
+02094P 062A 96   01      A        LDA    INTEGR
+02095P 062C 8B   81      A        ADDA   #@201    It will be the exponent of the final
+02096                      *    result.
+02097P 062E 27   F4   0624        BEQ    GOMLDV   Overflow.
+02098P 0630 4A                    DECA            Adjust (?) and save final exponent.
+02099P 0631 34   02      A        PSHS   A
+02100P 0633 8E   0040    A        LDX    #TEMPF1  Subtract out the integer part
+02101P 0636 BD   0005    P        JSR    FSUB     to get the fractional part.
+02102P 0639 8E   05ED    P        LDX    #EXPCON  Calculate 2^fractional part of
+02103P 063C 8D   17   0655        BSR    POLY     Xlog2(e).
+02104P 063E 0F   62      A        CLR    ARISGN   Multiply by positive 1.0. (?)
+02105P 0640 35   02      A        PULS   A        Get scale factor.
+02106P 0642 BD   01F6    P        JSR    MULDIV   Modify FACEXP and check for overflow.
+02107P 0645 39                    RTS             Must JSR, RTS due to PULSs in MULDIV.
+
+PAGE  027  ECBMTH  .SA:1  MATH P EXPONENTIATION FUNCTION.
+
+02109 
+02110                             TTL    POLYNOMIAL EVALUATOR AND THE RANDOM NUMBER GENERATOR.
+02111                      * EVALUATE P(X^2)*X
+02112                      * POINTER TO DEGREE IS IN XREG.
+02113                      * THE CONSTANTS FOLLOW THE DEGREE.
+02114                      * FOR X=FAC,  COMPUTE:
+02115                      *  C0*X+C1*X^3+C2*X^5+C3*X^7+...+C(N)*X^(2*N+1)
+02116                             XDEF   POLYX
+02117P 0646 9F   64      A POLYX  STX    POLYPT   RETAIN POLYNOMIAL POINTER FOR LATER.
+02118P 0648 BD   02DD    P        JSR    MOV1F    SAVE FAC IN FACTMP.
+02119P 064B 8D   05   0652        BSR    GFMULT   COMPUTE X^2
+02120P 064D 8D   08   0657        BSR    POLY1    COMPUTE P(X^2).
+02121P 064F 8E   0040    A        LDX    #TEMPF1
+02122P 0652 7E   0176    P GFMULT JMP    FMULT    MULTIPLY BY FAC AGAIN.
+02123
+02124                      * POLYNOMIAL EVALUATOR.
+02125                      * POINTER TO DEGREE IS IN XREG.
+02126                      * COMPUTE:
+02127                      *  C0+C1*X+C2*X^2+C3*X^3+C4*X^4+...+C(N-1)*X^(N-1)+C(N)*X^N.
+02128                             XDEF   POLY
+02129P 0655 9F   64      A POLY   STX    POLYPT
+02130P 0657 BD   02D8    P POLY1  JSR    MOV2F    SAVE FAC.
+02131P 065A 9E   64      A        LDX    POLYPT   GET POLYNOMIAL PNTR BACK.
+02132P 065C E6   80      A        LDB    ,X+
+02133P 065E D7   55      A        STB    DEGREE
+02134P 0660 9F   64      A        STX    POLYPT   SAVE POINTER TO FIRST CONSTANT.
+02135P 0662 8D   EE   0652 POLY2  BSR    GFMULT
+02135P 0664 9E   64      A        LDX    POLYPT   GET CURRENT POINTER.
+02137P 0666 30   05      A        LEAX   @4+ADDPRC,X POINT TO NEXT CONSTANT.
+02138P 0668 9F   64      A        STX    POLYPT
+02139P 066A BD   000E    P        JSR    FADD     ADD IN CONSTANT.
+02140P 066D 8E   0045    A        LDX    #TEMPF2  MULTIPLY THE ORIGINAL FAC.
+02141P 0670 0A   55      A        DEC    DEGREE   DONE?
+02142P 0672 26   EE   0662        BNE    POLY2
+02143P 0674 39             RANDRT RTS             YES.
+02144
+
+PAGE  028  ECBMTH  .SA:1  MATH P POLYNOMIAL EVALUATOR AND THE RANDOM NUMBER GE
+
+02146            0001    A        IFEQ   NEWRND
+02223                       ENDC   IFE NEWRND
+02224
+
+PAGE  029  ECBMTH  .SA:1  MATH P POLYNOMIAL EVALUATOR AND THE RANDOM NUMBER GE
+
+02226 
+02227                             TTL    New Random Number Generator
+02228
+02229            0001    A        IFNE   NEWRND
+02230
+02231                      *
+02232                      * Based on the TRS-80 Level II RND.
+02233                      *
+02234
+02235                             XDEF   RND
+02236P 0675 BD   031B    P RND    JSR    SIGN     Test the sign of the argument.
+02237P 0678 2B   21   069B        BMI    SEEDIT   Negative args seed the generator.
+02238P 067A 27   15   0691        BEQ    RND0     Zero, return floating point value
+02239                      *    between zero and one.
+02240P 067C 8D   10   068E        BSR    GOINT    Get integer part of argument.
+02241P 067E BD   02DD    P        JSR    MOV1F    Save it in TEMPF1.
+02242P 0681 8D   0E   0691        BSR    RND0     Get random number between 0 and 1.
+02243P 0683 8E   0040    A        LDX    #TEMPF1  Scale it by the argument.
+02244P 0686 8D   CA   0652        BSR    GFMULT 
+02245P 0688 8E   0111    P        LDX    #FONE    Add one to get value between 1 and
+02246P 068B BD   000E    P        JSR    FADD     the argument.
+02247P 068E 7E   039C    P GOINT  JMP    INT      Return it as an integer.
+02248
+02249
+02250P 0691 BE   0001    A RND0   LDX    RNDX+@1  Copy last random number into the FAC. 
+02251P 0694 9F   50      A        STX    FACHO
+02252P 0696 BE   0003    A        LDX    RNDX+@3
+02253P 0699 9F   52      A        STX    FACMO
+02254P 069B BE   06CA    P SEEDIT LDX    MULTR    Copy the multiplier into ARG.
+02255P 069E 9F   5D      A        STX    ARGHO 
+02256P 06A0 BE   06CC    P        LDX    MULTR+@2
+02257P 06A3 9F   5F      A        STX    ARGMO
+02258P 06A5 BD   017C    P        JSR    RNDMUL   Get four low order bytes of multiply 
+02259                      *    into RNDTMP.
+02260P 06A8 DC   AD      A        LDD    RNDTMP+@2 Add in the random constant.
+02261P 06AA C3   658B    A        ADDD   #(@145*&256+@213)
+02262P 06AD FD   0003    A        STD    RNDX+@3
+02263P 06B0 DD   52      A        STD    FACMO
+02264P 06B2 DC   AB      A        LDD    RNDTMP
+02265P 06B4 C9   B0      A        ADCB   #@260
+02266P 06B6 89   05      A        ADCA   #@5
+02267P 06B8 FD   0001    A        STD    RNDX+@1
+02268P 06BB DD   50      A        STD    FACHO
+02269P 06BD 0F   54      A        CLR    FACSGN   Make it look positive.
+02270P 06BF 86   80      A        LDA    #@200    Make it be between 0 and 1.
+02271P 06C1 97   4F      A        STA    FACEXP
+02272P 06C3 96   15      A        LDA    RESMO    Get something to shift in.
+02273P 06C5 97   63      A        STA    FACOV
+02274P 06C7 7E   0068    P        JMP    NORMAL   Go normalize it.
+02275  
+02276P 06CA      40      A MULTR  FCB    @100
+02277P 06CB      E6      A        FCB    @346
+02278P 06CC      40      A        FCB    @115
+02279P 06CD      AB      A        FCB    @253
+02280                             ENDC   IFN      NEWRND
+02281
+02282                             TTL    SINE, COSINE AND TANGENT FUNCTIONS.
+02283
+
+PAGE  030  ECBMTH  .SA:1  MATH P SINE, COSINE AND TANGENT FUNCTIONS.
+
+02284                      * COSINE FUNCTION.
+02285                      * USE COS(X)=SIN(X+PI/2)
+02286                             XDEF   COS
+02287P 06CE 8E   0742    P COS    LDX    #PI2     PNTR TO PI/2.
+02288P 06D1 BD   000E    P        JSR    FADD     ADD IT IN
+02289                      *    FALL INTO SIN.
+02290
+02291
+02292                      * SINE FUNCTION.
+02293                      * USE IDENTITIES TO GET FAC IN QUADRANTS I OR IV.
+02294                      * THE FAC IS DIVIDED BY 2*PI AND THE INTEGER PART IS IGNORED
+02295                      * BECAUSE SIN(X+2*PI)=SIN(X). THEN THE ARGUMENT CAN BE COMPARED
+02296                      * WITH PI/2 BY COMPARING THE RESULT OF THE DIVISION
+02297                      * WITH PI/2/(2*PI)=1/4.
+02298                      * IDENTITIES ARE THEN USED TO GET THE RESULT IN QUADRANTS
+02299                      * I OR IV. AN APPROXIMATION POLYNOMIAL IS THEN USED TO
+02300                      * COMPUTE SIN(X).
+02301                             XDEF   SIN
+02302P 06D4 BD   030D    P SIN    JSR    MOVAF
+02303P 06D7 8E   0747    P        LDX    #TWOPI   SET PNTR TO DIVISOR.
+02304P 06DA D6   61      A        LDB    ARGSGN   GET SIGN OF RESULT.
+02305P 06DC BD   0237    P        JSR    FDIVF
+02306P 06DF BD   030D    P        JSR    MOVAF    GET RESULT INTO ARG.
+02307P 06E2 8D   AA   068E        BSR    GOINT    INTEGERIZE FAC.
+02308P 06E4 0F   62      A        CLR    ARISGN   ALWAYS HAVE THE SAME SIGN.
+02309P 06E6 96   5C      A        LDA    ARGEXP   SET UP FOR THE "SETUP" SUBBER.
+02310P 06E8 D6   4F      A        LDB    FACEXP
+02311P 06EA BD   0008    P        JSR    FSUBT    KEEP ONLY THE FRACTIONAL PART.
+02312P 06ED 8E   074C    P        LDX    #FR4     GET PNTR TO 1/4.
+02313P 06F0 BD   0005    P        JSR    FSUB     COMPUTE 1/4-FAC.
+02314P 06F3 96   54      A        LDA    FACSGN   SAVE SIGN FOR LATER.
+02315P 06F5 34   02      A        PSHS   A
+02316P 06F7 2A   09   0702        BPL    SIN1     FIRST QUADRANT.
+02317P 06F9 BD   0000    P        JSR    FADDH    ADD 1/2 TO FAC.
+02318P 06FC 96   54      A        LDA    FACSGN   SIGN IS NEGATIVE?
+02319P 06FE 2B   05   0705        BMI    SIN2
+02320P 0700 03   0A      A        COM    TANSGN   QUADRANTS II AND III COME HERE.
+02321                             XDEF   SIN1
+02322P 0702 BD   05E1    P SIN1   JSR    NEGOP    IF POSITIVE, NEGATE IT.
+02323P 0705 8E   074C    P SIN2   LDX    #FR4     POINTER TO 1/4.
+02324P 0708 BD   000E    P        JSR    FADD     ADD IT IN.
+02325P 070B 35   02      A        PULS   A        GET ORIGINAL QUADRANT.
+02326P 070D 4D                    TSTA            SET CODES.
+02327P 070E 2A   03   0713        BPL    SIN3
+02328P 0710 BD   05E1    P        JSR    NEGOP    IF NEGATIVE, NEGATE RESULT.
+02329P 0713 8E   0751    P SIN3   LDX    #SINCON
+02330P 0716 7E   0646    P GPOLYX JMP    POLYX    DO APPROXIMATION POLYNOMIAL.
+02331
+02332                      * TANGENT FUNCTION.
+02333                             XDEF   TAN
+02334P 0719 BD   02DD    P TAN    JSR    MOV1F    MOVE FAC INTO TEMPORARY.
+02335P 071C 0F   0A      A        CLR    TANSGN   REMEMBER WHETHER TO NEGATE.
+02336P 071E 8D   B4   06D4        BSR    SIN      COMPUTE THE SIN.
+02337P 0720 8E   004A    A        LDX    #TEMPF3
+02338P 0723 BD   02E3    P        JSR    MOVMF    PUT SIGN INTO OTHER TEMP.
+02339P 0726 8E   0040    A        LDX    #TEMPF1
+02340P 0729 BD   02C2    P        JSR    MOVFM    PUT THIS MEMORY LOC INTO FAC.
+02341P 072C 0F   54      A        CLR    FACSGN   START OFF POSITIVE.
+
+PAGE  031  ECBMTH  .SA:1  MATH P SINE, COSINE AND TANGENT FUNCTIONS.
+
+02342P 072E 96   0A      A        LDA    TANSGN
+02343P 0730 8D   0C   073E        BSR    COSC     COMPUTE COSINE.
+02344P 0732 0D   4F      A        TST    FACEXP   Give OV error instead of letting FDIV
+02345P 0734 1027 F9A6 00DE        LBEQ   OVERR    give /0 error if cosine is 0.
+02346P 0738 8E   004A    A        LDX    #TEMPF3  ADDRESS OF SINE VALUE.
+02347P 073B 7E   023D    P GFDIV  JMP    FDIV     DIVIDE SINE BY COSINE AND RETURN.
+02348P 073E 34   02      A COSC   PSHS   A
+02349P 0740 20   C0   0702        BRA    SIN1
+02350 
+02351P 0742      81      A PI2    FCB    @201     PI/2
+02352P 0743      49      A        FCB    @111
+02353P 0744      0F      A        FCB    @017
+02354P 0745      DA      A        FCB    @333-ADDPRC
+02355            0001    A        IFNE   ADDPRC
+02356P 0746      A2      A        FCB    @242
+02357                             ENDC   IFN      ADDPRC
+02358 
+02359P 0747      83      A TWOPI  FCB    @203     2*PI.
+02360P 0748      49      A        FCB    @111
+02361P 0749      0F      A        FCB    @017
+02362P 074A      DA      A        FCB    @333-ADDPRC
+02363            0001    A        IFNE   ADDPRC
+02364P 074B      A2      A        FCB    @242
+02365                             ENDC   IFN      ADDPRC
+02366 
+02367P 074C      7F      A FR4    FCB    @177     1/4
+02368P 074D      00      A        FCB    @000
+02369P 074E      00      A        FCB    @000
+02370P 074F      00      A        FCB    @000
+02371            0001    A        IFNE   ADDPRC
+02372P 0750      00      A        FCB    @000
+02373                             ENDC   IFN      ADDPRC
+02374
+02375            0001    A        IFEQ   ADDPRC
+02397                       ENDC   IFE ADDPRC
+02398
+02399            0001    A        IFNE   ADDPRC
+02400P 0751      05      A SINCON FCB    @5       DEGREE-1.
+02401P 0752      84      A        FCB    @204     -14.381383816
+02402P 0753      E6      A        FCB    @346
+02403P 0754      1A      A        FCB    @032
+02404P 0755      2D      A        FCB    @055
+02405P 0756      1B      A        FCB    @033
+02406P 0757      86      A        FCB    @206     42.07777095
+02407P 0758      28      A        FCB    @050
+02408P 0759      07      A        FCB    @007
+02409P 075A      FB      A        FCB    @373
+02410P 075B      F8      A        FCB    @370
+02411P 075C      87      A        FCB    @207     -76.704133676
+02412P 075D      99      A        FCB    @231
+02413P 075E      68      A        FCB    @150
+02414P 075F      89      A        FCB    @211
+02415P 0760      01      A        FCB    @001
+02416P 0761      87      A        FCB    @207     81.605223690
+02417P 0762      23      A        FCB    @043
+02418P 0763      35      A        FCB    @065
+02419P 0764      DF      A        FCB    @337
+02420P 0765      El      A        FCB    @341
+
+PAGE  032  ECBMTH  .SA:1  MATH P SINE, COSINE AND TANGENT FUNCTIONS.
+
+02421P 0766      86      A        FCB    @206     -41.34170209
+02422P 0767      A5      A        FCB    @245
+02423P 0768      5D      A        FCB    @135
+02424P 0769      E7      A        FCB    @347
+02425P 076A      28      A        FCB    @050
+02426P 076B      83      A        FCB    @203     6.2831853070
+02427P 076C      49      A        FCB    @111
+02428P 076D      0F      A        FCB    @017
+02429P 076E      DA      A        FCB    @332
+02430P 076F      A2      A        FCB    @242
+02431P 0770      A1      A        FCB    @241     7.2362932E7
+02432P 0771      54      A        FCB    @124
+02433P 0772      46      A        FCB    @106
+02434P 0773      8F      A        FCB    @217
+02435P 0774      13      A        FCB    @23
+02436P 0775      8F      A        FCB    @217     73276.2515
+02437P 0776      52      A        FCB    @122
+02438P 0777      43      A        FCB    @103
+02439P 0778      89      A        FCB    @211
+02440P 0779      CD      A        FCB    @315
+02441                             ENDC   IFN      ADDPRC
+02442
+02443                             TTL    ARCTANGENT FUNCTION.
+02444
+02445                      * USE IDENTITIES TO GET ARG BETWEEN 0 AND 1 AND THEN USE AN
+02446                      * APPROXIMATION POLYNOMIAL TO COMPUTE ARCTAN(X).
+02447                             XDEF   ATN
+02448P 077A 96   54      A ATN    LDA    FACSGN   WHAT IS SIGN?
+02449P 077C 34   02      A        PSHS   A        (MEANWHILE SAVE FOR LATER.)
+02450P 077E 2A   02   0782        BPL    ATN1
+02451P 0780 8D   23   07A5        BSR    GNEGOP   IF NEGATIVE, NEGATE FAC.
+02452                      *    USE ARCTAN(X)=-ARCTAN(-X) .
+02453P 0782 96   4F      A ATN1   LDA    FACEXP
+02454P 0784 34   02      A        PSHS   A        SAVE THIS TOO FOR LATER.
+02455P 0786 81   81      A        CMPA   #@201    SEE IF FAC .GE. 1.0 .
+02456P 0788 25   05   078F        BCS    ATN2     IT IS LESS THAN 1.
+02457P 078A 8E   0111    P        LDX    #FONE    GET PNTR TO 1.0 .
+02458P 078D 8D   AC   073B        BSR    GFDIV    COMPUTE RECIPROCAL.
+02459                      *    USE ARCTAN(X)=PI/2-ARCTAN(1/X).
+02460P 078F 8E   07A9    P ATN2   LDX    #ATNCON  PNTR TO ARCTAN CONSTANTS.
+02461P 0792 8D   82   0716        BSR    GPOLYX
+02462P 0794 35   02      A        PULS   A
+02463P 0796 81   81      A        CMPA   #@201    WAS ORIGINAL ARGUMENT .LT. 1 ?
+02464P 0798 25   06   07A0        BCS    ATN3     YES.
+02465P 079A 8E   0742    P        LDX    #PI2
+02466P 079D BD   0005    P        JSR    FSUB     SUBTRACT ARCTAGN FROM PI/2.
+02467P 07A0 35   02      A ATN3   PULS   A
+02468P 07A2 4D                    TSTA            WAS ORIGINAL ARGUMENT POSITIVE?
+02469P 07A3 2A   03   07A8        BPL    ATN4     YES.
+02470P 07A5 7E   05E1    P GNEGOP JMP    NEGOP    IF NEGATIVE, NEGATE RESULT.
+02471P 07A8 39             ATN4   RTS             ALL DONE.
+02472
+02473            0001    A        IFEQ   ADDPRC
+02511                       ENDC   IFE ADDPRC
+02512
+02513            0001    A        IFNE   ADDPRC
+02514P 07A9      0B      A ATNCON FCB    @13      DEGREE-1.
+02515P 07AA      76      A        FCB    @166     -.0006847939119
+
+PAGE  033  ECBMTH  .SA:1  MATH P ARCTANGENT FUNCTION.
+
+02516P 07AB      B3      A        FCB    @263
+02517P 07AC      83      A        FCB    @203
+02518P 07AD      BD      A        FCB    @275
+02519P 07AE      D3      A        FCB    @323
+02520P 07AF      79      A        FCB    @171     .004850942156
+02521P 07B0      1E      A        FCB    @036
+02522P 07B1      F4      A        FCB    @364
+02523P 07B2      A6      A        FCB    @246
+02524P 07B3      F5      A        FCB    @365
+02525P 07B4      7B      A        FCB    @173     -.01611170184
+02526P 07B5      83      A        FCB    @203
+02527P 07B6      FC      A        FCB    @374
+02528P 07B7      B0      A        FCB    @260
+02529P 07B8      10      A        FCB    @020
+02530P 07B9      7C      A        FCB    @174     .03420963805
+02531P 07BA      0C      A        FCB    @014
+02532P 07BB      1F      A        FCB    @037
+02533P 07BC      67      A        FCB    @147
+02534P 07BD      CA      A        FCB    @312
+02535P 07BE      7C      A        FCB    @174     -.05427913276
+02536P 07BF      DE      A        FCB    @336
+02537P 07C0      53      A        FCB    @123
+02538P 07C1      CB      A        FCB    @313
+02539P 07C2      C1      A        FCB    @301
+02540P 07C3      7D      A        FCB    @175     .07245719654
+02541P 07C4      14      A        FCB    @024
+02542P 07C5      64      A        FCB    @144
+02543P 07C6      70      A        FCB    @160
+02544P 07C7      4C      A        FCB    @114
+02545P 07C8      7D      A        FCB    @175     -.08980239538
+02546P 07C9      B7      A        FCB    @267
+02547P 07CA      EA      A        FCB    @352
+02548P 07CB      51      A        FCB    @121
+02549P 07CC      7A      A        FCB    @172
+02550P 07CD      7D      A        FCB    @175     .1109324134
+02551P 07CE      63      A        FCB    @143
+02552P 07CF      30      A        FCB    @060
+02553P 07D0      88      A        FCB    @210
+02554P 07D1      7E      A        FCB    @176
+02555P 07D2      7E      A        FCB    @176     -.1428398077
+02556P 07D3      92      A        FCB    @222
+02557P 07D4      44      A        FCB    @104
+02556P 07D5      99      A        FCB    @231
+02559P 07D6      3A      A        FCB    @072
+02560P 07D7      7E      A        FCB    @176     .1999991205
+02561P 07D8      4C      A        FCB    @114
+02562P 07D9      CC      A        FCB    @314
+02563P 07DA      91      A        FCB    @221
+02564P 07DB      C7      A        FCB    @307
+02565P 07DC      7F      A        FCB    @177     -.3333333157
+02566P 07DD      AA      A        FCB    @252
+02567P 07DE      AA      A        FCB    @252
+02568P 07DF      AA      A        FCB    @252
+02569P 07E0      13      A        FCB    @023
+02570P 07E1      81      A        FCB    @201     1.0
+02571P 07E2      00      A        FCB    @000
+02572P 07E3      00      A        FCB    @000
+02573P 07E4      00      A        FCB    @000
+
+PAGE  034  ECBMTH  .SA:1  MATH P ARCTANGENT FUNCTION.
+
+02574P 07E5      00      A        FCB    @000
+02575                             ENDC   IFN      ADDPRC
+02576
+02577                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000
