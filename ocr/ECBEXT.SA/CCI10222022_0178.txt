@@ -1,0 +1,64 @@
+                      PAGE 029 ECBEXT    .SAT.1 EXTEND RENUM - Renumber a BASIC program
+
+
+                      02325P 062B 34   10      A       PSHS   X 
+                      02326P 062D BD   0000    A       JSR    LINGET   Read tne number into LINNUM.
+                      02327P 0630 9E   A6      A       LDX    TXTPTR   Scan back until X points to the 
+                      02328P 0632 A6   82      A BIN110 LDA   ,-X      last digit of the line number.
+                      02329P 0634 BD   0000    A       JSR    ISDIBC   (Last CHRGET call in LINGET skipped 
+                      02330P 0637 25   F9   0632       BCS    BIN110   trailing spaces, tabs, etc.) 
+                      02331P 0639 30   01      A       LEAX   &I, X    X:=pointer to first char after last
+                      02332                      *   digit.
+                      02333P 063B 1F   10      A       TFR    X,D      BtI=Iendth of line number.
+                      02334P 063D EO   61      A       SUBB   &1,E1
+                      02335P 063F CO   05      A       SUBB   #&5      5 bytes are needed for the binary
+                      02336                          line number token.
+                      02337P 0641 27   20 0663         BEG!   BIN120   Line number was exactly 5 long.
+                      02338P 0643 25   OA   064F       BLO    BIN115   Line number is less than 5, no
+               41     02339                      *   move program up to make room.
+                      02340P 0645 33   84      A       LEAU   ,X       Line number is longer than 5.  (It 
+                      02341                      *   must have leading zeroes and/or
+                       '7"                       *   embedded spaces.) Block transfer 
+                      02343                      *   the program down to take up the 
+       4 11111 41     02344                      *   extra space. Set up the source 
+                      02345                          pointer for DELDO.
+                      02-.46P 0647 50                  NEGB            Set up the destination pointer.
+                      02347P 0648 30   85      A       LEAX   B,X
+                      02348P 064A BD   0406    P       JSR    DELDO    Call the DELETE code to move the
+                      02349                      *   program down and update VARTAB.
+                      02350P 064D 20   14   0663       BRA    BIN120   Go build the token.
+                      02351
+                      00352P 064F 9F   47      A BIN115 STX   LOWTR    Block transfer program IAD.
+                      02353P 0651 SE   1B      A       LDX    VARTAB   Set up LOWTR, HIGHTR, and HIGHDS
+                      02354P 0653 SI.: 43      A       SIX    HIGHTR   for BLTU.
+                      02355P 0655 50                   NEGB            (B was negative from SUBBIM 5.)
+                      02356P 0656 30   85      A       LEAX   B,X
+                      02357P 0658 9F   41      A       STX    HIGHDS
+                      02358P 065A SF   IB      A       STX    VARTAB   Set new VARTAB.
+                      02359P 0650 BD   0000    A       JSR    BLTU     Move it up.  (If an OMERR occurs
+               oft    02360                      *   the program is left in a totally
+                      02361                      *   useless state.)
+                      02362P 065F SE   45      A       LDX    LOWDS    Set TXTPTR to resume scan where
+                      02363P 0661 9F   A6      A       SIX    TXTPTR   the first char moved up is now.
+                      02364
+                      02365P 0663 35   10      A BIN120 PULS  X        Get pointer to where to build the
+               11     02366                          modified binary line number token.
+                      02367P 0665 86   01              LDA    #&1      FOR SETTING TYPE BYTE AND MODIFIERS.
+                      02368P 0667 A7   84              STA    ,X       SET THE TOKEN TYPE.
+                      02369P 0669 A7   02      A       STA             ASSUME THE HIGH AND LOW BYTES ARE
+                      02370P 066B A7   04      A       STA    a.4,X    NON-ZERO IN WHICH CASE THE MODIFIER 
+                      02371                      *   BYTES MUST BE ONES.
+                      02372P 066D D6   2B      A       LDB    LINNUM   IF THE HIGH ORDER BYTE IS ZERO THEN
+                      02373P 066F 26   04   0675       BNE    8i:N130      THE MODIFIED TO TWO AND THE
+                      02374P 0671 C6   01      A       LDB    #&1      HIGH BYTE TO ONE.
+                      02375P 0673 60   02      A       INC    &2,X 
+                      02376P 0675 E7   01      A,BIN130 STB   8,1,X 
+                      02377P 0677 D6   20      A       LDB    LINNUM+&1 D0 SAME THING FOR LOW BYTE.
+                      02378P 0679 26   04   067F       BNE    BIN140
+                      02379P 0679 C6   01      A       LDB    tke,1
+                      02380P 067D 60   04      A        INC   &4,X
+                      02381P 067F E7   03      A BIN140 STB   8,3,X
++44 (0)20 89          02382P 0681 9D   A5              JSR    CHRGOT   SEE IF A COMMA FOLLOWS.
+
+     For Your N a
+

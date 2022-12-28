@@ -1,0 +1,75 @@
+                                                PAG:       027       EC3M64         .SA'11       EaBM64        7he CdEN code.
+
+
+                                                01742                                              *
+                                                01743                                              *   Here to open device for output.
+                                                01744
+                                                01745
+                                                01746P       046F      4:                          °PEND        INCA                           If lineprinter or screen just                            return.
+                                                01747P       0470      26       !7.7     046E                   BNE           OPNRTS
+                                                01748P       0472      4C                                       INCA                           To say it's a BASIC data file.
+                                                01749P       0473      8E       FFFF           P   OPNASC LDX                 *-&1             To set ASCFLG:=GAPFLet;=.TRUE.
+                                                01750                                                        Fall     into OPNCSO to write out the
+                                                01751                                              *         file header.
+                                                01752
+                                                01753                                              *
+                                                01754                                              *   OPNCSO writes out a file header and marks the cassette as open
+                                                01755                                              *   for     output.          On entry XHI=ASrFLG,                    XL0=GAPFLG,           and A=File type.
+                                                C1756                                              *
+                                                017'7
+                                                01758                                                           XDEF          a:NOS°
+                                                01759P       0476      OD       78                 OPNCSO TST                 CASOPN           Is the cassette already open?
+                                                017602       0478      26       89       0433                   BNF:          ADERR            Yes,     give an Already Open error.
+                                                01761P       047A      CE       0000                            LDU           #CASBUP          No,     point to (place to build the
+                                                01762                                                        header.
+                                                01763P       047D      DE       7F             A                STU           CBUFAD           Set     buffer address for a...KOUT.
+                                                01764P       047F      A7       48             A                STA           8,8,U            Put away the file type.
+                                                01765                                                        (FILTYP-CASBUF.,,,8 but                since FILTYP
+                                                01766                                                        and CASBUF are external the cross
+                                                01767                                                        assembler would use a 16 bit                           offset
+                                                01768                                                        if the expression were used.)
+                                                01769P       0481      AF       49                              STX                            Follow with ASCFLG and GAPFG.
+                                                01770                                                        (ASOFLS-CASBUF=9.)
+                                                01771P       0483      BE       0000                            LDX           #EILNAM          Copy the filename from FII_NAM                                                                                                                                 •
+                                                01772P       0486      BD       03AF                            JSR           COPNAM           into the header.
+                                                01773P       0489      OE       7fl                             CL.R          BLKTYP           Set     block type to file header.
+                                                01774P       0488      86       00                              LOA           #HDRLEN          Set     length of block.                                                                                                                                       •
+                                                01775P       Orf:!.811)97       /1)            A                STA           RLKLEN
+                                                01776P       048F      BD       0576                            jSR           WRTBLK           Turn on the motor,                  write a block,
+                                                01777                                              *         and turn off the Motor.
+                                                01778P       0492      86       02             A                LDA           #&-2             nark the cassette as open for output.
+                                                01779P       0494      97       78             A                STA           CASOPN
+                                                01780P       0496      20       CF       0467                   BRA           MRKMT            Mark the buffer as empty.
+
+
+
+
+
+
+
+
+                                   OF
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                              •
++44 (0)20 B9 71                                                                                                                                                                                                                                                                                          11111
+
+        For Your Neal "
+

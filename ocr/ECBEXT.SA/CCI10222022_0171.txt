@@ -1,0 +1,69 @@
+                  PAGE 022 ECBEXT .SA:1 EXTEND RENUM - Renumber a BASIC program
+
+                  02049                         *
+                  02050                         *  High byte of binary line number
+                  02051                         *  Low byte of binary line number
+             1111 02052                         *  Unused
+                  02053                         *  Unused
+                  02054                         *
+                  02055                         * 8) Scan the program looking for binary line number tokens and
+                  02056                         * undefined line reference tokens. When an undefined line
+                  02057                         * reference token is found print the message "Undefined
+                  02058                         * Line XXXXX In YYYYY" where "XXXXX" is the undefined line
+                  02059                         * number and "YYYYY" is the line number (after renumbering)
+                  02050                         * of the line the reference is in.
+                  02061                         *
+                  02062                         * Convert all undefined line reference and binary line number
+                  02063                         * tokens to ASCII by calling FOUT. Put the ASCII digits
+                  02064                         * into the space used by the token and block transfer the
+                  02055                         * Drooram down if there is space left over.      (This is the
+                  02066                         * case if the ASCII representation is fewer than 5 digits.
+                  02067                         * The ASCII can never be longer than 5 digits so block
+                  02068                         * transferring up is never required at this point.)
+           ()     02069                         *
+             WA 02070                           * 9) Step 8 destroyed the links if any block transferring occurred
+                  02071                         * so call CHEAD to fix them up.
+                  02072                         *
+                  02073                         * 10) Call CLEARC to init ARYTAB and STREND to point
+                  02074                         * to the new end of program. jump to READY.
+                  02075
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+           ( 
+
+
+
+           (
+
+
+
+
+
+
++44 (0)2 (_
+
+
+     For 't 
+

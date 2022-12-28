@@ -1,0 +1,77 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        41
+
+
+                                                                                               PAGE                  042               ECBGRP                        .SAg1                    TXRGRP CIRCLE
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        40
+                                                                                               03164                                                                                             *
+                                                                                               03165                                                                                             *       SCAN FOR SIZE OR STAT POSITION
+                                                                      41                       03166                                                                                             *                                                                                                                                                                                                                                                                                                                                                                                                      40
+                                                                             II',I             03167P                    0060 5F                                                                 CPOSSB CLRB                                                                         ASSUME NO ARGUMENT                                                                                                                                                                                                                                                                                          I      '
+                                                                                               03168P                    0D61 90                             A5                           A                                JSR                       0HRGOT
+                                                                      40                       03169P                    0063 27                             11                0076                                        BEG)                      CPSEND                                                                                                                                                                                                                                                                                                                                             41
+                                                                                               03170P                    0065 BD                             0000                         A                                JSR                       CHKCOM
+                                                                                               03171P                    0066 BD                             0000                         A                                JSR                       FRMNUM                          EVALUATE THE NUMBER
+                                                                      40                       03172P                    OD6B 96                             4F                           A                                LDA                       FACEXP                          SCALE BY 64
+                                                                                               03173P                    0060 88                             06                           A                                ADDA                      *t&E,
+                                                                                               03174P                    006F 97                             4F                           A                                STA                       FACEXP
+                                                                      40                       03175P                    0071 BD                             0000                         A                                JSR                       CONINT                                                                                                                                                                                                                                                                                                                                             40
+                                                                                               03176P                    0074 04                             3F                           A                                ANDB                      #&63                            ORIGINAL HAD TO BE 0 TO 1
+                                                                                               03177P                    0076 1F                             98                           A      CPSEND TFR                                          B,A                             GET TWO COPIES FOR BIT SPLIT
+                                                                      4,                       03176P                    0D78 04                             07                           A                                ANDS                      WC/                             ASSUMES 8 POINTS                                                                                                                                                                                                                                                                                                   40
+                                                                                               03179                                                                                             *                  SET NUMPNT PARAmETER
+                                                                                               03180P                    007A 44                                                                                           LSRA                                                      GET QUADRANT PARAMETER
+                                                                      40                       03181P                    0078 44                                                                                           LSRA                                                                                                                                                                                                                                                                                                                                                                         40
+                                                                                               03182P                    0070 44                                                                                           LSRA
+                                                                                               03163P                    0070 39                                                                                           RTS
+                                                                      410                      03184                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    40
+                                                                                               03165                                                                                                                       END                                                                                                                                                                                                                                                                                                                                                                 1111
+                                                                                               TOTAL                 ERRORS 00000--00000 
+                                                                      40                       TOTAL                 WARNINGS 00001--01128                                                                                                                                                                                                                                                                                                                                                                                                                                                              41
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        40
+
+
+
+                                   woomporip                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            41
+                                   gda-1004
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        40
+
+
+
+                                  411.7:1'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              40
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        40
+
+                                                                             I  !
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        40
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               -        41
+
+ssion" - it's a word that 
+ent. The latest in Dan la 
+f power amplifiers is th 
+spent in the research an 
+nents that always rise to 
+respect the demands of t 
+  realism from the most su 
+st thunderous of cresce 
+allowed to affect the dyn
+
+
+
+
+
+   bsolute so
+
+           :      1, 1                 H \Arc        )     I \A
+                            I!     ,      /I I
+
+                                                                      •
+

@@ -1,0 +1,74 @@
+                          PARE   018  ECBM64   .SA:1   EC9M64 CLOAD -  Load a program from cassette..
+
+                          01448                         *
+                          01449                         * Here to  load an ungaoped machine language file.
+                          01450                         *
+                          01451
+                          01452                                XDEF    MLDLNG 
+                          01453P  0321 9E    8A       A MLDUNG LOX     DBLZER    Assume no load offset specified. 
+                          014542  0323 90    A5       A        JSR     CHRGOT    End of statement?
+                          01455P  0325 27    06   032D         BED.    ZEROFF    Yes, use the default offset of zero. 
+                          01456P  0327 BD    0000     A        JSR     CHKCOM    No, eat the comma and evaluate
+                          01457P  032A       0000     A        JSR     EVLADR    the specified offset.
+                          0145BP  0520 96    0000       ZEROFF j.DA    FILTYP    Is the file a machine language file?
+                          01459P  0330 81    02       A        CMPA    #F,2
+                          01460P  0332 26    BC   02E0         ENE     BMERR1    No, dive file mode error.
+                          01461P  0334  C    0000     A        LDD     STRTAD    Yes, add the load offset to the 
+                   410    01452P  0337 33    BB       A        LEAU    D,X       execution address and save it for 
+                          01463P  0339 D F   90                STU     EXECAD    the EXEC statement.
+                          01464P  0339 F C   0000     A        LDD     LOADAD    Add the load offset to the load 
+                          01465P  033E 30    89       A        LEAX    D,X       address of the file.
+                          0.14662 0340 9     73       A        STX     CBUFAD    Save the effective load address. 
+                          01467P  0342 BD    0000     A        JSR     CSRDON    Turn on the cassette and sync up. 
+                          014682  0345  D    0523       MLDC1_PjSR     BLK:N     Read the next block of the file. 
+                          01469P  0348 26    04                BNE     GOLDER    Bad read.
+                          r)1470P 034A                A        STX     CBUFAD    Update the load address.
+                          0147IP  034C 0D    7C       A        TST     BLKTYP    What type of block was read?
+                          01a72P  034'727    CE   0313         Btl:C!  GOIOER    Can't have header in middle of file. 
+                          01477P  0350 2A    F3   0345         BPL     MLDCLP    A data record, do read more.
+                   411110 01474P  0352       0000     A SOCOFF JMP     CASOFF    End of file, turn off cassette and
+                          01475                              return to  NEWSTT.
+
+
+
+
+
+                                                                                                                                                                             •
+
+
+
+
+
+
+
+
+                                                                                                                                                                          II k
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 89 71      V ,
+
+     For Your Nec
+

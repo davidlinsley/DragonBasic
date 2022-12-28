@@ -1,0 +1,83 @@
+                       PAGE  019  ECBME4         ECBM64 CLOAD   Load a program from cassette.
+
+                       01477                             77'    The EXEC statement.
+                       01478
+                       01479                      *
+                       01480                      * The EXEC statement causes processor control to be transferredto
+                       0148                       * the specified address.  If no address is specified the address
+                       0:482                      * contained in EXECAD is used.
+                       01483                      *
+                       01484
+                       01485                             XDEE   EXEC
+                    |! C1486P 0355 27   05   035C EXEC   BED    EXEnDO   Use EXECAD if nothing specified.
+                       014875 0357 BD   0000    A        jSS    EVLADS   Evaluate the execution address.
+                       01488P 035A 9P   9D      A        STX    EXECAD   Put it away.
+                       014895 035C GE   9F 009D A EXECDD JYP    tEXECADj Go to it.
+                       01490
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 89 7 8'
+
+    For Your Ne
+
+
+
+
+                 (
+

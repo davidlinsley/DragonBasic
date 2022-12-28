@@ -1,0 +1,276 @@
+                                                      PAGE          009         ECBOE4             .SA81            IODRVR I/O DRIVER SuBROUTINES 
+
+
+
+
+
+
+
+
+                                      •               00465                                                                            XDEF             *LORIN
+
+
+
+
+                                                      004E6                                    01FD               P   2CBIN            EQO              *
+
+
+
+
+                                                      00467P           01FD        86          08                 A   ORIN             LDA              1,13                 SET oP COUNT OF BITS
+
+
+
+                                                                                               07
+                       H I                            004682           01=F        97          o....)             A                    STA              BITCNT               TO B1:-       RHCOVERED
+
+
+
+
+                                                      00469P           0201        8D          F2          07F5       NXTBIT           BSR              BITIN                READ        INDIVIDUAL BITS
+
+
+
+
+                                                      00470P           0203        46                                                    L.                                  AND SHIFT               INTO        (A)      -      S BIT FIRST
+
+
+
+
+                                                      00471P           0204        OA          83                 A                    DFC              BITCNT               REPEAT uNTI'                   ALL
+
+
+
+                                                      00472P           0206        26          F9          0201                        BNE              NXTBIT               BITS READ IN
+
+
+
+
+                                                      00473P           0208        39                                                  RTS
+
+
+
+
+                                                      00474                                                           *
+
+
+
+                                                      00475                                                           *    TIMEHI - COmPARES THE                               WIDTH OH HI PuLSE AGAINST REFERENCE
+
+
+
+
+                                                      00476                                                           *
+
+
+                                      •                                                        0-:, 
+                                                      00477P           0209        OF          ,..,..,.           A   TImEHI           CLR              PWIDTH               RESET COUNTER
+
+
+
+                                                      00478P           020B        8D          E3          01E0                        BSR              HANEFI               PwIDTH = TimE SPENT HI
+
+
+
+
+                                                      00479P           020D        20          04          0'.,13                      BRA              TESTPW               COmPARE WITH, REFERENCE TImE
+
+
+
+
+                                                      00480                                                           *
+
+
+
+                                                      00481                                                           *    TImELO - SAME AS TImEHI EXCEPT DEALING WITH A                                                                        PULSE
+
+
+
+
+                                                      00482                                                           *
+
+
+
+                                                      00483P           020F        OF          82                 A   TIMELO           CLR              PWIDTH                                                                                                                                                                                                                      0 
+
+
+
+
+                                                      00484P           0211        8D          DE          01E9                                         HANOLO
+
+
+
+
+                                                      00485P           0213        DE          82                 A   TESTPW           rf.:             PwIDTH               GET RESULT
+
+
+
+                                                      00486P           0215        D1          94                 A                    CMPB             mAXOPW               VALID PULSE wIDTH?                                                                                                                                                                                     0
+
+
+
+
+                                                      004872           0217        22          03          027C                        BH1              PWERR
+
+
+
+                                                      00488P           0219        D1          93                 A                    CMAD             M1N0Pw               YES,        RETUFm! HI UR LO RESULT
+
+
+
+
+                                                      00489P           021B        39                                                  RTS
+
+
+
+                                                      00490P           021C        OF          63                 Hi  PWERR            CLR              BITCNT               NO,       RESET SYNC BIT CUUNTER
+
+
+
+
+                                                      00491P           021E        39                                                  RTS
+
+
+
+                                                      00492                                                           *                                                                                                                                                                                                                                                             0
+
+
+
+
+                                                      00493                                                           *    CASON         -    TURNS THE CASSETTE                           muTOR ON
+
+
+
+
+                                                      00494                                                           *
+
+
+
+
+                                                      00495                                                                            XDEF             ZCASON
+
+
+
+                                                      00496                                    021F               P   ZCASON           EOU              *
+
+
+
+
+                                                      00497P           021F        BE          FF21               A   CASON            LDA              P1CRA                READ CURRENT CH
+
+
+
+
+                                                      00498P           0222        BA          08                 A                    ORA              #8                   SET CR3 BIT
+
+
+
+
+                                                      00499P           0224        B7          FF21               A                    STA              01CRA                WRITE BACK,                 SETTING CA2 HI
+
+
+
+                                                      00500P           0227        9E          95                 A                    LDX              MODLAY               NOW WAIT FOR mOTOR
+
+
+
+
+                                                      00501P           0229        16          FDED        0015                        LBRA             IXDLAY               TO COmE UP TO SPEED
+
+
+
+                                                      00502                                                           *
+
+
+
+
+                                                      00503                                                           *    CASOFF - TURNS                       Pc4;::  CASSETTE MOTOR OH=
+
+
+
+                                                      00504                                                           *
+
+
+
+                                                      00505                                                                            XDEF             ZCASCF
+
+
+
+
+                                                      00506                                    0220               P   ZCASOF           EfDc             *
+
+
+
+
+                                                      00507P           022C        BE          FF21               A   CASOFF           LDA              PlORA
+
+
+
+
+                                                      00508P           022F        84          F7                 A                    ANDA             #$F7                 RSEY CR3 THUS
+
+
+
+                                                      00509P           0231        B7          F.,:21             A                    STA              P1CRA                ILRNING mCTOR OF=
+
+
+
+                                                      00510P           0234        1C          AF                 f..:11               AND0C            #$AF                 RE-ENABLE P & I                                                                                                                                                                                        0
+                                                                                                                                                                                                                    INTERRUPTS
+
+
+
+                                                      00511P           0236        39                                                  RTS
+
+
+
+
+                                                      00512                                                           *
+
+
+
+                                                      00513                                                           *    CSRDUN - TURN CASSETTE ON AND 13.7....T                                          INTO B:T SYNC
+
+
+
+
+                                                      00514                                                           *.
+
+
+
+
+                                                      00575                                                                            XDEF             ZCSRDO
+
+
+
+                                                      00516                                    0237               P   ZCSRDO             CuE            *
+
+
+
+
+                                                      00517P           0237        lA          50                 A   OSRDON           CRCC             #$50                 D:SABLE F               8,  1     INTERLPTS Fe                       Si.T BAN6ING
+
+
+
+
+                                                      00518P           0239        SD          E4          021F                                         CASON                  L.:',,
+
+
+
+
+                                                      00519P           023B        OH          83                 A                    I'C':N           BITCN':              RESET SYNC BIT C;.:UNT
+
+
+
+                                                      00520P           0=0         so          AS          0167       SYNCER           SSR              RISER                wAsIT       FoR       P   RIS':.'NO        EDSE
+
+
+  J0]20E3971 BE
+                                                      00521P           023=        ED          C8          0205       CHROHI           BSR              7ImEHI               -7171E      '..... q,-    W.EDTH         OH     HL:.   SIGNAL
+
+
+
+                                                      00522P           041         22          OC          024J::                      SH1              CHF.-;0-O            1200 -I PULSE?
+
+For Your Neare5
+

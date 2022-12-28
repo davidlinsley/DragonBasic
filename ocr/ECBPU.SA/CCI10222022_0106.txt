@@ -1,0 +1,116 @@
+                                           •
+
+
+
+
+                                                          PAGE 014 ECBPU                           .SA21 TXRPU The PRINT USING Floating Point Output Routine
+                                           fir
+
+                                                          01188                                                      *
+
+                                                          01189                                                      *   Print number with fractional digits in fixed point format.
+
+                                                          01190                                                      *
+
+                                                          01191
+
+                                                          011922          0275      96         D6               A FFXVO4 LDA                        DPWID               If there are any decimal places 
+                                           40             01193P          0277      27         01         027A                       BED            FFXV05              specified subtract one for the dp.
+
+                                                          01194P          0279      4A                                               DECA
+
+                                                          011952          027A      98         47               A FFXV05 ADDA                       TENEXP              How many digits to divide out.
+                                           40             011962          0270      28         01         027F                       BMI            FFXV08
+
+                                                          011972          027E      4F                                               CLRA                               If no division then zero the count. 
+
+                                                          011982          027F      34         02               A FFXV06 PSHS                       A                   Save division count.
+
+                                                          011992          0281      2A         OA         028D FFXV07 BPL                           FFXV08              Done dividing.
+
+                                                          012002          0283      34         02               A                    PSHS           A                   Divide out another digit.
+
+                                                          012012          0285      BD         0000             A                    JSR            DIV10
+
+                                                          01202P          0288      35         02               A                    PULS           A
+
+                                                          012032          028A      40                                               INCA
+
+                                                          01204P          0288      20         F4         0281                       BRA            FFXV07
+
+                                                          01'205
+
+                                                          012062          028D      96         47               A FFXV06 LDA                        TENEXP              Calculate the number of fractional
+
+                                                          012072          028F      AO         EO               A                    SUBA           ,S+                 digits in the FAC (negative) by
+
+                                                          012082          0291      97         47               A                    STA            TENEXP              subtracting the division count from
+
+                                                          01209                                                      *          the decimal exponent.
+
+                                                          012102          0293      88         09               A                    ADDA           #&6+&3*ADDIDRC A:=number of integer digits.
+
+                                                          01211P          0295      28         19         0280                       BMI            FFXV09              There are no integer digits.
+
+                                                          012122          0297      96         D9               A                    LDA            FLDWID              Print leading zeroes.
+
+                                                          01213P          0299      80         09               A                    SUBA           #&8-143*ADDPRC
+
+                                                          01214P          0298      90         47               A                    SUBA           TENEXP
+
+                                                          012152          029D      8D         OD         02AC                       BSR            FOTZER
+
+                                                          012162          029F      BD         0425                                  JSR            FOUTCD              Set up decimal point and comma counts.
+
+                                                          01217P          02A2      20         1D         0201                       BRA            FFXV10              Go print the number.
+
+                                                          01218
+
+                                                          012192          02A4      34         02               A FOTZRL PSHS                       A                   Save the zero count and put in a
+
+                                                          012202          02A6      86         30               A                    LDA            WO                  zero.
+
+                                                          012212          02A8      A7         CO               A                    STA            0_1+
+
+                                                          01222P          02AA      35         02               A                    PULS           A
+
+                                                          01223P          02AC      4A                               FOTZER DECA                                        Any zeroes to print? 
+
+                                                          012242          02AD      2A         F5         02A4                       82L            FOTZRL              Yes, go print one.
+
+                                                          01225P          02AF      39                                               RTS
+
+                                                          01226
+
+                                                          01227P          0280      96         D9               A FFXV09 LDA                        FLDWID              Fill the leading digits with zeroes.
+
+                                                          012282          0282      8D         F8         02AC                       8.68           FOTZER
+                                                          012292          0284      BD         040h             P                    JSR            FOUTDP              out in the decimal point.
+                                                          01230P          0287      86         F7               A                    LDA            #-(&81-&3*ADDPRC) A:=number of zeroes before the actual
+
+                                                          012312          0289      90         47               A                    SUBA           TENEXP              number.
+
+"Progression" -it's a wo                                  012322          0288      8D         EF         02AC                       8SR            FOT2ER              Put in the zeroes.
+movement. The latest in                                   01233P          02BD      OF         45               A                    CLR            DECCNT              Decimal count:=comma count:=0.
+family of power amplifier                                 012342          028F      OF         D7               A                    CLR            COMCNT 
+lifetime spent in the rese                                012352          0201      BD         0304             P FFXV10 JSR                        CNVASC              Convert the FAC.
+components that always                                    012362          02C4      96         D8               A                    LDA            DPWID               Any fractional digits?
+
+always respect the dema                                   012372          0206      26         02         02CA                       BNE            FFXV11              Yes.
+
+(;onvey realism from the r                                012382          0208      DE         39               A                    LDU            FDECPT              No, end of number is at the op. 
+                                               I I I
+   io most thunderous of                                  012392          02CA      98         47               4 FFXV11 ADDA                       TENEXP              Fill out the trailing digits.
+
+;      lot allowed to affect tl                           012402          0200      16         FF43       0212                       LBRA           KEEPDP
+
+
+
+
+
+
+
+
+
+         absolute
+

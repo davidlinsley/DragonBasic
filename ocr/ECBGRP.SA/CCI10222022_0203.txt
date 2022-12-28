@@ -1,0 +1,103 @@
+                                  • 
+
+
+
+                                                  PAGE         020       ECBGRA              SA           TXRGRP Oraonics PUT and GET
+                                  •
+
+                                                  01813                                                                 TO GET THE NAME
+
+                                                  018111P        0640       E6         82               A                    LDB            ,-X                 LOOK JUST BEFORE VALUE TO FETCH'
+
+                                                  01815P         064F       A6         82               A                    LOA            ,-X                 NAME
+
+                                                  01816P         0851       1F         03               A                    TFR            D,U                 SAVE NAME IN EU.]
+
+                                                  01817P         0653       96         ID               A                    LOX            ARYTAB              START AT FIRST ARRAY
+
+                                                  016182         0855       90         1F               A    LOPFDP CMPX                    STREND              SEE IF ARRAYS ENDED
+
+                                                  01819D         0657       1027       F9A5             A                    LBEQ           FCERR               IF SO ILLEGAL STATEMENT
+
+                                                  01820P         0658       11A3       84               A                    CMPU           ,X                  IS THIS ARRAY THE ONE?
+                                                  0182IP         0656       27         06         0666                       BEQ            PGTRET              IF 80,        ADVANCE POINT AND RETURN
+                                                  01622P         0660       EC         02               A                    LDD            &2,X                GET SIZE INTO CD]
+                                                  018230         0662       30         8B               A                    LEAX           D,X                 ADVANCE TO NEXT ARRAY
+
+                                                  018242         0664       20         E,         0855                       BRA            LOPFDP              AND CHECK IT
+
+                                                  01825P         0666       30         02               A    PGTRET LEAX                    &2,X                POINT AT BYTE COUNT
+                                                  01826P         0668       39                                               RTS
+                                  40              01827
+                                       10)1       01828                                                                      TTL            PAINT CODE
+
+                                                  01829P         0669       sjj                              PNTRTS RTS
+                                  •               01830
+                                                  01831
+                                                  0183-)                                                     *
+                                  aw              01633                                                      *   PAINT         (X,Y),PAINT COLOR,BORDER COLOR
+
+                                                  01834                                                      *   STARTING AT                (X,Y) WE COLOR WITH PAINT COLOR UNTIL
+                                                  01835                                                      *   WE FIND THE BORDER COLOR
+
+                                                  01836                                                      *   ALL CONNECTED FIGURES CAN BE PROPERLY COLORED
+
+                                                  01837                                                      *   THE EDGE OF THE SCREEN IS CONSIDERED A BORDER
+
+                                                  01838                                                      *
+
+                                                  01839                                                                      XDEF           PAINT
+
+                                                  01840P         066A       81         40               A    PAINT           CMPA           W12
+
+                                                  018412         0880       26         02         0870                       BNE            PNTNAT
+
+                                                  01842P         0866       90         9F               A                    JSR            CHRGET
+                                                  018432         0670       BD         0123             P    PNTNAT JSR                     ONECRD
+
+                                                  01844P         0673       BD         008E                                  JSR            GSCALE
+                                  0               018452         0676       88         01               A                    LDA            #&1                 FLAG AS PSET CASE
+                                       II:1       01846P         0678       97         172              A                    STA            SETFLG
+
+                                                  0184712        067A       60         02F2                                  JSR            CMCOLR              READ THE PAINT COLOR INTO EB1
+                                                  01348P         087D       DC         84               A                    LDD            ACTCLR              SAVE PAINT COLOR
+
+                                                  01849P         067F       34         06                                    PSHS           D                   WHICH CmCOLR SETUP
+
+                                                  01850P         0681       9D         A5               A                    JSR            CHRGOT              SEE IF BORDER COLOR IS DIFFERENT
+                                                  01851P         0683       27         03         0688                       BEQ            DEFBRD              IF NOT PRESENT DEFAULT TO PAINT COLOR
+
+                                                  018522         0685       BD         02F2                                  JSR            CMCOLR              READ A NEW COLOR
+
+                                                  01853P         0688       96         85               A    DEFBRO LOA                     ACTCLE              GET RESULT AND SAVE
+                                                  01854P         068A       97         08               A                    STA            PNTCLR              IN BORDER COLOR STORAGE AREA
+                                                  01855P         0680       35         06               A                    PULS           D                   GET BACK ACTIVE COLOR
+
+                                                  01856P         0686       DD         84               A                    STD            ACTCLR              FOR FILLING
+                                                  CI8572         0690       4F                               SCAN            CERA                               MAKE A DUMMY ENTRY ON THE
+"Progression" -it's                               01858P         0691       34         56               A                    PSHS           D,X,U               STACK WITH DIRECTION OF 0
+movement. The late                                01859P         0693       B0         0293                                  JSR            STMAXS              SETUP MAXIMUMS
+family of power am                                01860                                                                 SO WE KNOW WHERE THE BORDER IS                                                                                                                                                                                                 40
+lifetime spent in the                             01861P         0696       80         0000                                  JSR            PTADRS              GET THE ADRESS MAP ROUTINE FOR
+components that al                                01862P         0699       OF         D9               A                    STU            PNTADR              THIS SCREEN MODE AND SAVE IT
+ Mays respect the                                 01663P         0698       BD         0750             P                    JSR            SCANL               LOOK LEFT FILLING AS WE GO MAKING                                                  A   COUNT                                                                                           40
+(;oilvey realism from                  1 ! 11.    01664P         069E       27         oF         06AF                       BEQ            PNTLP2              IF NOT,          POP DUMMY ENTRY AND QUIT                                                                                                                                         1111
+II in most thunderoL                              018652         06A0       BD         0749                                  JSR            SCNCON              CONTINUE SCAN TO RIGHT AND PUT TOTAL                                             IN    [XI
+        at allowed to a                                                                                                                                                                                                                                                                                                                                40 
+                                                  01866D         06A3       86                                               LOA            #&1                 MAKE ENTRY TO LOOK UP
+                                                  01867P         06A5       9'7        87                                    STA            PDIRCT
+
+                                                  01888P         06A7       BD         0738                                  JSR            ENTERS              MAKE SCAN ENTRY WITH X2STOR & POIROT
+                                                  01889P         06A A      00         07                                    NEG            ADIRrT              MAKE ENTRY FOR LOOKING DOWN                                                                                                                                                            40
+
+         absolu                                   01870P         06PC       BD         0738                                  JSR            ENTERS
+
+
+                                                                                                                                                                                                                                                                                                                                                       0
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                       0
+

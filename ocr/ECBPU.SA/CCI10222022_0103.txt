@@ -1,0 +1,74 @@
+                                                         PAGE        011        ECBPU             .SA:1          TXRPU          The PRINT USING Floating Point Output Routine
+
+                                                         01069
+                                                         01070                                                      *   Here to print a number                             in fixed           point notation.
+                                         40              01071                                                      *
+                                                         01072
+                                                         01073P         01E5       96         4F               A    FIXNOT LDA                     FACEXP             Is the number zero?
+                                                         01074P         01E7       97         47               A                   STA             TENEXP             (Set decimal exponent to 0 if so.)
+                                                         01075P         01E9       27         03         01EE                      BEGI            FFXV03             Yes,       don7t try to normalize.
+                                                         01076P         01EB       BD         038F             P                   JSR             FOUTN              No,      normalize it so all the digits
+                                                         01077                                                      *          to be printed are in the integer Dart.
+                                                         01078P         OlEE       96         47               A    FFXV03 LDA                     TENEXP             Are there fractional digits?
+                                                         01079P         01F0       1028       0081       0275                      LBMI            FPXVO4             Yes because the decimal exponent                                         is
+                                                         01080                                                      *          Negative.
+                                                         01081
+                                                         01082                                                      *
+                                         40              01083                                                      *   Print number                 with no fractional digits.
+                                              illl       01084                                                      *
+                                                         01085P         01F4       40                                              NEGA                               Leading zeroes must be printed if the
+                                         40              01086P         01F5       9B         09               A                   ADDA            FLDWID             field has more chars than there are
+                                                         01087P         01F7       80         09               A                   SUBA            046-1-&3*ADDPRC digits in the number.                                            Calculate
+                                                         01088P         01F9       BD         02AC             P                   JSR             FOTZER             the number of zeroes to print by
+                                         It              01089                                                      *          effectively taking
+                                                         01090                                                      *          FLDWID-TENEXP-# of digits.
+                                                         01091P         01FC       BD         0425             P                   JSR             FOUTCD             Set up decimal point and comma counts.
+                                         40              01092P         01FF       BD         0304             P                   JSR             CNVASC             Convert to ASCII digits.
+                                                         01093P         0202       96         47               A                   LDA             TENEXP             Put      in some zeroes if the decimal
+                                                         01094P         0204       BD         0443             P                   JSR             FOTZEC             exponent            is non-zero.                   Commas may
+                                                         01095                                                      *          be needed             also.
+                                                         01096P         0207       96         47               A                   LDA             TENEXP             Make sure a decimal point                                 is printed
+                                                         01097P         0209       BD         040B             P                   JSR             FOUTED             for FOUTTS.
+                                                         01098                                                      *          Fall       into       FOUTTD to finish up.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+          -)HUL I-1
+
+
+ssion" - it's a word that 
+ent. The latest in Dan D' 
+f power amplifiers is th 
+spent in the research an 
+-lents that always rise to 
+respect the demands of 
+realism from the most su 
+st thunderous of cresc 
+ thawed to affect the dyn
+
+
+
+                                         •
+ bsolute so
+     I    I'CH      '   (Th 
+            I           ;\/\/,'Cl Hi \A  •
+
+
+
+                                         40
+

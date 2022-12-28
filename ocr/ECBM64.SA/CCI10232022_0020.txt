@@ -1,0 +1,119 @@
+                              2A&E    021   ECBM64    .SA:1   ECE64 Set Filename.
+
+
+
+                              01550P   03A1  ED    0000      A          JSR      FRMF.VL    Yes, evaluate the filename string formula.
+
+                              0155P    03A4  BD    0000      A          JSR      FRES7R     Make sure it's a string, free up the
+                              01552                            *      temp, B:=1ength of string, X:=pointer
+               al •
+                              01553                                   to strng data.
+
+                              01554::=J03A7  CE    0000      A          LDU      #FNAMLN Store the filename length and point 
+
+                              01555P   03AA  E7              A          STR      7U-1-      to FILNAM.     (FILNAM immediately 
+                              (l)1556                                 follows  FNAMLN.)
+
+                              '31557P  OZAC  27    OA    03E8           BE(D     COPRTS     Don't copy null string, use default
+                              01558                                   filename.
+
+                              01559    03AE                             S';'(IA2 Skip       into COPNAM to move the specified
+
+                              01560                                   filename into FILNAM.
+
+                              01551
+
+                              01562
+
+                              01563                            *  Copy filename (or any 8 bytes) from CXJ to [H].
+
+                              01564                            *
+
+                              01565
+
+                              01566P   03AF  C6    08        A CCPNAM LSE:       *e,8       Set up the count.
+
+                              01567                                     XDEF     COPEXU
+                              01558                03E1      P COPEXU E(:;!U
+
+                              01569                                     XDEF     COPLOP
+
+                              015702   03E1  A6    80        A COPLOP LDA        ,X+        Get a byte.
+
+                              01571P   03E3  A7    CO        A          STA      „U+        Move it.
+
+                              01572P   0325  5A                         DFCB                Do it eight times.
+                              01573    0326  26    F9    03E1           ENE      COPLOP
+
+                              01574P   c325  39                COPRTS RTS
+
+                              01575
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 [0]20 B9 71
+
+
+    For Your Neon
+

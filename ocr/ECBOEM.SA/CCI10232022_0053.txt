@@ -1,0 +1,62 @@
+                                    PAGE    012    ECBOEm      .SA:1     IODRVR I/O DRIVER SUBROUTINES
+
+
+                                    00639P 0301 24          05     0308              BHS       BUEND        THEREBY DOUBLING THE FREQUENCY
+                                    00640P 0303 S7                      A            STA       P1PDRA       TO 2400 HZ
+                   UK               00641P 0306 20          F3     02FB              BRA       HZ2400
+                                    00642                                 *  EAST TABLE ENTRY NUT YET OUTPUT TO AVOID INTER-BIT DISCONTINUITY
+                                    00643P 0308 97          55          A BITEND STA           LSTSIN       SAVE LAST ENTRY FOR LATER USE
+                                    00644P 030A 58                                   ASLB                   SHIFT TO NEXT BIT POSITION
+                                    00645P 030B 24          D4     02E1              BCC       NEWBIT       UNTIL ALL 8 BITS DEALT WITH
+                                    00646P 030D 35          82          A            PULS      A,P0         RESTORE AND RETURN
+                                    00647                                 *
+                                    00648                                 *  SS.NTAS - COW-AINS ENTR:FS USED TO GENERATE S.I.NE WAVE FORNS VIA DAC
+                                    00649                                 *  N.B.    THE FIRST ENTRY IS OFFSET TO ALLOW FOR INTER-BYTE DISCONTINUITY
+                                    00650                                 *
+                                    00651P    030F          80          A S:NTAS FOB           $80,$90,     A8, $58., $08, $ D8., $ E8., $  , $ F8
+                                    00652P    0318          F8          A            F08       $F8, $F8, $F0, $58, $D8„ $C8, $88, $48, $90
+                                    006534    0321          78          A            FCB       $78, $58, $50, $40, $30, $20, $10, $08, $00
+                                    00654P    0324          00          A            F0B       $00, $00„ $08, $10, $20, $30, $40, $50, $68
+                                    00655                                 *
+                                    00656                                 *  wRTLDR - OUTPUTS A BIT SYNC LEADER CF $55'S                     (ALTERNATING O'S & l'S)
+                                    00657                                 *
+                                    00658                                            XDEF      ZWRTLD
+                                    00659                   0333          ZWRTLD EQU
+                                    00650P    0333   34     24          A WRTLDR 4SHS          B,Y          SAVE RIESS
+                                    00661P    0335   lA     50          A            ORCC      #$50         DISABLE F & I       INTERRUPTS
+                                    00652P    0337   17     EFE0   029A              LsSR      CASON        TURN CASSETTE DRIV,:. ON
+                                    00663P    033A   86     55          A            LDA       #$55         SYNC BYTE VALUE
+                                    00664P    033C   9E     90          A            LDX       LDR0NT       NUMBER OF BYTES IN LEADER                                                                                                ,
+                                    00665P    033E   8D     9D     02DD   NXTLDR BSR           CBOUT        RECORD SYNC BYTE
+                                    00666P    0340   30     1F          A            LEAX      -1,X         UNTIL    (IX)   BYTES DUNE                                                                                               40
+                                    00667P    0342   25     FA     033E              DNE       NXTLDR
+                                    00668P    0344   35     44                       PULS      S,Y,PC       RESTORE AND RETURN
+                                    00659                                 *                                                                                                                                                          40
+                                    00670                                 *          DOWNLOADER I/O ROUTINES
+                                    00671                                 *
+                                    00672                                            XDEF      ZINHST
+                                    00673P    0346   34     05            ZINHST PSHS          B,CC         PRESERVE REGISTERS
+                                    00674P    0348   14     50                       ORCC      #$50
+                                    00675P    0344   86     08                       LDA       #$08         MASK FOR DATA RECEIVED                                                                                                   (
+                                    00676P    0340   F5     FF05                     LOB       RSCMD
+                                    006770    034F   CA     01                       ORB       #$01         SET DATA TERMINAL
+                                    00678P    0-51   F7                              STS       RSOmD        ....READY
+                                    00679P    0354   04     FE                       ANDB      #$FE         WE'LL FINISH AGAIN SOON
+                                    00680P    0:356         EF05        A RSRXwT BITA          RSSTAT       ANY DATA CAPTURED
+                                    0068IP    0359   27     FB     0355              BEQ       RSRXWT                                                                                                                                •
+                             IIH    00682P    0358   F7     FFO5        A            STB       RSCMD        ....NOT READY                                                                                                        1111
+                                    00683P    035E   86     FF04        A            LDA       RSRXD        READ IN THE INPUT
+                                    00684P    0351   3";    85          A            PuLS      D,D2„40      RESTORE AND RETURN
+                                    00685
+                                    00686                                            XDEF      ZOUTHS
+                                    00E870    0363          05          A ZOUTHS PSHS          8,00         SAVE REGISTERS
+                                    00688P    0365   C6     10          A            LDB       #$10         MASK FOR TRANSmIT SUFFER
+                                    00689P    0367   F5     FF05        A RSTXWT BITP          RSSTAY       EMPTY
+                                    00690P    0354   2/     Es     0367              BEQ.      RSTXWT
+                                    00691P    036C   87     FF04        A            STA       RSTXD        PUT OUT THE BYTE
+                                    00692P    035F   35     85                       PuLS      B00,00       RESTORE AND RETURN
+                                                                          *
++44(0)20E1971                       00694                                            XDEF      ZSTBAU
+                                    00695P    0371   u1     07          A ZSTBAU CMPB          #(RSTEND-RSTAB)
+      For Your Neal (J1             006954    0373   24     12     0387              B~S       RSERR        OUT OF- R.,1N6E
+

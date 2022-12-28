@@ -1,0 +1,96 @@
+                                                                                                                                                                                                                                                          •
+
+
+
+                                  PAGE     016     ECBMOD       .SA:1       ECBMnD OPNICK         and OPNOCK 
+
+
+
+                                  01392                                                  TTL        The 0006E.      code.
+
+                                  01393
+                       00         01394                                                  XDEF       CLOSE                                                                                                                                                 •
+
+                                             02B1    27      OE      0201    CLOSE       BEQ        CLSALL        Nothing specified,             close everythig.
+                                  01396P     02B3    B0      043C                        JSR        fiETDNM       Read a device number.
+                       40         01397P     02B6    BD      :0      o2ca    NXT01....0  BSR        CLOSIT        Close this device.                                                                                                                      •
+                                  01398P     0288    9D      A5                          JSR        CRGOT         Another number soecified?
+
+                                  01399P     02RA    27      2A      02E6                BEQ        CLSRTS        No,    all   done.
+                       40         01400P     028C    BD      04:39                       JSR        GETCDN        Yes,     read comma and device number.
+                          111     01401P     02BF    20      F5      02B6                BRA        NXTCLO        So close       lt.
+
+                                  01402
+                       40         01403                                                  XDEF       0LSALL
+                                  01404P     0201    BD      0000         A  0LSALL JSR             HK0LSA        RAM hook.
+
+                                  01405                                                  XDEF       0u80AS
+                       40         01406P     0204    86      FF              CLSOAS LIDA            #-&1          Only t!lind       requiring       attention        is
+                                  01407P     0206    97      6F           A              STA        DEVNUM        the cassette.
+
+                                  01406
+                       40         01409                                                  XDEF       0LOSIT
+                                  01410P     0206    BD      0000         A  OLOSIT JSR             HKCLS1        RAM hook.
+                                  01411P     0208    96      6F           A              LOA        DEVNUM        A:=device num'per.
+                       40         01412P     02CD    OF      6F           A              0LR        DFVNEIM       Clear it so normal             outpt occurs when
+                                  01413                                              close     is   finished.
+
+                                  01414P     02CF    40                                  INCA                     Do nothing        if   it   isn't    the cassette.
+                       40         01415P     02D0    26      14      02E6                BNE        CLSRTS                                                                                                                                                •
+                                  01416P     0202    96      76           A              L.DA       CASOPN        Is the casette open for outbut?
+
+                                  014172     0104    81      02           A              CMPA       1442
+                          I       0I4l8p     0206    26      00      02E4                BNE        MRKCLS        No     Just    mark    it as closec.
+                                  01419P     0208    96      79           A              LDA        CBFCNT        Yes,     is there stuff in the              buffer?
+
+                                  01420P     02DA    27      03      02DF                BEG)       EOFWRT        No.
+                                  0142IP     0200    BD      01DD                        38R        DMPBUF        Yes,     dump the buffer.                                                                                                               •
+                                  01422                                                  XDEF       EOFWRT
+
+                                  01423P     020F    CS      FF           A  EOFWRT LDB             #@377         Set    block type to erd            of flle.
+                                  01424P     02E1    BD      010F                        JSR        WIRTFIIP      Write an EOF block.                                                                                                                     •
+
+                                  01425P     02E4    0?:     78           A  MRKCLS 0LR             CASOPN        Mark the cassette as closed.
+
+                                  01426P     02E6    39                      CLSRTS RTS
+                                  01427                                                                                                                                                                                                                   •
+
+
+
+
+                                                                                                                                                                                                                                                          •
+
+
+
+
+
+
+
+ I HE H
+
+
+
+"Progression" - 
+
+movement. The I.                                                                                                                                                                                                                                     1111
+family of power . 
+lifetime spent in t1 
+components that 
+always respect th: 
+(;oi wey realism fr•                                                                                                                                                                                                                                      •
+
+ ip most thunde 
+;    mot allowed to
+                       to
+
+
+
+
+
+                                                                                                                                                                                                                                                          •
+      absol
+
+
+
+                       •
+

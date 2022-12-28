@@ -1,0 +1,186 @@
+                        PAGE          010        ECBGRP            .SA:1           TXRGRP NEW GRAPHICS CODE FOR 5847 COLOR COMPUTER
+
+
+
+
+
+
+                        01233P          02A5       8D          24         020B                        BSR             GETCLR              READ COLOR TO CLEAR TO
+
+
+                        01234P          02A7       86          ,..),)            A    GCLSB           LDA             *@125               REPLICATE THROUGHOUT BYTE
+
+         (.
+                        01235P          02A9       3D                                                 MIIL
+
+
+                        01236P          02AA       9E          BA                A                    LDX             SCBASE              STORE INTO SCREEN MEMORY
+
+
+                        01237P          02AC       E7          80                A    GCLSLP STB                      ,X-1-
+
+         (
+                        01238P          02AE       90          B7                A                    CMPX            Sr:TOP
+
+
+                        01239P          02B0       26          FA         02AC                        BNE             GCLSLP
+
+
+                        01240P          02B2       39                                                 RTS
+
+         (
+                        01241P          07B3       D6          B3                A    DEFCLS LDB                      BAKCLR
+
+
+             !!11       01242P          02E:5      20          FO         02A7                        BRA             GCLSB
+
+
+                        01243
+
+         (
+                        01244                                                         *
+
+
+                        01245                                                         *   COLOR SETS UP FOREGROUND AND BACKROUND COLOR
+
+
+                        01246                                                         *
+
+         (
+                        01247                                                                         XDEF            COLORS
+
+
+                        01248P          02B7       81          20                A    COLORS CMPA                     #COMMA              FOREGROUND COLOR PRESENT?
+
+
+                        01249P          02B9       27          08         02C3                        BEG!            COLORB              IF ONLY BACKGROUND
+
+         (
+                        01250P          02BB       8D          OF         020B                        BSR             GETCLR              READ COLOR IN
+
+
+                        01251P          02BD       D7          B2                A                    STB             FORCLR              SET UP FORCLR (FOREGROUND COLOR)
+
+
+                        01252P          07BF       9D          A5                A                    JSR             CHRGOT              FOREGROUND ONLY?
+
+
+                        01253P          02C1       27          07         02CA                        BEID            COLRTS
+
+
+                        01254P          0203       BD          0000              A    'COLORS JSR                     CHKCOM              HAVE TO HAVE COMMA BEFORE SACKROUND
+
+
+                        01255P          02C6       8D          03         020B                        BSR             GETCLR              FETCH BACKROUND COLOR
+
+
+                        01256P          02C8       D7          B3                A                    STB             BAKCLR              SET UP BAKCLR
+
+
+                        01257P          02CA       39                                 COLRTS RTS
+
+
+                        01258
+
+
+                        01259                                                         *
+
+
+             IHI1       01260                                                         *   GETCLR RETURNS
+
+
+
+                        01261                                                         *   [B] = COLOR FROM 0 TO 3
+
+         00
+                        01262                                                         *   EA3 = 8 IF CSS SHOULD BE SET 0 OTHERWISE
+
+   11
+                        01263                                                         *   TABLE OF RETURNS
+
+
+
+                        01264                                                         *   ARG C SW CSS
+           h
+           .
+                        01265                                                         *      0      3     0      0
+
+
+
+                        01266                                                         *      1      0     3      0
+
+
+                        01267                                                         *      21           0      0
+
+         ()
+                        01268                                                         *      3      2     3      0
+     !
+
+                        01269                                                         *      4      3     0      0
+
+
+
+                        01270                                                         *      5      0     3      8
+
+         (
+                        01271                                                         *      6      1     0      8
+
+
+                        01272                                                         *      7      2     3      8
+
+
+                        01273                                                         *      8      3     0      8
+
+         ('
+                        01274                                                         *
+
+
+                        01275P          020B       BD          0000              A    GETCLR JSR                      GETBYT              READ THE COLOR
+
+
+                        01276P          02CE       01          09                A    GETCLX OMPB                     #&9
+         (''
+
+                        01277P          02D0       1024        FD2C              A                    LBCC            FCERR               ILLEGAL OVER 9
+
+
+             I I I '    01278P          02D4       4F                                                 0LRA                                ASSUME CSS 0
+
+
+                        01279P          021)5      01          05                A                    CMPB            44&5
+         (
+
+                        01280P          02D7       25          04         02DD                        BC'S            CNOCSS              0 -4 HAVE NO CSS
+
+
+                        01281P          021)9      86          08                A                    LDA             #8,8
+
+
+
+                        01282P          02DB       CO          04                A                    SUBS            #&4                 MAP 5-8 TO 1-4
+         ("
+
+                        01283P          02DD       34          02                A    CNOCSS PSHS                     A                   SAVE CSS
+
+
+                        01284P          02DF       96          B6                A                    LDA             SCMODE              SEE IF COLOR OR BLACK AND WHITE
+
+
+                        01285P          02E1       46                                                 RORA
+         (
+                        01286P          02E2       24          08         02EC                        BCC             CLBWST              CLEAR FOR BLACK AND WHITE
+
+
+                        01287P          02E4       5D                                                 TSTB                                 IH NON-ZERO ALL WE NEED IS A DECREMENT
+
+
+                        01288P          02E5       26          02         0289                        BNE             CLOLST
+
+         (
+                        01289P          02E7       08          04                A    CLBW3           LDB             i444                FOR ZERO END UP MAPPING TO 3
+
+
+                        01290P          02E9       5A                                 CLCLST DEC'S
+
+f4
+

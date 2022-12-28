@@ -1,0 +1,63 @@
+                            PAGE  011   ECBU64     A    IODRVR I/O DRIVER SuBROUTINES
+
+                            00081P 02B8  34   24       A WRTLDR PSHS    8,Y       SAVE REGS
+              al            00582P 02BA  1A   50       A        ORCC    #550      DISABLE F & I  INTERRUPTS
+                            00583P 02BC  17   FF60 02IF         LBSR    CASON     TURN CASSETiF DRIVE ON
+                            00584A 02BF  86            A        LIM               SYNC BYTE VALUE
+              H I           00585P 02C1  9E   90       A        LDX     LDRCNT    NUMBER OF BYTES IN LEADER
+                            00586P 0203  8D   9D   0262  NxTLDR BsR     C80u7-    RECORD SYNC BYTE
+                            00587P 02C5  30   iF       A        LEAX    -1,X      UNTIL (IX)  BY7ES DONE
+                        I   00588P 02C7  26   FA   0203         BNE     NXTLDR
+                            00589P 02C9  30   A4                PULS    8,Y,PC    RESTORE AND REWRN
+                            00590                        *
+                            00591                        *     DOWNLOADER I/O ROUTINES
+                            00592                        *
+                    41      00593                               XDEF    LINHST
+                            00594P 02CB  34   00       A ZINHST PSHS    B,CC      PRESERVE REGISTERS
+                            00595P 02CD  1A   50       A        CRCC    #$S0
+                    41      00596P 02CF  86   OS       A        LOA     #$08      mASK FOR DATA RECEIVED
+                            00597P 02D1  F6   FF06     A        LOB     RSCmD
+                            00598P 02D4  CA   OI       A        ORB     #$01      SET DATA TERmINAL
+                    41      00599P 02D6  F7   FF06     A        S7B     RSCmD     ....READY                                                                                 •
+                            00600P 02D9  C4   FE       A        ANDB    #$FE      WE'LL FINISH AGAIN SOON
+                            00601P 02DB  BS   FFOS       RSRXwT BITA    RSSTAT    ANY DATA CAPTuRED ?
+                            00602P 02DF  27   FB   02DB         BED     RSRXWT
+                            00603P 02E0  F7   FF06     A        STB     RSCMD     ....NOT READY
+                            00604P 02E3  BE   FH04     A        LDA     RSRXD     READ IN THE INPui
+                    41      00605P 02E6  35   85       A        PULS    B,CC,PC   RESTORE AND RETURN
+                            00606                        *
+                            00607                               XDEF    ZOUTHS
+                    41      00608P 02E8  34   05         ZOUTHS PSHS    B,CC      SAVE REGISTERS
+                            00609P 02EA  C6   10       A        LDB     #510      MASK FOR -NnNsmIT
+                            00610P 02EC  P5   FF05     A RSTXWT DITB              EmPiv ?
+                    41      00611P 02FF  27   FB   02EC                 RSTXWT                                                                                              •
+                            00612P 02F1  B7   FF04     A        STA     RSTXD     Poi OUT THE BYTE
+                            00613P 02E4  35   85       A        PULS    8,CC,PC   R::„STORE AND RETuRN
+                    41      00614                        *
+                            00615                               XDEF    ZSTBAU
+                            00616P 02F6  Cl   07       A ZSTBAU CMPR    4(RSTEND-RSTAB)
+                            00617P 02F8  24   12   030C         ariS    RSERR     DoT OH RANGE
+                            00618P 02FA  BE   030E              LDX     #RSTAB    POINT TO TABLE
+                            00619P 02FD  3A                     ABX               ADD IN OFFSET
+                            0020A  02FE  FE   FF07     A        LDB     RSCf\-
+                            00621P 0301  C4   FO       A        ANDB    4$F0      mASK OCT BAUD SHLFUT
+                            00622P 0303  EA   84       A        ORB     ,X
+                            00623P 0305  F7   FFO7     A        S7B     RSCNT     UPDATE RArE
+                      IIH   00624P 0308  IC   FE       A        ANDUC   ItSFF     SAY ALL O.K.
+                            00625P 030A  20   ol   030D         BRA     RSBDRT    RETuRN
+                            00626P 030C  03              RSERR  CamB              SET CARRY TO SHOW ERROR
+                            00627P 030D  39              RSBDRT RTS
+                            00E28                        *
+                            00629                        *    BAuD RATE SELECT BITS FOR 6551
+                            00630P 030E       0        A RSTAB  FCB
+                            00E31             0 I 5      Rs:END  L:;!LJ
+                            00632
+                            00E33                               DISPATCH PRINT RUUTINE 7C SERIAL./PARALLE:L
+                            00636.                       *
+                    (       00635P 03.15 26        0328  PRNSEL BNE     PRNTRS
+                            0063EP 0317       FF22       LABUSY LDB     P1PDB     CHECK BUS* S;AlcS
+                            00637P 031A  56                     RORB              ROLL INTO CARRY
++44 (0)20 89 71 E.  (C      00638P OsIB       FA   0317         BCS     LPBUSY
+
+    For Your NearE
+

@@ -1,0 +1,133 @@
+                                                                                                                                                                                                                                                                                                                                                                            •
+
+
+
+
+                                                           PqGE 025 EC2mE4                            .SAI            ECBM64 Tne E-31:F statement.
+                                                                                                                                                                                                                                                                                                                                                                            •
+
+
+                                                           0:659                                                                        TTL             The OPEN             code.
+
+                                                           01E60
+                                                                                                                                                                                                                                                                                                                                                                            •
+                                                           01661                                                                        XDEF            OPEN
+
+                                                           01662P          040D       BD         0000               A    OPEN           JSR             HKOPEN               Hook for disk version.
+
+                                                           01E63P          0410       BD         0000               A                   JSR             FRMEEVL              Evaluate tne open mode.
+                                                                                                                                                                                                                                                                                                                                                                            •
+                             H I                           01664P          0413       BD         0000               A                   JSR             ASC2                 B:==open mode char.
+
+                                                           0IE65P          0416       34         04                 A                   PSHS            B                    Save the ooen mode.
+
+                                                           0:6EEP          0418       8D         9F          03B9                       BSR             GETCDN               Eat comma and get device number.
+
+                                                           C1667                                                                        XDEF            OPNDEV
+
+                                                I ;  I     01E6E/D         041A       BY-,       0000                    OPNDEV         JSR             CHKCOM               Eat comma following device number. 
+
+                                                           016S9P          041D       BD         BD          0,3DC                      BSR             ELNIRM               Read the filename into FILNAM. 
+
+                                                           01E70P          041F       96         6F                                     LDA             DEVNUM               Ag=device number.
+
+                                                           016710          0421       OF         6F                 A                   CLR             DEVNUM               Must be clear when OPEN returns. 
+
+                                                           01672P          0423       35         04                 A                   PULS            B                    Retrieve the open mode.
+                                           40              0:.673P         0425       C1         49                 A                   CMPB            WI                   Ooen for inout?                                                                                                                                                                                0
+
+                                                           01674P          0427       37         12          043B                       BE9             OPEN1                Yes, co do it.
+
+                                                           01675P          0429       Ci         4F                 A                   CMPB            #'0                  No, ooen for outout?
+                                           40              067EP           042B       27         42          046F                       RE@             OPEN°                Yes, go Co it.                                                                                                                                                                                 0
+
+                                                           01677                                                                    No,      give       Bad Mode             error.
+
+                                                           01678                                                                        XDEF            FMERR
+
+                                                           01679                                 04.:2D                  FMERR                                               Also known as File Mode error, 
+
+                                                           01680P          042D       C.6        00                      BMERR          LDB             WERRBM               Bad Mode error.
+
+                                                           01661P          042F                                                         SKIP2
+                                                                                                                                                                                                                                                                                                                                                                            0
+                                                           0:682                                                                        XDEF            IOERR
+
+                                                           01683P          0430       CE         00                      IOERR          LDB             #ERRIO               Cassette I/O error. 
+
+                                                           01684P          0432                                                         SKIP2
+                                           40              01685                                                                        XDEF            AOERR
+
+                                                1111       0158EP          0433       CE         00                      ACPERR         LOB             WERRAO               Already open error. 
+
+                                                           01687P          0435                                                         SKIP2
+                                           0               olssa                                                                        XDEF            DNERR
+
+                                                           c:J.:::a9p      043E       CS         00                 A    DNERR          LDB             #ERRDN               Device Number error.
+
+                                                           0L690P          0438       76         0000               A                   jMP             ERROR
+                                           •               01E91                                                                                                                                                                                                                                                                                                            0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                            0
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                            0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 89 71 E
+
+                                           t,
+          For Your Near(
+

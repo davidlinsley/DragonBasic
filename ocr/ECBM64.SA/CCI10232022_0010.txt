@@ -1,0 +1,131 @@
+                       PAGE 011 ECBM64 .SA'41 ECBM64 DEVPRM - Return Device Parameters
+
+                                                                                                                                                  •
+
+                       01164                    *
+
+                       01165
+
+                       01166P 019P 03  SE     A CASPRM COM   SPCIO   Soeciai I/O fiag:=.TRUE.
+          air          01167P 01A1 8E  0100   A       -DX    #&256   Comma field wloth:--.1, 'last comma
+                       01166                    *    fieldg=0 but don't really care.
+
+                       069P 01A4 AF                   CLRA           Width=lnflnite and oosition:=0.
+
+          H     1      01170P 01A5 5F                 CLRB
+
+                       01171P 01A6 20  EF   0197      BRA    DFVF:N  Go out them away.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                  •
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                p
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                 C.
+
+
+
+
+
+
+
+
+                   11 1,1                                                                                                                      H I "
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+f-44 [0]20 89 71 3 (r)
+
+
+   For Your Neare
+

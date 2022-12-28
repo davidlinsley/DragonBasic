@@ -1,0 +1,115 @@
+                               •
+
+
+
+
+                                              PAGE 016 EOBGRP                             .SA:1 TXRGRP Graohids PUT and GET
+                               •
+
+
+                                              01581                                  04DD               P GGPRET EQU                                             This address is used by the code
+
+                                              01582                                                         •          the disk ROM hooks into HKPTGT to
+
+                                              01583                                                         •          determine if the caller was the
+
+                                              01584                                                         •          graohics PUT/GET code.
+
+                                              01585P          04DD        81         40                 A                   CMPA            #'(?,                ALLOW OPTIONAL @ FOR COMPATIBILITY
+                               40             01586P          04DF        26         02          04E3                       BNE             GGETC2
+
+                                              01587P          04E1        9D         9F                 A                   JSR             CHRGET               SKIP OVER THE @ SIGN
+
+                                              01588P          04E3        BD         0100                   GGETC2 JSR                      CRDGET               SCAN THE COORDINATES
+                               40             01589P          04E6        BD         0000               A                   JSR             CHKCOM               SKIP COMMA AFTER COORDINATES                                                                                                                                                                   •
+                                   I I I•I)   01590P          04E9        BD         064A               P                   JSR             PBTARY SCAN THE ARRAY NAME AND LOOK IT UP                                                                                                                                                                       II
+
+                                              01591                                                         •          [X] RECEIVES POINTER AT THE LENGTH
+                               41             01592                                                         *          BYTES. AN FCERR IS GENERATED IF
+
+                                              01593                                                         *          THE ARRAY DOES NOT EXIST
+
+                                              01594P          04EC        1F         10                 A                   TFR             X,D                  SAVE POINTER LENGTH BYTES IN ED3
+                               40             01595P          04EE        EE         84                 A                   LDU             ,X                   [U]=LENGTH
+                                              01596P          04F0                   5E                 A                   LEAO            -&2,U                DON'T INCLUDE NAME SIZE WHICH IS                                           IN COLAT
+
+                                              01597P          04F2        33         CB                                     LEAO            D,U                  SET [U]=ADDRESS JUST PAST END OF                                           ARRAY
+                               40             01598P          04F4        DF         D1                 A                   STU             ARYFIN SAVE THIS SO WE MAKE SURE WE NEVER 
+
+                                              01599                                                         •          READ OR            WRITE THIS HIGH
+
+                                              01600P          04FE        30         02                 A                   LEAX            &2,X                 MOVE TO POINT AT NUMBER OF DIMENSIONS
+                               40             01601P          04F8        ES         84                 A                   LDB             ,X                   [B]=NUMBER OF DIMENSIONS
+                                              01602P          04FA        58                                                LSLB                                 [B]=BYTES USED BY DIMENSION SIZES
+
+                                              01603P          04FR        3A                                                ABX                                  POINT AT THE BYTE JuST BEFORE THE DATA
+                               41             01604                                                         *          SINCE WE NEVER ADDED ONE FOR THE
+
+                                              01605                                                         *          NUMBER OF DIMENSIONS
+
+                                              01606P          04FC        9F CF                         A                   STX             ARYIDX               SAVE START ADDRESS IN ARRAY-1
+
+                                              01607P          04FE        96 06                         A                   LDA             VALTYP               MAKE SURE IT IS NOT A STRING ARRAY
+
+                                              01608P          0500        26 CE                  0400                       BNE             GFCER                SINCE GARBAGE COLLECTION WOULD FAIL
+
+                                              01609P          0502        OF 04                         A                   CLR             GGRPFL               ASSUME IT'S NOT GRAPHICS MODE
+                               1TP            01610P          0504        9D AS                         A                   JSR             CHRGOT               ANYTHING MORE ON THIS LINE?
+
+                                              01611P          0506        27 2D                  0535                       BEQ             GNOTRL MUST BE CHARACTER MODE
+
+                                              01612P          0508        03 D4                         A                   COM             GGRPFL SET GRAPHICS FLAG
+                               4P             01613P          050A        BD         0000               A                   JSR             CHKCOM               COMMA BEFORE TRAILING FLAGS
+
+                                              016142          050D        OD 08                         A                   TST             GTPT                 IS IT PUT OR GET?
+
+                                              01615P          050F        26 07                  0518                       BNE             PUTTRL               HANDLING ACTION VERB ON PUT
+                               40             01616P          0511                                                          SYNCHK ,G                            GET ONLY ALLOWS ,G MEANING GRAPHICS
+
+                                              01617P          0516        20 30 0548                                        BRA             GETCN2
+
+                                              01618
+                               40             016192          0518        C6         05                 A PUTTRL            LDB             #PUTCNT              COUNT OF VERBS TO COMPARE AGAINST 
+
+                                              01620P          051A        BE         05137                                  LDX             #PUTTAB              TABLE WITH ADDRESSES AND VERBS 
+
+                                              01621P          051D        ==.        81                 A POTTR2            LDU             ,X++                 GET CANDIDATE FOR PUTACO
+ IHHP                          •              01622P          051F        lORE       81                 A                   LDY             ,X++                 GET CRND1DATE FUR PUTPC1 
+
+                                              01623P          0522        Al         80                 A                   CMPA                                 SEE IF MATCHES THE VERB 
+
+                                              01624P          0524        27         06          052C                       BEQ             P• UTGOA             GO STORE ACTION ADDRESSES 
+"Progression" - i              40             01625P          0526        5A                                                DECB                                 MORE ITEMS IN TABLE?
+movement. The I. 
+family of power                               01626P          0527        26         F4          0510                       BNE             PUTTR2               CONTINUE COMPARING
+lifetime spent in              40             016272          0529        7E         0000               A                   jMP             SNERR                SYNTAX ERROR IF NO MATCH AT ALL
+components thai                               01628 
+always respect t                              01629P          052C 109F D5                              A   PUTGOA STY                      PUTAC1               STORE ACTION IF BIT IS A 1 
+convey realism fr                             01630P          052F DF 09                                A                   STU             PUTACO               STORE ACTION IF BIT IS A 0 
+the most thund:                •              01631P          0531 9D 9F                                A                   JSR             CHRGET               SKIP OVER ACTION VERB
+
+       lot allowed ti                         01632P          0533 20                13          0548                       BRA             GETCN2               CONTINUE SCANNING
+
+                                              01633 
+                               •
+                                              016342          0535        C6 F8                         A GNOTRL            LDB             #@377-&7 GET RID OF LAST 3 BITS IN BW MODE 
+
+                                              01635P          0537        96 B6                         A                   LDA             SCMODE               SEE IF BW OR COLOR
+
+                                              01636P          0539        46                                                RCRA                                 BY TESTING LOW BIT 
+         abso
+                                              01637P          053A        24         02          053E                       BCC             GNOTRB ALREADY SET UP FOR BW
+
+                                              01638P          053C        C6         FC                 A                   LDB             #@377-&3 GET RID OF LAST 2 EiTS IN COLOR
+
+
+
+
+
+
+
+
+
+
+                               •
+

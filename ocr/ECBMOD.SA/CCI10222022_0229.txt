@@ -1,0 +1,66 @@
+                                                              PAGE            004          ECBMOD                .SAg1              ECBMOD Power uo and Reset code.
+
+                                                              00891P0065                      AF            43                                            STX                &3, U                   Init the stub 1 dispatch addresses.
+                                                              00892P 0067                      AF           48                                            STX                tql,U
+                                            •                 00893                                         0001                  A                       IFNE               REALIO
+                                                              008942 0069                      8E           0000                                          LOX                #HOOKS                  initialize the extension hooks by
+                                                              00895                                                                                  putting               in RTS instructions.
+                                                              00896P 006C                      CC           3900                                          LOD                #$3900+NRTSH3 A:=RTS pocode,
+                                                              00897                                                                                       5:=number of bytes
+                                                              00898                                                                                       to       initialize.
+                                                              00899                                                                                  (Add 157. since NRTSHK is external.)
+                                                      (|      00900P 006F                      A7           80                     A    INIHKS STA                           ,X+                     (Note that                    putting RTS instructions
+                                                              00901P 0071                      5A                                                         DECB                                       into all three bytes of each hook is
+                                                              00902P 0072                      26           FB            006F                            BNE                INIHKS                  OK and saves bytes here.)
+                                                              00903P 0074                      B7           0000                   A                      STA                NZLINK                  Make NZLINK nonzero for CHEAD.
+                                                              00904                                                                                       ENDC               IFN                     REALM
+                                            40                00905P 0077                      BD           0000                   A                      JSR                SCRTCH                  Set up everthing else.
+                                                              00906P 007A                      RD           0000                   A                      JSR                XRRUN                   Set uo the PLAY and DRAW defaults.
+                                                              00907P 007D                      8E           0000                                          LDX                #USRTA5                 Put the address of USRTAB into
+                                            40                00908P 0080\9F                                Ro                     A                      STX                USTBAD                  USTBAD so USRTAB can be referenced
+                                                              00909                                                                                   indirectly through USTBAD.
+                                                              00910P 0082                      CE           0000                   A                      LDU                #FCERR                  init all USRTAB entries so they
+                                            40                00911P 0085                      C6           OA                     A                      LDB                #&10                    dispatch to FCERR unless explicitly
+                                                              00912P 0087                      EF           81                     A    FCUSLP STU                           , X++                   defined by the user.
+                                                              00913P 0089                      5A                                                         DEC5
+                                                              00914P 008A                      26           FB            0087                            BNE                FCUSLP
+                                                              00915                                         0001                   A                       IFNE              REALIO
+                                                              00916P 008C                      BD           0000                   A                      JSR                PINIT                    init          for graphics code.
+                                                              00917P 008F                      56           FF03                   A                      LOA                PIAOBC                  Enable the 60 Hertz interrupt.
+                                                  l I I        00918P 0092                     8A           01                     A                      ORA                #&1
+                                                              00919P 0094                      57           FF03                   A                      STA                PIAOBC
+                                                               00920P 0097                     8E           444B                   A                      LOX                WD*&256+ K Is there a di's,c ROM in the machine?
+                                                              00921P 009A                      BC           C000                   A                      CMPX               DSKROM
+                                                               00922P 0090                     10';:7       BF61                   A                       LBED              DSKROM+&2 Yes,                           go to its initialization code.
+                                            41                 00923                                                                                      ENDC                 IFN                    REALIO
+
+
+
+
+
+
+
+
+
+
+
+
+
+"Progression" - it's a 
+movement. The lates 
+family of power ampl 
+lifetime spent in the r 
+components that alw 
+always respect the d 
+convey realism from t
+  ic most thunderous 
+; 11( ; lot allowed to affe
+
+
+
+
+          absolut                             4tt
+
+
+                                              0
+

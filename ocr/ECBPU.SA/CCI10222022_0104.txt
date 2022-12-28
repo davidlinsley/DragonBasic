@@ -1,0 +1,63 @@
+                     PAGE 012 ECBPU            .SA:1 TXRPU The PRINT USING Floating Point Output Routine
+
+
+                     olloo                                 *
+                     01101                                 * See if the decimal point should be retained.
+           40        01102                                 *
+                     01103
+                     01104P 0200 96          D8         A FOUTTD     LDA      DPWID        Is a decimal point needed?
+           40        01105P 020F 26          02    0212              BNE      KEEPDP       Yes, keep the decimal point.
+                     01106P 0210 33          5F         A            LEAU     -&1,U        No, hack up to get rid of it. 
+                     01107P 0212 4A                        KEEPDP    DECA                  Print zeroes to fill the field to 
+                     01108P 0213 BD          02AC                    JSR      FOTZER       right of the decimal point. 
+                     01109P 0216 BD          0347       P FOUTTS     JSR      FOUTZS       Suppress leading zeroes.
+                     01110P 0219 4D                                  TSTA                  Is there a trailing sign?
+                     01111P 02IA 27          06 0222                 BEAD     NOTRL        No.
+                     01112P 0210 Cl          2A         A            CMPB     #'*          Yes, is the sign char an asterisk?
+                     01113                                 *      (This case occurs when a positive 
+                     01114                                 *      number is printed with asterisk fill 
+                     01115                                 •      and  trailing minus sign specified.)
+                     01116P 021E 27          02 0222                 BE@      NOTRL        Yes, don't put in trailing sign.
+                     01117P 0220 E7          CO         A            SIB      ,U+          Put in the trailing sign.
+                     01118P 0222 6F          04         A  NOTRL CLR          ,U           Mark the end of the number.
+                     01119
+           40        01120                                 *
+              101 01121                                    * Check the field size.                                                                                                                           H oo
+                     01122                                 *
+           •         01123                                                                                                                                                                                       ao
+                     01124P 0224 BE          0000       A            LDX      #FBUFFR Init the buffer pointer.
+                     01125P 0227 30          01         A  FOUBE1 LEAX        &1,X         Is the right amount of space being
+                     01126P 0229 9F          0F         A            SIX      TEMPX1       used?
+                     01127P 0228 96          3A         A            LDA      FDECPT+&1
+                     01128P 022D 90          10                      SUBA     TEMPX1+&1
+                     01129P 022F 90          D9         A            SUBA     FLDWID
+                     01130P 0231 27          38 0268                 BEQ      PUFRTS       Yes, PUFOUT is finished.
+                     01131P 0233 A6          84         A            LDA      ,X           No, see if we can shorten the field.
+                     01132P 0235 81          20         A            CMPA     *SPACE       We can throw away leadinf spaces or
+                     01133P 0237 27          EE 0227                 BEQ      FOUBE1       asterisks.
+                     01134P 0239 81          2A         A            CMPA     #"*
+                     01135P 0238 27          EA 0227                 BEQ      FOUBE1
+                     01136                                 *
+                     01137                                 * We can also shorten the field by throwing away                     a zero if it is
+           •         01138                                 * followed by a decimal point and another digit. 
+              11104  01139                                 *Look for - "+" or "-" [optional]
+
+                     01140                                 *   "$5"   [optional]
+           40        01141                                 *   "0" [mandatory]
+"Progre              01142                                 *   "." [mandatory]
+movem                01143                                 *   "0" THRU "9" [mandatory]
+family of  40        01144                                 *
+lifetime s           01145P 023D 4F                                  CLRA                  Used to flag the bottom of the stacked
+compon               01146                                 •      characters.
+;11ways r  40        01147P 023E 34          02         A  FOUBE2 PSHS        A            Push the char.
+( ;el Ivey r         01148P 0240 A6          80         A            LDA       ,X+         Get the next one.
+ ic !Host            01149P 0242 81          2D         A            CMPA     #'-          Stack it if it is "+", "-", or "$".
+; v/| all  0         01150P 0244             F8    023E              BEQ      FOUBE2 
+                     01151P 0246 81          28                      CMPA     #'+
+                     01152P 0248 27          F4 023E                 BE@      FOUBE2 
+           41        01153P 024A 81          24         A            CMPA     #FLTMON 
+                     01154P 0240 27          F0 023E                 BE@      FOUBE2 
+                     01155P 024E Si          30         A            CMPA     #'0          Is there a leading zero?
+           40        01156P 0250 26          OE    0260              BNE      FOUBE4       No, the number exceeds the field. 
+                     01157P 0252 A6          01         A            LIN)      &1,X        Yes, now see if a digit follows the
+

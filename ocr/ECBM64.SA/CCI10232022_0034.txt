@@ -1,0 +1,59 @@
+                      ?AGE 035 ECBM64 .SP1 ECBM64 SimoIe Graohics - SET, RESET, POINT, CLS
+
+                      02069P 05E3 8A 80     A STGRPH ORA  #@200  Set MSB for graphics mode.
+                      02070P 05E5 A7 84     A       STA   ,x     Put it away and return.
+                      02071p 05E7 39                RTS
+
+
+
+
+
+
+
+
+
+
+                0 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                0
+
+
+
+
+
+
+
+                •
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 B9 71
+    For Your Near
+

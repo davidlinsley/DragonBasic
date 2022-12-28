@@ -1,0 +1,130 @@
+                                                                                                                                                                                  •
+
+
+
+
+
+                         PAGE 031 ECBEXT       .82:1 EXTEND RENUM - Renumber a BASIC program
+
+
+
+
+                         02387                          * 
+
+                         02388                          * CONVERT BINARY LINE NUMBER AND UNDEFINED LINE REFERENCE TOKENS TO 
+
+                         02389                          * ASCII LINE NUMBERS. FOR UNDEFINED LINE REFERENCE TOKENS PRINT
+                    I I
+                    I 1.102390                          * AN ERROR MESSAGE.
+
+                         02391                          *
+
+                         02392
+
+                         02393P 0689 9E      19         ASCBIN LOX      IXIT AB   START AT THE BEGINNING OF THE PROGRAM. 
+
+                         023942 068B 30      IF       A         LEAX    -1K.1, X  Adjust for preinc.
+
+                         023952 068D 30                 ASCBLN LEAX     &1, X     POINT TO THE START OF THE LINK. 
+
+                         023962 068F EC      02                 LDD     &2,X      CURLINt=LINE NUMBER SO IT CAN BE 
+
+                         02397                          *     BE PRINTED BY   "INPRT" IF WE SEE
+
+                         023982 0691 DD      68       A         STD     CURLIN    AN UNDEFINED LINE REFERENCE TOKEN.
+
+                         023992 0693 BD      0599     P         JSR     CHKLNK    QUIT IF END OF PROGRAM.
+
+                         02400P 0696 30      03       A         LEAX    &3,X      SKIP OVER LINK AND LINE NUMBER. 
+
+                         02401P 0698 30      01       A ASCBCH  LEAX    &1,X      POINT TO NEXT BYTE OF LINE. 
+
+                         02402P 0692 26      84       A ASOCHR  LDA     ,X        PICK U2 THE BYTE.
+
+                         024032 0690 27      EF   0680          BED     ASCBLN    END OF LINE, DO NEXT LINE. 
+
+                         02404P 069E 42                         DECA              A BINARY LINE NUMBER TOKEN? 
+
+                         02405P 069F 27      IB   06BC          BED     ASCCNV    YES, CONVERT IT TO ASCII.
+
+                         024062 0621 80      02                 SUBA    itle2     NO, AN UNDEFINED LINE REFERENCE TOKEN? 
+
+                         029072 0623 26           0698          BNE     ASCBCH    No, go scan the next char.
+
+                         02408
+
+                         029092 0625 34      10       A         PSHS    X         Yes, save the pointer.
+
+                         02410P 06A7 BE      06E6               LOX     #UNDREF-&1 PRINT THE MESSAGE.
+
+                         024113 0622 BD      0000     A         JSR     STROUT
+
+                         024122 06AD AE      84       A         LDX     ,S        Get the line number being referenced.
+
+                         024132 06AF EC      01       A         LDD 
+
+                         024142 06BI BD      0000     A         JSR     LINPRT    PRINT IT.
+
+                         024152 0659 BO      0000     A         JSR     INPRT     FOLLOW WITH WHERE IT OCCURRED.
+
+                         024162 06B7 BD      0000     A         JSR     ORDO      START A NEW LINE.
+
+                         02417P 06BA         10       A         PULS    X         Get the pointer back.
+
+                         024182 06BC 34      10       A ASCCNV PSHS     X         Save the pointer.
+
+                         024192 06BE EC      01       A         LDD     &1,X      CONVERT THE LINE NUMBER TO A SINGLE
+
+                         024202 0600 DD      52       A         STD     FACMO     PRECISION NUMBER IN THE FAC.
+
+                         02921P 06C2 B0      035B               JSR     CONS16
+
+                  •      029222 0605 BD      0000     A         JSR     FOUT      CONVERT TO ASCII IN "FBUFFR".
+
+                         02423P 0608 35      40       A         PULS    U         U:=pointer to start of token.
+
+                         024242 0602 06      05       A         LDB     #&5       COUNT HOW MANY CHARS WE TRANSFER.
+
+                         02425P 06CC 30      01       A MUVASC LEAX     &1,X      Point to the next ASCII digit.       (First
+
+                         02926                          •     time through the loop this skips over
+
+                         02427                          •     the leading space put in by FOUT.) 
+
+                         024282 0608 26      84       A         LDA      X        Get the next ASCII digit.
+
+                         024292 0600 27      05   0607          BED     SQUISH    Zero marks end of line number.
+
+                         024302 0602 52                         DFCB              NO, DECREMENT THE COUNT.
+                  •      029312 0603 27      CO       A         STA               PUT ASCII DIGIT INTO PROGRAM.
+
+                         024322 0605 20      F5 06CC            BRA     MOVASC    SEE IF MORE TO MOVE.
+
+                         02433
+
+                         024342 06D7 30      C4       A SQUISH LEAX               X:=pointer past ASCII line number.
+
+                         02435P 06D9 50                         TSTB              WAS THE ASCII 5 DIGITS LONG?
+
+                         02436P 0602 27      BE   0692          BED     ASCCHR    YES, IT FILLED THE 822CE FORMERLY
+
+                         02937                          *     USED BY THE TOKEN SO NO NEED TO
+
+                         02438                          *     TO BLOCK TRANSFE, GO SCAN NEXT CHi:M.
+
+                         024392 0600 31      04       A         LEAY    Hj        Need to block transfer down since
+
+                         02940                          •     the line number didn't use the 5
+
+                         02441                          •     bytes the token was using.
+
+                         02442                          •     Remeber where to resume the scan.
+
+                         024932 0608 33      05                 LEAU    B,U       Lig=source !pointer.
+
++  ea OD ] 0 B      rx~( 02444                          •     (X already contains the destination
+
+
+
+     For Your N
+

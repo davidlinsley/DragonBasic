@@ -1,0 +1,107 @@
+                 PAGE  034  ECBGRP  .SAgl  TXRGR2 DRAW CUMMAND
+
+
+
+                 02483
+
+                 024842 0A4F 35   14      A DRWCON PULS   E,X      GO BACK UP ONE LEVEL OF EXCHTE
+
+                 02485P 0A51 D7   D8      A DRWSET STE    PSTLEN   STORE THE LENGTH
+
+                 02486P 0A53 27   FA   0A4F        BED    DRWCON   Don't check for zero pointer if
+
+                 02487                      *    string is null since pointer is
+
+                 02488                      *    meaningless.
+
+                 02489P 0A55 9F   D5      A        STX    PSTPTR   STORE THE LOCATION
+
+                 02450P 0A57 1027 00EA OB45        LBED   DRWRTS
+
+                 02491P 0A5B OD   D8      A DRWSCN TST    PSTLEN   AT THE END OF THIS STRING?
+
+                 02492P 0A5D 27   F0   0A4F        BED    DRWCON   SEE IF NESTED IN EXECUTE
+
+                 02493P 0A5F ED   0916             JSR    FETCHR   GET THE NEXT CHARACTER
+
+                 024542 0A62 81   3B      A        CMPA   #SEMCOL  IGNORE SEMICOLONS
+
+                 02495P 0A64 27   F5   0A5B        BED    DRWSCN
+                 024962 0A68 81   27      A        CMPA   #7 7     IGNORE SINGLE QUOTE
+
+                 02497P 0A68 27   Fl   0A5B        EEO    DRWSCN
+
+                 024582 0A6A 81   4E      A        CMPA   WIN      IS IT NO MOVE DRAW?
+
+                 02495P 0A6C 26   04   0A72        ENE    DRWSC1
+
+                 025002 CASE 03   05      A        COM    DRWFL1
+
+                 02501P 0A70 20   E5   0A5B        ERA    DRWSCN
+
+                 02502P 0A72 81   42      A DRWSC1 CMPA   #'B
+
+                 02503P 0A74 26   04   0A7A        ENE    DRWSC2
+
+                 025042 0A76      D6      A        COM    DRWFL2
+
+                 02505P 0A78 20   El   0A5B        BRA     DRWSCN
+
+                 025062 0A7A      58      A DRWSC2 CMPA   WX       IS IT EXECUTE?
+
+                 02507P 0A7C 102"70096 OB16        LBEO    DXCUTR  GO SCAN NAME AND START SUBSTRING
+
+                 025062 0A80 81   4D      A        CMPA    WM      CHECK FOR MOVE COMMAND
+
+                 02505P 0(4821027 012A OBBO        LBEQ    DDRWMV
+
+                 025102 0A86 34   02      A         PSHS   A
+
+                 02511P 0A88 CE   01      A         ODE    #&1     All arguments default to 1.
+
+                  02512PCASA OD   D8      A         TST    PSTLEN  End of the string?
+
+                  02513P0A8C 27    11  0A9F         BEO    DEFONE  Yes, use the default arg.
+
+                  025142°ABE ED   0916    2         j,SR   FETCHR  No, look ahead at the char following
+
+                  02515                          the command letter.
+                  0251620A51 BD   0000    A         jSR    ISLETC  Clear the carry if it is a letter.
+
+                  02517P0A94 34   01      A         PSHS   CC      Remember if it's a letter.
+
+                  0251620A56 BD   0960              jSR    FETBAK  Put the pointer back.
+
+                  02519POR99 35    01     A         PULS   CC      Is the next thing a letter?
+
+                  025202 0A5B24    02   0A5F        BCC    DEFONE  Yes, it must be another command rather
+
+                  02521                     *    than an argument  for the current
+
+                  02522                     *    command so use the default arg.
+
+                  02523P 0A9D 8D   AA   0A45        BSR    FTCHVL  No, READ ARGUMENT INTO EBD
+
+   H              02524P 0A5  35   02       DEFONE PULS    A       SEE WHAT THE COmMAND WAS
+                  02525P 0AA1 81   43     A         CMPA   #'C
+
+                  02526P 0AA3 27   28   OACD        BED    DDRWCL
+"Progression      02527P OAA5 81   41      A        CMPA   WA
+movement.         02528P 0AA7 27   2E   OAD7        BED    DDRWAN
+family of po      02529P 0AA9 81   53      A        CMPA   WS
+lifetime spen     02530P OAAB 27   32   OADF        BED    DDRWSC
+components 
+; tys resp        025:31POAAD 81   55      A        CMPA   WU
+  )1ivoy realis   C25322 OAAF 27   5C   OBOD        BED    DDRWUP
+111( most VI      02533P OPE1 81   44               CMPA   WD
+; I I( )1;1110W   02534P 0AB3 '"-7 55   OBOA        BED    DDRWDN
+                  02535P OAE5 81   4C      A        CMPA   WL
+           41     025362 OAB7 27   40   0E05        BED    DDRWLF
+
+                  025372 0AB5 81   52      A        CMPA   WR
+
+                  025362 OABB 27   43   0800        BED    DDRWRG
+    ab            02539P OABD 80   45      A        SUBA   WE       Right and up.
+
+                  02540P OABF 2:7  2F   o F 0              DDRWRU
+

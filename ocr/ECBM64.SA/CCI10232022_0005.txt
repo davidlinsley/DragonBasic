@@ -1,0 +1,85 @@
+                        PAGE 006 ECBM64 .SA:1 ECBM64 CHRINP - Character Input Routine
+
+
+                        00954                    * 
+                        00955                    * CASINP reads a character from a cassette file.
+                                                 * (Also used for downloading in the extended version.)
+      audi ; L6         00957                    *
+                        00958
+                        00959P 00F8 OD  79     A CASINP 7ST   CBFCNT  Is the buffer empty?
+                        00960P 00FA 26  03 00FF         BNE   NOTMT   No, go get a char from it. 
+      H IGH             00961P 00FC 03  70     A        COM   tuFF-LG Yes, end of file.
+                        00962A 00FE                     RTS
+                        00963
+                        00964P ()OFF 34 74     A NOTMT PSHS   Li,Y,X,B Save registers. (Save all because
+                        00965                    *    of bossible LODBUF call.)
+                        00966P 0101 9E  7A     A        LOX   CBFPTR  Get char from cassette buffer, uodate
+                        00967P 0103 A6  So     A        LOA   7X+     the pointer, and decrement the count.
+                        00968P 0105 34  02     A        PSHS  A       (Save the char too.)
+                        00969P 0107 9F  7A     A        STX   CBFPTR
+                        00970P 0109 OA  79     A        DEC   CBFCNT
+                        00971P 010B 26  09  0116        BNE   CASIRT  Buffer still not empty, just return.
+                        00972P 010D 96  EF     A        LDA   DEVNUM  Doing a download?
+                        00973P 010F 81  FD     A        CMPA  #-&3
+                        00974P 0111     05  0118        BED   LODONL  Yes, use different load buffer
+                        00975                    •    routine.                                                                                    1111
+                        0097EP 0113 BD  044C            JSR   LODBUF  Reload the buffer.
+                        00977P 0116 35  F6     A CASIRT PULS  D,X„Y71..4PC Get tne char into A, restorereds
+                        00978                    •    and return.
+                        00979
+                        00980P 0118 BD  0000   A LODDNL JSR   LDBUFR  Reload download buffer.
+                        00981P 0118 20  F9  0116        BRA   CASIRT  Restore and return.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                  iiLl
+
+                                                                                                                                                    40 
+
+
+
+
+                                                                                                                                                    40 
+
+
+
+
+                                                                                                                                                    40 
+
+
+
+                                                                                                                                                    40 
+
+
+
+
+                                                                                                                                                    40
+
+
+
+
+                                                                                                                                                    40 
+
+                                                                                                                                                  1, I I I
+
+                                                                                                                                                    40
+ 20 89 71 39 09 i
+
+Your Nearest Deal/ (P                                                                                                                               40
+

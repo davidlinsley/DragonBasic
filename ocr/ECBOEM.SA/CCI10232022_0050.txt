@@ -1,0 +1,66 @@
+                        PAGE 009 ECBCFM .8W:1 IODRVR I/O DRIVER SUBROUTINES
+
+                 oir    00465P 0213 84     F7       A         ANDA   #$F7      RESET CR3
+                        00466P 0215 56                        ROR8             MOVE LS BIT INTO CARRY
+                        00467P 0216 24     02   021A          BCC    CR3WRT 
+                        00468P 0218 8A     08       A CR3SET  ORA    #8        SETS CR3 IF LS BIT OF (8) SET 
+                        00469P 021A P7     Cl       A CR3WRT  STA    07U-1-1-  COPY NEW CR3 BACK & SET UP 
+                        00470P 021C as,                       RTS              CRB FOR SECOND TIME THRU
+                        00471                         *
+                        00472                         * JOYIN - READS THE JOYSTICK CHANNELS
+                        00473                         *
+                        00474                                 XDEF   ZjOYIN
+                        00475              021D       ZJOYIN  FQU    *
+                        00476P 021D 32     7D       A JOYIN   LEAS       tn-   RESERVE 3 BYTES OF STACK WURKSPACE 
+                        00477P 021F 8E     015E     A         LOX    #POTVAL+4  USES AUTO-DEC SO ADDRESS 1 PAST END
+                        00476P 0222 C6     03       A         LD8    #3        STARTS OFF WITH JOYSTICK(3)
+                        004/9P 0224 86 OA           A NXTJOY  LDA    #10       NUMBER OF TRIES ON UNEQUAL READINGS 
+                        00480P 0226 ED     61       A         STD    1„:8      SAVE JOYSTICK NO. AND RETRY VALUE 
+                        00481P 0228 8D     E2   020r          BSR    jOYSEL    SELECT JOYSTICK(8)
+                        00482P 022A CC 4080         A RETRY   LDD    #$4080    1/4 FSD IN (A), 1/2 FSD IN (B)
+                        00483P 0220 A7     E4       A NXTTRY  STA    0,S       SCALE INCREMENT STORED AWAY
+                        00484P 022F F7     FF20               STB    P1PDRA    SEND APPROX. TO DAC
+                        00485P 0232 7D     FFOO     A         TST    POPDRA    CHECK COMPARATOR RESULT
+                        00486P 0235 26          0238          BMI    CMPLOW    BY TESTING PA7 BIT
+                        00487                         • PA7 = 0 SO  APPROX. >  JOYSTICK VALUE SO SUBTRACT INCREMENT
+                        00488P 0237 E0     E4       A         81188  0,S
+                        00489P 0239 20 02       0230          BRA    OVER 
+                        00490                         * PA7 = I SO  APPROX. <  JOYSTICK VALUE SO ADD INCREMENT
+                        00491P 0'•?38 EB   E4       A CMPLOW ADDB    0,S
+                        00492P 0230 44                OVER LSRA                NEW INCREMENT = 1/2 OLD
+                        00493P 023E 81     01                 CMPA   #1        ALL 6 BITS DONE?
+                        00494P 0240 26     E8   0220          BNE    NXTTRY    NO, TRY NEXT APPROX.
+                        00495P 0242 54                        LSRB             NORMALISE                                                                                   •
+                        00496P 0243 54                        LSRB             FINAL RESULT
+                        00497P 0244 El     1F       A         CMPB   -1,X      SAME AS LAST READING?
+                        00498P 0246 27     04   024C          BEQ    GOTJOY    YES, SO FINISH                                                                              •
+                        00499P 0248 6A     61       A         DEC    1,S       NO, SO RETRY
+                        00500P 024A 26     DE   022A          BNE    RETRY     A NUMBER OF TIMES
+                        00501P 024C E7     82       A GOTjOY STB     0,-X      LAST READING UPDATES POTVALS                                                                •
+                        00502P 024E ES     62       A         LD8    2,8       RESTORE JOYSTICK NO.
+                        00503P 0250 5A                        DEC8             GET NEXT ONE
+                        00504P 0251 2A     D1   0224          BpL    NX-rjnY   FINISH AFTEH,' JOYSTIC(0)                                                                   •
+                        00505P 0253        92                 PULS   A,X,PC    TIDY UP STACK AND RETURN
+                        00506                         *
+                        00507                         * CASSETTE ROUTINES FOLLOW
+                        00508 
+                        00509                         * CLEVEL - READ THE INPUT LEVEL    AT THE CASSETTE INPUT PIN
+                        00510                         *
+                        00511P 0255 OC                CLEVEL INC     PWIDTH    UPDATE PULSE WIDTH COUNTER 
+                        00512P 0257 F6     FF20               LDB    P1PDRA    READ CASSETTE INPUT LEVEL
+                        00513P 025A 56                        ROR8             WHICH IS RETURNED IN CARRY                                                                  •
+                        00514P 0258 39                        RTS
+                        00515                         *
+                        00516                         * BCYCLE - CALCULATES THE BIT CYCLE WIDTH
+                        00517
+                        00518P 025C   0 H  82       A BCYCLE CLR     PwIDTH    RESET WIDTH COUNT - USED FOR CYCLE WIDTH
+                        00519P 025E OD     84       A         TST    BPFLAG    CHECK SIGNAL PHASE                                                                          •
+                        00520P 0260 26     07   0269          BNE    FALLER
+                        00521                         * THE FIRST 1/2 OF CYCLE STARTS WITH A HI PULSE
++44 [O]2O BED •         00522P 0262 80     07   0268 RISER BSR       HANGHI    START SAMPLING IN HI PHASE                                                                  or
+
+     For Your N
+
+                                                                                                                                                                           •
+                   r
+

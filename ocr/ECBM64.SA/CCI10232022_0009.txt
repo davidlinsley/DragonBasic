@@ -1,0 +1,68 @@
+                                                                                                                                                            •
+
+
+                         PAGE 010 E0BM64 .SA:1 ECBM64 CHROUT - Output Character Routine
+
+                         01106                                   DEVPRM - Return Device Parameters
+                         01107 
+                         01108                     *
+                         01109                     * DEV2RM returns the following device parameters:
+                         01110                     *
+                  •      01111                     * DEVPOS - The position of the print head or it's equivalent. 
+           H I (         01112                     * DEVWID - The line width of tne device.
+                         01113                     * DEVLCF - The column number where the last comma field starts. 
+                         01114                     * DEVCFW - Tne comma field width.
+                         01115                     * SPCIO -  .TRUE. for soecial I/O handling in PRINT and INPUT code.
+                         01116                     *
+                            1 7                    * All registers exceot CC are preserved.                                                                 •
+                         01118                     * On exit, 2=1 if the device has infinitewidth (DEVWID=0).
+                         01119                     *
+                         0:1120                                                                                                                             •
+                         01121                            XDEF   DEVPRM
+                         011222 017A BD  0000    A DEVPRM jSR    HKDPRM   RAM hook.
+                         011232 017D 34  16      A        PSHS   X,D      Save registers.                                                                   •
+                         011242 017F OF  6E      A        0LR    SPCIO    Special I/O flag=.FALSE. 
+                         011252 0181 96          A        LOA    DEVNUM   Set the device number.
+                         011262 0183 27 09 018E           &HQ    SORPRM   Go get the screen parms.                                                          •
+                         011272 0185 40                   INCA
+                         01128P 0186 27  17   019F        BEO    0ASPRM   Go get cassette oarms.
+                         01129
+                         01130                     *
+                         01131                     * Get line printer parameters.
+                         01132                     *
+                         01133
+                         011342 0188 9E  99      A LPTPRM LDX    LPTCFW   Get comma field width and last comma
+                         01135                     •    field.
+                         011362 018A DC  9B      A        LDD    LPTWID   Get width and current position.
+                         011372 0180 20  09   0197        BRA    DEVF1N   Go put it all away.
+                         01138
+                         01139                     *
+                         01140                     * Get screen parms.
+                         01141                     * The width, comma field width, and last comma field are fixed.
+                         01142                     * The position is obtained by reading tne cursor address.
+                         01143                     *
+                         01144
+                         011452 018E D6  89      A SCRPRM LOB    CURADR+&1 Get low order of cursor address.
+                         01146P 0190 04  iF      A        ANDB   #&31     Determine the column number. This
+                         01147                     *    only works because the line width
+                         01148                     •    is a bower of two.
+                         011492 0192 BE  1010             LOX    #&16*&2564.&16 Field width and last comma field. 
+                         01150P 0195 86  20               LDA    #&32     Set up the width.
+                    1,1  01151                            XOEF   DEVFIN
+                         011522 0197 9F  62        DEVFIN STX    DEVCFW   Put away comma field width and last
+                         01153                          comma field.
+                         011542 0199 D7  60               STB    DEVPOS   Put away the position.
+                         011552 019B 97  6D               STA    DEVWID   Put away the width and set the Z bit
+                         01156                          for infinite width devices.
+                         011572 019D 35  96               PULS   O,X,20   Restore and return.
+                         01158
+                         01159 
+                         01160                     * 
+                         01161                     * Get tne cassette Darms.
+                         01162                     * They are all fixed at values wnicn are necessary for tne special 
+                         01163                     * I/O code to work properly. SPCIO gets set TRUE.
+
+14 (0)20 B9 71 39
+
+  For Your Nearest
+

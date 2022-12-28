@@ -1,0 +1,109 @@
+                                                         PAGE 002 ErBMOD .SA'41                                   ECBMOD Equates
+                                                                                                                                                                                                                                                                                                                                                              •
+
+                                                         00764                                FF03              A PIA0BC EQU                       PIA0BDA-A1 PIAO, side B, control reg.
+
+                                                         00765
+                                          40             0076                                 0001              A                   IFNE           METTOY                                                                                                                                                                                                     •
+
+                                                         00767                                                                      XDEF           PIA1AD
+
+                                                         00768                                                  A PIA1AD EQU                       E.177440 PiAl, side A, data reg.                                           (FF20)
+                                          40             00769                                                                      ENDC           IFN                 METTOY                                                                                                                                                                                 40
+
+                                                         00770                                0000              A                   IFNE           GRPTE
+
+                                                         00773                                                        ENDC            IFN GRPTEK
+                                          •              00774                                                                      XDEF           PIA:LAC                                                                                                                                                                                                    •
+
+                                                         00775                                FF21              A PIAIAC EQU                       PIA1AD-4-&1 PiAl, side A, control reg.
+
+                                                         00776                                                                      XDEF           PIAIBD
+                                                         00777                                FF22              A PIAIBD EQU                                            PIAI, side B, data reg.                                                                                                                                                               •
+
+                                                         00778                                                                      XDEF           PIAIBC
+
+                                                         00779                                FF23              A PIA:LBO EQU                      PIAIBD4A1 PIA1, side B, conrtrol reg.
+
+                                                         00780
+
+                                                         00781                                0000              A CARTRM EQU                       @140000 Address of cartridge RUM.                                              (C000)
+
+                                                         00782                                8000              A EXTROM EQU                       @100000 Address of extension ROM. (8000)
+                                                         00783                                                                                                                                                                                                                                                                                                •
+
+                                                         00784                                                                      XDEF           SAM
+
+                                                         00785                                FFCO              A SAM               EQU            @177700 Address of SAM chip.                                        (FFC0)
+                                                         00786                                                                                                                                                                                                                                                                                                40
+                                                         00787                                O000              A DSKROM EQU                       @140000 The address of the dlsk RUM.                                                  (C000)
+                                                         00788
+                                                         00789                                                                      TTL            Power up and Reset code.                                                                                                                                                                                   •
+
+                                                         00790
+
+                                                         00791                                                      *
+
+                                                         00792                                                      *    Here on RESET and power up after executing HRDINI routine. 
+
+                                                         00793                                                      *
+
+                                                         00794
+                                                         00795P 0000 lOCE 00FA                                  A HRDRT1 LDS                       #BUFA-BUFLEN Set up a temporary stack.                                                                                                                                                                     •
+
+                                                         00796                                0001              A                   IFNE           REALIO
+
+                                                         007972 0004 86                                         A                   LDA            #867                Enable the cartridge interrupt
+
+                                                         00798P 0006 B7 FF23                                    A                   STA            PIAIBC              at the PIA.
+                                              I I ;
+                                                         00799                                                                      ENDO           IFN                 REALIO
+
+                                                         00800P 0009 96                       71                A                   LDA            RSTFLG              Is the restart flag set?
+
+                                                         00801P 0008 81                       55                A                   CMPA           *8125
+
+                                                         00802P 000D 26                       10         001F                       BNE            INIT                No, must go through initialization.
+
+                                                         00803P 000F 9E 72                                      A                   LDX            RSTVEC              Yes, does the restart vector point
+
+                                                         00804P 0011 A6                       84                A                   LDA            ,X                  to a NOP instruction?
+
+                                                         008052 0013 81                       12                A                   CMPA           #@22
+
+                                                         00806P 0015 26                       08         00IF                       BNE            INIT                No, must go through initialization.
+                                                         00807                                                      *          This check is made so that if the 
+
+                                                         00808                                                      *          user pulls out a cartridge and hits 
+
+                                                         00809                                                      *          reset we won't jump to the restart 
+
+gression" -it's a word                                   00810                                                      *          address where there is no longer 
+vement. The latest in Dan                                00811                                                      *          any code.
+ily of power amplifiers i                                00812P 0017 SE 84                                      A                   JMP            ,X                  Restart the current program.
+ime spent in the researc                                 00813
+ ponents that always ris                                 00814                                                      *
+ays respect the demand                                   00815                                                      *    Here on reset and power LAD. 
+vey realism from the mo                   IP             00816                                                      *
+most thunderous of cr                                    00817
+
+I lot allowed to affect the                              00818                                                                      XDEF           POWRUP
+
+                                          IIIIPV/1,,2 00819P 0019 31                          BC E4                 POWRUP LEAY                    HRDR!1,PCR Set up return address for HRDINI.
+
+                                                         00820P 001C 7E                       0000              A                   JMP            HRDINI              (Can't use stack since RAM is no
+
+                                                         00821                                                      •          good until the SAM is initialized.)
+                                          40             00822                                                      *
+
+                                                         00823                                                      *    Here to perform BASIC initialization.
+                          H E;    II ■11
+
+                                          •
+
+
+
+
+
+                                          •
+

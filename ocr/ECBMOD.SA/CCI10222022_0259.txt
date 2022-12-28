@@ -1,0 +1,73 @@
+                            PAGE   034  ECBMOD   .SA:1   ECBmOD Cassette Input Routines
+
+                            02056                         *
+                            02057                         * "mOTOR ON" turns the   cassette motor on.
+                            02058                         * "MOTOR OFF" turns       cassette motor off.
+                            02059                         *
+                            02060
+                            02061                                 XDEF   mOTOR                                                                                                 •
+                            02062P  05E6 111-  89       A MOTOR   TFR.   A, B      Save the ON or OFF token.
+                            02063P  05E8 90    9F       A         JSR    CHRGET    Eat  it for NEWSTT.
+                            02064P  05E A      cp.t.)   A         OMPB   #OFFTK    ls  It "MOTOR OFF"?
+                       I  ' 02065P  05FC 27         05FB          BEQ    DOCOFF    Yes,  no do it.
+                            02066P  05EE Cl    00       A         CMPB   #ONTK     No,  how about  "MOTOR ON"?
+                            02067P  05F0 BD    0460               JE3R   ZERCHK    Give SN error if not.
+                            02068P  05F3 7E    0000     A         JMP    CASON     Yes,  go turn  it on.
+
+                                                                                                                                                                               40
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                               •
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                               •
+
+
+
+ogression" - it's a word 
+vement. The latest in Da 
+ily of power amplifiers i 
+ime spent in the resear 
+-nponents that always ris 
+ays respect the demand 
+-Ivey realism from the mo
+most thunderous of cr 
+int allowed to affect the
+
+
+
+
+
+  absolute s
+

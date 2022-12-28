@@ -1,0 +1,64 @@
+                   PAGE  009 ECBEXT .SA:1 EXTEND MID$ Assignment (MID$ on the Left Side).
+
+
+                   01166P024E 34  40     A       PSHS  U       Resave the descriptor pointer.
+                   01167P0250 BD  0000   A LHMD10 JSR  COMBYT  Skip comma, B:=offset into left
+             40    01168                   •   string.
+                   01169P0253 34  04     A       PSHS  B       Save the offset.
+                   01170P0255 5D                 ISTB          Give a Function Call error if the 
+                   01171P0256 27  1F  0277       BED   XRFC1   offset is zero.
+                   01772P0258 06  FF     A       LDB   #&255   Assume no third argument, in which
+                   01173                   *   case as many chars as possible will
+                   01174                   *   be replaced.
+                   01175P025A 81  29     A       CMPA  #CLSPAR Arrived at the closing parenthesis?
+                   01176P025C 27  03  0261       BEQ   LHMD30  Yes, no third argument.
+                   01177P025E BD  0000   A       JSR   COMBYT  No, sKip the comma and evaluate the
+                   01178                   *   number of chars to replace.
+                   01179P0261 34  04     A LHMD30 PSHS B       Save the number of chars to replace.
+                   01180P0263 BD  0000   A       JSR   CHKOLS  Eat the closing parenthesis and
+                   01181P0266                    SYNCHK EQULTK the eauals sign.
+                   01182P0268 8D      029R       BSR   EVLSTR  Evaluate the right string
+                   01183                   *   formula, B:=Iength, X:=pointer to
+                   01184                   *   string data.
+                   01185P026D 1F  13     A       TFR   X,U     Save pointer in U.
+                   01186P026F AE  62     A       LDX   &2,S    X:=pointer to left string
+                   01187                   *   descriptor.
+                   01188P0271 AS  84     A       LDA   ,X      A:=1ength of left string.
+                   01189P0273 AO  61     A       SUBA  &1,S    Is the soecified offset beyond the
+                   01190                   *   end of the left string?
+                   01191P0275 24  03  027A       BHS   LHMD35  No.
+                   01192P0277 70  0000   A XRFC1 JMP   FCERR   Yes, give FC error.
+                   01193
+                   01194P027A 40           LHMD35 INCA         No, A:=number of chars between the
+                   01195                       offset and theend of the left
+                   01196                   *   string.
+                   01197P027B Al  04     A       CMPA  ,S      Is the number of chars that can be
+                   01198                   *   replaced greater than or equal to
+                   01199                   *   the specified number or default (255)2
+                   01200P027D 24  02  0281       BHS   LHMD40  Yes, use the use the soecified or
+             0,    01201                   •   default number.
+                   01202P027F A7  04     A       STA   ,S      No, use the lesser number.
+                   01203P0281 AS  61     A LHMD40 LDA  &l,S    A:=offset into left string.
+                   01204P0283 10  89     A       EXG   A,B     Ag=length of right string,
+                   01205                   •   B:=offset into left string.
+                   01206                   •   (Want to use ABX below since it
+                   01207                       does an unsignea aadition.)
+                   01208P0285 RE  02     A       LDX   &2,X    X:=pointer to left string data.
+                   01209P0287 5A                 DECB          X:=pointer into left string
+                   01210P0288 3A                 ABX           where replacement will begin.
+                   01211P0289 4D                 TSTA          Is the right string null?
+                   01212P028A 27  OD  0299       E300  LHMD60  Yes, no replacement can be done.
+                   01213P0280 Al  04     A       CMPA          No, is the right string shorter 
+                   01214                       than the number of chars to be
+                   01215                       replaced?
+                   01216P028E 23  02  0292       BLS   LHMD50  Yes, only replace the number of chars
+               I:H 01217                       contained in the right string.
+                   01218P0290 A6  E4     A       LDA   ,S      No, use the replacement count
+                   01219                       previously determined.
+                   01220P0292 1F  89     A LHMD50 TFR  A,B     B:=number of chars to move.
+                   01221P0294 IE  31     A       EXG   U,X     X:=source pointer (right string),
+                   01222                   •   U:=0estination pointer (left
++44(0)20E19        01223                   •   string).
+
+    For Your N dr
+

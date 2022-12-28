@@ -1,0 +1,177 @@
+                                                                                                                                                                                       •
+
+
+
+
+
+
+
+                             PAGE 027 ECBMOD .SAg1 ECBMOD The                  statement.
+                                                                                                                                                                                       •
+
+
+
+                             01776                                  TTL     The OPEN   code.
+
+
+                             01777
+
+                     40      01776                                  XDEF    OPEN
+
+
+                             01779P  048D  BD    0000     A OPEN    JSR     HKOPEN     Hook for disk version.
+                          i
+
+                             01780P  0490  BD    0000     A         JSR     PRMEVL     Evaluate the open mode.
+
+                     40      0178IP  0493  BD    0000     A         JSR     ASC2       B:=ocen mode char.
+
+
+                             01782P  0496  34    04       A         PSHS    B          Save the open mode.
+
+
+                             01783P  04e8  8D    9F    0439         BSR     O-..T(..:DNEat comma and cet device number.
+
+                     40      01784                                  XDEF    OPNDEV
+
+
+                             01785P  049A  BD    0000     A OPNDEV  JSR     CHKCOM     Eat comma following device number. 
+
+
+                             0178F,P 049D  8D    BD    045C         BSR     FLNTRM     Read the filename into FILNAM. 
+
+                     40      01787P  049F  96    6F       A         LDA     DEVNUM     AE=deviee number.
+
+
+                             01788P  04A1  OF    6F       A         CLR     DEVNUM     Must be clear when OPEN returns. 
+
+
+                             01789P  04A3  35    04       A         PULS    B          Retrieve the open mode.
+
+                     40      01790P  04A5  Cl    49       A         CMPB    WI         Open for input? 
+
+
+                             01791P  04A7  27    12    048B         BEQ     OPENI      Yes, go do it.
+
+
+                             01792P  04A9  C1    4F       A         CMPB    WO         No, open for output?
+
+                     40      017S3P  04AB  27    42    04EF         BEQ     OPENO      Yes, do co it. 
+
+
+                             01794                          *     No,  give Bad Mode   error.
+
+
+                             01795                                  XD'"'F  FMERR
+
+                     40      01796               04AD     P FMERR   Ea.!    *          Also known as File Mode error. 
+
+
+                        "H   01797P  04AD  CE    00       A 8MERR   LDB     #ERRBM     Bad Mode error.
+                        'iJ,
+
+                             01796P  04AF                           SKIP2
+
+
+                             01799                                  XDEF    IOERR
+
+                             01800P  04B0  CE    00       A IOERR   LOB     #ERRIO     Cassette I/O error. 
+
+
+                             01801P  04B2                           SKIP2
+
+
+                             01802                                  XDEF    AOERR
+
+
+                             01803P  04B3  d.c., 00       A AOERR   LOB     #ERRAO     Already open error. 
+
+
+                             01804P  04B5                           SKIP2
+
+
+                             01805                                  XDEF    DNERR
+
+
+                             01806P  04B6  C6    00       A DNERR   LOB     #ERRDN     Device Number error.
+
+
+                             01807P  0488  71    0000     A         :IMP    ERROR
+
+
+                             01806
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+'Progression' - it's a wo 
+
+
+ ovement. The latest in 
+
+
+amily of power amplifier 
+
+
+fetime spent in the rese 
+
+
+omponents that always 
+
+
+Mays respect the demar 
+                     40
+;01 Ivey realism from the 
+
+
+I 10 cost thunderous of
+
+
+  1101 allowed to affect II
+
+
+
+
+
+
+
+
+
+
+
+
+    absolute
+

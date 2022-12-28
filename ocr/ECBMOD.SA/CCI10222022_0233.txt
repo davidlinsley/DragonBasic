@@ -1,0 +1,90 @@
+                          PAGE 008 ECBMOD             ECBMOD CHRINP - Character Inout Routine                                                                                •
+
+
+                          01071                        *
+
+                          01072                        *  CASINP reads a character from a cassette file.
+                          01073                        *  (Also used for downloading in tne extended version.)
+                          01074                        *
+
+                          01075 
+                          01076P  0178 OD    79      A CASINP TST      CBFCNT    Is the buffer empty?
+                          0107/P  017A 26    03   017F         BNE     NOTMT     No, no get a cnar from it. 
+                          01078P  0170 03    70      A         COM     EOFFLG    Yes, end of file.
+                          01079P  017E 39                      RTS
+
+                          01080
+                          01081P 017F 34     74      A NOTM7 PSHS      U,Y,X,B Save registers.      (Save all because
+                          0082                         •     of possible LODBUF call.)
+                          01083P 0181 9!::   7A      A         LDX     CBFPTR    Get char from cassette buffer, update
+                          01084P 0183 AS     80      A         LDA     ,X+       the pointer, and decrement the count.
+                   41)    01085P 0185 34     02      A         PSHS    A         (Save the char too.)                                                                     111 1
+                          01086P 0187 9F     7A                STX     CBFPTR 
+                          01087P 0189 OA     79      A         DEC     CBFCNT                                                                                                •
+                   40     01088P 018B 26     09   0196         BNE     CASIRT    Buffer still not empty, Just return.
+                          01089P 018D 96             A         LDA     DEVNUM    Doing a download?
+                          01090P 018F 81     FD      A         CMPA    #-8,3                                                                                                 40 
+                   40     01091P 0191 27     05   0198         BEQ     LODDNL    Yes, use different load buffer
+                          01092                         •    routine. 
+                          01093P 0193 BD     04CC              JSR     LODBUF    Reload the buffer.                                                                          40 
+                   40     010S4P 0196 33     F6      A CASIRT PULS     D,X,Y,U,PC Get the char into A, restore all reds
+                          01095                         •    and return. 
+
+                          01096                                                                                                                                              40 
+                          01097P 0198 BD     0000    A LODDNL jSR      LDBUFR    Reload download buffer.
+                          01098P 019B 20     F9   0196         BRA     CASIRT    Restore and return.
+
+                                                                                                                                                                             40 
+
+
+
+
+                                                                                                                                                                             40 
+
+
+
+
+                                                                                                                                                                             40 
+
+
+
+
+                                                                                                                                                                             40 
+
+
+
+
+                                                                                                                                                                             40 
+
+
+
+
+                                                                                                                                                                             40 
+
+"Progression" - it's a 
+movement. The latest i 
+family of power amp/if                                                                                                                                                       40
+lifetime spent in the re 
+components that alwa 
+always respect the der 
+convey realism from th 
+!/lc most thunderous 
+; lot allowed to affec
+
+
+
+
+
+
+                   40
+   absolut
+
+
+
+                   •
+
+
+
+
+                   •
+

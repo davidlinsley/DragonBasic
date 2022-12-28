@@ -1,0 +1,66 @@
+                                                                                                                                                                                                                                                                         •
+
+
+                                             PAGE 006 EC8EXT .SAg1 EXTEND The EDIT Command
+                                                                                                                                                                                                                                                                         •
+                                             00990P 0183 E6             82            A  INSMOV LD8             ,-X            MAKE ROOM FOR THE NEW CHAR BY MOVING 
+                                             00991P 0185 E7             01            A             STB         &1,X           THE REST OF THE CHARS UP A BYTE
+                       au                    00992P 0187 AC             E4            A             CMPX        ,S             MOVE ALL INCLUDING CURRENT CHAR
+                                             00993P 0189 26             F8       0183               BNE         INSMOV 
+                       H I 0                 00994P 0188                62            A             LEAS        &2,S           Clean up the stack.
+                                             00995P 018D A7             80            A             STA         ,X+            PUT THE NEW CHAR INTO THE LINE 
+                                             00996P 018F 8D             17       0128               BSR         GCHROT         ECHO THE NEW CHAR
+                                             00997P 0191 00             D7            A             INC         EDTLEN         INCREMENT THE LENGTH
+                                             00998P 0193 20             AF       0144               BRA         EDITI          GET NEXT CHAR TO INSERT
+                                             00999
+                                             01000P 0198 81             08            A  EDITCD     CMPA        #CHRDEL CHARACTER DELETE?
+                                             01001P 0197 26             12       01AB               BNE         CHKK           NO
+                                             01002P 0199 8D             04       019F    BACKB      BSR         GOBACK         Yes, output B backspaces.
+                                             01003P 0198 5A                                         DECB
+                                 •           01004P 0190 26             FB       0199               BNE         BACKE:                                                                                                                                                   •
+                                    I, I I I 01005P 019E 39                                         RTS
+                                             01006
+                                 •           01007P 019F 8C             0000          A  GOBACK CMPX            #BUF           IF AT START OF LINE DO NOTHING                                                                                                            •
+                                             01008P 01A2 27             DO       0174               BED         CHGRTS 
+                                             01009P 01A4 30             1F                          DEX                        OTHERWISE BACK UP THE EDIT POINTER 
+                                             01010                                       *       AND BACK       UP THE CURSOR
+                                             01011                      0001          A             IFEQ        REALIO 
+                                             01014                                         ENDC IFN          REALIO
+                                             01015P 01A6 86             08            A  BCKSPC LDA             #CHRDEL Back up the cursor.
+                                             01016P 01A8 7E             0000          A  GCHROT JMP             CHROUT
+                                             01017
+                                             01018P 01AB 81             48            A  CHKK       CMPA WK                    KILL UNTIL MATCH FOUND?
+                                             01019P 01AD 27             05       0184               BED         EDITK          YES
+                                             01020P 01AF 80             53            A             SUBA        #'S            SEARCH FOR CHAR?
+                                 0           01021P 0181 27             OI       0184               BED         EDITK          YES, USE SAME CODE AS K EXCEPT
+                                             01022                                       *       ACCA IS CLEAR AS A FLAG NOT TO KILL
+                                             01023P 0183 39                                         RTS                        Unrecognizable command, ignore it and
+                                 •           01024                                               go get another one.
+                                    IM 01025
+                                             01026P 0184 34             02            A  EDITK PSHS             A              SAVE KILL FLAG
+                                             01027P 0186 8D             1E       01D6               BSR         EDITIN         GET SEARCH CHAR                                                                                                                           •
+                                             010282 0188 ,4             02            A             PSHS        A              PUT IT AWAY
+                                             01029P 018A A6             84            A  EDTSRC LDA             ,X             END OF LINE?
+                                             01030P 018C 27             16       01D4               BED         SRCFIN         YES, GIVE UP SEARCH
+                                             010312 018E 6D             61            A             TST         &1,S           IF NOT KILLING THEN PRINT CHARS 
+                                             01032P 01C0 26             06       0108               BNE         ISKILL         INSTEAD OF DELETING THEM
+                                             010332 0102 8D             E4       01A8               BSR         GCHROT
+                                             01034P 0104 30             01                          INX                        POINT TO NEXT CHAR
+                                             01035P 0106                03       0108               BRA         NOKILL 
+                                             01036P 0108 BD             0120          P  'SKILL JSR             DELCHR         DELETE THE CHAR
+                                             01037P 0108 A6             84            A  NOKILL LDA             ,X             DO THE CHARS MATCH?
+                                             01038P 01CD A1             E4            A             CMPA        ,S 
+                                             01039P 01CF 26             ES       01BA               BNE         EDTSRC         NO, CONTINUE SEARCH
+                                             01040P 01D1 5A                                         DEC8                       YES, BUT MUST SEARCH REP COUNT TIMES
+                                             01041P 01D2                ES       018A               BNE         EDTSRC 
+                                             01042P 01D4 38             AO            A  SRCFIN PULS            Y,PC           Clean up the stack and return.
+                                             01043
+                                             01044P 01D6 BD             0000          A  EDITIN JSR             INCHR          GET A CHAR
+                                             01045P 01D9 81             7F            A             CMPA        #&127          THROW AWAY ALL BIGGER THAN TILDA.                                                                                                         •
+                                             010462 OlDB 24             Fq       01D6               BCC         EDITIN 
+                                             010472 01DD 81             5F            A             CMPA        #(2.137        Translate shift uparrow key which
+                                             010482 OlDF 26             02       01E3               BNE         NOTESC         generates a backarrow to an escape                                                                                                        •
++44 (0)20 89 71 BE                           010492 01E1 86             18            A             LDA         *ESCAPE        for compatibility with the TRS-80.
+
+       For Your Neare! 0                                                                                                                                                                                                                                                 •
+

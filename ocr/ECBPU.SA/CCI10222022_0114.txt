@@ -1,0 +1,69 @@
+                             PAGE    022    FCBPU     .SA:1     TXRPU    The PRINT USING       Floating Point Output         Routine
+
+                             01513                               *
+                             01514                               *  Put  in zeroes.
+                             01515                               *
+                             01516
+                             01517P   043D 34       02        A  FOTZCL    PSHS     A           Save count of zeroes.
+                    irk      01518P   043F 80       CA    040B             BSR      FOUTED      See if comma is required.
+                             01519P   0441 35       02        A            PULS     A
+                             01520P   0443 4A                    FOTZEC    DECA                 Mo re zeroes to print?
+                    41       01521P   0444 2B       OA    0450             BMI      FOUZCR      No
+                      111    01522P   0446 34       02        A            PSHS     A           Yes,   print one
+                             01523P   0448 86       30        A            LDA      #'0
+                    40       01524P   044A A7       CO        A            STA      ,U+
+                             01525P   044C A6       E0        A            LDA      ,S+         Any more?
+                             01526P   044E 26       ED    043D             BNE      FOTZCL      Yes,   see if comma needed.
+                    40       01527P   0450 39                    FOUZCR    RTS
+                             01528
+                             01529                                         END
+                    40       TOTAL   ERRORS 00000--00000
+                             TOTAL   WARNINGS 00000--00000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"Progression" - it' 
+movement. The !au 
+family of power at 
+lifetime spent in th, 
+components that . 
+rIlways respect the (lb
+(;oilvey realism fro 
+U)(` most thunder. 
+; iv rAllowed to .
+

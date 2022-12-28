@@ -1,0 +1,58 @@
+PAGE   004    ECBGRP     .SA:1   TXRGRP GRAPHICS CODE PSET,PRESET,LINE,PUT,GET,PPOINT
+
+00874                              *  THIS SUBROUTINE TAKES THE VALUES IN XSTORE AND YSTORE AND
+00875                              *  ASSUMING THEY ARE GRAPHICS COORDINATES SCALES THEM BASED ON THE
+00876                              *  CURRENT GRAPHICS MODE.
+00877                              *  THIS ALLOWS ALL GRAPHICS COORDINATES TO BE DECLARED IN THE sPACF
+00878                              *  Y=0 TO CYMAX-1 AND X=0 TO CXMPX-1 SO MODE CHANGES DON'T REQUIRE PROGRAM
+00879                              *  CHANGES
+00880                              *  IN MODE0+1 X=X/2 Y=Y12
+00881                              *  IN MODE2+3 X=X/2
+00882                              *  IN MODE4 NO CHANGE
+00883                              *                                                                                                                                         1
+00884P   0088  BO     0060         GSCALR jSR         SCNPNT      SCAN VALUES OUT OF TEXT                                                                                       •
+00885P   008E  CE     00BD       A GSCALE LDU         #XSTORE     POINT AT ARGUMENTS
+00886P   0091  96     86         A GSCALC LDA         SCMODE      GET THE SCREEN MODE
+00887P   0093  81     02         A           CMPA     #82         SEE IF Y NEEDS TO BE ADJUSTED
+00888P   009c;  24    06     009D            BOO      GSCNTY      NO SO HANDLE X
+00889P   0097   EC     42        A           LDD      &2,U        DIVIDE Y BY 2
+00890P   0099   44                           LSRA
+0089IP   009A   56                           RORB
+00892P   0098   ED     42        A           STD      &2,U
+00893P   009D   96     86        A GSCNTY LDA         SCMODE      NOW SEE IF X HAS TO BE SHIFTED
+00894
+00895P   009F   81     04        A           CMPA     #&4         SEE IF ITS MODE 4
+00896P   00A1   24     06    00A9            BCC      SVURTS      ONLY MODE4 HAS X NON—SCALED
+00897P   00A3   EC     C4        A           LDD      ,U
+00898P   00A5   44                           LSRA
+00899P   00A6   56                           RORB                 DO THE DIVIDE
+00900P   00A7   ED     04        A           STD       U
+00901P   00A9   39                  SVURTS RTS
+00902
+00903
+00904                               *
+00905                               * PPOINT IS A FUNCTION TAKING           (X,Y)  AND RETURNING THE COLOR OF THE           GRAPHICS
+00906                               * BIT SET AT THAT LOCATION
+00907                               *
+00908                                        XDEF     PPOINT
+00909P   00AA   BD     0123         PPOINT JSR        ONECRD      SCAN COORDINATE
+00910P   00AD   BD     008E                  JSR      GSCALE      SCALE TO GRAPHICS RANGE
+00911P   0080   BD     0009                  JSR      EIENADR     GET THE ADDRESS IN [X]        AND BITS IN [A]
+00912P   0083   A4     84                    ANDA     ,X          GET BIT RESULT INTO [A]
+00913P   0085   D6     86                    LOB      SCMODE      SEE IF COLOR OR BLACK AND WHITE
+00914P   0087   56                           RORB
+00915P   COBB   24     12    00CC            BCC      PNTBW       POINT IN COLOR MODE IS SPECIAL
+00916P   00RA   81     04        A  PNTCLP CMPA       #8,4        ARE BITS IN RANGE?
+00917P   0080          04                    BCS      PNTCDN
+00918P   00BE   46                           RORA
+00919P   008F   46                           RORA
+00920P   0000   20     F8    00BA            BRA      PNT0LP
+00921P   0002   40                  PNTCDN INCA                   MAP NON BLACK COLORS TO 1 TO 8
+00922P   0003   48                           ASLA
+00923P   00C4   98     Cl        A           ADDA     SCCSS       ADD IN COLOR SELECT TO GIVE ACTUAL COLOR
+00924P   0006   44                           LSRA
+00925P   0007   IF     89        A  ANTRT1 TFR        A,B         RETURN RESULT IN [B]
+00926P   0009   7E     0000      A  PNTRTO JMP        SNGFLT
+00927P   00CC   4D                  ANTBW    TSTA                 SF.E. IF POINT IS SET OR NUT
+                                                                  mr.7rnr,i -7=nm rzmD 1:11 nr-,-
+

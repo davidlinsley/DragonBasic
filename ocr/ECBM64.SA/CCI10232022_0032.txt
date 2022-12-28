@@ -1,0 +1,242 @@
+                                                     PAGE 033 EC8Y164 .SA1 ECBM64 Cassette input Routines
+
+
+
+
+
+
+
+                                                     01953                                                                TTL           Tme cassette output routines.
+
+
+                                                     01954 
+
+
+
+                                                     01955
+
+
+
+                                                     01956                                                  *  WRTBLK turns the motor on outputs a leader, writes a block of
+
+
+
+                                                     01957                                                  *  data, and turns off the motor.
+                       HU
+
+                                                     01958                                                  *  On entry, BLKOYP, BLKLEN, and CBUFAD must be set up.
+
+
+
+                                                     01959                                                  *  On exit X contains ECBUFADD+IBLKLEN3.
+
+
+
+                       H I             ,             01960 
+
+
+
+                                                     0196:
+
+
+
+                                                     0:962P 0576 9D                    0000             A WRTBLK JSR                    WRTLDR            Turn on motor and write leader.
+
+
+
+                                                     01963P 0579 SD                    03         OF,7E BLIKOFF BSR                     BLKOUT            Output the block.
+
+
+                                                     C1964P 0573 7:                    0000             A DOCOFF jMP                    CASOFF            Go turn off the motor.
+
+
+
+                                                     0:965 
+
+
+
+                                                     01966 
+
+
+
+                                                     01967
+
+
+
+                                                     01968                                                  *  BLKOUT outputs a block of data.
+
+
+
+                                                     01969                                                  *  Dn entry BLKTYP, BLKLEN, and CBUFAD must be set up.
+
+
+                                       40 
+                                                     01970                                                  *  On exit, X contains F.CBUFAD24-CBLKLEN:l.
+
+
+
+                                                     01971
+
+
+
+                                                     01972
+
+                                       40 
+                                                     01973                                                                XDEF          BLKOUT
+
+
+
+                                           PW 01974P 057E                                                   BLKOUT SEOCC F!+I                             No interrupts during cassette I/O.
+
+
+                                                     01975P 0580 DS                    7D               A                 LDB           BLIKLEN           3et the block length.
+
+
+                                                     0197EP 0582 D7                    81               A                 SOB           BYTCNT            Save for output loop count.
+
+
+
+                                                     01977P 0584 96                    7D               A                 LDA           BLKLEN            Also start the checksum with it.
+
+
+
+                                                     01978P 0586 27                    07         O58F                    REC!          ZERLEN            No tata in block.
+
+
+
+                                                     01979P 0588 9E                    7E               A                 LDX           CBUFAD            Compute the checksum. Note that this
+
+
+
+                                                     01980P 058A AR                    80               A 0HKSLP ADDA                   ,X-I-             done prior to rather than while
+
+
+
+                                                     01981P 058C 5A                                                       DECB                            writing the cats to minimize the byte
+
+
+                                       40 
+                                                     01982P 058D 40                    F9         053A                    BNE           CHKSLP            to byte delay while writing. This
+
+
+
+                                                     01983                                                  *         results in a smoother sinewave.
+
+
+
+                                                     01984P 058F 9B                    70               A ZERLEN ADDA                   BLKTYP            The block type is included in the
+
+                                       40
+                                                     01985P (..Y.'i91 97               30               A                 STA           CHK9U;YI          checksum.
+
+
+
+                                                     0198EP 0593 9E                    7E               A                 LOX           CBUFAD            Set up the data pointer.
+
+
+
+                                                     01927P 0595 8D                    18         0592                    99R           LORBYO            Write a leader byte.
+
+                                       40 
+                                                     0:988A 0597 88                    30               A                 LOA           #@74              Follow it with the sync byte.
+
+
+
+                                                     01989P 0599 8D                    19         0534                    39R           GOCBO             (30 hex.)
+
+
+
+                                                     01990P 059B 96                    7C               A                 LOA           BLIKTYP           Send out the block type.
+
+
+
+                                                     01991P 0590 8D                    15         0534                    25R           GOOBO
+
+
+
+                                                     01992P 0597 96                    7D               A                 LOA           BLKLEN            Follow with the 'block length.
+
+
+                                                                                       , „
+                                                     019977P 05A1 ap                   ,. .i.     0594                    B9R           GOCB0
+                                       ( .
+
+                                                     014P 051:43 4D                                                       75IA                            Any data to write?
+
+
+
+                                                     01995P 05A4 27                    08         05AE                    BED           OUTCHIK           No, Just go output the checksum.
+
+
+
+                                                     01996P 05A6 A6                    30               A BLKOLP LOA                    ,X+               Yes, output the data
+
+                                       40 
+                                                     01997P 0508 8D                    OA         0594                    1;:9R         GOCB0
+
+
+
+                                                     01998P 05AA OA                    81               A                 DEC           BYTCNT
+
+
+
+                                                     01999P 05AC 26                    F8         0';06                   BNE           BLKOLP
+
+                                       OD 
+                                                     02000P 05AF 96                    80               A OUTCH'7',: LOA                CHKSUM            Output the checksum and fall into
+
+
+
+                                                     020012 0580 8D                    02         0594                    89R           80080             LDRBYT to write a trailer byte.
+
+
+
+                                                     02002
+
+                                       (7'
+                                                     02003                                                  *
+
+
+
+                                                     02004                                                  *  LDRBYT writes a 55 hex leader char.
+
+
+
+                                                     02005                                                  *
+
+                                       (.
+                                                     02006
+
+
+
+                                                     U200I 0592 86                     p5               A HIDR8Y7 L90                   #@125             Leader byte is 55 hex.
+
+
+
+                                                     :-..)2oos               7E        0000             A G0090 .TtIP                   CBOUT             Output it and return.
+
+                                       '( 
+
+                                                     02009
+
+                                           Li
+                                            1        02010                                                                              Simple Grabhics - SET, RESE.T, P0.1.7, CLS
+
+
+
+
+
+
+
+
+
+
+44 (0)20 B9 71 BE
+
+
+
+
+
+
+      For Your Neares fl
+

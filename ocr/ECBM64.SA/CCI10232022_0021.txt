@@ -1,0 +1,80 @@
+                                   PAGE 022 ECar.P,64 .SA,11 ECEM64 Get Filename.
+
+
+                                   01577                                         TTL       Get Device or File Number.
+                                   01578 
+                         0         01579                                         XDEF      GETC5N
+                                   01580P   03E9 BD       0000       A GETCDN jSR          CHKCOM      Eat comma and get device number.
+                 H I               01E81 
+                                   01582                                         XDEF      GETDNM
+                                   01583D 03BC 81         23           GETDNM CMPA                     If there is a number sign eat it.
+                                   01584P 03BE 26         02     03C2            ENE       EVLDNY1
+                                   01585D 0350 95         9F         A           jSR       CRGET
+                                   01586P 03C2 BD         0000       A 71/42L.DNM JSR                  Evaluate the device number formula.                                                                            III I
+                         (         01587                                         X5EF      SET5NM
+                                   01588P 03C5 BD         0000         SETDNM JSR          INTCNV      D-...sidned integer from FAO.
+                                   0:589D 0358 59                                ROLE                  The high order 9 bits must be the same 
+                                   01590P 03C9 89         00                     ADCA      #&0         for the number to be in the range
+                         •         01591P 0358 26         69     0436            ENE       DNERR       -128 to +127.
+                                   01592P 03nD 56                                RORE                  It's OK, fix it back up.            Note that
+                                   01593                               *      if it is negative        the carry was set
+                         •         01594                               *      by the ADCAIM so        tne sign will come
+                                   01595                               *      back in properly        witn the RnRE.
+                                   01596P 03CE D7         GF         A           STB       DEVNUM      Put away the device number.
+                                   01597P 03D0 ED         0000                   jSR       HKDNCK      RPM hook for device number check. 
+                                   01598P 03D3 27         06 0358                EED       DNMOK       0 for screen is OK.
+                                   01599P 0355 2A         5F     0436            EP'       DNERR       No other oositive ones are allowed. 
+                                   01600P 03D7 CI         FE         A           CMPB      #-&.2       Disallow those below -2.
+                                   01601P 03D9 25         5B     0436            SOT       DNERR
+                                   01E022 035E 39                      DNMCK RTS
+                                   01603
+                                   olsoa
+                                   01605P 035C 8]         B1     038F FLNTRM BSR           GETFLN      set filename. Fall into TRMCHK to
+                                   01606                                      make sure the statement ends now.
+                                   C2.607 
+                                   01E08                               *
+                         •         01E09                               *  TRMCHK makes sure that a statement is properly terminated.
+                                   01E10                               *
+                                   01E11 
+                         •         01E12                                         XDEF      TRMCHK 
+                                   01613P 03DE 9D         P5         A TRMCHK JSR          CHRGOT      Set codes on current char. 
+                                   01614P 03E0 27         F9     03DE ZERCHK BED           5NMOK       It's a terminator.
+                                   01E15P 03E2 7E         0000       A           JMP       SNERR       Give syntax error
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                          •
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 89 71 3
+
+
+     For Your Neare ( L
+

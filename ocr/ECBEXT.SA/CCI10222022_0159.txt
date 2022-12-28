@@ -1,0 +1,103 @@
+                      PAGE  010   ECBEXT  .82:1   EXTEND MID$ Assignment    (MID$ on the Left Side).
+
+
+                      01224P 0296 BD    0000     A         JSR     COPLO2    Bo move the characters.
+
+                      012252 0299 35    96       A LHMD60 PULS     D,X,P0    Clean uo the stack and return.
+
+                      01226
+
+                      C1227
+                      01228                        *
+
+                      0122g                        * EVLSTR evaluates a numeric formula and returns with
+
+                      01230                        * B containing the length of the string and X containing
+                      01231                        * a pointer to the string data.                                                                                      •
+                      01232                        *
+
+                      01233
+                      01234                                XDEF    EVLSTR
+
+                      01235P  0298 BD   0000     A EVLSTR JSR      FRMEVL    Evaluate a formula.
+
+                      01236P  029E 7E   0000     A         JMP     FRESTR    Make sure it's a string,   free uo
+
+                      01237                              the temporary,  X:=pointer to string
+
+                      01238                              data, B3=length of string.
+
+                      01239
+
+                      01240                                TTL     The STRING% Function.
+              41      01241
+                      01242                        *
+
+                      01243                        * STRING$(<count>, <character>)   returns a string of length    <count>
+
+                      01244                          which is filled with the character specified by      <character>.
+                      01245                        *  <character>  can be specified as a string or a numeric formula.
+
+                      01246                        * If string,   the first  character is used to   fill the result.                                                    •
+                      01247                        * If numeric,   the value is used as an ASCII code to fill the
+
+                      01248                        * result.
+
+                      01249                        *
+
+                      01250
+                      01251                                XDEF    STRNG$
+
+                      01252P  0221 BD   0000     A STRNG$ JSR      CHKOAN    Eat the open parenthesis.
+
+                      01253P  0224 BD   0000     A         JSR     GETBYT    Evaluate and save the count.
+
+                      01254P  0227 34   04       A         PSHS    B
+
+                      01255P  0229 BD   0000     A         JSR     CHKCOM    Eat tne comma.
+
+                      01256P  0220 BD   0000     A         JSR     FRMEVL    Evaluate the second argument.
+
+                      012572  022F BD   0000     A         JSR     CHKOLS    Check for the closing parenthesis.
+
+                      012582  0262 96   06       A         LDA     VALTYP    Is the second argument numeric?
+
+                      012592  0264 26   05    02BB         BNE     STR2AR    No, it's a string.
+
+                      01260P  0266 BD   0000     A         JSR     CONINT    Yes, convert  it to an  integer in B.
+
+                      012612  0269 20   03    0268         BRA     OTRCOM    Go get soace for the string.
+
+                      01262
+                      01263P  0286 BD   0000     A STR2AR JSR      AS02      B:=ASIDII code of the first  byte of                                                     I
+
+                      01264                              the second argument.
+                      01265P  02BE 34   04       A GTROOM PSHS               Save the character code.
+                      012662  0200 E6   61       A         LDB     &1,S      Get length of result string.
+
+                      012672  0202 BD   0000     A         jSR     STRS22    Get the required amount of string
+                      01268                        *     space.
+
+                      012692  02C5      06       A         PULS    A,B       2:=char code,  B3=string  length.
+
+                      01270P  0207 27   05    0208         BEG     FINBLD    Zero length string,   don't put
+                      01271                        *     any chars into it.    <STRSPA set
+
+                      01272                         *    the condition codes on the length
+                      01'273                       *     of the string.)
+
+                      012742  0209 A7   80         BUILDS STA                Build the result string by storing
+
+                      01275P  0206 52                      DECB              the character code into each
+
+                      012762  0200 26   FB    0209         BNE     BUILDS    byte of the string..
+
+                      01277P  020E 7E   0000     A FINBLD JMP      GOPTNW    Co out away the result.
+
+                      01278
+                      01279                                TTL     The INSTR Function.
+
++44 (0)20             01280
+                  fl  01281                        *
+     For Your
+

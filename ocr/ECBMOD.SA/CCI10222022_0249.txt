@@ -1,0 +1,89 @@
+                                 PAGE 024 ECBMOD .SA:1 ECBMOD Set Filename.
+
+
+                                 01694                                                Get Device or           NwmDer.
+                                 01695 
+                                 01696                                       XDEF     GETODN                                                                                                                  •
+                                 01697P   0439  BD     0000      A  GFTCDN JSR                    Eat comma and get device number.                                                                        I '1i I
+                                 01698
+                                 01699                                       XDIE     GETDNM                                                                                                                  •
+                                 01700P   043C  81     23        A  GETDNM CMPA                   If there is a number sign eat it.
+
+                                 0170',P  043E  26     02    0442            BNE      EVLDNM
+
+                                 01702P   0440  QD     9F        A           JSR      CHRGFT
+
+                                 01703P   0442  BD     0000      A  EVI_DNM JSR       FRMNUM      Evaluate the device number formula.
+
+                                 01704                                       XDEF     SETDNM
+                                 01705P   0445  PD     0000      A  SEFDNM   JSR      INTCNV      D:=sidnec integer from FAO.
+
+                                 01706P   0448  59                           ROL9                 The high orcer 9 bits must be the same
+
+                                 01707P   0449  89     00        A           ADCA     #6,0        for the number to be in the range 
+
+                                 01708P   0449  26     69    04B6            BNE      DNERR       -128 to +127.
+
+                                 01709P   044D  56                           ROR9                 It's OK, fix it back UD.         Note that
+                                 01710                              •     if it is    negative the carry was set
+
+                                 01711                              •     by the ADCAIM so      the sign will come
+
+                                 01712                              •     back in oroberly      with the RORB.
+
+                                 01713P   044E  D7     6F        A           STB      DEVNUM      Put away the device number.
+                        •        01714P   0450  9D     0000      A           JSR      HKDNCK      RAM hook for device number check.                                                                           0
+
+                                 017152   0453         06    045B            BECA     DNMOK       0 for screen is OK.
+                                 01716P   0455  2A     E.::; 0496            BPL      DNERR       No other positive ones are allowed.
+                                 0177P    0457  Cl     FE        A           CMPR     #-&2        Disallow those below -2,                                                                                    0
+                                 01718P   0459  2D     5B    04IR6           9LT      DNERR
+
+                                 01719P   0459  39                  DNMOK RTS
+                                 01720                                                                                                                                                                        •
+
+                                 01721
+
+                                 01722P   0450  8D           040F   FLNTRM 98R        GETFLN      Get filename. Fall into TRMCHK to
+
+                                 01723                              •     make sure the statement ends now.
+                                 01724
+
+                                 01725                              *
+                                 01726                              *  TRMCHK makes sure that a statement is oroberly terminated.                                                                             •
+
+                                 01727
+
+                                 01728
+                                 01729                                       XDEF     TRMCHK 
+                                 01730P   045E  9D     A5        A  TRMCHK JSR        CHRGOT      Set coCes on current char. 
+
+                                 017312   0460  27     F9    0458   ZERCHK BECI       DNMOK       It's a terminator.
+                                 01732P   0462  7E     0000      A           JIMP     SNERR       Give syntax error                                                                                           0
+
+
+
+
+
+
+
+
+
+"Progression" - it's a w 
+movement. The latest in 
+family of power amplifie 
+lifetime spent in the res 
+components that alway 
+always respect the dem 
+convey realism from the 
+II in most thunderous o 43
+; 1101 allowed to affect
+
+
+                        •
+
+
+
+
+     absolute                                                                                                                                                                                                 •
+

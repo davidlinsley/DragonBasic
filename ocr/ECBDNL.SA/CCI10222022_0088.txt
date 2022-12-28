@@ -1,0 +1,78 @@
+                           PAGE 005 EOBDNL      .SA:1 Downio DLOAD - Load program from host computer.
+
+
+                           00848                         *
+                           00849                         * Open the file on the host and load the first block into the
+                           00850                         * cassette buffer.
+                       ,   00851                         * On exit, A=file type, B:=ASCII flag.
+                           00852                         *
+                           00853
+                           00854P 00AB BD     1F 0000    OPNHST BSR     OPNDNL    Open the file.
+                           00855P 00AD 34     06       A        PSHS D            Save file type and ASCII flag. 
+                           00856P 00AF 4C                       INCA              Was the file found?
+                           00857P 0080 27     06 0088           BEO     NEERR     No, give NonExistent file error. 
+                           00858P 0082 DE     BA       A        LDU     DBLZER    Yes, zero the block number.
+                           00859P 0084 BD     09   008F         BSR     LDBUFU    (Enter with U set up.)
+                           00860P 0086 35     86       A        PULS    D,PC      Retrieve file type and ASCII flag
+                           00861                         •    and return.
+                           00862
+                           00863P 008B CS 00           A NEERR LDB      ISERRNE   NonExistent file error.
+                           00864P 00BA 7E 0000         A        j.MP    ERROR
+                           00865
+                           00866
+                           00867                         *
+                    40     00868                         * Load next block of host file into cassette buffer. 
+                      LM 00869                           *                                                                                                                 VUUv
+                           00870
+                    410    00871                                XDEF    LDBUFR                                                                                                •
+                           00872P 00BD DE 7E           A LDBUFR LDU     BLKNUM    U:=block number for DNLBLK.
+                           00873P 008F 30 41           A LDBUFU LEAX    &l,U      Increment  it for next time.
+                           00874P 0001 9F     7E       A        STX     BLANUM
+                           00875P 00r3 BE 0000         A        LDX     #CASBUF   Set ub buffer pointer for DNLBLX.
+                           00876P 0006 BD     0135     P        JSR     DNLBLK    Load the block from the host.
+                           00877P 00C9 7E 0000         A        jMP     FINLDB    Finish up in the cassette load
+                           00878                         *    buffer  code to set the character count
+                           00879                         *    and buffer pointer.
+
+
+
+
+                                                                                                                                                                              •
+
+
+
+
+
+
+
+
+                                                                                                                                                                              •
+
+
+
+"Progression" - it's a                                                                                                                                                        •
+movement. The latest 
+family of power amplifi 
+lifetime spent in the re 
+components that alwa 
+always respect the det 
+convey realism from th 
+inn most thunderous 
+; tot allowed to affec
+
+
+
+
+
+
+
+              II,
+        [  [ [  H [
+
+
+
+
+
+
+                                                                                                                                                                              •
+

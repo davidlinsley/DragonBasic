@@ -1,0 +1,95 @@
+                           •
+
+
+
+                                                          PAS                         029                    ECBORP                              .SA:1                           TXRGRP                          MUSIC                       COmmAND
+
+
+
+                                                          02332P                          097D                   58                                                                                                  LSLB                                                                     MULTIPLY BY 2
+
+                                                          0 23331P                        097E                   39                                                                                                  RTS
+                           •                              02334P                          097F                   34                    60                                   A        VARGET                          PSHS                            U, Y                                     SAVE VARIABLE AND TABLE PC:INTERS
+                                                          02335P                          0981                   8D                    16                     0999                                                   BSR                             VARSUB                                   SO SCAN VARIABLE AND LOOK IT UP
+
+                                                          02336P                          0983                   BD                    0000                                 A                                        JSR                             OONINT                                   MAKE IT AN INTEGER IN CB: 
+                           •                              02337P                          0986                                         EO                                   A                                        PULS                                      Y. PC                          RESTORE POINTERS AND RETURN
+
+                                                          023:L8
+
+                                                          023391z'                        0988                   BD                    0999                                          PXCUTR                          jSR                             VARSUB                                   R=AD NAME AND LOOK UP
+                           •                              02340P                          098B                   C6                    02                                                                            L B                             #&.2                                     MAKE SURE ROOM ON STACK
+                                                          023 4 1 P                       098D                   BD                    0000                                                                               SR                         GETSTK
+
+                                                          0234 :21P                       0990                   DE                    D8                                                                            LOB                             PSTLEN                                   SAVE CURRENT SCAN POSITION AND LENGTH
+                           •                                   2 3; (.1.                  0992                   9E                    09                                   A                                        L. D X                          PSTPTR
+
+                                                          0 23 4 4 in                     0994                   34                    14                                                                            PSHS                            B, X                                     SAVE FOR RESTORING
+                                                               2 3 45P                    0996                   7E                    0790                                                                          JMP                             PLYSC4                                   CALL FRESTR W:TH NEw STRING
+                           •                              02346
+
+                                           '              023 4 7P                        09q9                                         09                                   A        VARSUB                          LDX                             PSTPTR                                   REMEMBER CURRENT POSITION SU PTRGET
+
+                                                          0 23 4S                         099B                   34                    10                                                                            PSHS                            X                                        CAN SCAN NAME
+                           •                                   :23 4 9                    0990                   Si:)                  0916                                 P                                        JSR                             FETCHR                                   GET FIRST CHARACTER OF NAmE
+
+                                                          02350P                          09A0                   9                     0000                                 A                                        JSR                             ISLETC                                   HAVE TO BE ALPHABETIC
+
+                                                          0235 I P                        09A3                   25                    CA                     0969                                                   8CS                             PLYBAD
+                           •                              02352P                          09A5                   BD                    0916                                 r-       VARSLP                          JSR                             FETCHR                                   SKIP TO NEXT CHARACTER
+                                                          02:1;53                         09A8                        1                3B                                                                            CmPA                            #SEMCOL
+
+                                                          0 235 4 P                       09AA                   26                    F9                     09A5                                                   BNE                             VARSLP                                   SKIP UNTIL "" ENDS NAME
+                           •                              0 2 3 !..4.11 5                 09AC                   35                    10                                                                            PULS                            X                                        GET STARTING POSITION
+                                                          02356P                          09AE                   DE.                   A6                                   A                                        LDU                             TXTPTR                                   SAVE PLAY STATEMENT TXTPTR
+                                                          0 2 3 5 7                       0980                                         40                                   A                                        PSHS                            U
+                           •                              0:235 8 P                       09B2                   9F                    AS                                   A                                        STX                             TXTPTR
+
+                                                          0 2 3 5 9                       09B4                   BD                    0000                                 A                                        jSR                             ISVAR                                    SCAN NAME AND mCVE INTO FAO
+                                                          0 2 3 1E; 0 P                   0927                   35                    10                                   A                                        PULS                            X                                        GET BACK OLD TEXT POINTER
+                                                          0 2 3 E. .1                     0989                                         AS                                                                            STX                             TXTPTR
+
+                                                          0 7 3 2 P                       098B                   39                                                                                                  RTS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"Prog 
+
+move' 
+family
+
+
+
+(;mo
+
+
+(J)11W,
+I I  I(       /1                   I          '1
+;1111(
+                           •
+

@@ -1,0 +1,71 @@
+                                                                     PAGE                   030                 '=083R',-)                     .SAga                      TXRGRP MUSIC 00AND
+
+                                                                     02364                                                                                                    *
+                                                                     02365                                                                                                    *       The interrupt                                          routine to handle note timing.
+                                                                     02366                                                                                                    *
+                                                                     02367                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      la
+                                                                     02368                                                                                                                                XDEF                       QLY0L
+                                                                     02369P                      09BC               4F                                                        PLYCLK CLRA                                                                                Clear the direct bade register.
+                                                                     02370P                      098.0                                  88                             A                                  TFR                        A,DP
+                                                                     02371P                      098F               DC                  E3                             A                                  LDD                        DURCNT                              Are we PLAYing a note?
+                                                                     02372P                      0901               1027                F638                                                              LBEQ                       SNO0LK                              No,            go handle BLOND clocking.
+                                                                     02373P                      0905               93                  D5                             A                                  SUBD                       DURSUB                              Yes,                update the duration count.
+                                                                     02374P                      0907               DO                  E3                             A                                  STD                        DURCNT
+                                                                     02375P                      0909               22                  OD                 0908                                           BHI                        PLYRTI                              Hold the note.
+                                                                     02376P                      0908               OF                  E3                             A                                  ICLR                       DURCNT                              Clear the count to indicate that                                                                                                 the
+                                                                     02377P                      09CD               OF                  E4                             A                                  CLR                        DURCNT-1-&1 note is finished.
+                                            •                        02378P                      090F               35                  02                             A                                  PULS                       A                                   Get stacked CC register into A.
+                                                                     02379P                      0901                   OEF             67                                                                LDS                        Fk7,S                               Clear all garbage from the stack.
+                                                                     02380                                                                                                                          (The stacked U is marking the stack.)
+                                                                     02361P                      0904               84                                                                                    ANDA                       #12177                              Clear the Entire bit and                                                                           restack                       the
+                                                                     02382P                      09D6               34                  02                             A                                  PSHS                       A                                   CCs.
+                                                                     02383P                      0908                                                                         PLYRTI                      RTI                                                            Return from the interrupt.
+                                                                     02384                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             I I 11
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                •
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                •
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"Progression" 
+movement. TI 
+family of po 
+lifetime spent 
+(;omponents 
+  Mays respe
+     )livey realist
+              Jest thut
+;11( II(              Illowe
+
+
+
+
+              abs
+
+
+                                            •
+|.
+
+                                            •
+

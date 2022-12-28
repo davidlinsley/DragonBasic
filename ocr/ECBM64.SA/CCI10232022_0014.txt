@@ -1,0 +1,66 @@
+                                  PAGE 015 ECBM64          .SA:31   6CBM64 The CLOSE code.
+
+
+                                  01312                                        TTL      CSAVE - Save program on cassette.
+                                  01313 
+                                  01314                                        XDEF     CSAVE
+                                  01315P   0267   81     4D\       A  CSAVE CMPA        #'M         Is it CSAVEM?
+                                  01316P   0269   1027   F093      A           LBOD CSAVEM          Yes, go handle it. 
+                                  01317P   026D   BD     038F                  JSR      GETFLN      Read the filename. 
+                                  01318P   0270   9D     A5        A           JSR      CHRGOT      End of statement? 
+                                  01319P   0272   27     16    026A            BFO      BCSAVE      Yes, to binary CSAVE.
+                                  01320P   0274   BD     0000                  JSR      CHKCOM      No, must be followed bya comma and 
+                                  01321P   0277                                SYNCHK `A            an "A" for ASCII.
+                                  01322P   027C          El:   0266            BAE      CLSRTS      If statement doesn't end now let 
+                                  01323                                     NEWSTT give a syn     tax error.
+                                  01324P   027E 4F                             CLRA                 Say it's a BASIC program.
+                                  01325P   027F BD       0473                  JSR      OPNASC      Open ASCII, gabbed output file. 
+                                  01326P   0282 86       FF        A           LDA      #CASNUM     Make the listing go to cassette.
+                                  01327P   0284 97       6F        A           STA      DEVNUM
+                                  01328P   0286 4F                             CLRA                 Make the LIST code see a terminator 
+                                  01329                               •     so the   whole program gets saved.
+                                  01330P   0287 76       0000                  jMP      LIST        The LIST code will do the rest.
+                                  01331                               *     When LIST is done it will close the
+                                  01332                               *     file.
+                                  01333
+                                  01334                               *
+                                  01335                               * Here to do binary CSAVE.
+                                  01336                               *
+                                  01337
+                                  01338P 028A 4F                      BCSAVIE CLRA                  Say it's a BASIC program.
+                                  01339P 0286 9E         BA                    LDX      DBLZER      Say not ASCII or gapped..
+                                  01340P 028D BD         0476                  jSR      OPNCSO      Open cassette file for output.
+                                  01341P 0290 OF         78                    CLR      CASOPN      Mark cassette as closed since OPNCSO
+                                  01342                               •     marked   it as open. 
+                                  01343P 0292 OC         7C        A           INC      BLKTYP      Set block type to data.
+                                  01344P 0294 BD         0000      A           JSR      WRTLDR      Turn on the cassette and write a
+                                  01345                               •     leader. 
+                                  01346P 0297            19                    LDX      TXTTAB      Get the starting point.
+                         40       01347
+                                  01346P 0299     9F     76        A  BCSLOP STX        CBUFAD      Store buffer address for BLKOUT.
+                                  01349P 0299     86     FF        A           LDA      #&255       Assume it's a full block.
+                                  01350P 029D     97     7D        A           STA      BLKLEN
+                                  01351P 029F     DC     1E1       A           LDD      VARTAB      How many more to write?
+                                  01352P 02A1     93     7E        A           SUBD     CBHFAD
+                         40       01353P 02A3     27     OD    0282            BE0      FINSAV      All done.
+                                  01354P 02A5     1083   OOFF      A           CMPD     #&255       Is it a full block?
+                                  01355P 02A9     24     02    02AD            BHS      FULBLK      Yes.
+                                  01356P 02AB     D7     7D        A           STB      BLKLEN      No, set actual block length.
+                                  01357P 02AD     BD     0576         FULBLK JSR        BLKOUT      Output the block.
+                                  01358P 02E:0    1s.;: 067    0299            BRA      BCSLOP      So back for more. BLKOUT set X
+                                  01359                                     to [CBUFAD]+EBLKLEND.
+                                  01360
+                                  01361                                        XDEF     FINSAV
+                                  013620   02B2 00       7C        A  FINSAV NEG        BLKTYP      Set block type to FOF.          (It was 1
+                                  01363                               •     for data, now -1 for eof.
+                                  01364P   0264 OF       7D        A           CLR      BLKLEN      No data to do out
+                                  013652   02B6 71E      0579                  jMP      BLKOFF      Write ELF block, turn off motor, and
+                                  01366                               •     return to NEWSTT.
+                                  01367
+
+
++44 (0)20 89 71 E
+
+
+      For Your NearE (
+

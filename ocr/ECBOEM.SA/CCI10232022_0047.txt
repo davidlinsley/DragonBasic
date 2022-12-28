@@ -1,0 +1,178 @@
+                                                                                                        PAGE                    006                 ECBOEM                           oSA:1                        IODRVR I/O DRIVER SUBROUTINES
+
+
+
+
+
+                                                                                                        00291P                      0101                 26                   37                 013A                                             BNE                         NONKEY                               IF NO MATCH NO KEY RETURNED
+
+
+                                                                                                        00292                                                                                                         *       MUST BE A VALID KEY AT THIS POINT SO ENCODE IT
+
+
+                                                                                                        00293P                      0103                 A6                   E4                                                                  LIDA                        0,S                                  PICK UP COLUMN COUNT
+
+
+                                                                                                        00294P                      0105                 80                   08                                                                  SUBA                        4COLS                                OFFSET IT
+
+
+                                                                                                        00295P                      0107                 BB                   08                                      NXTROW ADDA                                             4C0LS                                CALCULATE KEY POSITION AS FOLLOWS
+
+
+                                                                                                        00296P                      0109                 54                                                                                       LSRB                                                             KEY POS =                                 (ROWPPOS)*(COLS)                                                   -1-       (COL               PUS)
+
+
+                                                                                                        00297P                      010A                 24                   FB                 0107                                             BCC                         NXTROW                               ROW POS = BIT SET IN                                                                  (B)
+
+
+                                                                                                        00298P                      010C                 4D                                                                                       TSTA                                                             KEY AIDS = 0 IS A
+
+
+                                                                                                        00299P                      010D                 27                   32                 0141                                             BED                         KEW)                                 SPECIAL CASE
+
+
+                                                                                                        00300P                      010E                 81                   OC                              A                                   CMPA                        4$0C                                 CHECK NUMERIC KEY RANGE
+
+
+                                                                                                        00301P                      0111                 25                   17                 012A                                             BLO                         NUMKEY                               WHICH IS $00 — $08
+
+
+                                                                                                        00302P                      0113                 81                   11                              A                                   CMPA                        4$11                                 CHECK SPECIAL CASE RANGE
+
+
+                                                                                                        00303P                      0113                 25                   28                 013F                                             RLO                         SPEC1                                WHICH IS $0C — $10
+
+
+                                                                                                        00304P                      0117                 81                   2A                              A                                   CMPA                        4$2A                                 AND FINALLY CHECK RANGE
+
+
+                                                                                                        00305P                      0119                 22                   22                 013D                                             BHI                         SPEC2                                $2B ONWARDS SPECIAL CASE
+
+
+                                                                                                        00306                                                                                                         *       MUST BE ALPHABETIC CHARACTER IF HERE
+
+
+                                                                                                        00307P                      011R                 88                   30                                                                  ADDA                        43-30                                ADD OFFSET FOR ASCII UPPER CASE
+
+
+                                                                                                        00308P                      0110                 80                   86                 00A5                                             BSR                         CSHIFT                               AND CHECK WHETHER TO SHIFT
+
+                                                                                                        00309P                      011F                 27                   12                 0133                                             BEO                         CODED                                IF SHIFT THEN UPPER CASE REMAINS                                                                                                                                                                                                                                                                                                                    •
+
+
+                                                                                                        00310                                                                                                         *       COULD BE LOWER CASE AT THIS POINT SO CHECK ALPHA LOCK
+
+
+                                                                                                        00311P                      0121                 7D                   0149                                                                TST                         ALLOCK
+
+
+                                                                                                        00312P                      0124                 26                   OD                 0133                                             BNE                         CODED                                IF ON THEN UPPER CASE OK
+
+
+                                                                                                        00313P                      0126                 BA                   20                              A                                   ORA                         4$20                                 ELSE CONVERT TO LOWER CASE
+
+
+                                                                                                        00314P                      0128                 20                   09                 0133                                             BRA                         CODED                                BEFORE EXIT
+
+
+                                                                            •                           00315                                                                                                         *       NUMERIC                                     OTHERS)                          ENCODED HERE
+
+
+                                                                                                        00316P                      012A                 88                   30                              A       NUMKEY POOP                                             4$30                                 CONVERT TO ASCII
+
+
+                                                                                                        00317P                      0120                 17                   FF76               00A5                                             LBSR                        CSHIFT                               CHECK SHIFT KEY
+
+                                                                            •                           00318P                      012;:                26                   02                 0133                                             BNE                         CODED                                UNSHIFTED — NO CHANGE
+
+
+                                                                                                        00319P                      0131                 80                   10                              A                                   SUBA                        4$10                                 ELSE CONVERT TO UPPER SET
+
+
+                                                                                                        00320P                      0133                 81                   12                              A       CODED                       CmPA                        4SHIFT0                              CHECK FOR ALPHA LOCK TOGGLE
+
+                                                                            0                           00321P                      0135                 26                   04                 0138                                             BNE                         POLEND                                                                                                                                                                                                                                                                                                                                                                                   •
+
+
+                                                                                                        00322P                      0137                 73                   0149                                                                COM                         ALLOCK                               TUGGLE IF FOUND
+
+
+                                                                                                        00323P                      013A                 4F                                                           NONKEY CLRA                                                                                  NO KEY CLOSURE EXIT CONDITION
+
+                                                                            011                         00324P                      0138                 35                   90                                      POLEND PULS                                             X,PC                                 TIDY UP WORKSPACE AND RETURN
+
+
+                                                                                                        00325                                                                                                         *       SPECIAL CASES FOLLOW
+
+
+                                                                                                        00326P                      0130                 BO                   1A                                      SPFC2                       SUBA                        *26                                  MAKE SPECIAL CASES CUNTIGUOUS
+
+
+                                                                                                        00327P                      013F                 80                   OB                                      SPEC1                       SUBA                        411                                  AND OFFSET IN RANGE 1 —>
+
+
+                                                                                                        00328P                      0141                 48                                                           KEYO                        ASLA                                                             2 ENTRIES/KEY
+
+
+                                                                                                        00329P                      0142                 17                   FF60               00A5                                             LBSR                        CSHIFT                               CHECK FOR SHIFTED SET
+
+                                                                            0                           00330P                      0145                 26                   01                 0148                                             BNE                         LOOKUP
+
+
+                                                                                                        00331P                      0147                 40                                                                                       INCA                                                             SHIFTED SET ENTRY OFFSET
+
+
+                                                                                                        00332P                      0148                 SE                   014F                                    LOOKUP LOX                                              4KEYTAB                              SET UP LOOKUP TABLE BASE
+
+
+                                                                                                        00333P                      0148                 A6                   86                              A                                   LDA                         A,X                                  LOOKUP KEY ENTRY
+
+
+                                                                                              I         00334P                      0140                 20                   E4                 0133                                             BRA                         CODED                                AND RETURN IT
+
+
+                                                                                                        00335                                                                                                         *       KEY CODE LOOKUP TABLE FOLLOWS
+
+
+                                                                                                        00336                                                                                                         *       SECOND ENTRY OF EACH IS THE SHIFTED KEY
+
+
+                                                                                                        00337P                      014F                                      30                              A       KEYTAB                      FCB                         '0,SHIFTO
+
+                                                                                                                                                                                                                                                                              7            1     4,
+                                                                                                        00338P                      0151                                      2C                              A                                   FCB                              ,   7         s
+
+                                                                                                        00339P                      0153                                      2D                              cl                                  FOB                         ,.....,,„.„..
+
+                                                                                                        00340P                      0155                                      2E                              A                                   FOB                         '._`>.,
+
+                                                                                                        00341P                      0157                                      2F                              A                                   FCB                         ,/,,?
+
+
+                                                                                                        00342P                      0159                                      4                               A                                   FCB                         "@,$13
+
+
+                                                                                                        0034:P                      015B                                      5E                              A                                   FOB                         $5E,$5F                              UP ARROW
+
+
+                                                                                                        00344P                      015D                                      OA                              A                                   FOB                         LF,$5B                               DOWN ARROw
+
+
+                                                                                                        00345P                      015F                                      08                              A                                   FOB                         BS,$15                               LEFT ARROW
+
++44 (0)20 89 71 E                                                                                       00346P                      0161                                      09                              1:14                                FCB                         $09,$5D                              RIGHT ARROW
+
+
+                                                                                                        00347P                      0163                                      20                              A                                   FOB                         SP,SP                                SPACE
+                  For Your Near(
+                                                                                                        00348P                      0165                                      OD                              A                                   ---.',CB                    O R „ C::: R                         ENTER
+
+
+
+
+
+
+
+
+                                                                            (
+

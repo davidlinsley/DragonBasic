@@ -1,0 +1,86 @@
+                                                                                                                   PAGE 016 ECBPU                                                                     .SA:1 TXRPU The PRINT USING Floating Point Output Routine
+
+
+                                                                                                                   01300P                        031A                  33                    5F                                 A                                       LEAU                          -&1,U                                   went in and we throw it out by backing
+                                                                                                                   01301                                                                                                                 *                     up the                         pointer.
+                                                                                                                   01302P                        0310                  E6                    EO                                 A        FFXFLA LDB                                                   ,S-1-                                   Was the FAC zero to start with?
+                                                                                                                   01303P                        03IE                  27                    09                    0329                                                 BEG!                          FOTEXP                                  Yes, so the exponent to print is zero.
+                                                                                                                   01304P                        0320                  D6                    47                                 A                                       LDB                           TENEXP                                  No, scale the exponent.
+                                                                                                                   01305P                        0322                  CB                    09                                 A                                       ADDB                          #&6-1-&3*ADDPRC Add the sig digit count.                                                                                                                                                                                                                                                                                                                                                                               0 
+                                                                                                                   01306P                        0324                  DO                    D9                                 A                                       SUBB                          FLDWID                                  Subtract the leading digit count.
+                                                                                                                   01307P                        0326                  FO                    0000                               A                                       SUBS                          FBUFFR                                  Add one back if leading sign.
+                                                                                                                   01308                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     0
+
+                                                                                             III!                  01309                                                                                                                 *
+
+                                                                                                                   01310                                                                                                                 *       Put                in the                        exponent.
+                                                                                    11,                            01311                                                                                                                 *
+                                                                                                                   01312
+                                                                                                                   01313P                        0329                  86                    28                                 A        FOTEXP LDA                                                   #1-1-                                   Assume it is positive.
+                                                                                                                   01314P                        0328                  5D                                                                                               TSTB                                                                  Is the exponent positive?
+                                                                                                                   01315P                        032C                  2A                    03                '0331                                                    BPL                           FEXPLS                                  Yes.
+                                                                                                                   01316P                        032E                  86                    2D                                 A                                       LDA                           W-                                      No, it's negative so use a minus sign, 
+                                                                                                                   01317P                        0330                  50                                                                                               NESS                                                                  and negate the exponent.
+                                                                                                                   01318P                        0331                  A7                    41                                 A        FEXPLS STA                                                                                           Store the sign of the exponent.
+                                                                                                                   01319P                        0333                  86                    45                                 A                                       LDA                                                                   Put in the "E" and point past the 
+                                                                                    4                              01320P                        0335                  A7                    Ci                                 A                                       STA                                                                   "E" and the sign.
+                                                                                                                   01321P                        0337                  86                    2F                                 A                                       LDA                                                                   Convert exponent to two ASCII digits. 
+                                                                                                                   01322P                        0339                  40                                                                FEXPHI                         INCA                                                                  Increment high order digit.
+                                                                                                                   01323P                        033A                  CO                    OA                                 A                                       SUBS                          #&10                                    Sub 10 until result does negative.
+                                                                                                                   01324P                        0330                  24                    FB                    0339                                                 BCC                           FEXPHI
+                                                                                                                   01325P                        033E                  CB                    3A                                 A                                       ADDB                          #'04-&10 B:=the low order digit.
+                                                                                    OR                             01326P                        0340                  ED                    01                                                                         STD                           ,U++                                    Store the exponent.
+                                                                                                PI                 01327P                        0342                  6F                    04                                 A                                       CLR                           ,U                                      Put in a terminator.                                                                                                                                                                                                                                                                                                                                                lr I I
+                                                                                                                   01328P                        0344                  7E                    0216                                                                       JMP                           FOUTTS                                  Go finish up.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             •
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             •
+
+
+
+
+gression" - it's a word t 
+ement. The latest in Dan 
+ly of power amplifiers is
+    e spent in the research                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  •
+ponents that always rise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              I' III
+ys respect the demands 
+  ey realism from the mos                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    •
+most thunderous of cre 
+lot allowed to affect the c
+
+
+
+
+
+
+
+    absolute s
+       t                              JI it ,r               EUr I' Ail
+                                              k       ,            21.)
+                                           1: It it ,
+
+                                              PP'r,',1H111'
+
+
+                                                                                    •
+
+
+
+
+                                                                                    0
+

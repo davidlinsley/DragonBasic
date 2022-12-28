@@ -1,0 +1,238 @@
+                                          PAGE 010 FCB064 .SA;11 IODRVR I/O DRfVER SUBROUTINES
+
+
+
+
+
+
+
+
+                                          00523P 0243 8D              CA       020F CHKILO BSR                TlmELO         NO, TIME PULSE WIDTH OF LO
+
+
+
+                                          00524P 0245 25              OC       0253c.                         OHK1HI         2400 HZ AcLSE?
+
+
+
+                                          00525P 0247 OC              E3           A              j.:.i.      BITCNI         NO, SO Hl OF 24u0 HZ FOLLOWED
+
+
+
+                                          00525P 0249 98              83           A              LDA         BITCNT         BY LO OF 1200 HZ, I.E 1 -) 0
+
+
+
+                                          00527P 0248 81              60           A              CmPA        ,i4SYNCNT NOW IN 2ND 1/2 OF 5I'l WH':;CH IS HI
+
+
+
+                                          00528d 024D 20              OE       0250               BRA         CHKSYN         GOT ENC0GH B:„TS FOR SYNC COND1.TICN?
+
+
+
+                                          00529P 024F 80              BE       020F CHKOLD DSR                TimELO         LAST PULSE WAS 1200 HZ
+
+
+
+                                          00530P 0251 22              EC       023F               BHI         CHKOHI         IS THIS LC OF 1200 HZ?
+
+
+
+                                          00531P 0253 8D              84       0209 CHK1HI BSR                TIMEHI         NO, SO TlmE 'PULSE W.DTH OF HI
+
+
+
+                                          005322 0255 25              E'C      0243               Bc0         CHK1LC         2400 HZ?
+
+
+
+                                          00533P 0257 OA              83           A              DEC         BITCNT         NO, SO LO OF 2400 HZ FOLLOWED
+
+
+
+                                          00534P 0255 96              83           A              LDA         BITCNT         BY HI OF 1200 HZ, f.E. T -> 0
+
+
+
+                                          00535P 025R 88              60           A              ADDA        #SYNONT NOW IN 2ND 1/2 OF BIT WHICH IS LO
+
+
+
+                                          00536P 025D 26              DE       023D CHKSYN BNE                SYNCER         REPEAT UNTIL ENOuGH BITS FUR SYNC
+
+
+
+                                          00537                                        *  BPFLAG - 0 IF SAmPLING LO„ NON-0 IF SAmPEING HI
+
+
+
+                                          00538P 025F 97              84           A              STA         B0FLAG
+
+
+
+                                          00539P 0261 39                                          RTS
+
+
+
+                                          00540                                        *
+
+
+
+                                          00541                                        *  CBOUT - CUTPUIS A BYTE TO THE CASSETTE
+
+
+
+                                          00542                                        *
+
+                                                                                                                                                                                                                                                                   11(11
+
+                                          00543                                                   XDEF        ZOBOUT
+
+
+
+                                          00544                       0262         P ZCBOuT E.Ou              *
+
+
+
+                                          00545P 0252 34              02           A CBOUT PSHS               A              SAVE BYTE VALUF
+
+
+
+                                          00546P 0264 C6              01           A              LD5         #1             SET UP INITIAL 5:T POSITION VALUE
+
+
+
+                               •          00547P 0266 108E 0294                    P NEWBIT LDY               #SINTAB SET uP START OF SINE LOOKUP TABLE                                                                                                                41)
+
+
+
+                                          00548P 026A 96              85           A              LDA         LS-ISIN        PICK UP LAST ENTRY
+
+
+
+                                          00549P 026C B7              FF20         A              STA         P1PDRA         AND SEND TO DAC
+
+
+
+                                          00550P 025F E5              E4           A              BI75        0„S            IS BIT TO BE OoTPUT SET')                                                                                                                 411
+
+
+
+                                          00551P 0271 25              OD       0280               BNE         HZ2400         YES, GENERATE 2400 HZ WAVEFORm
+
+
+
+                                          00552                                        *  GENERATING A 1200 H7 WAVEFORM AT THIS POINT
+
+
+
+                                          00553P 0273 A5              AO           A HZ1200 LDA               0,Y-1-         P.i:CK UP TABLE ENTRY                                                                                                                     411
+
+
+
+                                          00554P 0275 108C 0258                    P              CmPY        4wRTLDR END OF TABLE REACHED?
+
+
+
+                                          00555P 0279 24              12       028n               BHS         BITEND         YES, THEN DCN'T CuTPuT LAST ENTRY
+
+
+
+                                          00555P 0278 57              FF20         A              STA         P1PDRA         NO, SEND TO DAC AND
+
+
+
+                                          00557P 027E 20              F:3      0273               BRA         HZ1200         GET NEXT SINE VAcuE
+
+
+
+                                          00558P 0280 A6              Al           A HZ2400 LDA               0,Y++          SAmE PS 1200 HZ wAVEFORm EXCEPT
+
+
+
+                                          00559P 0282 108C 0288                    P              C,mPY       #WRTLDR THAT ONLY EVERY 2ND ENTRY ACCESSED
+
+
+
+                                          00550P 0285 24              05       028D               RHS         BITEN0         THEREBY DOoDLING THE FREQUENCY
+
+
+
+                                          00551P 0288 B7              FF20         A              STA         P1PDRA         TO 2400 HZ
+
+
+
+                                          00562P 023B 2o              F3       o230               'BRA        HZ2400
+
+
+
+                                          00553                                        *  LAS/ [ABLE ENTRY NUT YET OUTPuT TO AVOID INTER -B1:TT DISICONTSNuITY
+
+
+
+                                          00564P 028D 57              85           A BITEND STA               LSTSiN         SAVE LAST ENTRY FOR LATER USE
+
+
+
+                                          00565P 028F 58                                          ASLB                       SHIFT TO NEXT BIT POSITION                                                                                                            -   40
+
+
+
+                                          00566P 0250 24              D4       0266               BCC         NEWBIT-        UNTIL ALL 8 BITS DEALT WITH
+
+
+
+                                          00567P 0252 35              82           A              PuLS        P,PC           RESTORE AND REToRN
+
+
+
+                                          00568                                        *
+
+
+
+                                          00555                                        *  SINTAB - CONTAINS ENTRIES USED TU GENERATE SINE WAVF FCRrnS VIA DAC
+
+
+
+                                          00570                                        *  N.B. THE FIRST ENTRY IS OFFSET TO ALLOW FOR IN7ER-ByTE DIscoNTINulTy
+
+
+
+                                          00571                                        *
+
+
+
+                                          00572P 0294                 80           A SINTA8 FCB               $80, $90„ $A8, $88, $08, $08, $E8, %HO, $F8
+
+
+                                          00573P 0250                 ;Es          -..
+                                                                                   H              FCB         $F8,$F8,$F0,$E8,$D8,$C8,$58,$A8,$90
+
+
+
+                                          00574P 02A5                 78           A                          $78,%58,$50,$40,$30,$20,$10,$08,500
+
+
+
+                                          00575P 02AF                 00           0              Z.::..:     $00. $00, $08„ $10, $20, $30, $40, $50, s68
+
+
+                                          00576                                        *
+
+
+
+                                          00577                                        *  WRTLDR - OUTPUTS A BIT SYNC LEADER CH $55'S (AL7ERNATIN6 O'S
+                                                                                                                                                                                                  l'S)
+
+
+                                  I       00578                                        *
+                                                                                                                                                                                                                                                                   dhl
++44 (0)20 B9 71
+                                          00575                                                   X0EF        ZWRTLD
+
+
+
+                                          00580                       0238         Y EWR7:....1.) ::::::,:i:j *
+       For Your Near 
+

@@ -1,0 +1,70 @@
+                                                                                                                                                                      •
+
+
+                         PAGE  007   EOBEXT  .SA:1  EXTEND The EDIT Command
+                                                                                                                                                                      •
+                         01050P 01E3  81   OD      A  NOTESC CMPA   #CR       ADMIT LOW EXCEPTIONS
+                         010512 01E5  27   OF   01E5         BEQ    EDTINR
+                         01052P 01E7  81   1B      A         CMPA   #ESCAPE
+                      '  01053P 01E9  27   OA   01F5         PEG!   EDTINR
+                         01054P OIEB  81   08      A         CMPA   #CHRDEL
+                         010552 01ED  27   06   01F5         BEG!   EDTINR
+                         01056P 01EF  81   20      A         CMPA   #'        ALL OTHERS BELOW SPACE ARE BAD
+                         010572 01F1  25   E3   01D6         BCS    EDITIN
+                         010582 01F3  lA   01         EDTSEC SEC              SAY IT ISN'T A LOW EXCEPTION.
+                         010592 01E5  39              EDTINR RIB
+                         010E0
+                         01061                               TTL    TRON and TROFF
+                         01062
+                         01063                        *
+                         01064                        * TRON turns on program tracing by setting TRCFLG to a nonzero
+                         01065                        * value.  TRCFLG is checked at NEWSTT and if it   is nonzero the
+                         01066                        * line number of the line about to be executed is printed enclosed
+                         01067                        * in souare brackets.   TROFF turns off the program tracing by clearing
+                         01068                        * TRCFLG.
+                         01069
+                         01070                               XDEF   TRON                                                                                              •
+                         010712 01F6       86      A  TRON   FOB    6206      LDAIM CLRA opcode to make A nonzero                                                  UKUK
+                         01072                             skip over the CLRA.
+                         01073                               XDEF   TROFF                                                                                             •
+                         010742 01F7  4F              TROFF  CLRA             Prepare to clear TRCFLG.
+                         01075P 01F8  97   AF      A         STA    TRCFLG    Set or clear the trace flap.
+                         010762 01FA  39              TRORTS RTS
+                         01077
+                         01078                               TTL    The 20S function.
+                         01079
+                         01080                        *
+                         01081                        * 208((device number>)  returns the print  postion of the specified
+                         01082                        *
+                         01083                        *
+                         01084                        * POS(0) returns the cursor column position.
+                  01     01085                        * POS(-1), if the cassette is open for output,   returns a meaningless
+                         01086                        * result.  If the cassette is not  open a File Not Open error results.
+                         01087                        * If the cassette is open for input,   a Bad File Mode error results.
+                         01088                        * 20S(-2) returns the print  position of the lineprinter.
+                         01089                        *
+                         010q0
+                  40     01091                               XDEF   POS                                                                                               •
+                         010922 01FB  96   6F      A  POS    LDA    DEVNUM    Preserve DEVNUM since this could be
+                         010932 01FD  34   02      A         PSHS   A         a case such as PRINT #-1,POS(0).
+                         010942 01FF  BD   0000    A         JSR    SETDNM    Convert and check the argument.                                                         •
+                         010952 0202  BD   0000    A         JSR    02NOCK    Make sure the device is open for
+                         01096                        *    output.
+                         010972 0205  BD   0000    A         JSR    DEVPRM    Get the device parameters.                                                              •
+                         01098P 0208  D6   60      A         LDB    DEVPOS    Get the position into B.
+                         010992 020A  75   02      A         PULS   A         Restore DEVNUM.
+                         01100P 0200  97   6F      A         STA    DEVNUM                                                                                            •
+                         011012 020E  7E   0000    A.        JMP    SNGFLT    Float the result and return.
+                         01102
+                         01103                               TTL    The VARPTR function.                                                                              •
+                         01104
+                         01105                        *
+                         01106                        * VARPTR(‹variable name>)  returns the address of the specified
++44 (0)20 BEI '7.    |[  01107
+
+     For Your Ne
+
+
+
+                                                                                                                                                                      •
+

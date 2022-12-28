@@ -1,0 +1,92 @@
+                              PAGE     019   ECBGRP      .SA41    TXRGRP Sraohics PUT and GET
+
+
+                              0:755P    05F3   DE     03         (21         LOU       X2STOR      GET BITS PER ROW
+                              01755P    05F5   34     42           SROWLP PSHS         U,A         SAVE BIT MASK AND COUNT
+
+                              01757P    05F7   54                            LSRB                  ADJUST BIT MASK
+                              01758P    05F8   24                            BCC       GETBCN      IF NO CARRY,      NO INCREMENT
+
+                              01759P    05FA   56                            RORB                  MAKE HIGH BIT BE SET
+
+                              01760P    05FB                     A           LEAY      &1,Y        ADVANCE IN THE ARRAY
+
+                              017612    05F'D  1090   01         A           CMPY      ARYFIN      GONE OFF END?
+
+                              01762P    0600   27     AA     05AC            BEG?      G2FCER
+                              01753P    0602   OD     08         A GETBON TST          GTPTFL      PERFORM GET OR PUT?
+                        I     01764P    0604   27            0625            BECA      GGRPDO      00 GET INTO ARRAY
+
+                              01755P    0606   E5     A4         A           BITB                  TEST ARRAY ELEMENT 70 SEE WHICH ACTION
+
+                              01766P    0608   27     04     060E            BED       GOPUTO      ON ZERO,    PERFORM ZERO ACTION
+
+                              01757P    060A   6E     SF ODDS A              jMP       EPUTAC13 ON ONE,       PERFORM ONE ACTION
+
+                              01768P    060E   GE         0009 A   GOPOTO JMP          [PUTACO]
+                     40       01769
+                              01770                                *
+
+                              01771                                *  THESE ARE THE ACTION ROUTINES STORED IN PUTAC1 AND PUTACO
+                     40       01772                                *
+
+                              01773
+
+                              017742    0612   43                  ZERIT     COMA                  CLEAR THE SELECTED BIT
+                              017752    0613   A4     84         A           ANDA      ,X
+
+                              017762    0615   A7     84         A           STA       ,X
+                              01777P    0617   20     16     062F            BRA       PGRPRT
+
+                              01778
+
+                              017792    0619   AA     84         A SET:T     ORA       ,X          SET THE SELECTED BIT
+
+                              01780P    061B   A7     84         A           STA       ,X
+                              01781P    061D   20     10     062F            BRA       PGRPRT
+                        ||!'  01782
+
+                              C1783P    061F   A8     84         A COMIT     EORA      ,X          EXCLUSIVE OR THE BIT TO COMPLEMENT IT
+                              017842    0621   A7     84         A           STA       ,X
+
+                              0:785P    0623   20     OA     062F            BRA       PGRPRT
+
+                              01786
+                              01787P    0625   A5     84         A GGRPDO BITA         ,X          TEST BIT ON SCREEN
+                              01788P    0627   27     06     062F            BEQ       PGRPRT      IF CLEAR NO BIT 70 SET
+
+                              017892    06-:,9 1F     98         A           TFR       B,A         SAVE CONTENTS OF B
+
+                              01790P    062B   AA     A4         A           ORA       ,Y          SET THE SELECTED BIT
+                              01791Q    0620   A7     A4         A           STA       ,Y
+
+                              01792
+
+                              01793                   062F       P LVEIT     EQU       *           DO NOTHING IF LEAVE BIT ALONE
+
+                              017942    062F   35     42         A PGRPRT PULS         A,U         GET BACK ROW COUNT AND BIT MASK
+
+                              017952    0631   BD     0056                   JSR       GINXB       UPDATE X TO NEXT POSITION
+                              01796P    0634   33     5F         A           LEAu      -&1,O       DECREMENT COUNT OF BITS IN THE ROW
+
+                              017972    0636   1193   8A         A           CMPU      DBLZER      (LEAU DOESN'T SET CONDITION CODES)
+
+                              01798P    0639   26     BA     05F5            RNE       GROWLP      IF NONZERO CONTINUE THIS ROW
+                     •        017992    063B   AE     61         A           LDX       &l,S        GET ADDRESS AT START OF ROW
+"Progression" - it's    I I H 018002    0630   96     B9         A           LOA       SCWID       UPDATE IT
+movement. The lat 
+family of power a             018012    063F   30     86         A           LEAX      A,X
+lifetime spent in th          01802P    0641   35     02         A           PULS      A           GET BIT MASK
+components that al            018032    0643   32     62         A           LEAS      8,2,S       GET RID OF OLD ADDRESS
+;Mays respect the             018042    0645   0A     C6         A           DEC       Y2STOR4-&1 DECREMENT NUMBER OF ROWS COUNT
+convey realism fro            018052    0647   26     A8     05F1            BNE       GCOLLA      ITERATE EACH ROW
+111c most thundero            018062    0649   39                            RTS
+;11( i1ol allowed to a        01807                                *
+                              01808                                *  THIS ROUTINE LOOKS UP AN ARRAY AND R1ETURN THE POINTER
+                              01809                                *  TO ITS COUNT BYTES IN EX:
+
+                              C1810                                *  IF NO ARRAY IS PRESENT,          AN FGERR RESULTS
+                              01811                                *
+
+                              0.1812P   064A   BD                A PGTARY JSR          PTRGET      LOOK VARIABLE UP AS A SIMPLE
+

@@ -1,0 +1,266 @@
+                                                                                                                                                                                 •
+
+
+
+
+
+                  rir                                                                                                                                                           !11.
+
+
+
+                        PAGE   018  ECBEXT    .SA:1   EXTEND TIME and TIME5
+
+
+
+
+
+
+
+
+                        01813                                  TTL     TIMER
+
+
+
+                        01814 
+
+                (10
+
+                        01815              0000      A         IFEO    TODCLK
+
+
+
+                        01816
+
+
+
+                        01817                          *
+
+
+                0
+                        01816                          * Here to set   tie timer via TIMER=tick count.
+
+
+
+                        01819                          * 0 .LE.  tick court   .LE. 65535.
+
+
+
+                        01820                          *
+
+                (
+
+                        01821
+
+
+
+                        01822                                  XDEF    TImSET
+
+
+
+                        01823P  046E  9D   SIF       A TIMSET JSR      CHRGET     Skip the second byte of the function
+
+
+
+                        01824                          *     token.
+
+
+
+                        01825P  0470  8D   E0     0452         BSR     EDUADR     Skip equals sign,   X:=tick count.
+
+
+
+                        01826P  0472  BF   0000      A         SIX     TICKER     Put it into the timer and    return.
+
+
+
+                        01827P  0475  39                       RTS
+
+
+
+                  HI!   01828
+
+
+
+                        01829 
+
+
+                ilo
+                        01830                          *
+
+
+
+                        01831                          * Here to return the tick count      for the TIMER function.
+
+
+
+                        01832                          *
+
+
+
+                        01833
+
+
+
+                        01834                                  XDEF    TIMER
+
+
+
+                        01835P   0476 BE    0000     A TIMER   LDX     TICKER     Get the tick count.
+
+                 ww                                  -
+                        01836P   0479 9F    52A                STX     FACMO      Float it and  return.
+
+
+
+                        01837P   047B 7E    035B     P         jMP     CONS16
+
+
+
+                        01838                                  ENDO    IEF        TODCLK
+
+
+
+                        01839
+
+
+
+                        01840                                  TTL     The DELETE Command
+
+
+
+                        01841
+
+
+                OM
+                        01842                                  XDEF    DELETE
+
+
+
+                        01843P   047E 1027  FB7E     A DELETE LBEQ     FCERR      At least one line number must be
+
+
+
+                        01844                          *     specified.
+
+
+                til
+                        01845P   0452 BD    0000     A         JSR     LINGET     Read the first   line number.
+
+
+
+                  II ,I 01846                          *     (Returns 0 if dash    is first  thing.)
+
+
+
+                        01847P   0485 BD    0000     A         JSR     FNDLIN     Get ant save a pointer to the first
+
+
+
+                        01848P   0488 9H    D3       A         STX     FSTPTR     line to be deleted.
+
+
+
+                        01849P   048A 9D    A5       A         JSR     CHRGOT     See what the terminator is.
+
+
+
+                        01850P   048C 27    10    049F         BEQ     DELSRC     End of statement,   delete only the
+
+
+
+                        01851                          *     specified   line if it exists.
+
+
+
+                        01852P   048E 81    00       A         CMPA    4MINUTK    It must be a dash.
+
+
+
+                        01853P   0490 26    38    04CD         BNE     DELSNR     Return to NEWSTT to give SN error
+
+
+
+                        01854                          *     if not  da-:...
+
+
+                                            c-,,,::
+                         01855P  0492 9D    ..,,     A         JSR     CHRGET     Skip over the tash.
+
+
+
+                         01856P  0494 27    04    049A         BEQ     DTnEND     End of statement,   delete to tie end
+
+
+                (0'
+                        01857                          *     of the program.
+
+
+
+                         01858P  0496 6D    24    04BC         BSR     LINTRM     Read tie final   line number into
+
+
+
+                        01359                          *     LINNUM and check for a terminator.
+
+
+
+                         01860P  0498 20    04    049E         BRA     DELSRC     Go find the first   line in the   range).
+
+
+
+                         01861
+
+
+
+                         01862c, 049A 86    FF       A DTDEND LDA      #&255      Set LINNUM so higher than any
+
+
+
+                         01563P  049C 97    2B       A         STA     LINNUM     program line number.     (Don't care
+
+
+
+                  1  H   01864                         *     about  low order byte since 255*256
+
+
+
+                         01865                         *     is 65280 ant the highest program
+
+                '(
+                         01866                         *     line number allowed    is 63999.)
+
+
+
+                         01867P  049E DE    D3       A DELSRC LDU      FSTPTR     Search for the first    line outsite
+
+
+
+                         01868P  ono                           P.KIA2  the        range of  lines to  be deleted.
+
+
+
+                         (:)869P 04A1 EE    C4       A DELSLP LDU      rj         Link to the next   line.
+
+
+
++44 (0)20 89             01870P  04A3 EC    C4       A         LOD     ,t...i     Is the  link zero?
+
+
+
+
+
+
+      For Your r
+
+
+
+
+
+
+
+
+
+
+
+                 (:(
+

@@ -1,0 +1,85 @@
+                         PAGE  021  ECBPU   .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+
+                         01494                      *
+                         01495                      * Set up decimal point and comma counts.
+                   40    01496                      *
+                    ili1i01497
+                         01498P 0425 96   47      A FOUTCD LDA    TENEXP   Decimal point count:=decimal exponent+
+                   AP    01499P 0427 8B   OA      A        ADDA   #&7+&3*ADDPRC #of digits+1.
+                         01500P 0429 97   45      A        STA    DECCNT
+                         01501P 042B 4C                    INCA            Comma count:=(decimal point count +1
+                   40    01502P 042C 80   03      A FOUCD1 SUBA   It&3     MOD 2)+3.
+                         01503P 042E 24   FC   042C        BCC    FOUCD1
+                         01504P 0430 88   05      A        ADDA   #&5
+                   40    01505P 0432 97   D7      A FOUTCC STA    COMCNT   Store possible comma count.
+                         01506P 0434 96   DA      A FOUICC LDA    PUMASK   Are we using commas?
+                         01507P 0436 84   40      A        ANDA   #COMFLG
+                   40    01508P 0438 26   02   043C        BNE    FOUCRT   Yes, leave the count as is
+                         01509P 043A 97   D7      A        STA    COMCNT   No, zero the count.
+                         01510P 043C 39             FOUCRT RTS
+                   40    01511
+
+
+
+                   40
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   40
+
+
+
+                   (7-
+
+
+
+
+
+
+
+
+
+
+
+       I H E
+                   •
+
+       "Progression" 
+       movement. Th: 
+       family of powe 
+       lifetime spent i[ 
+       components th 
+       ;Mays respect
+         Ivey realism 
+       11R most tl Ittni 
+       11( R )1 ;Illowed
+
+
+
+                   •
+
+           abs•
+                                                                                                                                                              oi
+
+
+
+
+
+
+ME
+

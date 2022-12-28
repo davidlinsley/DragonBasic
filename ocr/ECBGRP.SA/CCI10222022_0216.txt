@@ -1,0 +1,167 @@
+                                                  PAGE         033        EOBSR2            .S9'41         TXRGRP         MUSIC        COMMAND
+
+
+
+
+
+                                                  02425                                                      *
+
+
+                                                  02426                                                      *   The      high       octave taple.
+
+
+                                                  02427                                                      *
+
+                                         i „,
+                                         I        02428
+
+
+                                                  02429P         0910                  96                A   OCTH           FOB             &166
+
+
+                                                  02430P         0911                  90                A                  FOB             &156
+
+
+                                                  02431P         0912                  93                A                  FOB             &147
+
+
+                                                  02432P         0913                  8B                A                  FOB             &139
+
+
+                                                  02433P         0914                  83                A                  FOB             &131
+
+
+                                                  02434P         0915                  78                A                  FOB             &123
+
+
+                                                  02435P         0916                  74                A                  FOB             &116
+
+
+                                                  02436P         0917                  6D                A                  F08             &109
+
+
+                                                  02437P         0918                  67                A                  FOB             &103
+
+
+                                                  02438P         0919                  61                9                  FOB             &97
+
+
+                                                  024399         0919                  5D                A                  FOB             &91
+
+
+                                                  02440P         0918                  56                A                  FOB             &86
+
+
+                                                  02441
+
+
+                                                  024429         0910                  51                A                  FOB             &81
+
+
+                                                  02443P         °AID                  40                A                  FOB             &76
+
+
+                                                  02444P         0916                  47                A                  FOB             &71
+
+
+                                                  02445P         0A1F                  43                A                  FOB             &67
+
+
+                                                  02446P         0A20                  3F                A                  FOB             &63
+
+
+                                                  02447P         0921                  38                A                  FOB             &59
+
+
+                                                  02448P         0922                  37                A                  FOB             &55
+
+                                                  024492         0923                  34                A                  FOB             &52
+
+
+                                                  02450P         0924                  31                9                  FOB             &49
+
+
+                                                  02451P         0925                  2E                A                  FOB             &46
+
+
+                                                  02452P         0926                  28                A                  FOB             &43
+
+
+                                                  02453P         0927                  28                A                  FOB             &40
+
+
+                                                  02454
+
+
+                                                  02455P         0928                  26                A                  FOB             &38
+
+
+                                                  024562         0A29                  23                A                  FOB             &35
+
+
+                                                  024572         0929                  21                A                  FOB             &33
+
+
+                                                  02458P         0928                  IF                A                  FOB             &31
+
+
+                                                  024599         092C                  1D                A                  FOB             &29
+
+                                   (i;            024602         092D                  IB                A                  FOB             &27
+
+
+                                                  024612         0926                  19                A                  FOB             &25
+
+
+                                                  024622         0A2F                  18                A                  FOB             &24
+
+                                   40             024632         0930                  16                A                  FOB             &22
+
+
+                                       Lr         02464P         0931                  14                A                  FOB             &20
+
+
+                                                  024652         0932                  13                A                  FOB             &19
+
+                                   40             024662         0933                  12                A                  FO8
+
+
+                                                  02467
+
+
+                                                  02468                                                                     TTL             DRAW COMMAND
+
+"Progression" - it's               40             02469
+
+movement. The late                                02470                                                                     XDEF            DRAW
+
+family of power am                                0471P          0934       9E         8A                A   DRAW           LDX             DBLZER              MAKE DUMMY ENTRY
+
+lifetime spent in the              40             024722         0936       06         01                A                  LDB             #&1
+
+
+components that al                                02473P         0A38       34         14                A                  2SHS            B,X                 SO EXECUTE WILL STOP ITERATION
+
+
+ Mays respect the                                 024742                    D7         02                A                  STD             SETFLG              Set      UD to use foreground color.
+
+(.0ilvey realism from                             02475P         0A3C       9F         D5                A                  STX             DRWFL1              DRWFL1:=DRWFL2:=0.                                                                                                                                                                     •
+
+
+111 most thunderoL                                024762         093E       DD         0308              P                  jSR             DEFCOL              DEFAULT BY SETTING UP ACTCLR AND AOTOLE
+
+; i(>1. allowed to a                              024772         0941       BD         0000              A                  JSR             FRMEVL              EVALUATE THE STRING ARG
+
+                                                  024782         0944       BD         0000              A   DRWSO4         JSR             FRESTR              FREE UP THE STRING AND SET [B]                                      & [X]                                                                                                              a
+
+
+                                                  02479P         0947       20         08         0951                      BRA             DRWSET
+
+
+                                                  0-';'4P0
+
+                                   40             02481P         0949       BD         0916              P   FT0HVL         jSR             FETCHR              Read next char into A.
+
+
+                                                  024822         0940       7E         093C              P                  SMP             PLYVAL              Go scan the value.
+

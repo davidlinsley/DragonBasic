@@ -1,0 +1,141 @@
+                             PAGE   006    FCBM07)   .SAg1    ECBMOD Power up and Reset code.
+
+
+
+
+                             00982                             *
+
+                             0098                              *  This stuff gets block transferred           into RAM during      initialization.
+
+                    40       00984                             *
+
+                      HI     00985
+
+
+                             00986P   00EC         0000      A ;...ORAM  FDB      B00764     EXECAD FOR 64K INITIALISATION
+                    ili                                                                                                                                                                                    40 
+                             00987P   00EE  00     A7        A           INC      TXTPTR-i-&1 CHRGET RAM code.
+
+                             00988P   00F0  26     02    00F4            BNE      CHRLOD
+
+                             00989P   00F2  00     A6        A           INC      TXTPTR
+                    40                                                                                                                                                                                     40 
+                             00990P   00F4  BE     0000      A CHRLOD LDA         >0         (Force extended addressing.)
+
+                             00991P   00F7  7E     078B      P           ,IMP     ROMLOC
+
+                             00992
+                    40                                                                                                                                                                                     40
+                             00993                 000E      A NLORAM EQU         *-LORAM
+
+                             00994
+
+                             00995P   00FA  7E     0000      A HIRAM     JMP      XRSLWC     VIRO
+                    40                                                                                                                                                                                     40
+                             00996P   00FD  7E     000F      P           JMP      CARTRG     VFIRO
+
+                             009972   0100         00        A           FOB      &O         TICKER    (Overlays 85:   version's USRJ.MP.)
+
+
+                             00998P   0101         00        A           FCB      &0         (Was sIMP FCERR for 8k version.)
+                    40                                                                                                                                                                                     41 
+                             00999P   0102         00        A           FCB      &O
+
+                             01000P   0103         80        A           FOB      @200       RNDX
+
+
+                             01001P   0104         4F        A           FCB      @117
+                    40                                                                                                                                                                                     40 
+                             01002P   0105         C7        A           FCB      @307
+
+
+                      All    01003P   0106         52        A           FOB      @122
+
+                             01004                 0001      A           IFNE     ADDPRC
+                    40                             5,4                                                                                                                                                     40 
+                             0'005P   0107                   A           FCB      @131
+
+                             01006                                       ENDC     IFN        ADDPRC
+
+                             01007P   0108         00        A           FCB      &0         ALPHLK in Color Computer.
+                    •                                                                                                                                                                                      40 
+                             01008P   0109         0000      A           FDB      &0         DBNCNT in Color Computer.
+
+                             01009P   0108         00        A           FOB      &O         The RAM hook FPWRT used to be here
+
+
+                             0I010P   0100         00        A           FOB      &0         and was set uo with a JMP SNERR
+                                                                                                                                                                                                           40
+                             01011P   010D         05        A           FOB      &5         INTER-REPEAT DELAY
+
+                             01012P   010E         00        A           FOB      NNRMTK     STUBO
+
+                             01013P   010F         0000      A           FDB      RESLST
+                                                                                                                                                                                                           40
+                             01014P   0111         0000      A           FDB      STMDSP
+
+                             01015P   0113         00        A           FCB      NFUNTK
+
+                             01016P   0114         0000      A           FDB      FUNLST
+                                                                                                                                                                                                           41 
+                             01017P   0116         0000      H           FDB      FUNDSP
+
+                             01018
+
+
+                             01019                 001E      A NHIRAM E.:;!U      *-HIRAM
+                    40                                                                                                                                                                                     40
+                             01020
+
+                      WI     01021                 0001      A           IFNE     METTOY                                                                                                               000
+
+
+                             01022P   0118         28        A SIGNON FCC         /(C)   1982 DRAGON DATA LTD /
+                    40       01.023P  0131         0D        A           FCB      CR
+
+                             01024P   0132         31        A           FCC      /16K BASIC INTERPRETER 1.0                /
+
+
+                             01025P   0151         OD        A           FCB      CR
+                    40                                                                                                                                                                                     40 
+                             01026P   0152         28        A MICRO     FCC      /(C)   1982 BY MICROSOFT!
+"Progression" - it's 
+                             01027P   0167         OD        A           FOB      CR
+movement. The lat: 
+                             01028P   0168         OD        A           FCB      CR
+family of power a   6                                                                                                                                                                                      40 
+                             01029P   0169         00        A           FCB      &O
+lifetime spent in tin: 
+                             01030                                       ENDC     IFN        METTOY
+components that a 
+                             01031
+always respect the  0                                                                                                                                                                                      40 
+                             01032                 0000      A           IFNE     GRPTEK
+convey realism fro 
+II I() most thunder.         01044                               ENDC     IFN GRPTEK
+
+    lot allowed to .40       01045                                                                                                                                                                         40
+                             01046                                       TTL      CHRINP - Character In:Jut        Routine z
+
+                             01047
+
+                             01048                             *
+
+                    40       c, a 0 ,:r4.9                     *  CHRINP inputs a character from the device specified by DEVNUM.
+
+     absol
+                      1P,1   01050                              * The character Ls returned          in A.
+
+
+
+                                                                                                                                                                                                           •
+
+
+
+
+
+
+
+
+                    •
+

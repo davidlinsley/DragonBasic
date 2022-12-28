@@ -1,0 +1,73 @@
+                                   •
+
+                                      vnou
+                                   40          PAGE       005       ECBPU         .SA=1        TXRPU The PRINT USING driver.
+
+                                               00866P       0004     81       2B             A   TWOLFT CMPA                               If plus then force out possible pre- 
+                                               008672       00A6     26       09        0081                  BNE         NTPLUS           ceding plus and set the plus flag. 
+                                               008682       0008     BD       0190                            jSR         PLSPRT                                                                                                                                                                    40
+                                               008692       000B     86       08             A                LDA         #2LSFLG 
+                                               00870P       00AD     97       DA             A                STA         PUMASK
+                                               008712       00AF     20       CC        007D                  BRA         PuSFIN           Go look at next char.                                                                                                                                    •
+                                               00872
+                                               008732       0081     81       2E             A   NTPLUS CMPA              #'.              Numeric field with no digits before
+                                               00874P       0083     27       4E        0103                  BEID        DOTNUM           the decimal point?                                                                                                                                       •
+                                               008752       0085     81       25             A                C120        WILCSTR A multi-char string field?
+                                               00876P       0087     1027     FF77      0032                  LBEQ        BGSTRF           Go scan it.
+                                               008772       0088     Al       84             A                CMPA                         Is the current char the same as the
+                                               00878                                                      next char?
+                                               008792       00BD     26                 0051     GONWUC BNE               NEWUCH           No, so it isn't "$$", "**", or "**$.".
+                                   •           00880                                                      all other possiblilities have been
+                                      I 1      00881                                                      checked so the current char isn't
+                                               00882                                                      part of a field.
+                                               008832       008F     81       24             A                CMPA        #FLTMON Yes, is the floating dollar sign?
+                                               008842       00C1     27       19        OODC                  BEO         DOLRNM           Yes.
+                                               00885P       00C3     81       20             A                CMPA        #7*              No, how about asterisk fill or aster-
+                                               00886                                                      isk fill with floating dollar sign?                                                                                                                                                       •
+                                               00887P       0005     26       F6        00BD                  BNE         GONWUC           No, it isn't a field.
+                                               00888P       0007     96       DA             A                LDA         PUMASK           Set the asterisk fill flag.
+                                               008892       00C9     80       20             A                ORA         #ASTFLS
+                                               008902       0008     97       DA             A                STA         PUMASK
+                                               008912       00CD     Cl       02             A                CM28        #&.2             Are there enough chars for "**$"?
+                                               00892P       00CF     25       11        00E2                  BCS         NTBOTH           No.                                                                                                                                                      •
+                                               008932       00D1     06       01             A                LDA         &1,X             Yes, check for the "$".
+                                               008942       00D3     81       24             A                CMPA #FLTMON
+                                               008952       00D5     26       OB        00E2                  BNE         NTBOTH           It is some oher char.                                                                                                                                    •
+                                               008962       00D7     50                                       DEC8                         It is "**$." so decrement using string
+                                               008972       00D8     30       01             A                LEAX        &1,X             char count and advance the pointer.
+                                               00898P       ()ODA    OC       D9             A                INC         FLDWID           Tne "$H makes room for another digit.                                                                                                                    •
+                                               008992       OODC     96       DA             A   DOLRNM LDA               PUMASK           Set the floating dollar sign flag.                                                                                                                  I
+                                               00900P       OODE     80       10             A                ORA         #DOLFLG
+                                               009012       00E0     97       DA             A                STA         PUMASK
+                                               00902P       00E2     30       01             A   NTBOTH LEAX              8,1,X            Point beyond the second char (or
+                                               00903                                                      third for "**$").
+                                               009042       00E4     OC       D9             A                INC         FLDWID           Increment the digit count.
+
+
+
+                                   •
+
+
+
+ogression" - it's a word 
+vement. The latest in Da 
+ ily of power amplifiers i 
+ime spent in the researc 
+-nponents that always ris 
+ays respect the demand 
+vey realism from the mo 
+ most thunderous of cr 
+ lot allowed to affect the
+
+
+
+
+
+
+
+                  il,r ti; CCA
+             !, r   k ■,
+
+
+                           ,k,11 H
+

@@ -1,0 +1,113 @@
+                                PAGE 028      ECBEXT     .SA:1    EXTEND RENUM -     Renumber    a BASIC program
+
+
+
+                                02267                              *
+
+                                02268                              *  CONVERT LINE    NUMBER   REFERENCES FROM ASCII TO        MODIFIED BINARY
+                                02269                              *  LINE NUMBER    TOKENS.     THE FOLLOWING REFERENCES        ARE HANDLED:                                                             1!1-1
+                                02270                              *
+
+     HIGH                       02271                              *  THEN
+                       C-       02272                              *  ELSE
+
+                                02273                              *  G070
+
+                                02274                              *  GOSUB
+
+                                02:273                             *
+
+                                02:276
+
+                                022772 05EB 9E        19        A  BINASC LDX        TXTTAB      POINT TO THE START OF THE PROGRAM.
+                                02278P 05ED 20 04 05F3                      BRA      BINO20                                                                                                                  0
+
+                                02279P 05E7 9E A6               A  BIN010 LDX        TXTPTR      X:=POINTER TO THE FIRST LINK BYTE.
+
+                                02280P 05F1 30        01        A           LEAX     &1,X
+
+                                02281P 05F3 8D 9F            0594  BINO20 BSR        CHKLNK      QUIT IF THE LINK IS ZERO.
+
+                                022822 05F5 30 02               A           LEAX     &2,X        Skip the link and line number.
+
+                                02283P 05F7 30        01        A  BINO25   LEAX     &1,X
+
+                                022842 05F9 9F A6               A  RINO30   STX      iXiPTR      SET UP TO DO "CHRGET"'S.
+
+                                022852 05FB 9D 9F               A  BIN040   JSR      CHRGET      GET NEXT CHAR, SKIP SPACES.
+
+                                022862 05FD 4D                     BIN050   TSTA                 END OF LINE?
+
+                                022872 O5FE 27        EF     05EF           BFD      BIN010      YES, PROCEED TO NEXT LINE.
+
+                                022B8P 0600 2A        F9     05FB           BPL      BIN040      NOT A TOKEN SO SKIP IT.
+
+                                02289P 0602 9E A6               A           LDX      TXTPTR      SAVE "TXTPTR" SINCE WE MAY HAVE TO
+
+                                02290                              •      LOOK AHEAD AND WILL WANT TO RESTORE
+
+                                02291                              •      "TXTPTR" IF WE DON'T SEE WHAT WE
+
+                                02292                              •      ARE LOOKING AHEAD FOR. 
+                       41       022932 0604 81        FF        A           CMPA     #@377       is it t he first byte of a function
+
+                                02294                              •      token?
+
+                                02295P 0606 27        EF                    BED      BINO25      Yes, skip it and the second byte since
+                       40       02296                              *      the second byte might look like one
+
+                                02297                              *      of)the nonfunction tokens we are
+
+                                02298                              *      looking for.
+                       41       022992 0608 BD 0000             A           JSR      HKRENM      RAM hook to handle new reserved
+
+                                02300                              •      words.
+
+                                023012 060B 81        00        A           CMPA     #THENTK     THEN?
+
+                                023022 060D 27        12     0621           BEQ      BIN070      Yes, go look for a line number. 
+                                02303P 060F 81        00        A           CMPA     t4tLa,.7.TK czt
+
+                                02304P 0611 27        OF     0621           BED      BIN070      Yes, go look for a line number. 
+
+                                023052 0613 81        00        A           CMPA                 GO?
+
+                                02306P 0615 26        E4     05FB           BNE      BIN040      No, nothing special so Just skip it. 
+
+                                02307P 0617 9D        9F        A           JSR      CHRGET      Yes, read the next byte.
+                       40       02308P 06,19 81       00        A           CMPA     #TOTK       TO token must follow for SOTO.
+
+                                023092 061B 27        04     0621           BED      B1N070      Go handle the line number(s).
+
+                                02310P 061D 81        00        A           CMPA     #SLBTK      Could also he GOSLB.
+
+                                023112 061F 26        DB     05F9           BNE      BINO30      Neither, go scan the char after the
+
+                                02312                              •      30 token. 
+
+                                02313 
+
+                                02314                              *
+
+                                02315                              *  READ A LINE NOV-8ER.
+
+                                02316                              *
+                                02317                                                                                                                                                                        0
+
+                                023182 0621 c'n       9F        A BIN070 JSR         CHRGEJ      READ FIRST CHAR.
+
+                                023192 0623 25        04     0629 BINOSO SOS         BIN100      TT'S A DIGIT SO READ A LINE NUMBER.
+
+                                02320                              •      IF NOT   DIGIT THEN SCAN THIS CHAR.
+
+                                0232IP 0625 9D        A5        A BIN090 JSR         CHRGf:i7.   RESET CURRENT CHAR AND GO scan it
+
+                 ak             023222 0627 20 D4            05FD           BRA      BIN050
+
+                                02323
+389 71 39 09 inf                                                                                                                                                                                          111
+                                02324P 0629 9E A6               A BIN100 LDX         TXTPTR      Remeber wnere tne number started.
+
+]Ur Nearest Dealer 
+                                                                                                                                                                                                             411
+

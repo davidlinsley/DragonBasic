@@ -1,0 +1,118 @@
+                                                                                                                                                                                                                                                                                                                                                                                                                                        •
+
+
+
+
+                                                                     PAGE           07:9          EOBGRP               .SA:1              TXRGRP CIRCLE
+
+
+
+                                                                     02951P            0035         BD            0000                 A                       JSR                EVLADR                 READ THE RADIUS
+
+                                                                     02952P            0038         CE            00CF                 A                       LDU                #RADIUS                POINT TO STORAGE LOCATION 
+
+                                                                     02953P            0C3B         AF            C4                   A                       STX                ,L1                    SET IT UP
+                                                                     02954P            003D         BD            0091                 ;::.                    JSR                GSOAL0                 SCALE AS AN XCOUNT
+
+                                                                     02955                                                                                ASPECT IS ALSO SCALED BUT NO AFFECT
+
+                                                                     02956P            0040         86            01                   A    *                  LDA                #&1                    SETuP AS PEET
+
+                                                                     02957P            0042         97            02                   A                       STA                SETFLG
+
+                                                                     02558P            0044         BD            02F2                 P                       JSR                CMCOLR
+
+                                                                     02959P            0047         BE            0100                 A                       LDX                #1(256                 ASSUME ASPECT RATIO OF 1.0
+
+                                                                     02960P            004A         9D            A5                   A                       JSR                CHRGOT                 SEE IF STATEMENT ENDED
+
+                                                                     02961P            0040         27            OF           005D                            BED                CASPCT                 SO STORE DEFAULT ASPECT RATIO
+
+                                                                     02962P            004E         BD            0000                 A                       JSR                CHKCOM
+
+                                                                     02963P            0051         BD            0000                 A                       JSR                FRMNUM                 EVALUATE THE FORMULA
+
+                                                                     02964P            0054         96            4F                   A                       LDA                FACEXP                 QUICK MULTIPLY BY 256
+
+                                                                     02965P            0056         BB            08                   A                       ADDA               VAS
+
+                                                                     02566P            0058         97            4F                   A                       STA                FACEXP
+
+                                                                     02967P            005A         RD            0000                 A                       JSR                GETADR                 FORCE TO A 16 BIT INT IN X
+
+                                                                     02968P            005D         96            B6                   A    OASPOT LDA                            SOMODE                 SCALE BY SCMODE TO CCMPENSATE FOR X                                                             Y RATIO
+
+                                                                     02969P            0C5F         85            02                   A                       BITA               WK2                    CHECK IF MODE 2 OR 3
+
+                                                                     02970P            0061         27            04           0067                            BED                CSTASP                 IF NUT,               ASPECT RATIO IS CORRECT
+
+                                                                     02971P            0063         IF            10                   A                       TFR                X,D                    MULTIPLY X BY 2
+
+                                                                     02972P            0065         30            BB                   A                       LEAX               D,X
+
+                                                                     02973P            0067         9F            D1                   A    CSTASP STX                            ASPECT
+
+                                                                     02974                                        0000                 A                       IFNE 
+
+                                                                     02985                                                                     ENDC               IFN 0
+
+                                                                     02986P            0069         C6            01                   A    OSTFLG LDB                            #&-1                   TELL GRAPHICS CODE WE ARE SETTING
+
+                                                                     02987P            006B         D7            C2                   A                       STB                SETFLG
+
+                                                                     02988P            006D         D7            D8                   A                       STB                CSTRFL                 INDICATE JUST START
+
+                                                                     02939P            006F         BD            OD60                 P                       JSR                CPOSSB                 SCAN FOR POSSIBLE LENGTH OF CIRCLE
+
+                                                                     02990P            0072         34            06                   A                       PSHS               D                      SAVE START POSITION
+
+                                                                     02991P            0074         BD            0060                 P                       JSR                CPOSSB                 SCAN FOR POSSIBLE START POSITION
+
+                                                                     02592P            0077         DD            D9                   A                       STD                CENDPS                 STORE END POSITION
+
+                                                                     02993P            0079         35            06                   A                       PULS               D                      GET BACK START POSITION
+
+                                                                     02994                                                                  *
+
+                                                                     02995                                                                  *     NOW WE GENERATE THE APPROXImATION POINTS FOR THE CIRCLE
+
+                                                                     02996                                                                  *     BY USING A TABLE FOR THE EIGHT OF A CIRCLE AND MODIFYING                                                                                               THE POINT
+
+                                                                     02997                                                                  *
+
+                                                                     02598                                                                  *             CA]=DUADRANT COUNT                                 (0 TO 7)
+
+                                                                     02999                                                                  *             [B]=POINT IN QUADRANT                                      (0 TO NUMPNT-1)
+
+                                                                     03000P            0C7B         34            06                   A    CQUADL PSHS                           D                      RESAVE COUNTERS ON STACK
+
+                                                                     03001P            007D         9E            C3                   A                       LDX                X2STOR                 MOVE NEW POINT TO OLD POINT
+
+                                                                     03002P            007F         ‘Hur,         BD                   A                       STx                XST0RE
+
+                                                                     03003P            0081         9E            C5                   A                       LDX                Y2STOR
+
+                                                                     03004P            0083         9F            BF                   A                       STX                YSTORE
+
+                                                                     03005P            0085         CE            OBF9                 P                       LDU                #CIROTB-1-&2 INDEX TABLE WITH FACTORS
+ sion" - it's a word that                                            03006                                                                  *             LOOK AT DuADRANT TO S'....E IF NEED TO SWITCH
+ nt. The latest in Dan D'                                            03007P            0038         84            01                   A                       ANDA               #8,1                   DIRECTIONS.                     DESIRED FOR 1,3,5,7
+f power amplifiers is th                                             03008P            008A         27            03           OCBF                            BED                CPNX03
+ pent in the research an                                             03009P            0080         50                                                         NEGB
+ents that always rise to                                             03010P            OCBD         CB            08                   A                       ADDS               #NUMPNT-&1
+espect the demands of t                                              03011P            008F         58                                      CPNXC3 LSLB                                                  EACH ENTRY IS 2 2BYTE NUMBERS
+realism from the most su
+                                                                     03012P            01730        56                                                         LSLB
+    thunderous of cresce 
+                                                                     03013P            0091         33            05                   A                       LEAU               B,U                    POINT AT YFACTOR
+lllowed to affect the dyn                                            03014P            0093         34            40                   A                       PSHS               U                      SAVE FOR XFACTOR                                                                                                                                                                                                               •
+
+                                                                     03015P            0095         BD            0025                 P                       JSR                RADMUL                 MULTIPLY BY RADIIG
+
+                                                                     03016                                                                  *             70 GET VALU'E IN                           EX:
+
+                                                                     03017P            0098         35            40                   A                       PULS               11                     GET BACK THE POINTER
+bsolute sou                                                          03018P            01-9A        ..,,:,        5E                   A                       LEAU               -&2,O                  POINT            AT      X    (::AL.:Ful:
+           I 11 I, 11,(11 !, C2,11 If itiHj It,
+     :     I,         II  r0,21\Agjri 111 \A/      •
+

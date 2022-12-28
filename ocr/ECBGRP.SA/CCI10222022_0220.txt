@@ -1,0 +1,68 @@
+              •       PAGE    037   ECBGRP     SA:    TXRGRP   DRAW  COMMAND
+                      02657P   087A  1183  0100      A DRWABS   CMPU    #CXMAX     CHECK X RANGE
+                      026582   087E  25    03    0883           BCS     DRWX0K
+              •       02659P   OBSO  CE    ()OFF     A          LDU     #CXMAX-&1
+                      02660P   0B83  SC    0000      A DRWXOK   CMPX    #CYMAX     CHECK Y RANGE
+                      02661P   0886  25    03    0888           BCS     DRWYOK
+              •       026622   0888  8E    008F      A          LDX     #CYMAX-&1
+                      02663P   0888  DC    C7        A DRWYOK   LDD     LSAVEX     SET UP START POINT OF DRAW
+                      026642   088D  DD    8D        A          STD     XSTORE
+                      02665P   088F  DC    C9        A          LDD     LSAVEY
+                      026662   0891  DD    BF        A          STD     YSTORE
+                      02667P   0893  9F    C5        A          STX     Y2STOR     SET UP END POINT
+                      026682   0895  DE    C3        A          STU     X2STOR
+                      02669P   0897  OD    D5        A          TST     DRWEL1     DO WE UPDATE CURRENT POINT?
+                      02670P   0899  26    04    089F           BNE     DRWNSV     MUST HAVE USED "N" OPTION
+              •       02671P   089B  9F    C9        A          STX     LSAVEY
+                      026722   089D  DE    C7        A          STU     LSAVEX     UPDATE CURRENT POSITION
+                      0267.3P  089F  8D    0191      P DRWNSV   JSR     GSCAL2     SCALE BOTH BEFORE DRAWING
+                      02674P   08A2  OD    D6        A          TST     DRWFL2     SEE IF SHOULD DRAW      ("8" OPTION)
+                      026752   OBA4  26    03    08A9           FINE    DRWNLN     IF SET THEN NO LINE
+                      026762   08A6  BD    0212                 jSR     LINGEN     ACTUALLY DU THE DRAW
+              •       02677P   OBA9  OF    D5        A DRWNLN   CLR     DRWEL1     CLEAR THE FLAGS
+                      02678P   08A8  OF    D6        A          CLR     DRWFL2
+                      02679P   OBAD  76    0A58                 JMP     DRWSCN     GO BACK AND CONTINUE DRAW SCAN
+              •       02680                            *
+                      02681                            *  HERE  ON M  COMMAND
+                      02682                            4E. ARGUMENT  IS +-X,+-Y
+              •       02683                               IF X HAS A + OR - IT     IS A RELATIVE MOVE
+                1     02684                            *  OTHERWISE   IT IS AN ABSOLUTE MOVE
+                      02685                            *
+                      02686P   0880  BD    0916      2 DDRWMV   JSR     FETCHR     LOOK AT FIRST CHARACTER
+                      02687P   0883  34    02        A          PSHS    A          SAVE FOR END 70 CHECK ABSOLUTE
+                      02688P   0885  BD    08DC                 JSR     SGNVL2     SCAN X VALUE
+              0       02689P   0888  34    06        A          PSHS    D          SAVE X VALUE
+                      02690P   OBBA  BD    0916                 JSR     FETCHR     LOOK AT TERMINATOR
+          Y-sa'111!   02691P   OBBD  81    2C        A          CMPA    #COMMA     MUST BE COMMA
+                      026922   088F  1026  FF07  OACA           LBNE    G3FCER     FUNCTION CALL ERROR IF NOT
+                      02693P   OBC3  8D    081)9                JSR     SGNVAL     READ Y VALUE
+                      02694P   0806                  A          TFR     D,X        MOVE Y VALUE INTO [X]
+              •       026952   ORC8  35    40        A          PULS    U          GET X VALUE INTO EU3
+                      026962   OBCA        02        A          PULS    A          GET BACK FIRST CHARACTER
+                      02697P   ()BCC 81    28        A          CMPA    4V+        SEE IF IT WAS PLUS
+              •       026982   08CE  27    04    OBD4           BEU     mOVREL     IF SU MUST .BE RELATIVE MOVE                                                                          41
+I HE                  02699P   0E00  81    2D        A          CMPA    W-         CHECK FOR NEGATIVE
+                      027002   OBD2  26    A6    0872           BNE     DRWABS     GO DO ABSOLUTE DRAW
+"Progression"         02701P   08D4  1F    30        A MOVREL   TFR     U,D        SO TO DODRAW WITH X=[D]       Y=[X]
+movement. Th          02702P   08D6  7E    0849                 JMP     DODRAW     DO RELATIVE DRAW
+family of pow;        02703                            *
+lifetime spent i      02704                            *  READ SIGNED VALUE INTO [D] FROM CURRENT POSITION
+components -LI        02705                            *
+Mays respec           027062   08D9  BD    0916        SGNVAL   JSR     FETCHR     READ FIRST CHACRACTER
+ nlvoy realist        02707P   ORDC  81    28        A SGNVL2   CMPA               SEE IF SIGNED                                                                                         •
+II 1( most thui       027082   08DE        07    08E7           BEQ     SGNPLS
+HicHok'illovve        027092   08E0  81    2D        A          CMPA    W-         SEE IF SIGNED NEGATIVE
+                      02710P   08E2  27    04    OBES           BEQ     SONMIN                                                                                                           41,
+                      02711P   0864  BD    0960                 JSR     FETBAK     IF NOT SIGN,    RESCAN CHARACTER
+                      02712P   08E7  4E                SGNPLS   CLRA               INDICATE NC- NEGATE
+    abs               027Y3P   08E8  34    02        A SSNMIN   PSHS    A          SAVE FLAG
+                      027142   OBEA  8D    0249                 JSR     FTCHVL     GO GET VALUE IN [BI
+
+
+
+1,0
+
+
+
+                                                             •
+

@@ -1,0 +1,91 @@
+                                                                                                                                               •
+
+
+
+            PAGE 026 ECBEXT   .SA:1 EXTEND RENLM - Renumber a BASIC program
+
+
+            02186 
+            02187                       "SCNPRG" SCANS THE ENTIRE PROGRAm LOOKING FOR BINARY LINE NUmBER, 
+     (      02188                       UNDEFINED LINE REFERENCE, AND LINE POINTER TOKENS. BINARY LINE 
+
+            02189                       NUMBER TOKENS ARE CONVERTED TO LINE POINTER TOKENS, UNDEFINED 
+            02190                       LINE REFERENCE TOKENS ARE LEFT AS IS BUT MUST BE CHECKED FOR SO 
+            02191                       THEY CAN BE SKIPPED OVER SINCE THEY CONTAIN BINARY DATA, LINE 
+            02192                       POINTER TOKENS ARE CONVERTED TO BINARY LINE NUMBER TOKENS.
+            02193 
+            02194P 059F 9E  19      A SCNPRG LOX    TXTTAB   START AT THE BEGINNING   THE PROGRAm.
+            02195P 05AI 30  iF      A        LEAX   -&1,X    Setup for preincrement.                                                        11 I
+            02196P 05A3 30  01      A SCNO10 LEAX   ??,1,X   POINT TO THE FIRST BYTE OF THE LINK.
+     (      02197P 05A5 8D  ED   0594.       BSR    CHKLNK   !RETURN IF ZERO LINK (END OF PROGRAM).
+
+            02198P 05A7 30 03       A SCNO20 LEAX   &3,X     SKIP THE LINK AND LINE NUMBER.
+            02199P 05A9 30  01      A SCNO30 LEAX   &1,X     POINT TO THE NEXT BYTE OF THE LINE.
+            02200P 05AB A6  84      A        LDA    ,X       A:=BYTE OF LINE.
+            02201P 05AD 27  F4   05A3        8E0    SCNOIO   END OF LINE, PROCEED TO NEXT LINE.
+            02202P 05AF 9F OF       A        STX    TEMPX1   SAVE POINTER TO THIS BYTE.
+            02203P 0581 4A                   DECA            BINARY LINE NUMBER TOKEN?
+            02204P 0582 27 00    05C0        8E0    PTRBIN   YES, CONVERT IT TO A LINE POINTER TOKEN.
+            02205P 0584 4A                   DECA            NO, IS IT A LINE POINTER TOKEN?
+
+            02206P 0585 27 2A    05F1        8E0    BINPTR   YES, CONVERT IT TO A BINARY LINE NUMBER
+            02207                     *    TOKEN.
+            022082 0587 4A                   DECA            NO, IS IT AN UNDEFINED LINE REFERENCE
+     40     02209                     *    TOKEN?
+
+            02210P 0588 26  EF   05A9        BNE    SONO30   NO, IT'S NOTHING THAT INTERESTS US SO
+            02211                     *    PROCEED TO THE NEXT BYTE OF THE LINE.
+            02212                     *    YES, SKIP OVER IT SO THE BINARY DATA
+            02213                     *    IT CONTAINS WON'T BE INTERPRETED AS
+            02214                     *    OTHER TOKEN TYPES OR END OF LINE.
+     (0     02215                     *    THE TOKEN TYPE BYTE IS SET TO 3
+            02216                     *    BECAUSE THE CODE THAT CREATES UNDEFINED
+            02217                     *    LINE REFERENCE TOKENS COMES THORUGH HERE.
+
+            02218P 05BA 86  03      A SCNO40 LDA    #8..3    SET TOKEN TYPE TO UNDEFINED LINE
+            02219P 058C A7  80      A        STA             REFERENCE.
+
+            02220P 05BE 20  E7   05A7        BRA    SCNO20   Skip the token, Bumo X once here
+            02221                          and four more times by going to
+            02222                          SCNO20.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44
+

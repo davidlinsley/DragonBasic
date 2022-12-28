@@ -1,0 +1,104 @@
+                                        PAGE         022       EOBGRP            .SA:1          TXRGRP PAINT CODE
+                                                                                                                                                                                                                                                                                                                                             40
+
+                                        01929P 0706 80                       5E         0766                      BSR             SCANR              SCAN FOR COMPLETE SIZE
+
+                                        01930P 0708 20                       E0         06EA                      BRA             SCNOC1             GO MAKE ENTRY AND SUBTRACT
+                        40              01931                                                      *                                                                                                                                                                                                                                         •
+
+                                        01932                                                      *   WE ARE FINISHED EXTCEPT WE MIGHT NEED TO MAKE
+
+                                        0193:                                                      *   A REVERSE DIRECTION ENTRY FOR RIGHT SIDE OVERHANG
+                        40              01934                                                      *                                                                                                                                                                                                                                         •
+
+                                        019:5P 070A BD                       0277                  SCNFIN jSR                     XINC               NO CHECK IF RIGHT OVERHANG NEEDS A SCAN
+
+                                        019362 070D 30                       8R                                   LEAX            D,X                SUBTRACT OVERHANG SIZE FROM STOP POSITION
+                        40              01937P 070F 9.7                      BO                                   STX             XSTORE
+                             im         019382 0711 43                                                            COMA                               MAKE IT A POSITIVE COUNT                                                                                                                                                            11  I
+                                        01939P 0712                                                               COMB
+                        40              01940P 0713 83                       0001             A                   SUBD            #&1                IF STOPPED AT END-1-1 ALSO NO OVERHANG                                                                                                                                                  40
+
+                                        01941P 0716 2F                       04         07IC                      BLE             PQUIT              TAKES AT LEAST 2 POINTS TO OVERHANG
+
+                                        01942P 0718 1F                       01               A                   TFR             D,X
+                        40              01943P 071A 80                       03         071F                      BSR             ENTERL             ENTER OVERHANG SCAN                                                                                                                                                                     •
+
+                                        019442 0710 7E                       0692                  PUUIT          JMP             PNTLOP
+
+                                        019452 071F DO                       CB               A ENTERL STD                        PNTTMP             SAVE 11)            WHICH HAS CURRENT COUNT
+                        40              019462 0721 35                       20               A                   PULS            Y                  TAKE OFF THE RETURN ADDRESS                                                                                                                                                             •
+
+                                        01947P 0723 DC                       BD               A                   LDD             XSTORE             SAVE COUNT AND X VALUE
+
+                                        01948P 0725 34                       16                                   PSHS            D,X
+                        40              01949P 0727 96                       D7               A                   LDA             PDIRCT             GET DIRECTION                                                                                                                                                                           •
+
+                                        01950P 0729 40                                                            NEGA
+
+                                        019512 072A D6                       CO                    ENTCON LOB                     YLOW
+                        41              019522 0720 34                       06                                   PSHS            D                  SAVE DIRECTION AND Y VALUE                                                                                                                                                              •
+
+                                        019532 072E 34                       20                                   PSHS            Y                  PUT RETURN ADDRESS BACK ON
+
+                                        01954P 0730 CS                       02                                   LDB             #&2                CHECK FOR STACK aJACE
+
+                                        019552 0732 9.0                      0000                                 JSR             GETSTK
+
+                                        019562 0735 DC                       CB                                   LDD             PNTTMP             GET BACK SAVED ED3 COUNT
+
+                                        01957P 0737 39                                                            RTS
+                        40              019582 0738 00                       CB                    ENTERS STD                     PNTTMP
+
+                                        019592 073A 35                       20                                   PULS            Y                  GET RETURN ADDRESS
+
+                                        01960P 0730 DC                       03                                   ODD             X2STOR             GET X VALUE FROM SAVED POSITION
+                           P)           019612 0736 34                       16               A                   PSHS            0,X
+
+                                        019622 0740 96                       D7               A                   LOA             POIROT             USE CURRENT DIRECTION
+
+                                        019632 0742 20                       E6         072A                      BRA             ENTCON             MERGE WITH ENTERL CODE
+                        40              01964P 0744 9E                       BD               A SAVLOC LDX                        XSTORE             MOVE PRIMARY INTO SECONDARY
+
+                                        019652 0746 9F                       03                                   STX             X2STOR
+
+                                        01966P 0748 39                                                            RTS
+                        40              01967                                                      *
+
+                                        01968                                                      *   CALLED HERE WHEN WANT TO                                 SCAN RIGHT AFTER A SCANL AND PUT THE
+
+  I hit_                410             01969                                                      *   TWO PIECES TOGETHER ALL AS ONE SCAN. WE HAVE STORED THE
+                                        01970                                                      *   RIGHT POSITION OH THE LEFT SCAN IN THE SECONDARY
+
+                                        01971                                                      *   WE ADD THE SIZES TOGETHER AND LEAVE THE TOTAL IN EX3
+"Progression"              01972                                                                   *
+movement. T             10              019732 0749 OD                       CD               A S0NCON STD                        PCNT2              SAVE SIZE OF LEFT PIECE                                                                                                                                                            '    40 
+family of po                 Ilil       01974P 074B “)9F                                      A                   LDY             X2STOR             SAVE SECONDARY IN REGISTERS                                                                                                                                                             t;
+lifetime spent                          01975P 074E 80                                  0744                      BSR             SAVLOC
+components              40              019762 0750 109F                     BD               A                   STY             XSTORE
+;Mays respe.                            C1977P 0753 BD                       11         0766                      BSR             SCANS              SCAN RIGHT MAKING COUNT IN [D]
+(J)Iivey realis[
+                                        019762 0755 9E                       CD               A                   LOX             PCNT2              GET SIZE OF PREVIOUS SCAN
+II lc moat thu 
+.1wuclrAowe,                            019792 0757 30                       8B               A                   LEAX            0,X                COMBINE SIZE OF LEFT AND RIGHT
+                                        01980P 0759 C3                       0001             A.                  ADOD            4t81               INCLUDE FIRST POINT IN LEFT IN SCAN SIZE
+
+                                        01981P 0750 39                                                            RTF,
+                        41              01982
+
+                                        01983                                                      *
+
+        abs                             01984                                                      *   -F-ESE ARE                     MOST IMPORTANT Sr...AN ROUTINES
+                I h .1  4o              01985                                                      *   THEY SCAN EITHER LEFT OR RIGHT UNTIL THEY FIND A BORDER
+
+                                        01986                                                      *   POINT OR THE EDGE.                        AS THEY SCAN THEY COLOR AND KEEP A POINT 00UN,
+
+
+
+
+
+
+
+
+                        •
+

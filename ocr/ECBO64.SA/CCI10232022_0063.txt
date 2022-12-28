@@ -1,0 +1,62 @@
+                           PAGE 006 ECBOE4      .SA:1   IODRVR I/O DRIVER SuBROuTINES
+
+
+                           00291P 0100 81     08                CMPA    #BS       CHECK FIRST FOR BACK SPACE
+                           00292P 0102 26     OB   010F         BNE     CHKGR
+                           00293                         * BACK SPACE TO BE OuPDT
+            H I            00294P 0104 SC     0400              CmPX    #HOmPOS   CAN'T BACK  OP WHEN HaYIED
+                           00295p 0107 27     3B   0144         BEQ     SDEXIT-   SO EXIT
+                           00296P 0109        60                LDA     #INVSP    PREPARE TO DELE'E CURRENT 
+                           00297P 010B P7     82                STA     0, -X     CHARACTER AND t10',.)E LEFT 
+                           00298P 010D 20     10   0120         BRA     NXTPOS    THEN OPOPLE SCREEN PUS 
+                           00299P 010F• 81    00                CMPP    4CR       NOW CHECK FUR INTER
+                           00300P 0111 26     04   011/         BNE     CHCNT 
+                           00101P 0113 8D     DC                BSR     :.:LREEOL CLEAR 70 EDL IF IT IS
+                           00302P 0115 20     15   0121_,       BRA     NXPOS
+                           0030:7:                       * CHECK FOR  CONTR'DL CHARACTERS  NOW
+                           00304P 0117 81     20       A CH1KCNT Cx!PA  #SP       NON-PRINTING CHARACTER
+                           00305P 0119 25     29   0144         BLO     SCEXIT    YES, THEN EXIT
+                           00306P 011B 43                       TSTA              ELSE CHEC FOR GRAPHZU (mS BIT     SEI
+                           00307P 011C 213    OC   012A         BMI     OuTCHR    DuIPT PS IS lE EC'ioND
+                           00308P 011E 81     40       A        CmPA    #$40      NON-ALPHA CHECK
+                           00309P 0120 25     OE   0128         BLO     CDNVDrH
+                           00310P 0122 81     60       A        CMPA    #$E0      LOWER CASE ALPHAS
+                           ooallP 0124 25     04   012A         BLO     OUTCHR    OUTPuT AS IS IF NO,
+                           00312P 0126 84     OF       A        ANDA    #$DF      .413ASE Su MASK °HP DE
+                           00313P 0128 88     40       A CIONVCHEDRA    W640      INVERT CHARACTER
+                           00314P 012A P7     80       A OUTCHR STA     0,X+      UPDATE VRAm AT CuRSuR
+                           00315P 0120 9F     88       A NXTPOS STX     CURADR    UPDATE CORSCR POSITION
+                           00316P 012E SO     05FF     A        OmPX    WEOSPOS REACHED END (1.. ScREEN? 
+                           00317P 0131 23     11   0144         BLS     SCEXIT    NO, SD EXIT DK
+                           00318P 0133 SE     oaoo     A        L4DX    #HOMPOS YES, THEN SCROLL UP BY
+                           00:319P 0136 EC    E8 20    A SCROLL ODD     $20,X     COPYING EACH LINE TO
+                           00320P 0139 ED     81       A        STD     0,X++     THE ONE AROvE
+                           00321P 013B 80     05E0     A        0mPX    #BLPOS    UNTIL LAST '.4.,NE DONE
+                           00322P 013E 25     FE   013          BLO     SCROLL
+                           00323                           NOW AT START OF   THE BOTTOM LINF 
+                           00324P 0140 SF     88       A        BX      CURADR    SAVE NEW CORSUR POSITION
+                           00325P 0142 SD     AD   00F1         BSR     CLREOL    BEFORE CLEARING BDTTOM LINE
+                           00326P 0144 35              A SuEXIT POLS              RsToRa
+                           00327                         * 
+                           00328                         * LI:NE PRINTER RUUTNES FOLLOW
+                    rie    00329                         *
+                           00330                         * TXLPCH - TRANENITS   P CHARACTEK TO THE L.;:NE
+                           00331                         *
+                           00332P 0146 34     04         TXLPCH PSHS              SAVE RES
+                           00333P 0148 7D     03FF              TST     PRNELS    PARALLEL DR SERIAL 
+                           00334P 014R 7E     03:45             jmP     PRNSEL    SELECT WHICH ONE
+                           00335P 014E R7     FF02       LPRDUT         POPOB     SEND CHARACTER OUT 
+                           00336P 0151 C6     02                ;4_0B   #2        SE      STRCBE BLT
+                           00337P 0153 F7     FF20              ST'S    PaPDRA    SEND STROIE, PULSE HI 
+                           00338P 0156 7-F    FF20              CLR PzPD8A        THE\ PULSE LO
+                           00339                         * N.B. THE STROBE PULSE IS INVER-fID ey THE LS02 SO 
+                           00340                           ADTUAL STROBE TO PR1N7E9 IS LO FOLLOwED BY HI. 
+                           00:41P 0159 35     84                PULS    B,PC      RES7,-.ORE AND REFORN
+                           00342
+                           00343                         * TXEOL -  TRANSm'LTS THE END OH LINF TERM.:.NA7IN6 SEQUENCE
+                           00344                         *
+                           00345P 0158 SE     014A     A TXEOL  LDX     1:E'OLSEQ SET UP EUL SEQUENCE ADDRESS 
+                           0034EP 015E E6     80       A        LDB     0,X±      GET COuNT OF CHARACTERS 
+44 (0)20 89 71 39          00347P 0160 27     07          x     REQ     ENDSEO    YES, Su F'INISH
+  For Your Neares          00348P AE                            LDA     0,X4.          OP NEXT CHARACTER
+

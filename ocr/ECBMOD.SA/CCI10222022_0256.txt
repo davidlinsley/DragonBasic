@@ -1,0 +1,47 @@
+PAGE  031 ECBMOD  .SA1  FCBMOD Search Cassette for a File
+
+
+01949                    *
+
+01950                    * SKPFIL 5.!';i0S the current file.
+01951                    * On exit Z=1 if all OK, Z=0 if error occured. 
+01952                    *
+01953
+01954P 05687D   0000   A SK2FIL TST   GAPFLG  Does this file have gads?
+019552 056B26   09  0576       BNF    SKPGFL  Yes, go hantie it
+019562 056DBD   0000   A       iSR    CSRDON  No, turn on cassette and sync up. 
+01957P 0570ED   31  0523 SKPLP BSR    BLKIN   Read t'ne next block.
+019582 05728D   08  057C       BSR    SKIPER  See if error or EOF.
+01959P 057420   FP  0570       BRA    SKPLP   it was a good data retort so look
+01960                    •    at thenext block.
+01961
+019622 05768D   20  0598 SKPGFL BSR   RDBLK   Turn on, read block, turn off.
+01963P 0578ED   02  0570       BSR    SKIPER  Check for errors or EOF.
+019642 057A20   FA  0576       BRA    SK2GFL  Good data record, look at next block.
+01965
+019662 057026   06  0584 SKIPER BNE   BADSKP  Cassette read error.
+01967P 057E96   70     A       LDA    BLKTYP  Get tne block type.
+019682 058040                  NEGA           O to 0, FF to 1, 1 to FF.
+01969P 05812B   14  0597       BMI    NODSP3  Data record, return to skip loop.
+019702 05834A                  DECA           O to FF, 1 to 0 so if EOF A=0 and
+01971                    *    if header A=FF for error.
+01972P 058497   81     A BADSK2 STA   CSRERR  Save the error status.
+01973P 058632   62     A       LEAS   &a,:s   Get rid of skip loop return address. 
+019742 058820   13  059D       BRA    RDBFIN  Turn off cassette and return with
+01975                    *    Z=1 if all OK.
+
+01976
+01977
+01978                    *
+
+01979                    * "Blink" char on screen. 
+01980                    *
+01981
+019822 058AB6   0400     BLINKS LDA   SCRADR  Get the char.
+01987P 05ED88   40             EORA   #@100   Reverse the video on it
+019842 058FD6   68       DSPOHR LDB   CURLIN  Only display if direct statement.
+019852 059150                  INICB
+019862 059226   03             BNE    NODSP3
+01987P 0594B7   0400   A       STA    SORADR  Put it Pack.
+019882 059739            NODSP3 RTS
+

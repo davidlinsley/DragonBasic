@@ -1,0 +1,85 @@
+                                                                              PAGE              014            ECBM64                   .8241                ECB64 OPNICK                               and OPNOCK 
+
+
+                                                                              01275                                                                                                   TT_                  The CLOSE                     code.
+                                                                              01276 
+                                                                              01277                                                                                                   XDEF                 CLOSE                                                                                                                                                                                                                                                                                      40
+                                                                              012782               0231            27             OE             0241           CLOSE                 BED                  CLSALL                     Nothing specified,                                        close everything.
+                                      H I                                     012792               0233            BD             0380                                                JSR                  GETDNM                     Read a device number.
+                                                                              01280P               0236            8D             10             0248           NXTCLO SSR                                 CLOSIT                     Close this device.                                                                                                                                                                                                                                              40 
+                                                                              01281P               0238            9D             25                      A                           JSR                  CHRGOT                     Another number specified?
+                                                                              012822               0232            27             22             0266                                 BED                  CLSRTS                     No,          all         done.
+                                                                              01283P               023C            BD             0389                                                JSR                  GETCDN                     Yes,            read comma and device number.                                                                                                                                                                                                                   40 
+                                                                              01284P               023F            20             F5             0236                                 BRA                  NXTCLO                     Go close it
+                                                                              01285
+                                                                              01286                                                                                                   XDEF                 CLSALL                                                                                                                                                                                                                                                                                     40
+                                                                              01287P               0241            SD             0000                    A     CLSALL JSR                                 HKCLSA                     RAM nook.
+                                                                              01288                                                                                                   XDEF                 CLSCAS
+                                                         •                    012892               0244            86             FF                            CLSCAS LDA                                                            Only thing                        requiring attention is                                                                                                                                                                                                        40
+                                                               1111           01290P               0246            97             6F                                                  STA                  DEVNUM                     the cassette.
+                                                                              01291
+                                                         •                    01292                                                                                                   XDEF                 CLOSIT                                                                                                                                                                                                                                                                                     41
+                                                                              012932               0248            BD             0000                    A     CLOSIT JSR                                 HKCLS1                     RAM hook.
+                                                                              01294P               0248            96             6F                                                  LDA                  DEVNUM                     A:=device number.
+                                                                              01295P               024D            OF             6F                                                  CLR                  DEVNUM                     Clear it so normal output occurs when
+                                                                              01296                                                                                            close              is       finished.
+                                                                              01297P               024F            4C                                                                 INCA                                            Do nothing                        if       it        isn7t            the cassette.
+                                                                              01298P               0250            26             14             0266                                 BNE                  CLSRTS
+                                                                              01299P               0252            96             78                      A                           LDA                  CASOPN                     Is the casette open for output?
+                                                                              01300P               0254            81             0'7!                    A                           CMPA                 #&.2
+                                                                              01301P               0256            26             OC             0264                                 BNE                  MRKCLS                     No,          just           mark           it as closed.
+                                                                              013022               0258            96             79                      A                           LOA                  CBFCNT                     Yes,            is there stuff in the buffer?
+                                                                              01303P               0252            27             03             025F                                 BUJ                  EOFWRT                     No
+                                                                              013042               025C            BD             0150                    P                           JSR                  DMPBUF                     Yes,            dump the buffer.
+                                                                              01305                                                                                                   XDEF                 EOFWRT
+                                                                              013062               025F            CS             FF                      A     EOFWRT LOB                                 #@377                      Set          block type to end                                      of file.
+                                                                              013072               0261            BD             015F                    P                           JSR                  WRTEOF                     Write an EOF block.
+                                                               1 I  I 1       013082               0264            OF             78                      A     MRKCLS CLR                                 CASOPN                     Mark the cassette as closed.
+                                                                              01309P               0266            39                                           CLSRTS RTS
+                                                         •                    01310
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-41-4(0)20E3971 BE
+
+
+          For Your Neara (L)
+

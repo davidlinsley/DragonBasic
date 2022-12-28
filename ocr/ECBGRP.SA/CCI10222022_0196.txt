@@ -1,0 +1,102 @@
+                                                                        PAGE           013           ECBGRP                .SA:1              TXRGRP NEW GRAPHICS CODE                                             FOR 6847 COLOR CrIMPUTER
+
+
+                                                                        01407P 0389 86                                03                    A                       LDA                 #&3
+
+                                                                        01408P 0388 97                                82                    A                       STA                 FORCLR
+
+                                                                        01409P 03BD 9D                                A5                    A                       JSR                 CHRGOT                   SEE IF ANY MORE ARGUMENT
+
+                                                                        01410P 038F 27                                10            03DD                            BED                 SCRRTS
+
+                                                                        01411                                                                                       XDEF                PMDPGS
+                                                                        01412P 03C1 BD                                0000                  A PMDPGS JSR                                COMBYT                   FORCE COMMA AND READ PAGE
+
+                                                                        01413P 03C4 5D                                                                              TSTB                                         ZERO NOT ALLOWED
+
+                                                                        01414P 0305 27                                17            03DE                            BFQ                 FCGRP1
+
+                                                                        01415P 0307 5A                                                                              DECB
+                                                            I           01416P 0308 86                                06                    A                       LDA                 W16                      CONVERT TO NUMBER OF MEMORY PAGES
+                                                                        01417P 03CA 3D                                                                              MUL                                          IN      EB3
+
+                                                                        01418P 03UB DB                                BC                    A                       ADDB                SCRBAS                   ADD ON BASE OF GRAPHICS MEMORY
+                                                                        014I9P 03CD 34                                04                    A                       PSHS                B                        SAVE CANDIDATE FOR SCBASE
+                                                                        01420P 03CF DB                                87                    A                       ADDB                SCTOP                    ADD ON SIZE OF CURRENT MODE
+
+                                                                        01421P 03D1 DO                                BA                    A                       SUBB                SCBASE                   WHICH IS SCTOP-SCBASE
+
+                                                                        01422P 03D3 D1                                19                    A                       CMPB                TXTTAB                   AND SEE IF HITTING PROGRAM
+
+                                                                        01423P 03D5 22                                07            03DE                            BHI                 FCGRP1
+
+                                                                        01424P 03D7 D7                                87                    A                       STB                 SCTOP                    SETUP NEW TOP
+
+                                                                        01425P 03D9 35                                04                    A                       PULS                B
+
+                                                                        01426P 03DB D7                                BA                    A                       STB                 SCBASE                   AND NEW BOTTOM
+
+                                                                        01427P 03DD 39                                                           SCRRTS RTS
+
+                                                                        01428
+                                                                        01429P 03DE 7E                                0000                  A FCGRP1 JMP                                FCERR
+
+                                                                        01430
+                                                                        01431                                                                    *
+
+                                                                        01432                                                                    *     SCREEN [ALPHA/GRAPHIC                                       FLAG:112,0E3S                 FLAG]
+                                                                        01433                                                                    *
+                                                            I           01434                                                                                       XDEF                SCREEN
+
+                                                                        01435P 03E1 81                                2C                    A SCREEN CMPA                               #COMMA                   JUST CHANGE CSS
+
+                                                                        01436P 03E3 27                                OB            03F0                            BEQ                 SCRCSS                   SCAN CSS ARGUMENT
+                                                                        01437P 03E5 BD                                0000                  A                       JSR                 GETBYT                   READ FLAG ALPHA/GRAPHIC
+
+                                                                        01438P 03E8 5D                                                                              TSTB                                         SEE CONDITION CODES
+                                                                        01439P 03E9 BD                                031B                                          JSR                 SAMMOD                   SELECT ALPHA IF ZERO ELSE GRAPHICS
+
+                                                                        01440P 03EC 9D                                A5                    A                       JSR                 CHRGOT
+
+                                                                        01441P 03EE 27                                ED            03DD                            BEQ                 SCRRTS
+
+                                                                        01442P 03F0 BD                                0000                  A SCRCSS JSR                                COMBYT                   READ CSS FLAG
+                                                                        01443P 03F3 5D                                                                              TSTB                                         ZERO OR NON-ZERO?
+
+                                                                        01444P 03F4 27                                02            03F8                            BEG!                SCRS2R
+
+                                                                        01445P 03F6 C6                                08                    A                       LDB                 tta.8                    33 SHOULD DE SELECTED
+                                                                        01446P 03F8 D7                                Cl                    A SCRS2R STB                                SCCSS                    SAVE FLAG
+
+                                                                        01447P 03FA 20                                BB            0387                            BRA                 SETCSS                   ACTUALLY CHANGE THE VALUE
+                                                                        01448                                                                                       XDEF                PCLEAR
+
+                                                                        01449P 03FC BD                                0000                  A PCLEAR JSR                                GETBYT                   READ IN NUMBER OF 1.5K BLOCKS ALLOWED
+
+                                                                        01450P 03FF 5D                                                                              TSTB                                         MUST ALLOW AT LEAST ONE
+
+                                                                        01451P 0400 27                                DC            03DE                            BEQ                 FCGRP1
+ssion" -it's a word that                                                01452P 0402 Cl                                09                    A                       CMPB                #&-9                     LIMIT IS 8 FOR 12K MAXIMUM
+ent. The latest in Dan D'A                                              01453P 0404 24                                D8            03DE CCFCER BCC                                     FCGRP1
+f power amplifiers is the                                               01454P 0406 86                                06                    A                       LDA                 if&6                     CONVERT 1.5K TO 256 BYTE
+spent in the research an                                                01455P 0408 3D                                                                              MUL                                          TURN INTO 256 BYTE COUNT
+  ents that always rise to 
+respect the demands of t                                                01456P 0409 DB                                BC                    A                       ADDB                SCRBAS                   ADD BASE ADDRESS FOR GRAPHICS MEMORY
+realism from the most su                                                01457P 0408 IF                                98                    A                       TFR                 B,A                      MAKE [D] CONTAIN ADDRESS OF NEW
+st thunderous of cresce                                                 01458P 040D C6                                01                    A                       LDB                 #&.1                     TXTTAB CANDIDATE
+allowed to affect the dyn                                               01459P 040F 1F                                02                    A                       TFR                 D,Y                      SAVE TO SET IF LEGAL
+                                                                        01460P 0411                      1093         87                    A                       CMPD                SCTOP                    SEE IF PROGRAM WOULD BE IN VIDEO
+
+                                                                        0146IP 0414 1025                              FBE8                  A                       LBCS                FCERR
+
+                                                                        01462P 0418 93                                19                    A                       SUBD                TXTTAB                   CALCULATE NEW VARTAB
+                                                     40                 01463P 04IA D3                                1B                    A                       ADDD                VARTAB                   BY ADDING OLD VARTAB-OLD TXTTAB
+
+                                                                        01464P 0410 IF                                01                                            TFR                 D,X                      ALSO SAVE VARTAB CANDIDATE
+         11     II ,;       r".■               11,
+             I, I r  1, I ■  `.---1\N-_2(-    ',A
+             r              ,r             ,1 ,
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                       0
+

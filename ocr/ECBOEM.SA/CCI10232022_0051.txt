@@ -1,0 +1,179 @@
+                                                              PAGE           010         ECBOEM              .SA:1            IODRVR I/O DRIVER SUBROUTINES
+
+
+
+
+
+
+                            at                                005:23P          0264        8D           EF          0255 HANGLO BSR                               CLEVEL                STOP SAMPLING WHEN
+
+
+                                                              00524P           0266        24           FC          0264                         BCC              HANGLO                RISING EDGE DETECTED
+
+
+                                                              00525P           0268        39                                                    RTS
+
+
+                            H I 0                             00526                                                             *    THE FIRST 1/2 OF CYCLE STARTS WITH A LO PULSE
+
+
+                                                              00527            0269        8D           F9          0264 FALLER BSR                               HANOLO                START SAMPLING IN LO PULSE
+
+
+                                                              C:30526          0268        80           E8          0255 HANGHI BSR                               CLEVEL                STOP SAMPLING WHEN
+
+
+                                                              ()0529(:,        026D        25           PC          0268                         BCS              HANGHI                FALLING EDGE DETECTED
+
+
+                                                              00530P           026F        19                                                    RTS
+
+
+                                                              00531                                                             *
+
+
+                                                              00532                                                             *    BUFIN — RECOVERS BIT FROM CASSETTE,                                                     RETURNED IN CARRY
+
+                                                              00533                                                             *
+
+
+
+                                                              005:34.                                                                            XDEF             ZBITIN
+
+                                             •                00535                                     0270               P ZBITIN              EQU              *
+
+
+                                                    "1        00536P           0270 8D                  EA          025C BITIN                   BSR              BCYCLE                GET BIT CYCLE WIDTH
+
+                                                                                                                                                                                                                                                                                                                                                                                                  . 
+
+                                                              00537P           0272 D6                  82                 A                     LDB              PWIDTH                PULSE WITDTH = CYCLE WIDTH
+
+
+                                                              00538P           0274 5A                                                           DECB                                   WILL BE 1 TOO MANY
+
+
+                                                              00539P           0275 DI                  92                                       CMPB             MINOWD                C SET IF               (B)      < MINOWD = I
+
+
+                                                              00540P           0277 39                                                           RTS                                    C CLEAR             IF     (B)       >   MINOWD                0
+
+
+                                                              00541                                                             *
+
+
+                                                              00542                                                             *    CBIN — RECOVERS A BYTE FROM CASSETTE
+
+
+                                                              00543                                                             *
+
+
+                                                              o05,e:14                                                                           XDEF             ZCBIN
+
+
+                                                              00545                                     0278                    2CBIN            Ea.)             *
+
+
+                                                              00546P           0278 86                  08                 A    CBIN             LDA              #8                    SET UP COUNT OF BITS
+
+
+
+                                                              00547P           027A 97                  83                                       STA              BITCNT                TO BE RECOVERED
+
+
+                                                              00546P           027C 8D                  F2          0270        NXTBIT BSR                        BITIN                 READ INDIVIDUAL BITS
+
+
+                                                              CCO549iszi       027E 46                                                           RONA                                   AND SHIFT INTO                       (A)      — LS BIT FIRST
+
+
+                                                              00550c-:,        027F OA                                                           DEC              BITCNT                REPEAT UNTIL ALL
+
+
+                                                              0055 11.:.       0281 26                  F9          027C                         BNE              NXTBIT                BITS READ IN
+
+
+                                                              00552i-::‘       0283 39                                                           RTS
+
+
+                                                              0055:3                                                            *
+
+                                                        ,     00554                                                             *    TINEHI — COMPARES THE WIDTH OF HI PULSE AGAINST REFERENCE
+                                                    • I I                                                                                                                                                                                                                                                                                                                                    ( I !
+
+
+                                                              00555                                                             *
+
+
+                                                              00556P           0284        OF           62                 A    TIMEHI CLR                        PWIDTH                RESET COUNTER
+
+
+                                                              00557            0286        8D           63          026B                         BSR              HANGHI                PWIDTH = TINE SPENT HI
+
+
+                                                              00558P           0288        20           04          028E                         B?,ZA            TESTPW                COMPARE WITH REFERENCE TIME
+
+
+                                                              00559                                                             *
+
+
+                                                              00560                                                             *    TIMELD — SAME AS TImEHI EXCEPT DEALING WITH A LO PULSE
+
+
+                                                              00561                                                             *
+
+
+                                                              00562P           0288        (Y7          82                 A    TImELD           CLR              PwIDTH
+
+
+                                                              00563P           028C        8D           D6          0264                         BSR              HANGLO
+
+
+                                                              00564P           028E        D6           82                 A    TESTPW LOB                        PWIDTH                GET RESULT
+
+
+                                                              00565P           0290        Di           94                 A                     CMPR             MAXOPW                VALID PULSE WIDTH?                                                                                                                                                                                          •
+
+
+                                                              00566P           0292        :22          03          0297                         BHI              PWERR
+
+
+                                                              00567P           0294        D            93                 A                     CmPB             MINOPW                YES,        RETURN HI OR LO RESULT
+
+
+                                                              00568P           0296        39                                                    RTS
+
+
+                                                              00569P           0297        OF           83                 A    PWERR            CLR              BITCNT                NO,       RESET SYNC BiT COUNTER
+
+                                                              00570p           0299        39                                                    RTS
+
+
+                                                              00571                                                             *
+
+
+                                                  ! ' ' I     0057'2                                                            *    CASON — TURNS THE CASSETTE MuTOR ON                                                                                                                                                                                                                     I
+
+                                                              00573                                                             *
+
+
+                                                              00574                                                                              XDEF             ZCASON
+
+
+                                                              00575                                     029A               P ZCASON              EQU
+
+
+                                                              001;5'76 FD      029A        BE           F.F21              A CASON               LOA              PlCRA                 READ CURRENT CR
+
+
+                                                              0 05 .7"7P       0290        88           08                                       ORA                                    SET CR3 BIT
+
+
+                                                              0057             029H        87           FF21               A                     STA              P1CRA                 WRITE BACK,                  SETTING L.:H2 HI
++44 [0]20 89 7 1
+                                                              00579P           02A2        96           95                 A                     LDX              MCDLAY                NOW WAIT FUR MOTOR
+
+
+                                                                               02A4        16           FDEC 0093                                                 IXDLAY                FO COME UP TO SPEED
+           For Your Near
+

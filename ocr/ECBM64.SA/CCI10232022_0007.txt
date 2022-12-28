@@ -1,0 +1,69 @@
+                              RASE   008   ECEM64    .SA31    ECBM64 CHRINP -    Character Input     Routine
+
+
+                              01003                                     TTL     CHROUT - Output Character Routine
+                              01004
+                              01005                            *
+                              01006                            * CHROUT sends    the character in A to the device specified by DEVNuM.
+                              01007                            * Tie output    is suppressed    if DEVNUM indicates that file input         is
+                              01008                            * an progress.     This as done so character echo,         input  prompts
+                              01009                              (such as double duestion mark        for more   input),   etc is ignored
+                              01010                            4- while  inoutting   file data or loading an ASCII        program file.
+                              0101                             *
+                              01012                            * All   registers except CC are preserved.
+                              01013                            *
+                              01014
+                              01015                                     XDEF    5HROUT
+                              01016P   012F BD     0000      A CHROUT JSR       HKCHRO     RAM hook.
+                              01017P   0132 34     04        A          PSHS    B          Save B.
+                              01018P   0134 D6     6F        A          LDB     DEVNUM     Get the device number.
+                              010192   0136 51     FD        A          CMPB    #-&3       Doing a download?
+                              01020P   0138 26     02    013C           BNE     NOTDNL     No
+                              01021P   013A        84        A          PULS    B,PC       Yes,  throw away the echo.
+                              01022
+                              01023P   013C 55                 NOTDNL INCB                 See what   it  is.
+                              010243   013D 35     04        A          PULS               Restore B.
+                              01025P   013F 1028   FEBD      A          LBMI    LPTOUT     Send char to printer.
+                      e'      01026P   0143 26     2F    0174           BNE     SCROPT     Send char to screen.
+                              01027
+                              01028P   0145 34     16                   PSHS    X,D        It    the cassette,    save some reds.
+                              010293   0147 D6     "7p,                 LDB     CASOPN     Is the cassette
+                              01030P   0149 5A                          DE5B               open for input?
+                              01031P   014A 27     OF    015B           BEQ     OUTRTS     Yes,  throw this output away.
+                              01032                                                                                                                                                              •
+                              01033                            *
+                              01034                            * Output character to cassette file.
+                              01035                            *
+                              01036
+                              010372   0145 D6     79        A CASOUT ODE       56F5NT     Get the character count.
+                      0       01038P   014E 55                          IN5B               Is the buffer full?
+                              010392   014F 26     02    0153           BNE     NOTFUL     No,  go put the char in the buffer.
+                              01040P   0151 8D     OA    015D           BSR     DMPBUF     Yes,  writs out the buffer.
+                              01041P   0153 flF    7A        A NnTFUL LDX       rBF2TR     Get  pointer into buffer.
+                              01042P   0155 A7     80        A          STA      X+        Put the char away and increment the
+                              01043P   0157 9F     7A        A          STX     CBFPTR     pointer.
+                              01044P   0159 0C                          INC     CBFONT     Increment the count.
+                              01045P   0156 35     96        A OUTRTS PULS      D,X,PC     Restore regs and     return.
+                              01046
+                              01047                            *                                                                                                                                 a
+                              01048                            * Here to dump    the cassette buffer to tape.
+                              01049                            *
+                              0100
+                              01051P   015D C      01        A DMPBUF ODE       #&1        Set  block type to data.
+                              01052P   015F 1)7    7C        A WRTEOF STB       BOKTYP
+                              01053P   0161  8E:   0000      A          LDX     #CASBUF    Set address of data for WRY:60K.                                                                     :1
+                              01054P   0164 9F     7E        A.         STX     CBUFAD
+                              010'1'1P 0166 D6     79        A          LDB     CBFCNT     Set the block length.
+                              01056P   0168 D7     7D        A          STB     BLKLEN
+                              010572   016A 34     62                   PSHS    U,Y,A      Save the   rest.
+                      (       01058P   016n BD     0576                 jSR     WRTBLK     Write block out
+                              0105qP   01.6F       62        A          PULS               Restore regs.
++44(0)20E19 71                00602    0171        0467                 jMP     mRKMT      Mark the buffer as empty.
+
+     For Your Nea (si
+
+
+
+
+                      (
+

@@ -1,0 +1,67 @@
+                                                                        PAGE            038          F09SRP                 .SA:1             TXRGRP DRAW COMMAND
+
+                                                                        02715P             09ED         35            02                    A                        PULS               A                       LOOK AT FLAG
+                                                                        02716P             OBEF         4D                                                           TSTA                                       NOT NECESSARY???
+                                                                        02717P             09F0         27            04            09F6                             EEO                SGNRTS                  IF NO NEGATE DONE
+                                                                        02718P             OBF2         4F                                                           CLRA
+                                                                        02719P             09F3         50                                                           NEG9
+                                                                        02720P             09F4         82            00                                             SBCA               #8.0
+                                                                        02721P             09F6         39                                       SGNRTS RTS
+                                                                        02722
+                                                                        02723                                                                                        TTL                MONITOR COMMAND - SIMPLEMBRD
+                                                                        02724
+                                                                        02725                                         0000                  A                        IFNE               &0
+                                                                        02904                                                                       ENDO                IFN 0
+                                                                        02905
+                                                                        0290E,                                                                                       TTL                CIRCLE
+                                                                        02907
+                                                                        02908                                                                    *
+                                                                        02909                                                                    *     THIS IS THE CIRCLE GENERATE TABLE.
+                                                                        02910                                                                    *     IT IS THE SINE AND COSINE OF 0 TO PI OVER 4
+                                                                        02911                                                                    *     IN 8 INTERVALS TO 16 BITS
+                                                                        02912                                                                    *     THE CONSTANTS ARE PLUS ONE SO 1.0 IS 0 AND 0 IS
+                                                                        02913
+                                                                        02914                                         0009                  A    NUMPNT EQU                             &9
+                                                                        029',=1P           09F7                       0000                       CIRCTB FDB                             &O                      SPECIAL CASE FOR 1
+                                                                        029I6P             09F9                       0001                                           FOB                &1                      ZERO
+                                                                        02917P             OBFB                       FFC5                                           FOB                &65221
+                                                                        02918P             09FD                       1919                  A                        FOB                &6425
+                                                                        02919P             OBFF                       F916                                           FOB                &64278
+                                                                        02920P             Or01                       31F2                  A                        FOB                812786
+                                                                        02921P             00O3                       F4FB                  A                        FOB                &62715
+                                                                        02922P             0005                       4A51                  A                        FDB                8,19025
+                                                                        02923P             0007                       EC84                  A                        FOB                &60548
+                                                                        02924P             0009                       61F9                                           FOB                &25081
+                                                                        02925P             0009                       E1C7                                           FOB                &57799
+                                                              ■ 1       02926P             OCOD                       78AE                                           FOB                &30894
+                                                                        02927P             000F                       D4D0                                           FOB                &54492
+                                                                        0292PP             0011                       8E3B                                           FDB                &36411
+                                                                        02929P             0C13                       05E5                  A                        FDB                &50661
+                                                                        02930P             0015                       A269                                           FOB                &41577
+                                                                        0293-7'P           0C17                       9506                  A                        FOB                &46342
+                                                                        02932P             0019                       9506                                           FOB                &46342
+                                                                        02933
+                                                                        02934
+                                                                        02935                                                                          CIRCLE              (X,Y),RADIUS                        [,ATTRIBUTE                     [,ASPECT RATIO                            C,F       FOR FILL                 OR      N    FOR
+                                                                        02936                                                                          NOT,          [,START POS 0-1                            [,END POS
+                                                                        02937                                                                    *
+                                                                        02938
+ogression" - it's a word                                                02939                                                                                        XDEF               CIRCLE
+ vement. The latest in Dar                                              02940P             0019         81            40                    A    CIRCLE CMPA                            We.                     ALLOW
+nily of power amplifiers i                                              02941P             001D         26            02            0021                             9NE                CNATSK
+time spent in the resear                                                02942P             0C1F         9D            9F                                             jSR                CHRGET
+mponents that always ris                                                02943P             0021         BD            0293                       ONATSX JSR                             STMAXS                              UP MAX X AND Y IN XMAX                                        AND        YMAX
+ ays respect the demand                                   I I I         02944P             0024         BO            0123                                           JSR                ONECRD                  READ CENTER COORDINATE
+[Ivey realism from the mo                                               02945P             00"".,7      BD            008E                                           JSR                GEZALE                  SCALE CENTER
+  inost thunderous of cr                                                02946P             002A         AE            C4                                             LOX                ,U                      SET XSTORE
+  I lot allowed to affect the                                           02947P             0C20         9F            C9                                             STX                CNTRX                   SET UP THE CENTER
+                                                                        02948P             00,21E       AF            42                                             LOX                82,U                    GET YSTORE
+                                                     •                  02949P             0C30         9F            CD                                             STX                ONTRY
+                                                                        02950P             00:2         ED            0000                  A                        JSR                CHKCOM
+
+
+
+                         I ,        1,
+                                       r
+                                PH,,,. VrJI
+

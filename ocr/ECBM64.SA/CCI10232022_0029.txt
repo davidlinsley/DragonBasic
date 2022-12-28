@@ -1,0 +1,246 @@
+                                                                                                                                                                                                                                                                                                •
+
+
+
+
+
+
+
+
+                                           PAGE                ECBME4 .SW:1 ECBM64 Search Cassette for a File
+                               (
+                                                                                                                                                                                                                                                                                                •
+
+
+
+
+                                           01873                                                         TTL          Cassette Inout Routines
+
+
+
+                                           01674
+
+                               (6                                                                                                                                                                                                                                                               •
+                                           01675                                             *
+
+
+                                  IL' 0187E                                                  *  Turn motor on, read a block, and turn motor off.                                                                                                                                           KULU 
+                                                                                                                                                                                                                                                                                           000v
+
+                                           01877                                             *
+
+                               (I                                                                                                                                                                                                                                                               •
+
+                                           c:a78
+
+
+
+                                           0879P 0518 BD                  0000           A RDBLK JSR                  CSRDON           Turn on motor and sync uo.
+
+
+
+                                           01880P 05IB SD                 08        0523                 BSR          BLKIN            Read a block.
+
+
+                                                                                                                                                                                                                                                                                                •
+                                           claalp 0,D1D BD                0000           A RDBFIN JSR                 CASOFF           Turn off motor and enable interrupts.
+
+
+
+                                           01882P 0520 DE                 SI             A               LDB          CSRERR           Fli=error code and set gond codes.
+
+
+
+                                           01883P 0322 39                                                RTS
+
+                               (
+
+                                           01884
+
+
+
+                                           01885
+
+
+
+                                           01E386                                            *
+
+
+                               0 
+                                           01887                                             *  BLKIN reads a block from cassette.
+
+
+
+                                           01888                                             *  On entry CBJFAD contains the buffer address.
+
+
+
+                                           01889                                             *  On exit -
+
+
+                               40          01890                                             *  BLTYP and aLKLEN are set um.
+
+
+
+                                           01891                                             *  Z=1 and A=CSRERR=0 if no errors occurec.
+
+
+
+                                           01892                                             *  Z=0 if an error occured and A=CSRERR=1 for a checksum error and 2
+
+
+                                                                                                                                                                                                                                                                                                0
+                                           C1893                                             *  for a memory error.
+
+                                                                                                                                                                                                                                                                                           I kLI
+                                           01894                                             *  'Unless a memory error occurs X=CBUFAD+BLKLEN.                                                                                                                                                '^
+
+
+                                           01295                                             *  If a memory error occurs, X points one beyond the bad address.
+
+                                                                                                                                                                                                                                                                                                0
+                                           01898                                             *
+
+
+
+                                           01897                                             *  CC, A. B, X are modified. The others are preserved.
+
+
+
+                                           01898                                             *  interrumts are 'eft disabled.
+
+
+
+                                           01899                                             *
+
+
+
+                                           01900
+
+
+
+                                           01901                                                         XDEF         BLKIN
+
+
+
+                                           01902P 0523                                       BLIKIN SETCC F!-FI                        No interrupts during timing loops.
+
+
+                                           01903P 0525 SD                 :..-.-:!; 050A                 BSR          BLINKS           Blink the char if showing names.
+
+
+                                           01904P 0527 9E                 7E             A               LDX          CBUFAD           Bet the buffer actress.
+
+
+                               *
+                                           01905P 0529 4',-.:                                            CLRA                          Start with a zero byte.
+
+
+
+                                           01908P 052A BD                 0000           A SYNLP JSR                  BITIN            Read a bit.
+
+
+
+                                           01907P 052D 46                                                RORA                          Rotate it into the byte.
+
+                           I. 0            01908P 052E 81                 3C             p               CMPA         #@74             is it the sync byte?
+
+
+                                           01909P 0530 26                 ,::S      052A                 BNE          SYNLP            No, Ioo:': further.
+
+
+
+                                           01910
+                               (
+
+                                           01911P 0532 En                 0000           A               JSR          C2IN             Yes, read and store the block type.
+
+
+
+                                  1([i 01912P 0535 97                     7C             A               s;A:         BLKTYP
+
+
+
+                                           01913P 0337 BD                 0000           H               JSR          CBIN             Read and ,...tore the block length.
+
+                               4,                                                                        c-rn 
+                                           014P 053A 97                   7D             A                            BLKLEN
+
+
+
+                                           01915P 053C 92                 7C             A               ADDA         BLKTYP           :nit the checksum.
+
+
+
+                                           019'18P 053E 97                80             A               SIP          CHKSUM
+
+                               10                                                                                                                                                                                                                                                               •
+                                           01917P 0540 96                 7D             ALDA                         BLKLEN           Set uo a loom count.
+
+
+
+                                           01918P 0542 97                 81             A               STA          BYTCNT
+
+
+
+                                           C1919P 0544 27                 11        0557                 BEG"!        NCOATA           No data in this record, just go
+
+
+
+                                           01920                                             *        check the checksum.
+
+
+
+                                           01921P 0546 BD                 0000           A BLKI.LP JSR                CBIN             ReaC a byte of data.
+
+
+                                           01922P 0549 A7                 84             ,sit            STA            X              Put it away.
+                               (
+
+                                           01923:::' 054P A1              SO             A               CMPA           X+             See         stored CK.
+
+
+
+                                           01924P 0540 28                 12        0561.                BNE          BADMEM           It cicn7t, return a memory error.
+
+
+
+                                           01925P 054F 9S                 80             A               POOP         C'i-tKSJM        It did, ubdate the checksum.
+
+
+
+                                           01926P 0551 97                 GO             A               STA          CHKSUN
+
+
+
+                                           01927P 0553 0A                 81             A               DEC          IBYTCNT          More bytes to read?
+
+
+
+                                           01928P 0555 26                 EF        0546                 BNF          BLKI-P           Yes, to read the next one.
+
+
+
+                                           01929
+
+
++44[0)20 89 7'                             0:9:30P 0557 7,::=             0000           (21 NCDATA JSi               CBIN             No, read the checksum.
+
+
+
+
+
+         For Your Ne,
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                •
+

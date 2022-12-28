@@ -1,0 +1,73 @@
+                                                                                                                                                  Up/"
+
+                       PAGE 012 ECBEXT  .SA11 EXTEND The INSTR Function.
+
+
+                       01340
+             g         013412 0320 A6 80      A INST30 LOA   ,X+      Get char from 81$.
+                       01342P 0322 Al CO      A       CMPA   ,U+      Compare to char in S2$. 
+             •         013432 0324 26 OC 0332         BNE    INST60   Not the same.
+             UL        01344P 0326 5A                 DECB            Same; more to check? 
+                       013452 0327 26 F7 0320         BNE    INST30   Yes, check next chars.
+                       01346
+                       013472 0329 E6 66      A INST40 LOB   &6,S     Match, return the offset.
+                       013482 032B    21      A       FCB    @41      BRN over CLRB.
+                       013492 032C 5F           INST50 CLRB           No match, return 0. 
+                       01350P 032D 32 67      A       LEAS            Clean up the stack. 
+                       013512 032F 7E 0000    A       jM2    SNGF1 T  Float the result and return.
+                       01352
+                       013532 0332 6C 66      A INST60 INC   &6,S     Chars not the same, increment offset
+                       01354                    •    into Si$.
+                       01355P 0334 30 21      A       LEAX   &1,Y     Start searching one char to the right 
+
+                       013562 0336 20 D9   0311       BRA    INST20   in 81$.
+                40     01357
+                       01358                          TTL    Hex and Octal Constants
+                       01359
+                       01360                          XDEF   HOCONS 
+                       01361P 0338 OF         A HOCONS CLR   FACMO    Clear FACMO,FACLO since that's where 
+                       013622 033A OF 53      A       CLR    FACLO    the result is built.
+                       01363P 0330 BE 0052    A       LOX    #FACM0   Set up a pointer to the FAC.
+                       013642 033F 9D 9F.     A       JSR    CHRGET   See if 0 or H specified.
+                       013652 0341 81 4F      A       CMPA            0 for octal?
+                       01366P 0343 27 12   0357       BFQ    OCTCN1   Yes, go do octal.
+                       013672 0345 81 48      A       CMPA   #"H      No, H for hex?
+                       013682 0347 27 23   036C       BEQ    HEXCNO   Yes, co do hex.
+                       01369                    *    No, default to octal.
+
+                       013702 0349 9D A5              JSR    CHRGOT   Reget current char to set
+
+                       0137IP 034B 20 00   0359       BRA    OCTCN2   condition codes.
+                •      01372
+
+                  1111 013732 0340 81 38      A OCTCNO CMPA  #'8      Is it a valid octal digit?
+                       013742 034F 1022 FCAD  A       LBHI   SNERR    No, give a syntax error.
+                       013752 0353 C6 03      A       LOB    #&3      Yes, bitsididit:=3.
+                       01376P 0355 8D 2A   0381       BSR    HODIG    Go add in the new digit.
+                       013772 0357 9D 9,'.7   A OCTCN1 JSR   CHRGET   Get next char.
+                       013782 0359 25 F2   034D OCTCN2 BCS   OCTCNO   It's a digit, continue.
+                       01379                    *    Not a digit, time to quit.
+                       01380
+                       01381                    *
+
+                       01382                    * Float the sixteen bit unsigned value in FACMG,FACLO.
+                       01383                    *
+                       01384                                                                                                                        •
+                       01385                           XDEF  CONS16
+                       013862 035B OF 50      A CONS16 CLR   FACHO    Clear the most significant byte. 
+                       01387          0001    A        IFNE  ADOPRC                                                                                 •
+                       013682 035D OF 51              CLR    FACMOH
+
+                       01389                          ENDO   IFN      ADOPRC
+                       01390P 035F OF 06      A CONS24 CLR   VALTYP   Set VALTYP to numeric.
+                  MI 01391p 0361 OF   63      A       CLR    FACOV
+
+                       013922 0363 OF 54      A       CLR    FACSGN   Mark as positive.
+                       013932 0365 CS AO      A       LOB    #@230-1-@10*ADOPRC Set up the exponent. 
+                       01394P 0367 D7 4F      A       STB    FACEXP
+                       013952 0369 76 0000    A       JMP    NORMAL   So normalize it.
+                       01396
++44 (0)20 89 7'        013972 036C 9D         A HEXCNO JSR   CHRGET   Get next char.
+
+     For Your Ne,
+

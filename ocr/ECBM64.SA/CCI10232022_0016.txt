@@ -1,0 +1,64 @@
+                  PAGE 017 ECBM64 .SAtl EOBM64 CLOAD - Load a program from cassette.
+
+                  01427                  *   wouldn't be able to run it Anyway.)
+                  01428P 0303 BD 0523  P       JSR   BLKIN   Load the next block.
+                  0:429P 0306 26 13  031B      BNE   WIPER   An error Odcured.
+                  01430P 0308 96 7C    A       LDA   BLKTYP  No error, get the block type.
+                  01431P 030A 27 OF  031B      BED   WIPER   Can't have file header in midde of
+                  01432                  *   file.
+                  01433P 030C 2A ED  02FB      BPL   CLDLOP  Data record to continue. NotP, that
+                  01434                  *   X has load address for next block.
+                  01435P 030E 9F 13    A       STX   VARTAB  End of file, set end of program.
+                  01436P 0310 8D 40  0352      BSR   GOCOFF  Turn off the motor.
+                  01437P 0312 8E FFFE  A       LDX   #REDDY-&2 Print "OK" since we won't be going
+                  0438P 0315 BD  0000  A       JSR   STROUT  through READY. (NOTE: REDDY-2 is
+                  01439                  *   used to force a carriage return.)
+                  01440P 03:8 7E 0000  A       JMP   FINI    Go fix up the links, etc. End up
+                  01441                  *   at MAIN.
+              OH  01442
+                  01443P 031B BD 0000  A WIPER JSR   SCRTCH  Error occured, wipe out wnateve-:- did
+                  01444                  *   load so garbage isn't left around.
+                  01445P 031F 7E 0430  P GOIDER JMP  IOERR
+                  01446
+
+
+             4 gi
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 89
+    For Your N•
+

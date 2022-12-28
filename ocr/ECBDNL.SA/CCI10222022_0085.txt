@@ -1,0 +1,75 @@
+                          PAGE  002 ECBDNL   .SA31 Downlo DLOAD - Load program from host computer.
+
+
+                          007582 001B 27   OA   00:27       BEG!   OLDBR   Yes.
+                          00759P 0010 BD   0000             JSR    GETBYT  No, evaluate the baud rate ard.
+                          007602 0020 BD   0000    A        JSR    STBAUD  Call the baud rate select routine.
+                          00761P 0023 1025 FFD9             LBCS   FCERR   Bad argument, give FC error.
+                          007622 0027 BD   00AB      OLDBR  JSR    OPNHST  Open t he file on t he host and 1 oad
+                          00763                           t he cassette buffer.
+                          00764P 002A 34                    PSHS   A       Save the file type byte.
+                          007652 002C 86   FD               LDA    #-&-3   Set DEVNUM so chars come from the
+                          007662 002E 97                    STA    DEVNUM  host file.
+                          00767P 0030      02               PULS   A       Retrieve the file type.
+                          00768P 0032 60   E0      A        TST            Test and get  rid of the DLOADM flag.
+                          007692 0034 26   2A   0 0 60      BNE    DLOADM  Go handle DLOADM.
+                          007702 0036 BD   0000             JSR    TRMOHK  For DLOAD, te statement must end now.
+                          00771P 0039 50                    TSTB           Is it an ASCII  file?
+                          007722 003A 27   06   0042        BEG!   BADMOD  No, can't  load it
+                          00773P 003C BD   0000    A        JSR    SCRTCH  Yes, get  rid of the old program.
+                          00774P 003F 7E   0000    A        jMP    MAIN    Main does the rest.
+                          00775
+                          007762 0042 7E   0000    A BADMOD jMP    FMERR   Give a file mode error.
+                          00777                      *    Eventually the host will figure out
+                   •      00778                      *    that we have given up.
+
+
+
+
+
+
+
+                   •
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                   •
+
+
+
+
+
+
+
+rogression" - it's a wor 
+ovement. The latest in D 
+mily of power amplifiers 
+time spent in the resear 
+mponents that always ri
+ ays respect the deman 
+)nvey realism from the m 
+() most thunderous of a 
+(: I lot allowed to affect the
+
+
+
+
+
+
+
+                     ' I
+

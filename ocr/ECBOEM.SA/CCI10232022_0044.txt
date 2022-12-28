@@ -1,0 +1,105 @@
+                               PAGE   003   ECBOEM   .8031    IODRVR I/O DRIVER SUBROUTINES
+
+
+
+                               00117                           *
+
+               al              001180  0000        0007     A          RMB     $07        WASTE BYTES TO KEEP ADDRESSING COMPATABLE
+
+                               00119                                   XDEF    OEMMEM
+                               00120               0007        DEMMEM EQU      *
+               H I             00121                                   XDEF    ZHROIN
+                               00122               0007        2HROIN EQU      *
+
+                               00123P  0007  CC    0034     A  HDRINI LDD      #$0034     A = DO BITS,   B = CR BITS
+                               00124P  000A  BE    FFOO                LDX     #PODDRA    SET UP BASE ADDRESS OF POPIA
+
+                               00125P  0000  A7    01       A          STA     1,X        RESET POCRA
+
+                               0012E0  000F  A7    03       A          STA     3,X        AND P0CRB
+
+                               00127P  0011  A7    84       A          STA     0,X        CONFIGURE PODDRA FOR INPUTS
+
+                               001260  0013  43                        COMA               (A)  = SEE
+                       •       00129P  0014  A7    02       A          STA     2,X        AND PODDRB AS OUTPUTS
+                               001300  0016  E7    01       A          SIB     1,X        SET UP POCRA & POCRB - INTERRUPTS DISABLED
+
+                               00131P  0018  E7    03       A          STB     3,X        -VE EDGE ON CA1/CB1 & CA2/082 IN CR3 FOLLOW
+
+                               00120   001A  BE    FF20     A          LDX     #P1DDRA    READY TO CONFIGURE P1PIA
+
+                               00133P  001D  6F    01       A          CLR     1,X        RESET P1CRA
+
+                               00134P  001F  6F    03       A          CLR     3,X        AND P1CRB
+                       oft     00135P  0021  4A                        DEOA               (A)  = $FE SETS PAO AS INPUT,      REST OUTPUTS
+                               00136P  0022  A7    84       A          STA     0,X        DORA SETUP
+
+                               00137P  0024  86    F8       A          LOA     #$F8
+
+                               001380  0026  07    02       A          STA     2,X        PE30,PB1,PB2  INIPtirs, REST OUTPUTS
+                               001390  0028  E7    01       A          STB     1,X        CONFIGURE P1OR'S SAME AS POOR'S
+                               001400  002A  E7    03       A          STB     3,X
+
+                               00141P  002C  6F    84       A          CLR     0,X        RESET DAC AND PRINTER STROBE
+                         ||    00142P  002E  6F    02       A          CLR     2,X        RESET VD'S MODE LINES
+
+                               00143P  0030  CC    01498    A          LDD     #$0A98
+                       •       00144P  0033  FD    FF06     A          STD     RSCMD      SET UP CONTROL/COMMAND REG.S
+
+                               00145P  0036  86    FF04     A          LOA     RSRXD      CLEAR RECEIVE DATA BUFFER
+
+                               00146                           * NOW INITIALISE THE SAM CHIP
+
+                               00147P  0039  8E    EEC°     A          LDX     #SAMCR     SET UP BASE ADDRESS OF SAM'S CR
+                               001480  0030  C6    10       A          LDB     #16        COUNT OF BITS IN CR OF SAM
+
+                               00149P  003E  A7    Si       A  SAMCLR STA      0,X++      ACCESS EVERY EVEN ADDRESS
+                       •       00150P  0040  5A                        DECB               CLEARING ALL CR BITS
+
+                               00151P  0041  26    FB    003E          BNE     SAMCLR
+                               001520  0043  F7    FFC9     A          STB     SAMF1S     SETS F1 BIT IN SAM CR
+
+                               0015:0  0046  F7    FFDD     A          STB     SAMM1S     SELECTS 64K RAM OPTION
+
+                               00154P  0049  20    03    004E          BRA     SAMEND     DON'T INITIALISE 48K SOFTWARE
+
+                               00155
+                               oolse                                   XDEF    ENTR48
+                               00157P  0048  fc..  0414     P  ENTR48 jMP      BOOT64
+
+                               00156
+
+                               00159P  004E  5F                SAMEND CLRB
+
+                            I  00160P  004F  1F    98                  TFR     B, DID     CLEARS THE DP REG
+
+                               001610  0051  1F    25                  TER     Y, PC      TRANSFER CONTROL TO ADDRESS IN IV
+
+                               00162                           *
+                               00:163                          * SFTINI - SOFTWARE INT-IALISATION ROUTINE
+                               00164                           *
+
+                               00165                                   XDEF    ZSFTIN
+
+                               00166               0053        ZSFTIN EQU      *
+
+                               001670  0053  BE    006A        SETINI LOX      #N2DATA    GET READY TO COPY NON-ZERO TABLE ENTRIES
+
+                               00168P  0056  CIE   008F     A          LOU     #OBLONT    INTO RAM BLOCK STARTING AT CBLCNT
+                               001690  0059  C6    OD       A          LDB     #13        (B)  = COUNT OF BYTES TO COPY
+
+                               00170P  005B  8D    05    0062          BSR     NZOOPY     INITIATE COPYING
+
+                               00171P  005D  BD    03CA                JSR     SETIN2     PATCH FOR SERIAL PRINTER
+
+                               00172P  0060  C6    09       A          LDB     #9         AND IS 9 BYTES IN LENGTH
+
+                               001730  0062  PE             A  NLOOPY LOA      0,X+       GET TABLE DATA
++44 (0)20 B9 71 3
+                               00174P  0064  A7    CO       A          STA     0,U+       AND COPY TO RAM AREA
+
+     For Your Near€ -
+
+
+                       f
+

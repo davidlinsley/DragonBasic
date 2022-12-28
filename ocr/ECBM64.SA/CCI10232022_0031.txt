@@ -1,0 +1,97 @@
+                       1 11
+                                                 .SA:1   ECBM64 Cassette         Routines
+
+
+                            01.939                        *
+                            01940                         * "MOTOR ON" turns the cassette motor on
+               a •          01941                         * "MOTOR OFF" turns tne cassette motor off.
+                            01942                         *
+                            01943
+               H     'r     C2,944                               XDEF    MOTOR
+                            01945P  0566 IF    89         MOTOR  TFR     A,B       Save tne ON or OFF token.
+                            01946P  0568 9D    9F       A        JSR     CHRGET    Eat  it for NEWSTT.
+                            O'i.S47P05GA Cl    00                CMPB    #OFFTK    Is it  "MOTOR OFF"?
+                            01948P  056C 27    OD   CY=i7D       BEQ     DOCOFF    Yes, go do it
+                            3:949P  056E Ci    00       A        nMPT77: #ONTK     No,  how about "MOTOR  ON"?
+                            01950P  0570 BD    03E0              JSR     ZERCHK    Give SN error if not
+                            01951P  0573 7E    0000     A        jMA     CASON     Yes, go turn it on
+
+                     0
+
+
+
+
+                     0
+
+
+
+
+                                                                                                                                                                               0
+
+
+
+
+                                                                                                                                                                               0
+
+
+
+
+                                                                                                                                                                               0
+
+
+
+
+                                                                                                                                                                               •
+
+
+
+
+                     •                                                                                                                                                         •
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 89 71
+
+
+     For Your Nem
+

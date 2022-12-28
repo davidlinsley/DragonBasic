@@ -1,0 +1,61 @@
+                                          PAGE       012      EOB064                     IODRVR       I/O DRIVER SUBROUTINES
+
+                         I 40             00639P       031D     7F       7E02              KBWAIT       CLR          POPDRB          PULL DOWN KEYBOARD LINES
+                                          00640        0320     FS       FF00                           LDB          POPDRA          ANY INTERFERENCE ?
+                                          00641P       0323     CA       BO                             ORB          #$B0            IGNORE TOP BIT
+                         F                006421,D     0325     5C                                      INCB                         RIPPLE THROUGH TO CLEAR BIT
+                                          00643P       0326     2E.      F5       031D                  RNE          KBWAIT
+                                          00644P       0°3,28   7E       014E                           JMP          LPROUT          NOW YOU CAN PRINT OUT
+                                          00645P       032B              04                PRNTRS       PULS                         (PUSHED FOR PARALLEL ROUTINE)
+                                          00646P       032D     t        02E8          7                JMP          ZOUTHS          PRINT      S'....RIALLY
+                                          00647
+                                          00648                                                         KEYB OARD REPEAT             PATCH
+                                          00649                                            *
+                                          00650P       0330     F6       0151          A   KEYINT       LDB          KBROLL          CHECK GENERIC ROW
+                                          00651P       0333     5C                                      INCB                         ANY KEYS PRESSED
+                                          00652P       0334              03       0339                  BNE          RP1CHK
+                                          00653P       0336       7      01ID          A                STB          LSTKEY          CLEAR LAST KEY BjEFER
+                             410          00654P       0339     41)                        RPTCHK       TSTA                         KEY VALUE RETURNED ?
+                                          00655P       033A     27       11       034D                  B1E0         NUPDAT
+                                          00656P       033C     F6       011F          A                LDB          R:-..JTDLY      READY TO START COUNTDOWN
+                                                       033F     B1       0110          A                OMPA         LSTKEY          ARE WE ALLREADY REPEATING ?                                                                                                                              40
+                                          00658        0342     27       03       0347                  BEQ          STRTRP
+                                          00659P       0344     58                                      ASLB                         LONGER DELAY
+                                          00660P       0345     58                                      ASLB                         `CAUSE FIRST
+                                          00661P       0346     58                                      ASLB                         REPEAT
+                                          00662P       0347     F7       011E          A   STRTRP       STB          CNTDWN          START IT SUING
+                                          00663P       034A     B7       011D          A                STA          LSTKEY          REMEMBER KEY VALuE
+                                          00664.       034D              94            A   NUPDAT       POLS         B,X,PC          CC ALLREADY SET
+                                          00665                                            *
+                                          00666                                                         PATC H     FOR END OF          LINE PRINTING                                                                                                                                          •
+                                          00667                                            *
+                                          00668P       034F     5A                         EOLDLY       DECB                         ALL EOL CHARACTERS PRINTED ?
+                                          00669P       0350     27       03       0355                  BEO          SEQOUT
+                                 1111     00670P       0352     7E       0160          P                jMP          TXSEIO          IGNORE THE PATCH
+                                          00671P       0355     10BE     03FD          A   SEDOUT       LDY          LDELAY          ANY LINE DELAY ?
+                                          00672P       0359     27       07       0362                  BEC!         NODLY
+                                          00673P       035B     BD       0016          P   EOLWT        JSR          BLDLAY          WAIT A 10 MS
+                                          00674P       035E     31       3F            A                LEAY         -1,Y            FINISHED WAITING ?
+                                          00675P       0360     26       F9       035B                  BNE          EOLWT
+                                          00676P       0362     39                         NODLY        RTS
+                                          00677                                            *
+                                          006r8                                            *   INTERRoPT         HANDLER FOR           AuTO-REPEAT AND RS232
+                                          00679                                            *
+                                          00E80                                                         XDEF           NTWD6
+                                          00681P       0363     F6       FF05          A   INTWDG       LDB          R S TAT         GET RS232 STATUS
+                                          006,82P      0366     2A       OD       0375                  BPL          Ni 0 R S        INTERRUPT FROM 6551 ?
+                                          00683P       0368     C4       08            A                ANDB           $OB           RECIEVE BUFFER FULL ?
+                                          00684P       036A     27       08       0374                  BE1D         N 01" .R X D
+                                          00685P       036C     B6       FF06          A                LOP          RSOND           GET COMMAND BYTE
+                                          00686P       038F     84       FE                             ANDA         44:  E          SET DATA TERMINAL
+                                          00687P       0371     B7       FF06          A                STA          R !GC: D        ....NOT        READY
+                                  I       00688P       0374     3B                         NOTRXD       RrI
+                                          00689                                            *
+                                          00690P       0375     74       0151          A   NOTRS        LSR          KBROLL          CHANGE RGW STATE S. ORE
+                                          00691P       0378     7P       011E                           DEC          CNTDWN          REPEAT YET ?
+                                          00692P       037H              VC       0389                  BNE          CONTIN 
+                                          00E93P       037D     86       FF            A                LDA          #$FF
+                                          00694P       037F              0151                           LDX          #KBROLL         POINT TO RLLLCVER TAB:LE
+f4.4 (0)20 BB 7                           00695P       0382     P7       80            (.1 TBLCLR       STA                          FORGET THE KEYS
+        For Your NE    k                  00696P       0384     812      015A          A                CmPX         ..1.-'07VAL     ALL CLEAR ?
+

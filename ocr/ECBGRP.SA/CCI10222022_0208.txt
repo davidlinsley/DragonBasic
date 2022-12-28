@@ -1,0 +1,64 @@
+                                 PAGE                ECBGRP         .SA:1       TXRGRP MUSIC            COMMAND
+                    •
+
+                                 02103P       07FF     CC       767C           A               LDD          #(&124!4-8:2)*&256+&124!+PIABIT
+                                 02104P       0802     AB       64             A                ADDA        ,S              Set     high amplitude and                 low amplitude.
+                    •            02105P       0804     60       60             A               SUBB
+                                 02106P       0806     DD       DF             A                STD         HIGHA           Store high and              low amplitudes.
+                                 02:.07P      0808     35                                       RTS
+                    •            02108
+                                 02109P       0809     81       40             A  NTMOSV        CMPA        WL              Select length of note?
+                                 02110P       080B     26        23      0830                   BNE         NTMUSL          No.
+                                 02111P       080D     DE       61             A                LDB         LNOTE
+                                 02112P       080F     8D        28      0836                   BSR         GPARG
+                                 021132       0811     5D                                       TSTB                        Must      be 1 to 255.
+                    •            02114'2      0812     27        37      0848                   BED.        BADPLY
+                                 02115P       0814     D7        El            A                STB         LNOTE
+                                 02116P       0816     OF                      A                CLR         DOTFLG          Assume not dotted note.
+                                 02117P       0818     8D        03      081D     MeRDOT        BSR         LOOKDT          Scan any dots there are,                      incrementing
+                                 02116P       081A     24        FC      0818                   BCC         MORDOT          DOTFLG for each tot seen.
+                                 021192       081C     39                                       RTS
+                                 02120
+                                 02121P       0818     OD        D8            A  LOOKDT        TST         PSTLEN          Anything left?
+                                 02122P       081F     27        OA      0828                   BED         NOTDOT          No,     there can't be a dot.
+                    •            02123P       082:     BD        0916                           JSR         FETCHR          Yes,      look ahead to see if dot.
+                                 02124P       0824     81        26            A                0MPA        W.
+                                 02125P       0826     27        05      0828                   BED         ISDOT           It    is a dot.
+                                 02126P       0828     BD        0960                           JSR         FETBAK          Not a dot,           move pointer back.
+                                 021272       0828     43                         NOTDOT        COMA                        Set carry to             indicate not           a dot.
+                                 02128P       082r     39                                       RTS
+                    oto          02129
+                           1     021.:)0P     0828     00        Crc,'         A  ISDOT         INC         DOTFLG          Increment the count of dots and
+                                 02131P       082F     39                                       RTS                         return with carry clear from CMPAIM
+                                 02132                                                      "."    to    indicate a dot was seen.
+                                 02133
+                                 02134P       0830     81        54            A  N-MUSL        CMPA        ft.'T           Select       tempo?
+                    •            02135P       0832     26        OD      0841                   DNIE        NTMUST          No.
+                                 0213EP       0834     86        6'3           A                LDB         TEMPO
+                                 02137P       0836     88        06      063E                   BSR         GPARS
+                    Ca,          02138P       0838     5D                                       TSTB                        Must      be 0 to 259.
+                                 021392       0839     27        10      0848                   BFQ         BADPLY
+                                 02140P       083B     D7        62            A                SIB         TEMPO
+                     •           02141P       083D     39                                       RTS
+                                 02142
+                                 02143P       0836.    76        092A          P  GPARG         JMP         PLYARG
+                     •           02144
+  1 HE                           02145P       084:     81        50            A  NTMUST        CMPA        WP              Pause?
+                                 02146P       0843     26        24      0869                   BNE         NTMUSP          No.
+"Progression"                    021472       0845     BD        0A49                           JSR         FTCHVL          Yes,      skip over the and evaluate
+movement. T                      0248                                                       the pause argument.
+family of pow                    021492       0848     58                                       TSTB                        Disallow 0.
+lifetime spent                   021502       0849     26        03      0846                   BNE         OKPAWZ
+components t                     02151P       084B     76        0000          A  BADPLY        SMP         FCERR
+; Mays respe•                    021522       084F     96        65            A  OKPAWZ        LDA         DOTFLG          Save the dotted note flag and
+   >livey realist    •           02153P       0850     96        DF            A                LDX         HIGHA           volume setting.
+11)( most thu                    02154P       0852     34        12            A                             X,A
+      lot all/w&                 021552       0854     80        7r            A                LDA         #8,124H-PIABIT Select                  zero volume.
+                                 02156P       0856     97        DF            A                STA         HIGHA
+                                 02157P       0858     97        EO            A                STA          LOWA
+                                 02158P       08SA     OF        ES            A                CLR          DOTFLG
+        abs          •            021592      085C      8D       07       0865                  BSR          GOPAWZ          Do pause and            return to restore
+                  t              021602       085E      T'"      12            A                PULS        A,X              the settings.
+
+                     •
+

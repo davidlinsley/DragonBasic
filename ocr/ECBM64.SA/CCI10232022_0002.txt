@@ -1,0 +1,78 @@
+                                                      •                                                                                                                                                                                                                                                                                                                                                                                                                              •
+
+
+                                                                          PAGE              003           ECBM64                  .SA41                F..BM64             Power             1..1.7.3 and         Reset            code.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     •
+                                                                          00824P               003E           B7            011A                    A                         STA                  FLAG64
+                                                                          00825P               0041           20            03             0046                               BRA                  BASRST
+                                                                          00826                                                                           *                                                                                                                                                                                                                                                                                                                          •
+                                                            r,            00827                                                                           *    Here to restart BASIC.                                                                                                                                                                                                                                                                                        i'11
+                        HUI '                                             00828                                                                           *
+                                                                          00829                                                                                               XDEF                 ZSFTIN                                                                                                                                                                                                                                                                            •
+                        H I G                                             00830P               0043           BD            065C                    P     2:SFTIN JSR                              GRNCHR
+                                                                          00831                                                                                               XDEF                 BASRST
+                                                                          00832P               0046           OF            E3                      A     BASRST CLR                               DURCNT                    Clear the                     PLAY not                     duration count
+                                                                          00833P               0048           OF            E4                      A                         CLR                  DURCNT-1-&1                  so       interrupts don't think we are
+                                                                          00834                                                                           *             still             playing the                        note.
+                                                                          00835P               004A           BE            FF03                    A                         LDA                  PIAOBC                    Enable the                       60 hertz                  interruot.
+                                                                          00836P               004D           BA            01                      A                         ORA                  #40,
+                                                                          00837P               004F           B7            FF03                    A                         STA                  PIAOBC
+                                                                          00838P               0052           OF            6F                      A                         CLR                  DEVNUM                    Make sure                     output goes to screen and
+                                                                          00839                                                                           *             input comes from                                   keyboard.
+                                                                          00840P               0054           BD            0000                    A                         JSR                  STKINI                    Reset the                     stack and things.
+                                                                          00841P               0057           1C            AF                      A                         ANDCC                it$FF:X(F:4-I)                        Enable               interrupts.
+                                                                          00842P               0059           7E            0000                    A     GORDY               „IMP                 READY                     Go say "OK".
+                                                                          00843
+                                                                          00844
+                                                                          00845                                                                           *
+                                                                          00846                                                                           *    Here on a                     Fin? to handle the cartridge interruot.
+                                                                          00847                                                                           *
+                                                                          00848                                                                                               XDEF                 CARTRG
+                                                                          00849P               005C           7D            FF23                    A     CARTRG TST                               PIA1BC                    Did the cartridge cause the interrupt?
+                                                                          00850P               005F           2B            01             0062                               BMI                  GOCART                    Yes.
+                                                                          00851P               0061           3B                                                              RTI                                            No,         return               from the interrupt.
+                                                                          00852
+                                                                          00853P               0062           BD            006A                    P     BOGART JSR                               DELHAF                    Delay for                     about a second
+                                                                          00854P               0065           OF            71                      A                         CLR                  RSTFLG                    Don't allow BASIC to                                           be       restarted.
+                                                                          00855P               0067           77:           C000                    A                         JMP                  CARTRM                    Go execute                       the cartrige program.
+                                                                          00856
+                                                                          00857                                                                           *
+                                                                          00858                                                                           *    Delay for                     anout one                     half second.
+                                                                          00859                                                                           *
+                                                                          00860
+                                                                          00861                                                                                               XDEF                 DELHAF
+                                                                          00862P               006A           9E            BA                      A     DELHAF LDX                               DBLZER                                                                                                                                                                                                                                                                            0
+                                                                          008632               006C           30            1F                      A     DELAY               LEAX                 -&1,X
+                                                                          00864P               006E           26            FC             006C                               BNE                  DELAY
+                                                                          00865P               0070           39                                                              RTS
+
+
+
+                                                      •                                                                                                                                                                                                                                                                                                                                                                                                                      -       •
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     0 
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     0 
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     0 
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     0
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                             KUUU
+
+(0)20 B9 71 39 0                                                                                                                                                                                                                                                                                                                                                                                                                                                                     0 
+
+For Your Nearest C
+                                                      <                                                                                                                                                                                                                                                                                                                                                                                                                              0
+

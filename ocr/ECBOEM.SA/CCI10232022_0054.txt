@@ -1,0 +1,116 @@
+                                                                                                                                                                                                 •
+
+
+
+
+
+                                                                                                                                                                                                 40
+
+                               PAGE   013   ECBCBm            JODRVA   I/O DRIVER SUBROUTINES
+
+
+                      41       00697P  0375  8E    0389      P          LDX     #RSTAB      POINT TO TABLE                                                                                       4)
+
+                               00698P  0378  3A                         ABX                 000 IN OFFSET
+
+                               00699P  0379  F6    FF07      A          LOB     RSCNT
+                               00700P  037C  C4    FO        A          ANDS    tit$F0      mASK OUT BAUD SELECT                                                                                 40
+        H I G                  00701P  037E  EA    84        A          ORB     ,X
+
+                               00702P  0380  F7    FF07      A          SIB     RSCNT       UPDATE RATE
+
+                               00703P  0383  IC    FE        A          ANDCC   #$FE        SAY ALL O.K.
+                               00704P  0365  20    01    0388           BRA     RSBDRT      R,--7TURN
+
+                               00705P  0387  53                RSEAR    COmB                SET CARRY TO SHOW ERROR
+
+                               00706P  0388  39                ASSORT   RTS
+                               00707                           *
+
+                               00708                           *     BAUD RATE SELECT BETS FOR 6551
+
+                               00709P  0389        03        A RSTAB    FCB     $3,$6,$7,$8,$A,SC,$E
+
+                               00710               0390      P RSTEND   EQU
+
+                               00711                           *
+
+                               00712                                    DISPATCH PRINT ROUTINE TO SERIAL/PARALLEL
+                               00713                           *
+
+                               00714P  0390  26    14    0326  PRNSEL   SNE     PRNTRS
+
+                               00715P  0392  F6    FF22      A LPBUSY   LOB     P1PDRB      CHECK BUSY STATUS
+
+                               00716P  0395  56                         RDA's               ROLL INTO CARRY
+
+                               00717P  0396        FA    0392           SOS     LPBUSY
+                               00716P  0398  7F    FF02      A KBWAIT   CLA     POPDRB      PoLL DOWN KEYBOARD LINES                                                                             40
+
+                               00719P  039B  F6    FF00      A          LDB     POPDRA      ANY INTERFERENCE ?
+
+                               00/20P  039E  CA    80        A          ORB     #$80        IGNORE TUP BIT
+                               00721P  03A0  51-                        INCE?               RIPPLE THROUGH TO CLEAR BIT                                                                          40
+
+                               00722P  03A1  26    F5    0398           BNE     KBWAIT
+
+                               00723P  03A3        0108      P          jMP     LPROUT      NOW YOU CAN PRINT OUT
+
+                               00724P  03A6  35    04        A PRNTRS   PULS                (PUSHED FOR PARALLEL RGUTINE)
+
+                               00725P  03A8  7E    0363      P          JMP     ZOOTHS      PRINT SERIALLY
+
+                               00726 
+                               00727                           *        KEYBOARD REPEAT PATCH                                                                                                    •
+
+                               00726                           *
+
+                               00729P  03AB  F6    0151      A KEYINT   LDS     KBROLL      CHECK GENERIC ROW
+
+                               00730P  03AE  50                         INCB                ANY KEYS PRESSED
+
+                               00731P  03AF  26    03    0384           BNE     RPTCHK
+
+                               00732P  0381  F7    0110      A          STB     LSTKEY      CLEAR LAST KEY BUFFER
+
+                               00733P  0384  40                APTCHK   TSTA                KEY VALUE RETuRNED ?
+
+                               00734P  03B5  27          0308           BEID    NUPDAT
+
+                               00735P  0:137 F6    011F      A          LDB     RPTDLY      READY TO START COUNTDOWN
+                               00736P  03BR  81    011D      A          cmPA    LSTKEY      ARE WE ALLREADY REPEATING ?
+
+                               00737P  0380  27    03    03L2           BED     STRTRP
+
+                               00738P  03BF  58                         ASLB                LONGER DELAY
+                      411      00739P  03f0  58                         ASLB                'CAUSE FIRST
+
+                               00740P  0301  58                         ASLB                REPEAT
+
+                               00741P  0302  F7    011E      A STATAP   STB     CNTDWN      START IT GOING
+
+                               007422  03C5  B7    0110      A          STA     LSTKEY      REMEMBER KEY VALUE
+
+                               00743P  03O6  35    94        A NUADAT   PULS    B,X,PC      CC ALLREADY SET
+
+                               00744                           *
+
+                               00745                                    PATCH FOR SoFTwARE INITIALISATION
+
+                               00746                           *
+
+                               00747P  03CA  7F    03F         SFTI N2  CLR     PRNFLG      ASSUME PARALLE_ PRINTER
+
+                               00748P  03CD  7F    03FD      A          CLR     LDELAY      DON'T NEED A LINE DELAY
+
+                               00749P  0311)07F    03FE                 CLR     LDE.Ay+1    "
+
+                               00750D  0303  CE    0148                 LDU     #AUTOL:','  SET UP FOR SECOND COPY
+                      C.       00751P  03D6  39                         RTS                 CARRY ON WHERE WE LEH7T OFF
+                               00752                           *
+
+3320 B9 71 39 09 ,             00753                                    PATCH FOR END        LINE PRINTING
+                               00754                           *
+
+or Your Nearest Dec
+

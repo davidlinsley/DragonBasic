@@ -1,0 +1,109 @@
+                      •
+
+
+
+                              ',D=7;GE024   EC3NI,E4  .SA1    ECF5634 The End    Of File   (EJF)  Function.
+
+
+                              01645                                              The SKIPF statement.
+
+
+                              016/.-.7
+                              01648                             * SKIPF skips t'ne specified or next        file on tne tape.
+               HI             01649                             * Filenames are displayed if SKI2F is used in a direct              statement.
+                              01650
+                              01651
+               H I            01652                                     XDEF     SKIPF
+                              01653P   0403  8D    D7    03D0   SKIPF   BSR      F'....NTRM Read the filename and check for         EOS.
+                              01654    0405  8D    56    045F   SPD.OR BER       OPNOSI     Find the file.
+                              01655P   0407  BD    04E8      z          JSR      SKPFIL     Skip  it.
+                              0-1656P  040A  2S    24    0430           BNE      IGERR      a-s:PFIL encountered an error.
+                              01657P   0400  39                         RTS
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                    •
+
+
+
+
+                      to—p                                                                                                                                                                          0
+
+
+
+
+                      •
+
+
+
+
+                                                                                                                                                                                                    0 
+
+
+
+
+                                                                                                                                                                                                    0
+
+
+
+
+                      •                                                                                                                                                                             Cis
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                    0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 89 71
+
+
+      For Your Nea
+

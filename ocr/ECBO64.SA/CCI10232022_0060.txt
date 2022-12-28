@@ -1,0 +1,164 @@
+                                      I
+
+
+
+
+
+
+
+
+                                                PAGE       003      E08064         .SA:I        IODRVR I/O DRIVER SuBROOTS.NP.-;
+
+
+
+
+
+
+                                                00117                          0000          P   OEMMEM EQU                *
+
+
+                                                00118                                            *
+                         al t
+
+                                                00119                                            *   OBLINK - CURS0R                         RUUTINE
+
+                                                00120                                            *
+
+
+                         UU                     00121                                                         XOEF         ZOBLIN
+
+                                                00122                          0000              20BLIN EDU
+
+
+                                                00123P       0000 OA           BE                CBLINK DEC                081..CNT        UPDATE a.„.INK RATE COUNTER
+
+                                                00124P       0002 2E           12       OUlb                  BNE          BLD;..AY        IF .NE.        0 TH=N DELAY            10 MSECS
+
+                                                00125P       0004 86           32                             LOA          #C8LVAL         OTHERWISE RESET TO INf.TIAL VALUE
+
+                                                00126P       0006 97           BF                             STA          0BLCNT                 a...INK RATE
+
+                                                00127P       0008 9E           88                             LDX          CURAOR          GET    READY TO FLAS.:-i C.`,RSOR
+
+                                                00128P       000A A6           84                             LDA          0,X             BY READIN6 CHAR A7 CURSOR PUS
+
+                                   4            00129P       000C 81           AF            A                CYPA         WSAF            IS           CuRSOR                     BLUE
+
+             jog                      II(  1    00130P       000E 27                    0012                  BEID         INVERT          CHANGE TO G'RAPIC :SREEN IF SO
+                                                                                                                                                                                                                                                                                               111  I
+                                                00131P       0010 86           8F            A                LOA          #$8F            OTHERWISE LOAD GRAPHIC 1:73EEN AND THEN CHANGE                                          BLUE
+                                   •            00132P       0012 88           20            A   INVERT EORA               #$20            BLUE TO GREEN OR GREEN TO BLU:E.
+
+                                                001332       0014 A7           84            A                STA          0,X             BEFORE WRITNG BACA
+
+                                                00134P       0016 BE           045E              BLDLAY LDX                #MSE010         SET !JP 10 MSEC DE-AY CONSTAN'
+
+                                   •            00135                                            *
+
+
+                                                00136                                            *   IXDLAY - DELAY ROLT1NE
+
+
+                                                00137                                            *
+
+
+                                                00138P       0019 30                         A   IXDLAY LEAX               -1,X            DHCREMENT IX
+
+                                                00139P       0018 26                    0019                  BNE          IXDLAY          REPEAT UNTIL            (IX)     ,,, 0
+
+                                                00140P       001D 39                                          RTS
+
+
+                                   •            00141
+
+
+
+                                                00142                                            *   ROUTINES USED BY THE KEYBuARD POLLEHi'
+
+
+                                                00143                                            *
+
+                                   •            00144
+                                                                                                 *   CHKROW - CHECKS ROWS OF K/8 MATRIX EOR CLOSURE
+
+
+                                                00145                                            *
+
+
+                                                00146P       001E F6           FFOO          A   CHKROW LOB                POPORA          READ RUW DATA
+
+
+                                                00147P       0021 CA           80            A                ORB          #$80            SET UNUSED BIT                                                                                                                                           sr
+
+                                                00148P       0023 7D           F'F'02        A                TST          POADR8          SHIP7 KEY Z.S
+                                        I!
+
+                                                00149P       0026 2B           02       002A                  BmI          NOSHFT               MASKED OUT
+
+                                                00150P       0028 CA           40            A                ORB          *MAO            BY THIS
+
+                                                00151P       002A 39                             NOSHF7 RTS
+
+
+                                                00152                                            *
+
+
+                                                00153                                            *               -   CHECKS              STATE            THE S* ]F- KEY,            Z = 1             RESSED
+
+                                                00154
+
+
+                                                00155P       002B CS           7F                             LDB          #$7F            CLEAR TOP BIT
+
+                                                00156P       0020 F7           FF02                           STE(                         OF T*:: COLUMNS
+
+                                                00157P       0030 FS           FFOO                           LOB          POPDRA          THEN READ ROWS
+
+
+                                                00158P       0033 04           40            A                ANDB         #$40            mAS'A D;EF ALL BuT 87-.IFT KEY
+
+                                                00159P       0035 39                                          RTS                                                                                                                                                                                   41
+
+                                                00160                                            *
+
+
+                                                00161                                            *   PCLOPT -                 THE K/B AND RETURN CHARACT'ER 1.N                          (A)
+
+                                                00162
+
+
+                                                00163                                                         XOEF
+
+
+                                                00164                          0036          P   7POLCA EOU                *
+
+
+                                                00165P       0036 34           14            A   POLCPT PSHS                  X            SAVE REOS
+
+                                      1    '    00166P       0038 BD           03                             BSR                          POLL AND ENCODE KEYS
+                                        |1 1
+
+                                                00167P       003A 7E           0330                                        K~YINT          SET UP COUNTDOwN
+
+                                                00168
+
+
+                                                00169                                                POLLAB - POLLS THE K/B,                    DETECTS KEY CLDSuRES,                   DEBOuNCES KEYS,
+
+
+                                                                                                     ROLLOVER AND ENCODES CHARACTERS
+
+
+                                                00171
+
+
+                                                00172P       003D 32           76            A   PLLKB                     -2,S            RESERVE 2 BYTES OE W:JRKSACE ON
+
+                                                00:„73P      003F SE           0151                           LDX          #KBROLL                UP ADDRESS DE HB RaLLUVER TABLE
++44 (0)20 B9 71 E (C
+                                                00174                                            *   THE FIRST THING                   DU    IS TO CHECK Ff.?R ANY                      CLOS!„.8 !./0'"ATSCEV
+
+
+
+        For Your Near(
+

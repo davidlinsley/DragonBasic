@@ -1,0 +1,62 @@
+                                    PAGE 023 ECBGRP .SA'z1 TXRGRP PAINT CODE
+
+                                    01987                                             *  WHICH IS RETURNED IN [D].                       XSTORE IS UPDATED AS THF SCAN PROCEEDS 
+                                    01988                                             *  THE POINT VALUE RETURNED                      :N XSTORE IS EITHER AN EDGE OR BORDER
+                                    01989                                             *
+                                    01990P        075D     BD       0744              SOANL        JSR          SAVLOC 
+                                    01991P        0760     108E     0                              LDY          #XDEC           SCAN LEFT DEORFMENTS X AS IT GOES 
+                        •           01992P        0764     20       06       076C                  BRA          SCANLO 
+                                    01993P        0766     108E     0277          P   SCANR        LDY          #XINC           SCAN RIGHT INCREMENTS X
+                                    01994P        076A     AD       A4            A                JSR          ,Y 
+                        to          0.1995P       076C     DE       8A            A   SCANLC       LDU          DBLZER          SET COUNT VALUE TO 0
+                                    01996P        076E     9E       BD            A                LDX          XSTORE          START AT XSTORE
+                                    01997P        0770     28       17       0789     SCANLP       BmI          SCLRTS          RETURN IF NEGATIVE 1 ALREADY
+                                    01998P        0772     9C       D3            A                CMPX         XMAX            SEE IF AT HIGH END
+                                    01999P        0774     22                0789                  BHT.         SORTS           IF HIGHER MUST BE ON EDGE
+                                    02000P        0776     34       60            A                PSHS         U,Y             SAVE ROUTINE ADDRESS AND COUNT 
+                                     02001P       0778     BD       16       0790                  BUR          TSTBRD          SEE IF BORDER
+                            H        02002P       077A     27       OB       0787                  BECI         SCLRT2          IF BORDER, QUIT
+                                     02003P       077C     BD       00E8                           JSR          GRPACT          SET THE COLOR AT THE DESIRED POINT 
+                        40           02004P       077F     3=,      60            A                PULS         U,Y             GET BACK COUNT AND ROUTINE ADDRESS 
+                                     02005P       0781     33                     A                LEAU         &1,U            UPDATE COUNT
+                                     02006P       0733     AD       A4            A                JSR          ,Y              UPDATE X VALUE
+                                     02007P       0785     20       E9       0770                  BRA          SCANLP          AND CONTINUE SCANNING
+                                     02008P       0787       =      60                SOLRT2       PULS                         TAKE OFF COUNT AND ADDRESS
+                                     02009P       0789     1F                         SCLRTS       TFR          U,D             MOVE COUNT INTO EDD
+                        •            02010P       0788     IF       01            A                TFR          D,X 
+                                     02011P       078D     93       BA                             SUBD         DBLZER
+                                     02012P       078F     39                         RTSSCL       RTS 
+                        •            02013P       0790     AD       9F    00D9 A TSTBRD            JSR          [PNTADR]        GET ADDRESS OF THIS POINT
+                                     02014P       0794     IF       89                             TFR          A,R             SET EBj TO BE A COPY OF THE BIT MASK
+                                     02015P       0796     D4       D8             A               AND8         PNTCLR          MASK BURDER COLOR TO GET SELECTED BORDER BITS 
+                                     02016P       0798     34       06                             PSHS                         SAVE THE BIT MASK IN [Al
+                                     02017P       079A     A4       84             A               ANDA         ,X              READ CURRENT DATA IN AND MASK
+                                     02018P       0790     Al       61             A               CMPA         &I, S           SEE IF MATCH BORDER COLOR
+                                     02019P       079F     35       86             A               PULS         D, PC           FRL,ruRNI WITH CONDITION CODES SET
+                               I 1   02020 
+                                     02021                                                         TTL          MUSIC COMMAND
+                                     02022 
+                                     02023 
+                                     02024                                                 PLAY
+                         •           02025                                                 TAKES A SINGLE STRING ARGUMENT WHICH IS THE "MUSIC MACRO LANGUAGE" 
+                                     02026                                                 THIS STRING DEFINES VOLUME, TEMPO, OCTAVE, NOTE, ETC AND ALLOWS 
+                                     02027                                                 EXECUTION OF SUBSTRINGS WITH X (EXECUTE)
+                                     02028                                                 CURRENT FORM IS:
+ IIIL H                              0'7'029                                               O   (OCTAVE) ARG 1-5
+                                     0207,0                                                ✓   (VOLUME) ARG 0-31
+"Progression" -                      02031                                                 L   (Length of note) ARG 1-255
+movement. The I-                     02032                                                 T (Tempo) ARG 1-255
+family of power .                    02033                                                 P   (Pause) 1 to 255 (+, -, less than, greater than not allowed.) 
+lifetime spent in t      •           02034                                                 Notes A through G, with + or # for sharp, - for flat.
+components that                      02035                                                 Notes can also be specified as 1 through 12 with 1 being C.
+ Mays respect th.                    02036                                                 N   preceding the note argument is optional. 
+(;oilvey realism fr.                 02037                                                 X (EXECUTE) STRING NAME;
+  r( moot thunder                    02038                                                 SEMICOLON, SPACE, AND SINGLEQUOTE ARE IGNORED
+     I rot allowed to                02039                                                 ARG MEANS ONE OF:
+                         •           02040                                                 +   (INCREMENT CURRENT VALUE BY ONE) 
+                                      02041                                                -   (DECREMENT CURRENT VALUE BY ONE
+                                     02042                                                 Richt Angie Bracket (MULTIPLY CURRENT VALUE BY 2)
+       absol                          02043                                                Left Angle Bracket (DIVIDE CURRENT VALUE BY 2)
+                                      02044                                                =VAR NAME; (USE VARIABLE VALUE)
+    I
+

@@ -1,0 +1,66 @@
+PAGE 012 'FCBMOD            ECBMOD CHROUT - Output Character Routine
+
+
+01223                                TTL     DEVPRM - Return Device Parameters
+01224
+01225
+01226                        *  DEVPRM returns the following device parameters:
+01227
+01228                        *  DEVPOS    The position of the print head or it's equivalent.
+012:29                       *  DEVWID - The line width of the device.
+01230                        *  DEVLCF    The column number where the last comma fiP,1r1
+01231                        *  DEVCFW    The comma field width.
+01232                        *  SPCIO     .TRUE. for special I/O handling in PRINT and INPUT code.
+01233
+01234                        *  All registers except CC are preserved.
+01235                        *  On exit, Z=1 if the device has infinite width (DEVWID=0). 
+01236
+
+01237
+01238                                XDEF    DEVPRM
+012392  01FA BD    0000     ADEVPRM JSR      HKDPRM    RAM hook.
+01240P  01FD       16       A        PSHS     X,0      Save registers.
+0124IP  01FF OF    SE       A        CLR     SPCIO     Special I/O flag:=.FALSE.
+012422  0201 96    SF       A        LOA      DEVNUM   Get the device number.
+012432  0203  27   09   020E          BED     SCRPRM   Go get the screen parms.
+01244P  0205  4C                      INCA
+ 012452 0206  27   17   021F          BEG).   0ASPRM   Go get cassette parms.
+
+ 01246
+ 01247
+ 01248                        * Set line printer parameters.
+ 01249
+
+ 01250
+ 01231P 0208  9E   99       A LPTPRM LOX      LPTCFW   Get comma field width and last comma
+ 01252                        •     field.
+ 01253P 020A  DC   aq       A         LOD     LPTWID   Get width and current position.
+ 012542 020C  20   09   0217          BRA     DEVFIN   Go out it all away.
+ 01255
+ 01256
+ 01257                        * Get screen parms.
+ 01258                        * The width, comma field width, and last comma field are fixed.
+ 01259                        * The position is obtained by reading the cursor address.
+ 01260
+
+ 01261
+ 01262P 0206  06   99       A SCRPRM LOB      CURADR+&1 Get low order of cursor address.
+ 012632 0210  04            A         ANDB    #&31     Determine the column number. This
+ 01264                        •     only works because the line width
+ 01265                        •     is a Dower of two.
+ 012662 0212  9E   1010     A         LOX     #&16*&2564.&16 Field width and last comma field.
+ 012672 0215  86   20       A         LDA     40132    Set up the width.
+ 01268                                XDEF    DEVFIN
+ 012652 0217  9F   SA       A DEVFIN STX      DEVCFW   Put away comma field width and last
+ 01270                              comma field.
+ 01271P 0219  D7   6C       A         STB     DEVPOS   Put away the position.
+ 012722 021B  97   60       A         STA     DEVWID   Put away the width and set the Z bit
+ 01273                        •     for infinite width devices.
+ 012742 021D  35   96       A         PULS    D,X,PC   Restore and return.
+ 01275
+ 01276
+ 01277
+ 01278                        * Set the cassette parms.
+ 01279                        * They are all fixed at values which are necessary for the special
+ 01280                        *  I/O code to work broperly. SPCIO gets set TRUE.
+

@@ -1,0 +1,88 @@
+                          PAGE   005  ECBM64   .SA:1   ECBM64 CHRINP - Character Input Routine
+
+
+                          00936                         *
+                          00937                         * INCHR is called instead of CHRINP when a 7 nit code is      wanted.
+            al 4          00938                         *
+                          00939
+                          00940                                XDEF    INCHR
+            H I (-,       00941P  00EA 8D    03   00EF  INCHR  BSR     CHRINP    Read a character.
+                          00942P  00EC 84    7F       A        ANDA    Wa177     Clear the high order bit.
+                          00943P  00EE 39                      RTS               Return with it
+                          00944
+                          00945
+                          00946                                XDEF    CHRINP
+                          00947P  00EF BD    0000     A CHRINP JSR     HKCHRI    RAM hook.
+                          00948P  00F2 OF    70       A        CLR     EOFFLS    End of file flag.FALSE.
+                          o0949P  00F4 OD    6F       A        TS.     DEVNUM    Check the device number.
+                          00950P  00F6 27    '''''011D         BED     KEYINP    Go handle the keyboard.
+                     I.H.I00951                         *    No,  fall into CASINP to get char from
+                          00952                         *    cassette.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 E39 71
+
+     For Your Nec
+

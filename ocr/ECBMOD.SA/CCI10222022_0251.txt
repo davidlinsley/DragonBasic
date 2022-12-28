@@ -1,0 +1,72 @@
+                               PAGE   026   ECDPel,OD         ECBMOD The End Of File (EDF) ''.1..-1c.-:t2.(yr-7.
+
+                               01762                                    TTL      The SKIPF statement.
+                               01763
+                               01764                            *
+                               01765                            * SKIPF skips the sr:)ecified or next file on the tape.
+                               01766                            * Filenames are displayed if SKIPF is used in a ,firect statement.
+                               01767                            *
+                               01768
+                               01769                                    XDEF     SKIPF
+                               01770P  0483  8D     D7    045C  SKIPF BSR        F:....NTRM Read the filename and check for 7:08.
+                               01771P  0485  8n     58    04DF  SKPDOR BSR       OPNCSI     FinC the file.
+                               01772P  0487  BD     0568     P          JSR      SKPFIL.,   Skip it
+                               01773P  048A  26     24    0480          BNE      IOERR      SKPFIL encountere an error.
+                               01774P  0480  39                         RTS
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+"Progression" - it's a w 
+movement. The latest in 
+family of power amplifie 
+lifetime spent in the rese 
+components that always 
+;Mays respect the dem 
+ iolivoy realism from the
+  io most thunderous of 
+;   1(  illowed to affect
+
+
+
+
+     absolute
+

@@ -1,0 +1,71 @@
+                                                                               PAGE 039 ECBMOD .SA:1 ECBMOD Simple Graphics - SET, RESET, POIM-,.CLS
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       •
+                                                                               02211
+                                                                               02212                                                                             *
+                                                                               02213                                                                             *     GRPHAR evaluates the column and row numbers.
+                                                                               02214                                                                             *     It then calculates the address of the block containing the specified
+                                                                               02215                                                                             *     cell. The address is returned in X.
+                                                                               02216                                                                             *     CELL contains the bit corresponding to the specified cell.
+                                                                               02217                                                                             *
+                                                                               02218                                                                             *     Block address = SCRADR + ROW\2*32 + COLUMN\2
+                                                                               02219                                                                             *     Cell bit = 2-'.(3-(2*(ROW MOD 2)+(COLUMN MOD 2)))                                                                                                                                                                                                                                                                               •
+                                                                               02220                                                                             *
+                                                                               02221
+                                                                               02222P 0678 BD                                      0000                    A GRPHAR JSR                                     CHKOPN                      Check for a left parenthesis.
+                                                                               02223P 0678 BD                                      0000                    A GRPHA2 JSR                                     GETBYT                      Evaluate the column number.
+                                                                               02224P 067E Cl                                      3F                      A                           CMPB                 #&63                        Make sure it is in range.
+                                                                               02225P 0680 22                                      07             0689                                 BHI                  BADARG
+                                                                               02226P 0682 34                                      04                      A                           PSHS                 B                           It is OK, save it
+                                                                               02227P 0684 BD                                      0000                    A                           JSR                  COMBYT                      Eat comma and evaluate the row number.
+                                                                               02228P 0687 Cl                                      IF                      A                           CMPq                 #8,31                       Make sure it's in range.
+                                                                               02229P 0689 22                                      71             06FC BADARG BHI                                           GOFCER                      (All who come here must meet the
+                                                                               02230                                                                             *              branch condition.)
+                                                                               02231P 068B 34                                      OU                      A                           PSHS                 B                           Row is OK, save it
+                                                                               02232P 068D 54                                                                                          LSRB                                             Integer divide by 2 and
+                                                                               0223P 0685 86                                       20                      A                           LDA                  *a-32                       multiply by 32.
+                                                                               02234P 0690 3D                                                                                          MUL
+                                                                               02235P 0691 SE                                      0400                    A                           LDX                  #SCRADR Get the base address of the screen
+                                                                               02236                                                                             *              memory.
+                                                                               02237P 0694 30                                      R19                     A                           LEAX                 D,X                         Add in the row offset.
+                                                                               02238P 0696 56                                      61.                     A                           LDB                  &l,S                        integer divide the column by 2.
+                                                                               02239P 0698 54                                                                                          LSRB
+                                                                               02240P 0699 3P                                                                                          ABX                                              Add in the column offset.
+                                                                               02241
+                                                                               02242                                                                             *
+                                                                               02243                                                                             *     Now calculate the cell Pit.
+                                                                               02244                                                                             *
+                                                                               02245
+                                                                               02246P 069A 35                                      06                      A                           PULS D                                           A:=row, b:=column.
+                                                                               02247P 069C 84                                      01                      A                           ANDA                 45P&1                       Ag=bit number:=2*(RW MOD 2) + 
+                                                                               02248P 0695 56                                                                                          RORB                                             (COLUMN MCD 2).
+                                                                               02249P 069F 49                                                                                          ROLA
+                                                          :110 wuwm            02250P 06A0 CS                                      10                      A                           LDB                  ti,e20                      Something to shift.
+                                                                               02251P 06A2 54                                                                    LSRLOP LSRB                                                            Shift into hit specified by A.
+                                                                               02252P 06R3 4R                                                                                          DECR
+                                                                               02253P 06A4 2A                                      FC             06A2                                 BPL                  LSRLOP
+      1--)HULH                                                                 02254P 06A6 D7                                      86                      A                           STB                  CELL                        Put it away for the callers.
+                                                                               02255P 06A8 39                                                                                          R7S
+
+ n" - it's a word that su 
+ . The latest in Dan D'Ago
+ ower amplifiers is the c 
+ nt in the research and 
+ ts that always rise to the 
+pect the demands of the                                   (40
+ lism from the most subtl 
+ hunderous of crescend 
+ wed to affect the dynami
+
+
+
+
+
+
+ solute soun
+
+
+          I    :r1r,r1,               rJ1 \A/
+               111,' ,
+
+                                                          •
+

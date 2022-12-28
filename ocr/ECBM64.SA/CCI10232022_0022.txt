@@ -1,0 +1,88 @@
+                   ///'
+                                   %BME,41 .SA41 ELT:EME4 Get Device or File Number.
+
+
+                        01E17                             TTL    Tne End Of File (EOF) Function.
+                        ClE18
+                 •      01E:9                      *
+                        01E20                      * EDF returns FALSE (0) if device is not at end of file.
+                        01E21                      * TRUE (-1) is returned if the device is at the end of file.
+             H          01E22
+                        01E23
+                        0E24                              XDEF   FOF
+                        01625P 03E5 BD   0000    A EDF    C.ISR  HKEOF    RAM hook.
+                        01E2EP 03E8 96   EF               LOP    DEVNUM   Preserve the old device number since
+                        01627P 03FA 34   02      A        PSFS   A        this could be something like
+                        01628                      *    DRINT E0F(# 1).
+                        01629P 03EC 8D   D7   03C5        BSR    SETDNM   Convert the argument to integer and
+                        01E30                           check it's range.
+                        01631P 03EE BD   0208             JSR    OPNICK   Make sure it's open for input.
+                        01632                             XDEF   EOFDEV
+                        01633P 03F1 bF             EDFDEV CLRB            Assume not at end of file.
+                        016342 03F2 96   EF               LDA    DEVNUM   Get the device number.
+                        01635P 03F4 27   05   03FB        BED    EOFFIN   Keyboard never runs out of data.
+                        01636P 03FE OD   75      A        TST    CBFCNT   Is the cassette buffer empty?
+                        01637p OZFS 26   01   03FB        BNE    EOFFIN   No, not at end of file.
+                        C1638P 0362 E3                    COMB            Yes, there is nothing left.
+                        01E39                             XDEF   EOFFIN
+                        01E402 03F8 35   02      A ErIFFIN PULS  A        Restore old DEVNUM.
+                        01641P 03FD 97   6F      A        STA    DEVNUM
+                        016422 03FF 1D             SINTB SEX              Make it a 16 bit result and do
+                        016432 0400 TE   0000             JMP    GIVABF   float it
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
++44 (0)20 B9 7'
+
+    For Your Nec                                                                                                                                              •
+
+
+
+                                                                                                                                                              •
+

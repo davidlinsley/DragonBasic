@@ -1,0 +1,103 @@
+                       PAGE 002 ECBEXT .SA:1 EXTEND Miscellanous Routines
+
+
+                       00758P  0007  97    E2       A         STA     TEMPO
+
+                       00759P  000q  97    DE       A         STA     OCTAVE    Select middle C octave.
+               e       00760P  000B  48                       ASLA              Set to undotted Quarter notes.
+
+                       00761P  000C  97    El       A         STA     LNOTE
+
+                       00762P  000E  OF    E5       A         CLR     DOTFLG
+
+                       00763P  0010  DC    8A       A         LDD     DBLZER    init the DRAW arguments.
+                       00764P  0012  DD    E8       A         STD     DRWANG    Set angle and scale to zero.
+
+                       00765P  0014  C6    80       A         LDB     #&128     Position to the middle.      (128,96) 
+
+                       00766P  0016  DD    C7       A         STD     LSAVEX
+                  1    00767P  0018  C6    60       A         LDB     #&96
+
+                       00768P  001A  DD    C9       A         STD     LSAVEY
+                       00769P  001C  39               RUNRTS RTS                Return to RUN or initialization code.
+
+                       00770
+
+                       00771                                  TTL     CSAVEM Code
+               4       00772
+
+                       00773                          *
+
+                       00774                          * CSAVEM ffilename),(first address>,:last address>, <execution address>
+                       00775                          *
+                       00776
+
+                       00777                                  XDEF CSAVEM
+
+                       00778P  00ID  9D    9F       A CSAVEM JSR      CHRGET    Eat the "M" of CSAVEM.
+                       00779P  001F  BD    0000     A         jSR     GETFLN    Scan the filename.
+
+                       00780P  0022  8D    43   0067          BSR     STKXAD    Evaluate the first address.
+
+                       00781P  0024  BF    0000     A         STX     LOADAD    Put it in the file header too.
+                       00782P  0027  8D    3E   0067          BSR     STKXAD    Evaluate the last address.
+
+                       00783P  0029  AC    62       A         CMPX    &2,S      Is last .0E. first?
+               0       00784P  002B  1025  FFD1     A         LBLO    FCERR     No, give FC error.
+                  [Lli 00785P  002F  8D    36   0067          BSR     STKXAD    Yes, evaluate the execution address
+
+                       00786P  0031  BF    0000     A         STX     STRTAD    and put it in the file header block.
+               4       00787P  0034  9D    A5       A         JSR     CHM:1'0T  The statement must end now or we
+
+                       00788P  0036  26    E4   001C          BNE     RUNRTS    to a RTS so NEWSTT will give a
+
+                       00789                          *     syntax error.
+                       00790P  0038  86    02       A CSMDOR LDA      #&2       File type is machine language.                                                                  41 
+
+                       00791P  003A  9E    8A       A         LDX     DBLZER    GAPFLO:=ASCFLG:=.FALSE.
+
+                       00792P  003C  BD    0000     A         JSR     OPNCSO    Open cassette output file.
+                       007932  003F  OF    78       A         CLR     CASOPN    Mark cassette as closed since                                                                   40 
+                       00794                          *     OPNCSO marked it as open.
+
+                       007952  0041  OC    7C       A         INC     BLKTYP    Set block type to data.
+                       00796P  0043  BD    0000     A         JSR     WRTLDR    Turn on the cassette and write a                                                                40 
+
+                       00797                          *     leader.
+
+                       00798
+                       00799P  0046  AE    64       A         LDX     &4,S      X:=first address.                                                                               40 
+
+                       00800P  0048  9F    7E       A CSAVML STX      CBUFAD    Set the buffer address to write the
+
+                       00801                          *     next block out 
+                       008022  004A  86    FF       A         LDA     #&255     Assume it's a full block.                                                                       40 
+                  11p  008032  004C  97    7D       A         STA     BLKLEN
+
+                       00804P  004E  EC    62       A         LDD     8,2,S     See how many more bytes to write.
+                       00805P  0050  93    75       A         SUBD CBUFAD                                                                                                       40 
+
+                       006062  0052  24    05   0059          BHS     MORSAV    There's more to save.
+
+                       00807Q  0054  32    66       A         LEAS    &6,S      Nothing more, clean up the stack
+                       008082  0056  7E    0000     A         JMP     FINSAV    and go close the file.                                                                          40 
+
+                       00809
+                       00810P  0059  1083  ()OFF    A MORSAV CMPD     *&255     Is there a full block?
+                       0081IP  005D  24    03   0062          BHS     BIGBLK    Yes.                                                                                            40 
+                       00812P  005F  5C                       INCB              No be sure to get the last byte.
+
+                       00813P  0060  D7    7D       A         S.      BLKLEN    Set actual block length.
++44 (0)20 a            008142  0062  BD    0000     A BIGBLK JSR      BLKOUT    Write out the block.                                                                            4D 
+                       00815P  0065  20    El   0048          BRA     CSAVML    Go back for more.
+
+     For Your                                                                                                                                                                   40 
+
+
+
+
+
+                                                                                                                                                                                40
+
+                  HI I
+

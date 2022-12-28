@@ -1,0 +1,95 @@
+                                                                                                                                                                   •
+
+
+
+                                                            Grab:nits - sF           POINT, .a_S
+                                                                                                                                                                   •
+
+                02073                         *
+                02074                           RESET turns off the sbecifieg cell.
+                02075                         *                                                                                                                    •
+            !   02076                           If the block containing the cell    is not  in graphics mode,  all                                               LI!
+                02077                         * the cells are turned off and the block is out     into graphics mote
+                02078                           with the default  color of green.                                                                                  •
+                02079                         *
+                02080
+                020@1                                XDEF    RESET
+                02082P  05E8 RD    OE   05F8  RESET  BSR     SRPHAR    Evaluate the column and   row arts.
+                02083P  05EA ED    55   0E41         BSR     CHKRP     Make sure there is a closing baren.
+                02084P  05EC 4F                      CLRA              Assume the block isn't graphic.
+                02085P  05ED E6    84       A        LDB     ,X        Set the current contents.
+                02086P  05EF 2A    F2   05E3         BPL     S7SRPH    Not graohic,  go make it graphic
+                02057                              with all  celIs off and a default
+                02088                              color of green.
+                02089P  05P1 03    86       A        COM     CELL      Make only tne specified cell    bit 0.
+                02090P  05F3 D4    86                ANDB    CELL      RESET the cell.
+                02091P  05F5 E7    84       A        STB     ,X        Put  it away and  return.
+                02092P  05F7 39                      RTS
+         4.0
+
+                                                                                                                                                                KKKD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                   •
+
+
+
+
+                                                                                                                                                                   0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+f44[[
+

@@ -1,0 +1,129 @@
+                                                                                                                                                                                                                                                                                                                         40
+
+
+
+
+
+
+                                       p
+
+
+                                                   PAGE        Oil       ECBOEM         .SA:1         IODRVR I/O DRIVER SuBROUTINES
+
+
+
+
+                       HU                          00581                                                *
+                                                   00582                                                *   CASOFF - TURNS THE CASSETTE MOTOR OFF
+
+                                                                                                        *
+
+                       H I                         005814.                                                            XDEF         ZCASOF
+
+                                                   00585                            02A7                ZCASOF ECU                 *
+
+                                                   00586P        02A7      BE                           CASOFF LDA                 P1CRA
+
+                                                   00587P        02AA      84       F7                                ANDA         #$F7              RESET CR3 THUS
+
+                                                   00588P        02Ar;     B7       FE21            PI                STA          P1CRA             TURNING MOTOR OFF
+
+                                                   00589P        02AF      10       AF              121               ANDOC        #$AF              RE-ENABLE F & I INTERRUPTS
+
+                                                   00590P        0281      39                                         RTS
+
+                                                   00591                                                *
+
+                                                   00592                                                *   CSRDON - TURN CASSETTE ON AND GET INTO BIT SYNC
+
+                                      40           00593                                                *
+
+                                                   00594                                                              XDEF         ZCSRDO
+
+                                                   00595                            02B2                ZCSRDO EQU
+
+                                                   00596P        0282      1A       50              A   CSRDON ORCO                #$50              DISABLE F & I               INTERRUPTS FOR BIT BANGING
+
+                                                   00597P        02B4      80       E4        029A                    BSR          CASON             TURN MOTOR ON
+
+                                                   00598P        02S8      OF       83              A                 CLR          SITCNT            RESET SYNC BIT COUNT
+
+                                                   00599P        02B8      8D       A8        0262      SYNCER BSR                 RISER             WAIT FOR A RISING EDGE
+
+                                         I         00800P        028A      8D       C8        0284      CHKOHI BsR                 TImEHI            TIME PULSE WIDTH OF HI SIGNAL
+                                         I L,
+                                                   00601P        02BC      22       OC        020A                    BHI          CHKOLO            1200 HZ PULSE?
+
+                                                   00602P        02SE      80       CA        028A      CHK1L0 BSR                 TImELO            NO,     TIME PULSE WIDTH OF LO
+
+                                                   00603P        0200      25       OC        02CE                    BLO          CHK1HI            2400 HZ PULSE?
+
+                                                   00604P        02C2      OC       83              A                 INC          BITCNT            NO,     SO HI OF 2400 HZ FOLLOWED
+
+                                                   00605P        0204      96       83              A                 LDA          BITCNT            BY LO OF 1200 HZ,                  I.E     1 ->      0
+
+                                                   00606P        02C6      81       60              A                 CMPA         #SYNCNr           NOW     IN 2ND        1/2 OF BIT           14,4-1I0H   IS HI
+
+                                                   00607P        0208      20       OE        0208                    BRA          CHKSYN            GOT ENOUGH BITS FOR SYNC CONDITION?
+
+                                                   00608P        02CA      8D       BE        028A      CHKOLO BSR                 TIMELO            LAST PULSE WAS 1200 HZ
+
+                                                   00609P        0200      22       EC        02BA                    BHI          CHKOHI            IS THIS LO OF 1200 HZ?
+
+                                                   00610P        02CE      80       B4        0284      CHK1HI BSR                 TIMEHI            NO,     SO TIME PULSE WIDTH OF HI
+
+                                                   00611P        02D0      25       EC        02BL                    BLO          CHK1L0            2400 HZ?
+
+                                                   00612P        0202      OA       63              A                 DEC          BITCNA'           NO,     SO LO OF 2400 HZ FOLLOWED
+
+                                                   00613P        0204      96       83              A                 LDA          BITCN7            BY HI       OF    1200 HZ,         I.E.      1   -7    0
+
+                                                   00614P        0206      8B       80              A                 ADDA         #SYNCNT           NOW IN 2ND 1/2 OF BIT WHICH IS LO
+
+                                                   00615P        0208      26       DE        02B8      CHKSYN BNE                 SYNCER            REPEAT UNTIL ENOUGH BITS FOR SYNC
+
+                                                   00616                                                *   SPFLAG = 0           IF SAMPLI NG LO,                NON-0 IF SAMPLING HI
+
+                                                   00617P        020A      97       84                                STA          BPFLAG
+
+                                         |['./     00618P        02DC      39                                         RTS
+                                             IL
+                                                   00619                                                *
+
+                                                   00620                                                *   ia9OuT - OuTPo-TG A .PYT,: TO THE uAs-,.rE
+
+                                                   00621
+
+                                                   00622                                                              XOEF         ZOBAUT
+
+                                                   00623                            0200                ZCBOUT EQU                 *
+
+                                                   00624P        02D0      34       02                  CSOUT         PSHS         A                 SAVE BYTE VALUE
+
+                                                   00625P        02DF      C6       01                                LOB          #1                SET UP INITIAL BIT POSITION VALUE
+
+                                                   00626P        02E1      108E     030F                NEWBIT LDY                 #SINTAB           SET UP START OF SINE LOOKUP TABLE
+
+                                                   00627P        02E5      96       85                                LOA          LSTSIN            PICK UP LAST ENTRY
+
+                                                   00828P        02E7      87       FF20            A                 STA          P1PDRA            AND SEND TO DAC
+
+                                                   00629P        02EA      ES       84              1-4               BIS          0,8               IS BIT 70 BE OUTPUT SET?
+
+                                                   00630P        02EC      26       OD        02FB                    BNE          HZ2400            YES,      GENERATE 2400 HZ WAVEFORN
+
+                                                   00431                                                *   GENERATING           A 1200 HZ WAVEFORM AT THIS POINT
+
+                                                   00832P        02EE      AE       AO              A   HZ1200 LDA                                   P.::CK UP TABLE ENTRY
+
+                                                   00633P        02F0      108C     0333                              CMPY         #WRTLDR           END OF TABLE REACHED?
+
+                                                   00634P        02::=4    24       12        0308                    BHS          BITEND            YES,      THEN DON'T OuTPLT LAST ENTRY
+
+                                                   00635P        02F6      B7       FF20            A                 STA          P1PDRA            NO,     SEND TO DAC AND
+
+                                                   00636P        02F9      20       E3        02EE                    BRA          HZ1200            GET NEXT SINE VALUE
++4,4 [c]20 B 7 1 3                                 00637P        02FB      P6       AI              121 HZ2400 LDA                 0,Y++             SAME AS 1200 HZ WAVEFORM EXCEPT
+
+        For Your Neare (r                          00638P        02FD      I08C     0333            ;2:1              0MPY         #ARTLDR           THAT ONLY EVERY 2ND ENTRY ACCESSED
+

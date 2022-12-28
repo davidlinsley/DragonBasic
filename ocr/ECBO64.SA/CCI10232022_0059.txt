@@ -1,0 +1,112 @@
+                                                         PAGE          002        ECB064            .SA11            IODRVR I/O DRIVER EQUATES
+
+
+                              a
+                                                         00059                                  0088                   CURADR EQU                      $86                  CURRENT CURSOR ADDRESS IN 88,69
+
+                                                         00060                                  008F                   CBLONT EQU                      $8F                  CURRENTNCURSOREBLINKYCOUNT
+
+                              nn                         00061                                  0090                   LDRCNT EQU                      $90                  COUNT OF NUMBER OF LEADER BYTES
+
+                                                         00062                                  0092                   MINOWD ECU                      $92                  MINIMUM CYCLE WIDTH OF 1200 HZ                                        (IN PwIDTHS)
+                                                         00063                                  0093              A mINOPW ECU                         $93                            PULSE              "        "           "     "        "
+                                                         00064                                  0094                   mAXOPW EQU                      $94                  mAXIMUM               "                                        ,
+
+                                                         00065                                  0095                   MODLAY EQU                      $95                  CASSETTE mOTOR DELAY VALUE
+                                                         00066                                  0097                   KBDLAY ECU                      $97                  KEYBOARD DEBOuNCE DELAY VALUE                                                                                                                                                           I I
+
+                                                         00067                                  0099                   LATCFW EQU                      $99                  LINE PRINTER COmmA FIELD WIDTH
+                                                         00068                                  009A                   LPTLCF                          $9A                  , I                     LAST COMMA FIELD
+
+                                                         00069                                  009B              A LPTWID EQU                         $9B                                          WIDTH
+                                                         00070                                  009C                   LPTPOS EUU                      $9C                               11         CURRENT CHARACTER POSITION
+
+                                                         00071                                  011D                   LSTKEY ECU                      $011D                LAST ASCII KEY VALJE RETuRNED
+
+                                                         00072                                  011E              A CNTDWN EQU                         $011E                COUNTDOWN TO AUTO-REEAT
+
+                                                         00073                                  011F                   RPTDLY ECU                      $011F                INTER-REPEAT DELAY VALUE
+
+                                                         00074                                  0148                   AUTOLF EQU                      $0a48                BUFFER FULL ALTO LINE FEED FLAG                                                                                                                                                               •
+
+                                                         00075                                  014q                   ALLOCK ECU                      $0149                ALPHA LOCK FLAG
+
+                                                         00076                                  0I4A                   FOLSEC EQU                      $014A                LINE PRINTER EOL TERTINATOR SEQUENCE
+
+                                                         00077                                  0151                   KBROLL EQU                      $015i                KEYBOARD ROLLOVER PA-,ERN TABLE
+
+                                                         00078                                  015A                   POTVAL EQU                      $015A                START ADDRESS OH JOYSTICK READINGS
+
+                                                         00079                                  03FD                   LDELAY ECU                      $03FD                END OF LINE PR::NT DE:LAY
+
+                                                         00080                                  03FF                   PRNFLG ECU                      $03IFF               SERIAL/PARALLEL PRINTER FLAG
+
+                                                         00061                                                         *
+
+                                                         00082                                                         *   CONSTANT VALUES FOLLOW
+
+                                                         00083                                                         *
+                                               III       00084                                  °OFF                   ON              ECU             $FF                  ON VALUE                                                                                                                                                                                  ' I '
+
+                                                         00085                                  ()OFF                  TRUE            ECU             ON                   TRUE VALHE
+
+                                                         00086                                  0000                   OFF             EQU             $00                  u!..-H   VALUE                                                                                                                                                                                0
+
+                                                         00067                                  0000                   FALSE           ECU             OFF                  FALSE VALUE
+
+                                                         00088                                                         *   CHARACTER CONSTANTS
+
+                                                         00069                                  0020              A SP                 EQU             $20                  SPACE
+
+                                                         00090                                  000D              A CH                 EUU             sOD                  CARRIAGE RETURN
+
+                                                         00091                                  000A              A LF           •     Ego             $on                  LINE FEED
+
+                                                         00092                                  0006              A BS                 EOU             $08                  BACK SPACE
+
+                                                         00093                                  0060                   TNv8P           EQU             $60                  INVERTED SPACE
+
+                                                         00094                                  0012                   SHIFT° EOU                      $12                  SHIFTED 0 SPECIAL CASE
+
+                                                         00095                                                         *
+
+                                                         00096                                                         *   m1SC CONSTANTS
+
+                                                         00097                                                         *
+
+                                                         00098                                  0060                   SYNCINT EQu                     $60                  NUmBER OF B:,TS TO MAKE UP VALID SYNC DE7EC;
+
+                                                         00099                                  0400                   HOmPUS ECU                      50400                HOmE POSITION OF SURF-EN VIDEO RAfm
+
+                                                         00100                                  05FF                   EOSPOS Eou                      $05EF                END
+
+                                                         00101                                  05E0              A BLPUS              Eau             $05E0                START OF LAST                     INE ON SCREEN
+
+                                                  I(     00102                                  0084              A LwIDTH             EL:lu           $84                  LINE wIDT,..r OH               PRJ:NTFR
+
+                                                         00103                                  0010                   L.CFw           EQu             $10                  C0mmA FIELD WLDTH
+
+                                                         00104                                  0074                   LLCF            E.:)L•          LWIDTH-LCFW LAST COmMA FIELD
+
+                                                         00105                                  0008                   COLS            EOu             $06                  NUmBER OF CC.L...U'Y.NS                  IN KB mATRIX.
+
+                                                         00106                                  045E                   MSEC10 EQu                      $045E                10 mILLISECOND D'.7.LAY VALUE
+
+                                                         00107                                  0032                   CBLVAL EOu                      $32                  CURSOR BLNIK RATE OONSTANT
+
+                                                         00108
+
+                                                         00109                                                         *   END OF EQuATES
+
+                                                         00110                                                         *
+
+                                                         00111                                                         *   START ADDRESS OF RoUT.,:NES FOLLOWS
+
+                                                         00112                                                         *
+                                          `7                                                                                           TTL             I/O DRIVER SuBROuTINES
++44(0)20E1971
+                                                         00114                                                         *   I/O DRIVER SuBROoTINES FOLLOw
+
+          For Your Neat                                  00115                                                         *                                                                                                                                                                                                                                                  •
+                                                         00116                                                                         XDEF            OEMMEm
+

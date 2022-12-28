@@ -1,0 +1,70 @@
+                            PAGE   013  ECBPU    .SA:1  TXRPU   The PRINT USING Floating Point Output     Routine
+                                                                                                                                                                               •
+                            01158P  0254 8D    16   0260         BSR     ISDIGC    decimal  point.  We needn't check for
+                            01159                         *    the decimal point   itself since FOUTZS
+                            01160                         *    would have removed the zero we just                                                                             •
+                            01161                         *    saw if it wasn't   followed by a decimal
+                            01162                         *    point.
+                            01163P  0256 25    08   0260         BCS     FOUBE4    Not a digit,  we have field overflow.                                                       •
+                            01164P  0258 35    02      A  FOUBE3 PULS    A         Unstack the chars we saved and put
+                            01165P  025A A7    82      A         STA     , -X      them back into the buffer one place
+                            01166P  0250 26    FA   0258         BNE     FOUBE3    beyond where they originally were.
+                            01167P  025E 20    C7   0227         BRA     FOUBE1    See if that makes the number fit.
+                            01168
+                            01169P  0260 35    02      A  FOUBE4 PULS    A         We have field overflow,   pop off the
+                            01170P  0262 4D                      TSTA              Garbage.
+                            01171P  0263 26    FB   0260         BNE     FOUBE4
+                            01172P  0265 9E    OF      A         LDX     TEMPX1    Put a "%"  in to indicate field
+                            01173P  0267 86    25      A         LDA     #'%       overlfow.
+                            01174P  0269 A7    82      A         STA      -X
+                            01175P  0268 39               PUFRTS RTS
+                            01176
+                            01177                         *
+                            01178                         * Set carry  if char in A  is not  a digit.                                                                          •
+                            01179                         *
+                            01180
+                            01181                                XDEF    ISDIGC                                                                                                •
+                            01182P  0260 81    30      A  ISDIGC 0MPA    #'0       Is it a digit?
+                            01183P  026E 25    04   0274         BUS     ISDRTS    No
+                            01184P  0270 80    3A      A         SUBA    #'9-1-&1  Maybe.
+                            01185P  0272 80    C6      A         SUBA    #-'9-&1   Restore cnar and clear carry if digit.
+                            01186P  0274 39               ISDRTS RTS
+
+
+
+
+
+
+
+
+
+                                                                                                                                                                               •
+ *Offeia•
+
+
+                                                                                                                                                                               la
+
+
+
+
+
+
+
+   HHU3H            •
+
+sion" -it's a word that 
+nt. The latest in Dan D'A 
+power amplifiers is the 
+pent in the research an 
+ents that always rise to t 
+spect the demands of tl 
+-ealism from the most SU
+ thunderous of crescei 
+illowed to affect the dyna
+
+
+
+
+
+bsollute sou
+

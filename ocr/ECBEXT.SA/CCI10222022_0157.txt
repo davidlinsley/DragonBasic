@@ -1,0 +1,68 @@
+                                                                                                                                                                     •
+
+
+
+                  PAGE 008 ECBEXT      .SA:1 EXTEND The VARPTR function.
+                                                                                                                                                                     •
+
+                  01106                         * It is important to note that VARPTR is not legal for undefined
+                  01109                         * variables. This is due to the fact that PTRGET will block transfer
+                  01110                         * to make room for the new variable. A case such as A(0)=VARPTR(S)                                                   •
+                  01111                         * where S is undefined would cause disastrous results since the array
+                  01112                         * A would have moved. Therefore, an FC error results is VARPTR is
+                  01113                         * called with an undefined variable as the argument.
+                  01114                         * This is accomplished by saving STREND prior to the PRTGET call
+                  01115                         * and checking to see that it hasn't changed when PTRGET returns.
+                  01116                         *                                                                                                                    •
+              I   01117
+                  01118                                XDEF    VARPTR
+                  01119P 0211 BD     0000     A VARPTR j-SR    CHKOPN    Eat the opening parenthesis.                                                                •
+                  01120P 0214 DC     IF       A        LDD     STREND    Remember the too of storage.
+                  01121P 0216 34     06       A        PSHS
+                  01122P 0218 BD     0000     A        JSR     PTRGET    X:=pointer to the variable.                                                                 •
+                  01123P 0219 BD     0000     A        JSR     CHKCLS    Check for the closing parenthesis.
+                  01124P 021E 35     06       A        PULS D            X:=original top of storage, 
+           40     01125P 0220 1E     10       A        EXG     X,D       D:=pointer to variable.
+                  01126P 0222 90     IF       A        CMPX    STREND    Did the too of storage change during
+                  01127                         *    the call to PTRGET?
+                  01128P 0224 26     51   0277         BNE     XRFC1     Yes, give an FC error since the
+                  01129                         *    variable was undefined prior to the
+                  01130                         *    PTRGET call.
+                  01131P 0226 7E     06FD     P        jMP     PATCHV    No, go float the result and return.
+                  0113'7'
+           41,    01133                                TTL     MID$ Assignment (MID$ on the Left Side).
+                  01134
+             1111 01135                                XDEF    LHMID$                                                                                             1'1 II
+                  01136P 0229 9D     9F *     A LHMID$ JSR     CHRGET    Eat the second byte of the function
+                  01137P 022B BD     0000     A        JSR     CHKOPN    token and the left parenthesis.
+                  01138P 022E BD     0000     A        JSR     PTRGET    X:=pointer to left string
+                  01139                         *    variable's descriptor.
+                  01140P 0231 34     10       A        PSHS    X         Save it.
+                  01141P 0233 EC     02       A        LDD     &2,X      X:=pointer to left string data.
+                  01142P 0235 1093 21         A        CMPD    STKTOP    is it in string space?
+                  01143P 0238 23     04   023E         BLS     LHMD05    No, must copy.
+                  01144P 023A 93     27       A        SUED    MEMSIZ
+                  01145P 0230 23     12   0250         BLS     LHMD10    Yes, don't copy.
+                  01146                         *    No, it must be copied into string
+                  01147                              space prior ro being modified.      (It 
+                  01148                              could be a string literal in the 
+                  01149                              program for example.)
+                  01150                              Note that this code checks both 
+                  01151                              ends of string space rather than 
+                  01152                              Just checking to see if the string 
+                  01153                              is above STKTOP. This is done                                                                                Pill
+                  01154                              so it will be possible to put 
+                  01155                              random file buffers above MEMSIZ 
+                  01156                              and the copy will still occur for 
+                  0.1157                             compatibility with other versions
+                  01158                         •    of BASIC. 
+                  01159P 023E E6     84       A L'riMD05 LOB   ,X        Get the required amount of string 
+                  01160P 0240 BD     0000              JSR     GETSPA    space.
+                  01161P 0243 34     10       A        PSHS    X         Save the pointer to the free space. 
+                  01162P 0245 AE     62                LDX     &2, S     Copy the string.
+                  01163P 0247 BD     0000     A        JSR     ~OVINS 
+                  01164P 024A 35     50                PULS    X         Put the new string data address into 
++44 (0)2(         01165P 0240 AF     42       A        STX     &2, U     the string descriptor.
+
+    For Y
+

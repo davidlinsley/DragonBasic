@@ -1,0 +1,289 @@
+                               •
+
+
+
+
+
+
+
+
+
+                                                  PAGE            010          EOBMOD                 .SA:1              ECBMOD 0HRINP - Character Input 
+                                                                                                                                                                                                                 Routine
+
+
+
+
+
+
+
+                                                  01120                                                                                        TTL                CHROUT - Output Character Routine
+
+
+
+
+                                                  011:21 
+
+
+
+
+                               •                  011'22                                                                    *
+
+
+
+
+                                                  01l23                                                                     *    CHROUT sends the character in A to the device
+                                                                                                                                                                                                                                                               specified by DEVNUM.
+
+
+                                                  01.124                                                                    *    The output                    is suppressed if DEVNUM indicates that file
+                                                                                                                                                                                                                                                                                        input           is
+
+
+                               •                  01l25                                                                     *    in progress.                          This is done so character echo,
+                                                                                                                                                                                                                                                               input           prompts
+
+
+                                                  01126                                                                     *    (such as double question mark 
+                                                                                                                                                                                                                   for more                 input),               etc is ignored
+
+
+
+                                                  01127                                                                     *    while inputting file data or loading an ASCII
+                                                                                                                                                                                                                                                               program               file.
+
+
+                               •                  01128                                                                     *
+
+
+
+
+                                                  01129                                                                     *    All        registers except CC are preserved.
+
+
+
+
+                                                  0117,0                                                                    *
+
+
+                               ak
+                                                  01131 
+
+
+
+                                                  (:)11.32                                                                                     XDEF               CHROUT 
+
+
+
+
+                                                  01.133P            01AF         BD            0000                  A     CHROUT „TER                           HKCHRO                  RAM hook.
+
+
+                               40 
+                                                  01134P             0182         34            04                    A                        PSHS               B                       Save B.
+
+
+
+                                                  0113:5;P           0184         D6            6F                    A                        LDB                DEVNUM                  Get the device number. 
+
+
+
+
+                                                  01136P             01BE         Cl            FD                    A                        CMPB               #-&3                    Doing a download?
+
+
+                               •
+                                                  01137P             01BR         26            02            01BC                             BNE                NOTDNL                  No.
+
+
+
+                                                  011:38P            01BA         35            84                    A                        PULS               B,PC                    Yes, throw away the echo.
+
+
+
+
+
+
+
+
+
+                                                  011. 401P          0180 50                                                NOTDNL INCB                                                   See what it is.
+
+
+
+                                                  011.41 P           01BD 35                    014                   A                        PULS 
+                                                                                                                                                                                          Restore B.
+
+
+
+                                                  01142P             018F 1028 FE3D                                   A                        LBMI                  PTOUT                Send char to printer. 
+
+
+                               •
+                                                  01143P             01r3 26 2F                               01F4                             BNE                SCROPT                  Send char to screen.
+
+
+
+
+                                                  01144
+
+
+
+
+                                                  01145,0            0105                       16                    A                        PSHS               X,D                     It's the cassette, save some recs. 
+
+
+
+
+                                                  01146P             0107 D6                    78                    A                        LDB                CASOPN
+                                                                                                                                                                                          Is the cassette
+
+
+                        o                         011.47C'
+                                    I I  I I                         0109 5A                                                                   DECB                                       open for input?
+
+
+
+
+                                                  01148P             01CA 27                    OF            01D8                             BEQ                OUTRTS                  Yes, throw this output away.
+
+
+
+
+                                                  011. 49
+
+
+
+                                                  01.15O                                                                    *
+
+
+
+
+                                                  011 '51                                                                   *    Cutout character to cassette file.
+
+
+
+                                                  0 11 S2                                                                   *
+
+                        !,11
+                         ,1(                      (:)11.
+
+
+
+
+                                                  011 :54P           0100         D6 79                               A CASOUT LDS                                C8FONT
+                                                                                                                                                                                          Get the character count. 
+
+
+
+                                                  0 1155 i           010E         5C                                                           'NOB 
+                                                                                                                                                                                          Is the buffer full?
+
+
+                                                  01.156P            010?         26 02                       01D3                             BNE                NOTFUL                  No, go put the char in the buffer. 
+
+
+
+
+                               40 0115-7P                            01D1         8D OA                       01DD                             BSR                DMPRUF                  Yes, write out the buffer.
+
+
+
+                                                  01158P             01D3                       .7A                   A     NOTFUL LDX                            CBEPTR                  Get pointer into buffer.
+
+
+
+
+                                                  01159P             01D5         A7 80                               A                        STA 
+                                                                                                                                                                                          Put the char away and increment the 
+
+
+
+                                                  0 1 1 0 P          01D7                       7(.:1                 A                        STX                OBEPTR 
+                                                                                                                                                                                          pointer.
+
+
+                                                  01161P             01D9         00                                  A                        1N0                CBFONT                  Increment the count.
+
+
+   1
+                                                  01162 P            01DR         35 96                               A     DU-MIS PULS                           D, X, PC                Restore regs and return.
+
+
+
+
+                                                     1163
+
+
+                               0
+"Progression'                                     01164                                                                     * 
+
+
+
+movement. T                           I !I        01165                                                                     *    Here to dump the cassette buffer to tape.
+
+
+
+family of po                                      0 2. 1  E..6                                                              *
+
+
+
+lifetime spent                                         J. 67 
+
+
+
+components                                        01l 68P            01DD CE                    01                          DMPBUF LDB
+                                                                                                                                                                  44:&-1                  Set block type to data.
+
+
+nlways respei                                                                                   -r-
+                                                  c) 1169            OlDF D7                    /,,                         WRTEOF STB                            BLKTYP 
+
+
+  .olivoy realist              40
+                                                  01170P             01E1 BE                    0000                                           LDX                #0ASBUF                 Set address of data for WJ-ZTBL. 
+
+
+Uv Ilwwd ihu 
+                                                  01171P             01E4 9F                    7E                                             STX                08UFAD 
+
+
+  It( II( >vv,
+                                                                     OlEE DE                    79                    A LDB                                       08FONT                  Set the biock length.
+
+
+                               •
+                                                                     01E8 D7                    7D                                             STB                BLKLEN 
+
+
+
+
+                                                  01174P             01EA 34                    (62                                            PSHS               U,Y,A                   Save the rest.
+
+
+
+                                                  01175P             01E0 BD                    05F6                                           JSR                WRTBLK                  Write block out.
+
+
+
+
+                                                  01176P'            01EF 35                    62                                             PULS               A,Y,U                   Restore reds.
+
+
+
+
+                                                  0117-71:,          01F1 7E                    04E7                                           jMP                MRKMT                   Mark the buffer as empty.
+
+
+
+
+
+
+
+                               41
+
+
+
+
+                                              006 WM' 0.6i ASF'•04.0. VFAX 4,41, elft*. Oft       ,r1                            P.Sk          .14.41                     ',544.         •                                                          '
+
