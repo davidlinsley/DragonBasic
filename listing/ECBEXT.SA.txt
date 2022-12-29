@@ -120,3 +120,64 @@ PAGE  002  ECBEXT  .SA:1  EXTEND Miscellanous Routines
 00814P 0062 BD   0000    A BIGBLK JSR    BLKOUT   Write out the block.
 00815P 0065 20   E1   0048        BRA    CSAVML   Go back for more.
 
+PAGE  003  ECBEXT  .SA:1  EXTEND CSAVEM Code
+
+00816
+00817                             XDEF   STKXAD
+00818P 0067 BD   0000    A STKXAD JSR    CHKCOM   Eat the comma.
+00819P 006A BD   0000    A        JSR    EVLADR   Evaluate address into X.
+00820P 006D EE   E4      A        LDU    ,S       U:=return address.
+00821P 006F AF   E4      A        STX    ,S       Stack the evaluated address.
+00822P 0071 1F   35      A        TFR    U,PC     Return with evaluated address on
+00823                      *    the stack and in X.
+00824
+00825                              TTL   The FIX function.
+00826
+00827                      *
+00828                      * FIX(X) returns the truncated integer part of X.
+00829                      * FIX(X) is equivalent to SGN(X)*INT(ABS(X)).
+00830                      * FIX differs from INT in that FIX does not return the next lower
+00831                      * integer for negative arguments.
+00832                      *
+00833
+00834
+00835                             XDEF   FIX
+00336P 0073 BD   0000    A FIX    JSR    SIGN     Is the number positive?
+00837P 0076 2B   03   007B        BMI    FIXNEG   No.
+00838P 0078 7E   0000    A GOINT  JMP    INT      Yes, just do normal INT function.
+00839
+00840P 007B 03   54      A FIXNEG COM    FACSGN   Negate the argument.
+00841P 007D 8D   F9   0078        BSR    GOINT    Take the INT.
+00842P 007F 7E   0000    A        JMP    NEGOP    Restore the original sign and return.
+00843                      *    (Can't COM FACSGN, RTS since 0
+00844                      *    would become -0. For example,
+00845                      *    ?FIX(-.1) would print -0.)
+00846
+00847                             TTL    The EDIT Command
+00848
+00849                             XDEF   EDIT
+00850P 0082 BD   04BC    P EDIT   JSR    LINTRM   LINNUM:=number of line to EDIT.
+00851                      *    (Line number must be terminated.)
+00852P 0085 32   62      A        LEAS   &2,S     Get rid of the NEWSTT return address
+00853                      *    since EDIT exits into the MAIN code.
+00854P 0087 86   01      A EDITA  LDA    #&1      Set flag so line will be listed
+00855P 0089 97   D8      A        STA    EDTLST   prior to starting the edit.
+00856P 008B BD   0000    A        JSR    FNDLIN   X:=pointer to link field of line.
+00857P 008E 1025 FF6E    A        LBCS   ULERR    If carry set then line doesn't exist.
+00858P 0092 BD   0000    A        JSR    DCRNCH   Decrunch the line into BUF.
+00859P 0095 1F   20      A        TFR    Y,D      Calculate and store the line length.
+00860P 0097 83   0001    A        SUBD   #BUF+&1  (The zero byte terminator isn't
+00861P 009A D7   D7      A        STB    EDTLEN   included in the length.)
+00862
+00863P 009C DC   2B      A EDTPLN LDD    LINNUM   Print the line number followed
+00864P 009E BD   0000    A        JSR    LINPRT   by a space.
+00865P 00A1 BD   0000    A        JSR    OUTSPC
+00866P 00A4 8E   0000    A        LDX    #BUF     Point to the start of the line.
+00667P 00A7 D6   D8      A        LDB    EDTLST   Should the line be listed?
+00868P 00A9 26   25   00D0        BNE    ELSTIT   Yes, go do it
+00869
+00870P 00AB 5F             EDTSUB CLRB            Repetition count:=0.
+00871P 00AC BD   01D6    P EDTREP JSR    EDITIN   Get char - screen out bad ones.
+00872P 00AF BD   0000    A        JSR    ISDIGC   Is it a digit?
+00877P 00B2 25   0B   00BF        BCS    EDNTDG   No.
+

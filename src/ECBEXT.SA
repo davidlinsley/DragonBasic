@@ -113,3 +113,61 @@ MORSAV CMPD   #&255    Is there a full block?
        STB    BLKLEN   Set actual block length.
 BIGBLK JSR    BLKOUT   Write out the block.
        BRA    CSAVML   Go back for more.
+
+       XDEF   STKXAD
+STKXAD JSR    CHKCOM   Eat the comma.
+       JSR    EVLADR   Evaluate address into X.
+       LDU    ,S       U:=return address.
+       STX    ,S       Stack the evaluated address.
+       TFR    U,PC     Return with evaluated address on
+*    the stack and in X.
+
+        TTL   The FIX function.
+
+*
+* FIX(X) returns the truncated integer part of X.
+* FIX(X) is equivalent to SGN(X)*INT(ABS(X)).
+* FIX differs from INT in that FIX does not return the next lower
+* integer for negative arguments.
+*
+
+
+       XDEF   FIX
+FIX    JSR    SIGN     Is the number positive?
+       BMI    FIXNEG   No.
+GOINT  JMP    INT      Yes, just do normal INT function.
+
+FIXNEG COM    FACSGN   Negate the argument.
+       BSR    GOINT    Take the INT.
+       JMP    NEGOP    Restore the original sign and return.
+*    (Can't COM FACSGN, RTS since 0
+*    would become -0. For example,
+*    ?FIX(-.1) would print -0.)
+
+       TTL    The EDIT Command
+
+       XDEF   EDIT
+EDIT   JSR    LINTRM   LINNUM:=number of line to EDIT.
+*    (Line number must be terminated.)
+       LEAS   &2,S     Get rid of the NEWSTT return address
+*    since EDIT exits into the MAIN code.
+EDITA  LDA    #&1      Set flag so line will be listed
+       STA    EDTLST   prior to starting the edit.
+       JSR    FNDLIN   X:=pointer to link field of line.
+       LBCS   ULERR    If carry set then line doesn't exist.
+       JSR    DCRNCH   Decrunch the line into BUF.
+       TFR    Y,D      Calculate and store the line length.
+       SUBD   #BUF+&1  (The zero byte terminator isn't
+       STB    EDTLEN   included in the length.)
+
+EDTPLN LDD    LINNUM   Print the line number followed
+       JSR    LINPRT   by a space.
+       JSR    OUTSPC
+       LDX    #BUF     Point to the start of the line.
+       LDB    EDTLST   Should the line be listed?
+       BNE    ELSTIT   Yes, go do it
+
+EDTSUB CLRB            Repetition count:=0.
+EDTREP JSR    EDITIN   Get char - screen out bad ones.
+       JSR    ISDIGC   Is it a digit?
+       BCS    EDNTDG   No.
