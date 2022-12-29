@@ -171,3 +171,61 @@ EDTSUB CLRB            Repetition count:=0.
 EDTREP JSR    EDITIN   Get char - screen out bad ones.
        JSR    ISDIGC   Is it a digit?
        BCS    EDNTDG   No.
+       SUBA   #'0      Its a digit, get  rid of ASCII offset.
+       PSHS   A        Save the digit.
+       LDA    #&10     Rep count:=rep count*10.
+       MUL
+       ADDB   ,S+      Add in the new digit.
+       BRA    EDTREP   Look for more digits.
+
+EDNTDG SUBB   #&1      If REP COUNT=0 then REP COUNT:=1.
+       ADCB   #&1
+       CMPA   #'A      EDIT again?
+       BNE    EDITL    No.
+       JSR    CRDO     Yes,  start new line
+       BRA    EDITA    and  restart edit.
+
+EDITL  CMPA   #'L      LIST AND CONTINUE EDIT?
+       BNE    EDITCR   NO
+ELSTIT BSR    EDTPRT   YES, PRINT REST OF LINE
+       CLR    EDTLST   CLEAR LIST FLAG
+       JSR    CRDO     START A NEW LINE
+       BRA    EDTPLN   CONTINUE EDIT AT START OF LINE
+
+CRINS  LEAS   &2,S     GET RID OF EDTSUB RETURN ADDRESS
+EDITCR CMPA   #CR      CARRIAGE RETURN, LIST AND FINISH EDIT?
+       BNE    EDITE    NO
+       BSR    EDTPRT   YES, PRINT REST OF LINE
+EDTEND JSR    CRDO     START A NEW LINE
+AUTENT LDX    #BUF     SET TXTPTR FOR CRUNCH CODE
+       STX    TXTPTR
+       JMP    EDTENT   JUMP INTO "MAIN" CODE
+
+EDITE  CMPA   #'E      END EDIT?
+       BEQ    EDTEND   YES
+       CMPA   #'Q      ABORT EDIT?
+       BNE    NOTQ     NO
+       JSR    CRDO     YES, START NEW LINE
+       JMP    READY    AND ABORT EDIT
+NOTQ   BSR    DOSUBC   ALL OTHER SUBCOMMANDS RETURN TO EDTSUB
+       BRA    EDTSUB   TO GET NEXT SUBCOMMAND
+
+DOSUBC CMPA   #'       MOVE CURSOR RIGHT?
+       BNE    EDITD    NO
+       SKIP2  JUST     PRINT [B] CHARS
+       XDEF   EDTPRT
+EDTPRT LDB    #MAXLEN  PRINT REST OF CHARS ON LINE
+EPLOOP LDA    ,X       GET CURRENT CHAR
+       BEQ    EPRTFN   IF END OF LINE THEN RETURN
+       JSR    CHROUT   PRINT THE CHAR
+       INX             BUMP EDIT POSITION
+       DECB            DECREMENT REP COUNT
+       BNE    EPLOOP   REPEAT AS NECESSARY
+EPRTFN RTS
+
+EDITD  CMPA   #'D      DELETE CHARS?
+       BNE    EDITC    NO
+DELLP  TST    ,X       AT END OF LINE?
+       BEQ    EPRTFN   YES, NOTHING MORE TO DELETE
+       BSR    DELCHR   NO, DELETE CURRENT CHAR
+       DECB            REPEAT AS INDICATED
