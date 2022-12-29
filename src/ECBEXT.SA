@@ -287,3 +287,60 @@ EDTINS LDB    EDTLEN   WILL LINE BE TOO LONG?
 OKINS  PSHS   X        SAVE EDIT POINTER
 FNDEND TST    ,X+      FIND THE END OF THE LINE
        BNE    FNDEND
+INSMOV LDB    ,-X      MAKE ROOM FOR THE NEW CHAR BY MOVING
+       STB    &1,X     THE REST OF THE CHARS UP A BYTE
+       CMPX   ,S       MOVE ALL INCLUDING CURRENT CHAR
+       BNE    INSMOV
+       LEAS   &2,S     Clean up the stack.
+       STA    ,X+      PUT THE NEW CHAR INTO THE LINE
+       BSR    GCHROT   ECHO THE NEW CHAR
+       INC    EDTLEN   INCREMENT THE LENGTH
+       BRA    EDITI    GET NEXT CHAR TO INSERT
+
+EDITCD CMPA   #CHRDEL  CHARACTER DELETE?
+       BNE    CHKK     NO
+BACKB  BSR    GOBACK   Yes, output B backspaces.
+       DECB
+       BNE    BACKB
+       RTS
+
+GOBACK CMPX   #BUF     IF AT START OF LINE DO NOTHING
+       BEQ    CHGRTS
+       DEX             OTHERWISE BACK UP THE EDIT POINTER
+*    AND BACK UP THE CURSOR
+       IFEQ   REALIO
+ ENDC  IFN    REALIO
+BCKSPC LDA    #CHRDEL  Back up the cursor.
+GCHROT JMP    CHROUT
+
+CHKK   CMPA   #'K      KILL UNTIL MATCH FOUND?
+       BEQ    EDITK    YES
+       SUBA   #'S      SEARCH FOR CHAR?
+       BEQ    EDITK    YES, USE SAME CODE AS K EXCEPT
+*    ACCA IS CLEAR AS A FLAG NOT TO KILL
+       RTS             Unrecognizable command, ignore it and
+*    go get another one.
+EDITK  PSHS   A        SAVE KILL FLAG
+       BSR    EDITIN   GET SEARCH CHAR
+       PSHS   A        PUT IT AWAY
+EDTSRC LDA    ,X       END OF LINE?
+       BEQ    SRCFIN   YES, GIVE UP SEARCH
+       TST    &1,S     IF NOT KILLING THEN PRINT CHARS
+       BNE    ISKILL   INSTEAD OF DELETING THEM
+       BSR    GCHROT
+       INX             POINT TO NEXT CHAR
+       BRA    NOKILL
+ISKILL JSR    DELCHR   DELETE THE CHAR
+NOKILL LDA    ,X       DO THE CHARS MATCH?
+       CMPA   ,S
+       BNE    EDTSRC   NO, CONTINUE SEARCH
+       DECB            YES, BUT MUST SEARCH REP COUNT TIMES
+       BNE    EDTSRC
+SRCFIN PULS   Y,PC     Clean up the stack and return.
+
+EDITIN JSR    INCHR    GET A CHAR
+       CMPA   #&127    THROW AWAY ALL BIGGER THAN TILDA.
+       BCC    EDITIN
+       CMPA   #@137    Translate shift uparrow key which
+       BNE    NOTESC   generates a backarrow to an escape
+       LDA    #ESCAPE  for compatibility with the TRS-80.
