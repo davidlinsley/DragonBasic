@@ -1,0 +1,57 @@
+       NAM    EXTEND   - Extended Features for TCC / MLC
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   ASC2
+       XREF   BASRST,BLKOUT,BLTU,BUF
+       XREF   CASOFF,CHEAD,CHEADA,CHKCLS,CHKCOM,CHKNUM,CHKOPN,CHKSTR,CHROUT
+       XREF   CIRCLE,CLEARC,CLOATK,COLORS,COMBYT,CONDCR,CONINT,COPLOP
+       XREF   CRDO,CSAVE,CSAVTK
+       XREF   DATA,DCRNCH,DEVPRM,DLOAD,DOFDSP,DOSDSP,DRAW
+       XREF   EDTENT,ELSETK,ENDCON,EOFFIN,EOFWRT,EQULTK
+       XREF   ERPRNT,ERRID,ERROR,ERRUF,EVLADR
+       XREF   FADD,FCERR,FDIV,FHALF,FINIT
+       XREF   FINLOG,FINSAV,FMULT,FNDLIN,FNTK,FONE
+       XREF   FOUT,FOUTCP,FPWRT,FREFAC,FRESTR,FRETMP,FRMEVL
+       XREF   FRMNUM,FSUB,FUNDS1
+       XREF   GET,GETADR,GETBYT,GETDNM,GETFLN,GETSPA
+       XREF   GIVABF,GOGONE,GONE3,GOPTNW,GOTK
+       XREF   HKASGN,HKCHRI,HKCHRO,HKCLS1,HKCRNC,HKERR,HKEVAL
+       XREF   HKNWST,HKRENM,HKRUN
+       XREF   INCHR,INIT,INLNDO,INPCOM,INPRT,INT,ISCNTC,ISDIGC,ISLETC
+       XREF   LET,LINE,LINGET,LINPRT,LOADAD,LOFBUF
+       XREF   MID$TK,MINUTK,ML1632,MLDVEX,MOVAF,MOV1F,MOVFA1,MOVFM
+       XREF   MOVINS,MOVMF,MULDIV
+       XREF   NEGOP,NORMAL
+       XREF   OPNICK,OPNCSO,OPNOCK,OUTQST,OUTSPC,OVERR
+       XREF   PAINT,PARCHK,PCLEAR,PCLS,PCOPY,PIA0BC,PIA0BD,PIA1BD
+       XREF   PINIT,PLAY,PLYCLK,PMODE
+       XREF   POLY,POLYX,PPOINT,PRESET,PSET,PTRGET,PTRGT2,PUT
+       XREF   READY,RUNC
+       XREF   SAM,SAMALP,SCREEN,SCRTCH,SETDNM,SIGN,SIN,SIN1,SNDOFF,SNERR
+       XREF   SNGFLT,STRLTI,STRSPA,STRTAD,STKINI,STMDS1
+       XREF   STRLT3,STROUT,STRPRT,STRTXT,STUB1,SUBTK,SYNCHR
+       XREF   THENTK,TICKER,TOTK,TRMCHK
+       XREF   ULERR,USRTAB,USRTK
+       XREF   VIRQ
+       XREF   WRTLDR
+       XREF   ZEROF1
+
+       TTL    Miscellanous Routines
+
+*
+* The RUN code comes here to set up the defaults for the PLAY
+* and DRAW code.  The initialization code also comes here for
+* the same reason.
+*
+
+       XDEF   XRRUN
+XRRUN  LDD    #$B844   Init the PLAY arguments.
+       STD    HIGHA    Set volume to 15 decimal.
+       LDA    #&2      Set tempo to 2.
