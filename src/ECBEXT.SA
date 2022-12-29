@@ -55,3 +55,61 @@
 XRRUN  LDD    #$B844   Init the PLAY arguments.
        STD    HIGHA    Set volume to 15 decimal.
        LDA    #&2      Set tempo to 2.
+       STA    TEMPO
+       STA    OCTAVE   Select middle C octave.
+       ASLA            Set to undotted quarter notes.
+       STA    LNOTE
+       CLR    DOTFLG
+       LDD    DBLZER   Init the DRAW arguments.
+       STD    DRWANG   Set angle and scale to zero.
+       LDB    #&128    Position to the middle.  (128,96) 
+       STD    LSAVEX
+       LDB    #&96
+       STD    LSAVEY
+RUNRTS RTS             Return to RUN or initialization code.
+
+       TTL    CSAVEM Code
+
+*
+* CSAVEM <filename>,<first address>,<last address>,<execution address>
+*
+
+       XDEF   CSAVEM
+CSAVEM JSR    CHRGET   Eat the "M" of CSAVEM.
+       JSR    GETFLN   Scan the filename.
+       BSR    STKXAD   Evaluate the first address.
+       STX    LOADAD   Put it in the file header too.
+       BSR    STKXAD   Evaluate the last address.
+       CMPX   &2,S     Is last .GE. first?
+       LBLO   FCERR    No, give FC error.
+       BSR    STKXAD   Yes, evaluate the execution address
+       STX    STRTAD   and put it in the file header block.
+       JSR    CHRGOT   The statement must end now or we
+       BNE    RUNRTS   to a RTS so NEWSTT will give a
+*    syntax error.
+CSMDOR LDA    #&2      File type is machine language.
+       LDX    DBLZER   GAPFLG:=ASCFLG:=.FALSE.
+       JSR    OPNCSO   Open cassette output file.
+       CLR    CASOPN   Mark cassette as closed since
+*    OPNCSO marked it as open.
+       INC    BLKTYP   Set block type to data.
+       JSR    WRTLDR   Turn on the cassette and write a
+*    leader.
+
+       LDX    &4,S     X:=first address.
+CSAVML STX    CBUFAD   Set the buffer address to write the
+*    next block out 
+       LDA    #&255    Assume it's a full block.
+       STA    BLKLEN
+       LDD    &2,S     See how many more bytes to write.
+       SUBD   CBUFAD
+       BHS    MORSAV   There's more to save.
+       LEAS   &6,S     Nothing more, clean up the stack
+       JMP    FINSAV   and go close the file.
+
+MORSAV CMPD   #&255    Is there a full block?
+       BHS    BIGBLK   Yes.
+       INCB            No be sure to get the last byte.
+       STB    BLKLEN   Set actual block length.
+BIGBLK JSR    BLKOUT   Write out the block.
+       BRA    CSAVML   Go back for more.
