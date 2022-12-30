@@ -577,3 +577,61 @@ FINBLD JMP    GOPTNW   Go put away the result.
        TTL    The INSTR Function.
 
 *
+* INSTR([<offset>,<S1$>,<S2$>) searches S1$ for the first
+* occurence of S2$ starting at the specified offset or at the
+* start of S1$ if no offset is specified.
+*
+* The value returned is the position of the first char if a match
+* is found, zero if a match is not found.
+*
+* If S2$ is null, the specified offset or 1 is returned.
+*
+* If S1$ is null, or the offset is beyond the end of S1$,
+* 0 is returned. (These are not really special cases
+* from the user's viewpoint, but the code checks for them as
+* special cases.)
+*
+* If an offset of zero is specified, an FC error results.
+*
+
+       XDEF   INSTR
+INSTR  JSR    CHKOPN   Check for the left parenthesis.
+       JSR    FRMEVL   Evaluate the first argument.
+       LDB    #&1      Assume no offset is specified and
+       PSHS   B        set up the default.
+       LDA    VALTYP   Is the first argument numeric?
+       BNE    INST10   No, no offset.
+       JSR    CONINT   Yes, B:=specified offset.
+       STB    ,S       Overwrite the default.
+       BEQ    XRFC1    Don't allow an offset of zero.
+       JSR    CHKCOM   Eat the comma, evaluate and check
+       JSR    FRMEVL   the S1$ argument.  (Don't want to call
+       JSR    CHKSTR   EVLSTR since it would free up the
+*    temporary and we can't do that until
+*    the S2$ argument has been evaluated.)
+INST10 LDX    FACMO    Save the pointer to the S1$
+       PSHS   X        descriptor.
+       JSR    CHKCOM   Skip the comma and evaluate the S2$
+       JSR    EVLSTR   argument.
+       PSHS   X,B      Save data pointer and length of S2$.
+       JSR    CHKCLS   Check for the right parenthesis.
+       LDX    &3,S     Free up the S1$ temp.
+       JSR    FRETMP   X:=data pointer, B:=length.
+       PSHS   B        Save length of S1$.
+       CMPB   &6,S     Is the offset beyond the end of S1$?
+       BLO    INST50   Yes, return 0.
+       LDA    &1,S     No, is S2$ null?
+       BEQ    INST40   Yes, return the offset.
+       LDB    &6,S     No, X:=pointer into S1$ where the
+       DECB            search must begin.
+       ABX
+
+INST20 LEAY   ,X       Save S1$ pointer where current
+*    search began.
+       LDU    &2,S     U:=pointer to S2$.
+       LDB    &1,S     B:=length of S2$.
+       LDA    ,S       A:=number of chars between the
+       SUBA   &6,S     search starting point and the end
+       INCA            of S1$.
+       CMPA   &1,S     Is it shorter than S2$?
+       BLO    INST50   Yes, give up and return 0.
