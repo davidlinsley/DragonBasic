@@ -344,3 +344,61 @@ EDITIN JSR    INCHR    GET A CHAR
        CMPA   #@137    Translate shift uparrow key which
        BNE    NOTESC   generates a backarrow to an escape
        LDA    #ESCAPE  for compatibility with the TRS-80.
+NOTESC CMPA   #CR      ADMIT LOW EXCEPTIONS
+       BEQ    EDTINR
+       CMPA   #ESCAPE
+       BEQ    EDTINR
+       CMPA   #CHRDEL
+       BEQ    EDTINR
+       CMPA   #'       ALL OTHERS BELOW SPACE ARE BAD
+       BCS    EDITIN
+EDTSEC SEC             SAY IT ISN'T A LOW EXCEPTION.
+EDTINR RTS
+
+       TTL    TRON and TROFF
+
+*
+* TRON turns on program tracing by setting TRCFLG to a nonzero
+* value.  TRCFLG is checked at NEWSTT and if it is nonzero the
+* line number of the line about to be executed is printed enclosed
+* in square brackets.  TROFF turns off the program tracing by clearing
+* TRCFLG.
+
+       XDEF   TRON
+TRON   FCB    @206     LDAIM CLRA opcode to make A nonzero
+*    skip over the CLRA.
+       XDEF   TROFF
+TROFF  CLRA            Prepare to clear TRCFLG.
+       STA    TRCFLG   Set or clear the trace flag.
+TRORTS RTS
+
+       TTL    The POS function.
+
+*
+* POS(<device number>) returns the print postion of the specified
+* device.
+*
+* POS(0) returns the cursor column position.
+* POS(-1), if the cassette is open for output, returns a meaningless
+* result.  If the cassette is not  open a File Not Open error results.
+* If the cassette is open for input, a Bad File Mode error results.
+* POS(-2) returns the print position of the lineprinter.
+*
+
+       XDEF   POS
+POS    LDA    DEVNUM   Preserve DEVNUM since this could be
+       PSHS   A        a case such as PRINT #-1,POS(0).
+       JSR    SETDNM   Convert and check the argument.
+       JSR    OPNOCK   Make sure the device is open for
+*    output.
+       JSR    DEVPRM   Get the device parameters.
+       LDB    DEVPOS   Get the position into B.
+       PULS   A        Restore DEVNUM.
+       STA    DEVNUM
+       JMP    SNGFLT   Float the result and return.
+
+       TTL    The VARPTR function.
+
+*
+* VARPTR(<variable name>) returns the address of the specified
+*

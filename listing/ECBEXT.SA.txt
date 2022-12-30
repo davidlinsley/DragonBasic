@@ -363,3 +363,64 @@ PAGE  006  ECBEXT  .SA:1  EXTEND The EDIT Command
 01048P 01DF 26   02   01E3        BNE    NOTESC   generates a backarrow to an escape
 01049P 01E1 86   1B      A        LDA    #ESCAPE  for compatibility with the TRS-80.
 
+PAGE  007  ECBEXT  .SA:1  EXTEND The EDIT Command
+
+01050P 01E3 81   0D      A NOTESC CMPA   #CR      ADMIT LOW EXCEPTIONS
+01051P 01E5 27   0E   01F5        BEQ    EDTINR
+01052P 01E7 81   1B      A        CMPA   #ESCAPE
+01053P 01E9 27   0A   01F5        BEQ    EDTINR
+01054P 01EB 81   08      A        CMPA   #CHRDEL
+01055P 01ED 27   06   01F5        BEQ    EDTINR
+01056P 01EF 81   20      A        CMPA   #'       ALL OTHERS BELOW SPACE ARE BAD
+01057P 01F1 25   E3   01D6        BCS    EDITIN
+01058P 01F3 lA   01        EDTSEC SEC             SAY IT ISN'T A LOW EXCEPTION.
+01059P 01F5 39             EDTINR RTS
+010E0
+01061                             TTL    TRON and TROFF
+01062
+01063                      *
+01064                      * TRON turns on program tracing by setting TRCFLG to a nonzero
+01065                      * value.  TRCFLG is checked at NEWSTT and if it is nonzero the
+01066                      * line number of the line about to be executed is printed enclosed
+01067                      * in square brackets.  TROFF turns off the program tracing by clearing
+01068                      * TRCFLG.
+01069
+01070                             XDEF   TRON
+01071P 01F6      86      A TRON   FCB    @206     LDAIM CLRA opcode to make A nonzero
+01072                      *    skip over the CLRA.
+01073                             XDEF   TROFF
+01074P 01F7 4F             TROFF  CLRA            Prepare to clear TRCFLG.
+01075P 01F8 97   AF      A        STA    TRCFLG   Set or clear the trace flag.
+01076P 01FA 39             TRORTS RTS
+01077
+01078                             TTL    The POS function.
+01079
+01080                      *
+01081                      * POS(<device number>) returns the print postion of the specified
+01082                      * device.
+01083                      *
+01084                      * POS(0) returns the cursor column position.
+01085                      * POS(-1), if the cassette is open for output, returns a meaningless
+01086                      * result.  If the cassette is not  open a File Not Open error results.
+01087                      * If the cassette is open for input, a Bad File Mode error results.
+01088                      * POS(-2) returns the print position of the lineprinter.
+01089                      *
+01090
+01091                             XDEF   POS
+01092P 01FB 96   6F      A POS    LDA    DEVNUM   Preserve DEVNUM since this could be
+01093P 01FD 34   02      A        PSHS   A        a case such as PRINT #-1,POS(0).
+01094P 01FF BD   0000    A        JSR    SETDNM   Convert and check the argument.
+01095P 0202 BD   0000    A        JSR    OPNOCK   Make sure the device is open for
+01096                      *    output.
+01097P 0205 BD   0000    A        JSR    DEVPRM   Get the device parameters.
+01098P 0208 D6   6C      A        LDB    DEVPOS   Get the position into B.
+01099P 020A 35   02      A        PULS   A        Restore DEVNUM.
+01100P 020C 97   6F      A        STA    DEVNUM
+01101P 020E 7E   0000    A        JMP    SNGFLT   Float the result and return.
+01102
+01103                             TTL    The VARPTR function.
+01104
+01105                      *
+01106                      * VARPTR(<variable name>) returns the address of the specified
+01107                      *
+
