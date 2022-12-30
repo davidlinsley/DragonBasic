@@ -402,3 +402,62 @@ POS    LDA    DEVNUM   Preserve DEVNUM since this could be
 *
 * VARPTR(<variable name>) returns the address of the specified
 *
+
+* It is important to note that VARPTR is not legal for undefined
+* variables.  This is due to the fact that PTRGET will block transfer
+* to make room for the new variable. A case such as A(0)=VARPTR(S)
+* where S is undefined would cause disastrous results since the array
+* A would have moved. Therefore, an FC error results is VARPTR is
+* called with an undefined variable as the argument.
+* This is accomplished by saving STREND prior to the PRTGET call
+* and checking to see that it hasn't changed when PTRGET returns.
+*
+
+       XDEF   VARPTR
+VARPTR JSR    CHKOPN   Eat the opening parenthesis.
+       LDD    STREND   Remember the top of storage.
+       PSHS   D
+       JSR    PTRGET   X:=pointer to the variable.
+       JSR    CHKCLS   Check for the closing parenthesis.
+       PULS   D        X:=original top of storage,
+       EXG    X,D      D:=pointer to variable.
+       CMPX   STREND   Did the top of storage change during
+*    the call to PTRGET?
+       BNE    XRFC1    Yes, give an FC error since the
+*    variable was undefined prior to the
+*    PTRGET call.
+       JMP    PATCHV   No, go float the result and return.
+
+       TTL    MID$ Assignment (MID$ on the Left Side).
+
+       XDEF   LHMID$
+LHMID$ JSR    CHRGET   Eat the second byte of the function
+       JSR    CHKOPN   token and the left parenthesis.
+       JSR    PTRGET   X:=pointer to left string
+*    variable's descriptor.
+       PSHS   X        Save it.
+       LDD    &2,X     X:=pointer to left string data.
+       CMPD   STKTOP   is it in string space?
+       BLS    LHMD05   No, must copy.
+       SUBD   MEMSIZ
+       BLS    LHMD10   Yes, don't copy.
+*    No, it must be copied into string
+*    space prior ro being modified.  (It
+*    could be a string literal in the
+*    program for example.)
+*    Note that this code checks both
+*    ends of string space rather than
+*    just checking to see if the string
+*    is above STKTOP.  This is done
+*    so it will be possible to put
+*    random file buffers above MEMSIZ
+*    and the copy will still occur for
+*    compatibility with other versions
+*    of BASIC.
+LHMD05 LDB    ,X       Get the required amount of string
+       JSR    GETSPA   space.
+       PSHS   X        Save the pointer to the free space.
+       LDX    &2,S     Copy the string.
+       JSR    MOVINS
+       PULS   X,U      Put the new string data address into
+       STX    &2,U     the string descriptor.
