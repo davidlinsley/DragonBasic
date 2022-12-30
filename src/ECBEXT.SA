@@ -751,3 +751,60 @@ ERRGO1 JMP    ERROR
        XDEF   DEF
 DEF    LDX    [TXTPTR] Is it DEF USR?
        CMPX   #$FF00+USRTK
+       LBEQ   DEFUSR   Yes, go define the USR function
+*    address.
+       BSR    GETFNM   Get a pntr to the function.
+       BSR    ERRDIR
+       JSR    CHKOPN   Must have "(".
+       LDB    #&128
+       STB    SUBFLG   Prohibit subscripted variables.
+       JSR    PTRGET   Get pntr to argument.
+       BSR    CHKNU2   Is it a number?
+       JSR    CHKCLS   Must have ")"
+       SYNCHK EQULTK   Must have "=".
+       LDX    DEFPNT   Get pntr to thing to store in.
+       LDD    TXTPTR   Get thing to store.
+       STD    ,X       Put down text pointer.
+       LDD    VARPNT   Get more to store.
+       STD    &2,X     Store it.
+       JMP    DATA     Skip to end.
+
+*
+* Subroutine to get a pntr to a function name.
+*
+
+GETFNM SYNCHK FNTK     Must start with FN.
+       LDB    #&128    Don't allow an array.
+       STB    SUBFLG
+       ORA    #&128    Put function bit on.
+       JSR    PTRGT2   Get pntr to function or create anew.
+       STX    DEFPNT
+CHKNU2 JMP    CHKNUM   Make sure it's numeric and return.
+
+       XDEF   FNDOER
+FNDOER BSR    GETFNM   Get pointer to function definition.
+       PSHS   X        Save it.
+       JSR    PARCHK   Evaluate the actual parameter.
+*    (It's enclosed in parentheses.)
+       BSR    CHKNU2   Make sure it's numeric.
+       PULS   U        U:=pointer to function def.
+       LDB    #ERRUF   In case function is undefined.
+       LDX    &2,U     X:=pointer to dummy arg variable.
+       BEQ    ERRGO1   If zero the function isn't defined.
+       LDY    TXTPTR   Y:=text pointer which points into
+*    function call.
+       LDU    ,U       U:=function definition text pointer.
+       STU    TXTPTR   Set up txtptr for FRMEVL.
+       IFNE   ADDPRC
+       LDA    &4,X     Push on extra byte of arg variable.
+       PSHS   A
+       ENDC   IFN      ADDPRC
+       LDD    ,X       D,U:=dummy arg variable value.
+       LDU    &2,X
+       PSHS   U,Y,X,B,A Save dummy arg variable value, pointer
+*    to dummy arg, and call text pointer.
+       JSR    MOVMF    Move actual parm value into dummy
+*    arg variable from FAC.
+       JSR    FRMNUM   Evaluate a numeric formula.  (This
+*    is the function def formula.)
+       PULS   A,B,X,Y,U Get back dummy arg value, dummy arg

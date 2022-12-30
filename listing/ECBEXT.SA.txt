@@ -790,3 +790,63 @@ PAGE  013  ECBEXT  .SA:1  EXTEND Hex and Octal Constants
 01454P 039E AE   9F 00A6 A DEF    LDX    [TXTPTR] Is it DEF USR?
 01455P 03A2 8C   FF00    A        CMPX   #$FF00+USRTK
 
+PAGE  014  ECBEXT  .SA:1  EXTEND Simple User Defined Function Code.
+
+****WARNING   001--00000
+01456P 03A5 1027 0074 041D        LBEQ   DEFUSR   Yes, go define the USR function
+01457                      *    address.
+01458P 03A9 8D   23   03CE        BSR    GETFNM   Get a pntr to the function.
+01459P 03AB 8D   E6   0393        BSR    ERRDIR
+01460P 03AD BD   0000    A        JSR    CHKOPN   Must have "(".
+01461P 03B0 C6   80      A        LDB    #&128
+01462P 03B2 D7   08      A        STB    SUBFLG   Prohibit subscripted variables.
+01463P 03B4 BD   0000    A        JSR    PTRGET   Get pntr to argument.
+01464P 03B7 8D   25   03DE        BSR    CHKNU2   Is it a number?
+01465P 03B9 BD   0000    A        JSR    CHKCLS   Must have ")"
+01466P 03BC                       SYNCHK EQULTK   Must have "=".
+01467P 03C1 9E   4B      A        LDX    DEFPNT   Get pntr to thing to store in.
+01468P 03C3 DC   A6      A        LDD    TXTPTR   Get thing to store.
+01469P 03C5 ED   84      A        STD    ,X       Put down text pointer.
+01470P 03C7 DC   39      A        LDD    VARPNT   Get more to store.
+01471P 03C9 ED   02      A        STD    &2,X     Store it.
+01472P 03CB 7E   0000    A        JMP    DATA     Skip to end.
+01473
+01474                      *
+01475                      * Subroutine to get a pntr to a function name.
+01476                      *
+01477
+01478P 03CE                GETFNM SYNCHK FNTK     Must start with FN.
+01479P 03D3 C6   80      A        LDB    #&128    Don't allow an array.
+01460P 03D5 D7   08      A        STB    SUBFLG
+01481P 03D7 8A   80      A        ORA    #&128    Put function bit on.
+01482P 03D9 BD   0000    A        JSR    PTRGT2   Get pntr to function or create anew.
+01483P 03DC 9F   4B      A        STX    DEFPNT
+01484P 03DE 7E   0000    A CHKNU2 JMP    CHKNUM   Make sure it's numeric and return.
+01485
+01486                             XDEF   FNDOER
+01487P 03E1 8D   EB   03CE FNDOER BSR    GETFNM   Get pointer to function definition.
+01488P 03E3 34   10      A        PSHS   X        Save it.
+01489P 03E5 BD   0000    A        JSR    PARCHK   Evaluate the actual parameter.
+01490                      *    (It's enclosed in parentheses.)
+01491P 03E8 8D   F4   03DE        BSR    CHKNU2   Make sure it's numeric.
+01492P 03EA 35   40      A        PULS   U        U:=pointer to function def.
+01493P 03EC C6   00      A        LDB    #ERRUF   In case function is undefined.
+01494P 03EE AE   42      A        LDX    &2,U     X:=pointer to dummy arg variable.
+01495P 03F0 27   A9   039B        BEQ    ERRGO1   If zero the function isn't defined.
+01496P 03F2 109E A6      A        LDY    TXTPTR   Y:=text pointer which points into
+01497                      *    function call.
+01498P 03F5 EE   C4      A        LDU    ,U       U:=function definition text pointer.
+01499P 03F7 DF   A6      A        STU    TXTPTR   Set up txtptr for FRMEVL.
+01500            0001    A        IFNE   ADDPRC
+01501P 03F9 A6   04      A        LDA    &4,X     Push on extra byte of arg variable.
+01502P 03FB 34   02      A        PSHS   A
+01503                             ENDC   IFN      ADDPRC
+01504P 03FD EC   84      A        LDD    ,X       D,U:=dummy arg variable value.
+01505P 03FF EE   02      A        LDU    &2,X
+01506P 0401 34   76      A        PSHS   U,Y,X,B,A Save dummy arg variable value, pointer
+01507                      *    to dummy arg, and call text pointer.
+01508P 0403 BD   0000    A        JSR    MOVMF    Move actual parm value into dummy
+01509                      *    arg variable from FAC.
+01510P 0406 BD   0000    A        JSR    FRMNUM   Evaluate a numeric formula.  (This
+01511                      *    is the function def formula.)
+01512P 0409 35   76      A        PULS   A,B,X,Y,U Get back dummy arg value, dummy arg
