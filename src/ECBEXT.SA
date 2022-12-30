@@ -461,3 +461,61 @@ LHMD05 LDB    ,X       Get the required amount of string
        JSR    MOVINS
        PULS   X,U      Put the new string data address into
        STX    &2,U     the string descriptor.
+       PSHS   U        Resave the descriptor pointer.
+LHMD10 JSR    COMBYT   Skip comma, B:=offset into left
+*    string.
+       PSHS   B        Save the offset.
+       TSTB            Give a Function Call error if the
+       BEQ    XRFC1    offset is zero.
+       LDB    #&255    Assume no third argument, in which
+*    case as many chars as possible will
+*    be replaced.
+       CMPA   #CLSPAR  Arrived at the closing parenthesis?
+       BEQ    LHMD30   Yes, no third argument.
+       JSR    COMBYT   No, skip the comma and evaluate the
+*    number of chars to replace.
+LHMD30 PSHS   B        Save the number of chars to replace.
+       JSR    CHKCLS   Eat the closing parenthesis and
+       SYNCHK EQULTK   the equals sign.
+       BSR    EVLSTR   Evaluate the right string
+*    formula, B:=length, X:=pointer to
+*    string data.
+       TFR    X,U      Save pointer in U.
+       LDX    &2,S     X:=pointer to left string
+*    descriptor.
+       LDA    ,X       A:=length of left string.
+       SUBA   &1,S     Is the specified offset beyond the
+*    end of the left string?
+       BHS    LHMD35   No.
+XRFC1  JMP    FCERR    Yes, give FC error.
+
+LHMD35 INCA            No, A:=number of chars between the
+*    offset and theend of the left
+*    string.
+       CMPA   ,S       Is the number of chars that can be
+*    replaced greater than or equal to
+*    the specified number or default (255)?
+       BHS    LHMD40   Yes, use the use the specified or
+*    default number.
+       STA    ,S       No, use the lesser number.
+LHMD40 LDA    &1,S     A:=offset into left string.
+       EXG    A,B      A:=length of right string,
+*    B:=offset into left string.
+*    (Want to use ABX below since it
+*    does an unsigned addition.)
+       LDX    &2,X     X:=pointer to left string data.
+       DECB            X:=pointer into left string
+       ABX             where replacement will begin.
+       TSTA            Is the right string null?
+       BEQ    LHMD60   Yes, no replacement can be done.
+       CMPA   ,S       No, is the right string shorter 
+*    than the number of chars to be
+*    replaced?
+       BLS    LHMD50   Yes, only replace the number of chars
+*    contained in the right string.
+       LDA    ,S       No, use the replacement count
+*    previously determined.
+LHMD50 TFR    A,B      B:=number of chars to move.
+       EXG    U,X      X:=source pointer (right string),
+*    U:=destination pointer (left
+*    string).
