@@ -546,3 +546,64 @@ PAGE  009  ECBEXT  .SA:1  EXTEND MID$ Assignment (MID$ on the Left Side).
 01222                      *    U:=destination pointer (left
 01223                      *    string).
 
+PAGE  010  ECBEXT  .SA:1  EXTEND MID$ Assignment (MID$ on the Left Side).
+
+01224P 0296 BD   0000    A        JSR     COPLOP  Go move the characters.
+01225P 0299 35   96      A LHMD60 PULS    D,X,PC  Clean up the stack and return.
+01226
+01227
+01228                      *
+01229                      * EVLSTR evaluates a numeric formula and returns with
+01230                      * B containing the length of the string and X containing
+01231                      * a pointer to the string data.
+01232                      *
+01233
+01234                             XDEF   EVLSTR
+01235P  029B BD  0000    A EVLSTR JSR    FRMEVL   Evaluate a formula.
+01236P  029E 7E  0000    A        JMP    FRESTR   Make sure it's a string, free up
+01237                      *    the temporary, X:=pointer to string
+01238                      *    data, B:=length of string.
+01239
+01240                             TTL    The STRING$ Function.
+01241
+01242                      *
+01243                      * STRING$(<count>, <character>) returns a string of length <count>
+01244                      * which is filled with the character specified by <character>.
+01245                      * <character> can be specified as a string or a numeric formula.
+01246                      * If string, the first  character is used to fill the result.
+01247                      * If numeric, the value is used as an ASCII code to fill the
+01248                      * result.
+01249                      *
+01250
+01251                             XDEF   STRNG$
+01252P  02A1 BD  0000    A STRNG$ JSR    CHKOPN   Eat the open parenthesis.
+01253P  02A4 BD  0000    A        JSR    GETBYT   Evaluate and save the count.
+01254P  02A7 34  04      A        PSHS   B
+01255P  02A9 BD  0000    A        JSR    CHKCOM   Eat the comma.
+01256P  02AC BD  0000    A        JSR    FRMEVL   Evaluate the second argument.
+01257P  02AF BD  0000    A        JSR    CHKCLS   Check for the closing parenthesis.
+01258P  02B2 96  06      A        LDA    VALTYP   Is the second argument numeric?
+01259P  02B4 26  05   02BB        BNE    STR2AR   No, it's a string.
+01260P  02B6 BD  0000    A        JSR    CONINT   Yes, convert it to an integer in B.
+01261P  02B9 20  03   02BE        BRA    GTROOM   Go get space for the string.
+01262
+01263P  02BB BD  0000    A STR2AR JSR    ASC2     B:=ASCII code of the first byte of
+01264                      *    the second argument.
+01265P  02BE 34  04      A GTROOM PSHS   B        Save the character code.
+01266P  02C0 E6  61      A        LDB    &1,S     Get length of result string.
+01267P  02C2 BD  0000    A        JSR    STRSPA   Get the required amount of string
+01268                      *    space.
+01269P  02C5 35  06      A        PULS   A,B      A:=char code, B:=string length.
+01270P  02C7 27  05   02CE        BEQ    FINBLD   Zero length string, don't put
+01271                      *    any chars into it.  (STRSPA set
+01272                      *    the condition codes on the length
+01273                      *    of the string.)
+01274P  02C9 A7  80      A BUILDS STA    ,X+      Build the result string by storing
+01275P  02CB 5A                   DECB            the character code into each
+01276P  02CC 26  FB   02C9        BNE    BUILDS   byte of the string.
+01277P  02CE 7E  0000    A FINBLD JMP    GOPTNW   Go put away the result.
+01278
+01279                             TTL    The INSTR Function.
+01280
+01281                      *
+

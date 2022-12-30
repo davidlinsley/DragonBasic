@@ -519,3 +519,61 @@ LHMD50 TFR    A,B      B:=number of chars to move.
        EXG    U,X      X:=source pointer (right string),
 *    U:=destination pointer (left
 *    string).
+       JSR     COPLOP  Go move the characters.
+LHMD60 PULS    D,X,PC  Clean up the stack and return.
+
+
+*
+* EVLSTR evaluates a numeric formula and returns with
+* B containing the length of the string and X containing
+* a pointer to the string data.
+*
+
+       XDEF   EVLSTR
+EVLSTR JSR    FRMEVL   Evaluate a formula.
+       JMP    FRESTR   Make sure it's a string, free up
+*    the temporary, X:=pointer to string
+*    data, B:=length of string.
+
+       TTL    The STRING$ Function.
+
+*
+* STRING$(<count>, <character>) returns a string of length <count>
+* which is filled with the character specified by <character>.
+* <character> can be specified as a string or a numeric formula.
+* If string, the first  character is used to fill the result.
+* If numeric, the value is used as an ASCII code to fill the
+* result.
+*
+
+       XDEF   STRNG$
+STRNG$ JSR    CHKOPN   Eat the open parenthesis.
+       JSR    GETBYT   Evaluate and save the count.
+       PSHS   B
+       JSR    CHKCOM   Eat the comma.
+       JSR    FRMEVL   Evaluate the second argument.
+       JSR    CHKCLS   Check for the closing parenthesis.
+       LDA    VALTYP   Is the second argument numeric?
+       BNE    STR2AR   No, it's a string.
+       JSR    CONINT   Yes, convert it to an integer in B.
+       BRA    GTROOM   Go get space for the string.
+
+STR2AR JSR    ASC2     B:=ASCII code of the first byte of
+*    the second argument.
+GTROOM PSHS   B        Save the character code.
+       LDB    &1,S     Get length of result string.
+       JSR    STRSPA   Get the required amount of string
+*    space.
+       PULS   A,B      A:=char code, B:=string length.
+       BEQ    FINBLD   Zero length string, don't put
+*    any chars into it.  (STRSPA set
+*    the condition codes on the length
+*    of the string.)
+BUILDS STA    ,X+      Build the result string by storing
+       DECB            the character code into each
+       BNE    BUILDS   byte of the string.
+FINBLD JMP    GOPTNW   Go put away the result.
+
+       TTL    The INSTR Function.
+
+*
