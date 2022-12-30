@@ -693,3 +693,61 @@ CONS24 CLR    VALTYP   Set VALTYP to numeric.
        JMP    NORMAL   So normalize it.
 
 HEXCN0 JSR    CHRGET   Get next char.
+       XDEF   HEXCNX
+HEXCNX BCS    HEXCN1   It's a numeric digit.
+       JSR    ISLETC   Not numeric, see if letter.
+       BCS    CONS16   Not letter, finished.
+       CMPA   #'F+&1   Valid hex alpha digit?
+       BCC    CONS16   No, all done.
+       SUBA   #'A-'0-&10 Yes, adjust alpha code.
+
+HEXCN1 LDB    #&4      Bits/digit:=4.
+       BSR    HODIG    Add in new digit.
+       BRA    HEXCN0   Do next digit.
+
+
+HODIG  ASL    &1,X     Shift current value left bits/digit
+       ROL    ,X       times while checking for overflow.
+       LBCS   OVERR
+       DECB
+       BNE    HODIG
+       SUBA   #'0      Subtract out ASCII offset.
+       ADDA   &1,X     Add in new digit to
+       STA    &1,X     low order byte.
+HORTS  RTS             (Can't get carry since low order
+*    hex or octal digit is a zero from
+*    shifting done above.)
+
+       TTL    Simple User Defined Function Code.
+
+
+*
+* Note only single arguments are allowed to functions
+* and functions must be of the single line form:
+* DEF FNA(X)=X^2+X-2
+* Both the argument and result must be numeric.
+*
+* Idea: create a simple variable entry
+* whose first character has the 200 bit set.
+* The value will be:
+*
+* A text pntr to the formula.
+* A pntr to the argument variable.
+*
+* Function names can be like FNA4.
+*
+*
+* Subroutine to see if we are in direct mode
+* and complain if so.
+*
+
+       XDEF   ERRDIR
+ERRDIR LDX    CURLIN   Dir mode has CURLIN=65535.
+       LEAX   &1,X     So now, is result zero?
+       BNE    HORTS    Yes.
+       LDB    #ERRID   Illegal Direct Error.
+ERRGO1 JMP    ERROR
+
+       XDEF   DEF
+DEF    LDX    [TXTPTR] Is it DEF USR?
+       CMPX   #$FF00+USRTK

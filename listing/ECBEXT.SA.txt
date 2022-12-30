@@ -729,3 +729,64 @@ PAGE  012  ECBEXT  .SA:1  EXTEND The INSTR Function.
 01396
 01397P 036C 9D   9F      A HEXCN0 JSR    CHRGET   Get next char.
 
+PAGE  013  ECBEXT  .SA:1  EXTEND Hex and Octal Constants
+
+01398                             XDEF   HEXCNX
+01399P 036E 25   0B   037B HEXCNX BCS    HEXCN1   It's a numeric digit.
+01400P 0370 BD   0000    A        JSR    ISLETC   Not numeric, see if letter.
+01401P 0373 25   E6   035B        BCS    CONS16   Not letter, finished.
+01402P 0375 81   47      A        CMPA   #'F+&1   Valid hex alpha digit?
+01403P 0377 24   E2   035B        BCC    CONS16   No, all done.
+01404P 0379 80   07      A        SUBA   #'A-'0-&10 Yes, adjust alpha code.
+01405
+01406P 037B C6   04      A HEXCN1 LDB    #&4      Bits/digit:=4.
+01407P 037D 8D   02   0381        BSR    HODIG    Add in new digit.
+01408P 037F 20   EB   036C        BRA    HEXCN0   Do next digit.
+01409
+01410
+01411P 0381 68   01      A HODIG  ASL    &1,X     Shift current value left bits/digit
+01412P 0383 69   84      A        ROL    ,X       times while checking for overflow.
+01413P 0385 1025 FC77    A        LBCS   OVERR
+01414P 0389 5A                    DECB
+01415P 038A 26   F5   0381        BNE    HODIG
+01416P 038C 80   30      A        SUBA   #'0      Subtract out ASCII offset.
+01417P 036E AB   01      A        ADDA   &1,X     Add in new digit to
+01418P 0390 A7   01      A        STA    &1,X     low order byte.
+01419P 0392 39             HORTS  RTS             (Can't get carry since low order
+01420                      *    hex or octal digit is a zero from
+01421                      *    shifting done above.)
+01422
+01423                             TTL    Simple User Defined Function Code.
+01424
+01425
+01426                      *
+01427                      * Note only single arguments are allowed to functions
+01428                      * and functions must be of the single line form:
+01429                      * DEF FNA(X)=X^2+X-2
+01430                      * Both the argument and result must be numeric.
+01431                      *
+01432                      * Idea: create a simple variable entry
+01433                      * whose first character has the 200 bit set.
+01434                      * The value will be:
+01433                      *
+01436                      * A text pntr to the formula.
+01437                      * A pntr to the argument variable.
+01438                      *
+01439                      * Function names can be like FNA4.
+01440                      *
+01441                      *
+01442                      * Subroutine to see if we are in direct mode
+01443                      * and complain if so.
+01444                      *
+01445
+01446                             XDEF   ERRDIR
+01447P 0393 9E   68      A ERRDIR LDX    CURLIN   Dir mode has CURLIN=65535.
+01446P 0395 30   01      A        LEAX   &1,X     So now, is result zero?
+01449P 0397 26   F9   0392        BNE    HORTS    Yes.
+01450P 0399 C6   00      A        LDB    #ERRID   Illegal Direct Error.
+01451P 039B 7E   0000    A ERRGO1 JMP    ERROR
+01452
+01453                             XDEF   DEF
+01454P 039E AE   9F 00A6 A DEF    LDX    [TXTPTR] Is it DEF USR?
+01455P 03A2 8C   FF00    A        CMPX   #$FF00+USRTK
+
