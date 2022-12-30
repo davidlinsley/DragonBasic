@@ -635,3 +635,61 @@ INST20 LEAY   ,X       Save S1$ pointer where current
        INCA            of S1$.
        CMPA   &1,S     Is it shorter than S2$?
        BLO    INST50   Yes, give up and return 0.
+
+INST30 LDA    ,X+      Get char from S1$.
+       CMPA   ,U+      Compare to char in S2$.
+       BNE    INST60   Not the same.
+       DECB            Same, more to check?
+       BNE    INST30   Yes, check next chars.
+
+INST40 LDB    &6,S     Match, return the offset.
+       FCB    @41      BRN over CLRB.
+INST50 CLRB            No match, return 0.
+       LEAS   &7,S     Clean up the stack.
+       JMP    SNGFLT   Float the result and return.
+
+INST60 INC    &6,S     Chars not the same, increment offset
+*    into S1$.
+       LEAX   &1,Y     Start searching one char to the right
+       BRA    INST20   in S1$.
+
+       TTL    Hex and Octal Constants
+
+       XDEF   HOCONS
+HOCONS CLR    FACMO    Clear FACMO,FACLO since that's where
+       CLR    FACLO    the result is built.
+       LDX    #FACMO   Set up a pointer to the FAC.
+       JSR    CHRGET   See if O or H specified.
+       CMPA   #'O      O for octal?
+       BEQ    OCTCN1   Yes, go do octal.
+       CMPA   #'H      No, H for hex?
+       BEQ    HEXCN0   Yes, go do hex.
+*    No, default to octal.
+       JSR    CHRGOT   Reget current char to set
+       BRA    OCTCN2   condition codes.
+
+OCTCN0 CMPA   #'8      Is it a valid octal digit?
+       LBHI   SNERR    No, give a syntax error.
+       LDB    #&3      Yes, bits/digit:=3.
+       BSR    HODIG    Go add in the new digit.
+OCTCN1 JSR    CHRGET   Get next char.
+OCTCN2 BCS    OCTCN0   It's a digit, continue.
+*    Not a digit, time to quit.
+
+*
+* Float the sixteen bit unsigned value in FACMO,FACLO.
+*
+
+       XDEF   CONS16
+CONS16 CLR    FACHO    Clear the most significant byte.
+       IFNE   ADDPRC
+       CLR    FACMOH
+       ENDC   IFN      ADDPRC
+CONS24 CLR    VALTYP   Set VALTYP to numeric.
+       CLR    FACOV
+       CLR    FACSGN   Mark as positive.
+       LDB    #@230+@10*ADDPRC Set up the exponent.
+       STB    FACEXP
+       JMP    NORMAL   So normalize it.
+
+HEXCN0 JSR    CHRGET   Get next char.

@@ -668,3 +668,64 @@ PAGE  011  ECBEXT  .SA:1  EXTEND The INSTR Function.
 01338P 031C A1   61      A        CMPA   &1,S     Is it shorter than S2$?
 01339P 031E 25   0C   032C        BLO    INST50   Yes, give up and return 0.
 
+PAGE  012  ECBEXT  .SA:1  EXTEND The INSTR Function.
+
+01340
+01341P 0320 A6   80      A INST30 LDA    ,X+      Get char from S1$.
+01342P 0322 A1   C0      A        CMPA   ,U+      Compare to char in S2$.
+01343P 0324 26   0C   0332        BNE    INST60   Not the same.
+01344P 0326 5A                    DECB            Same, more to check?
+01345P 0327 26   F7   0320        BNE    INST30   Yes, check next chars.
+01346
+01347P 0329 E6   66      A INST40 LDB    &6,S     Match, return the offset.
+01348P 032B      21      A        FCB    @41      BRN over CLRB.
+01349P 032C 5F             INST50 CLRB            No match, return 0.
+01350P 032D 32   67      A        LEAS   &7,S     Clean up the stack.
+01351P 032F 7E   0000    A        JMP    SNGFLT   Float the result and return.
+01352
+01353P 0332 6C   66      A INST60 INC    &6,S     Chars not the same, increment offset
+01354                      *    into S1$.
+01355P 0334 30   21      A        LEAX   &1,Y     Start searching one char to the right
+01356P 0336 20   D9   0311        BRA    INST20   in S1$.
+01357
+01358                             TTL    Hex and Octal Constants
+01359
+01360                             XDEF   HOCONS
+01361P 0338 0F   52      A HOCONS CLR    FACMO    Clear FACMO,FACLO since that's where
+01362P 033A 0F   53      A        CLR    FACLO    the result is built.
+01363P 033C 8E   0052    A        LDX    #FACMO   Set up a pointer to the FAC.
+01364P 033F 9D   9F      A        JSR    CHRGET   See if O or H specified.
+01365P 0341 81   4F      A        CMPA   #'O      O for octal?
+01366P 0343 27   12   0357        BEQ    OCTCN1   Yes, go do octal.
+01367P 0345 81   48      A        CMPA   #'H      No, H for hex?
+01368P 0347 27   23   036C        BEQ    HEXCN0   Yes, go do hex.
+01369                      *    No, default to octal.
+01370P 0349 9D   A5      A        JSR    CHRGOT   Reget current char to set
+01371P 034B 20   0C   0359        BRA    OCTCN2   condition codes.
+01372
+01373P 034D 81   38      A OCTCN0 CMPA   #'8      Is it a valid octal digit?
+01374P 034F 1022 FCAD    A        LBHI   SNERR    No, give a syntax error.
+01375P 0353 C6   03      A        LDB    #&3      Yes, bits/digit:=3.
+01376P 0355 8D   2A   0381        BSR    HODIG    Go add in the new digit.
+01377P 0357 9D   9F      A OCTCN1 JSR    CHRGET   Get next char.
+01378P 0359 25   F2   034D OCTCN2 BCS    OCTCN0   It's a digit, continue.
+01379                      *    Not a digit, time to quit.
+01380
+01381                      *
+01382                      * Float the sixteen bit unsigned value in FACMO,FACLO.
+01383                      *
+01384
+01385                             XDEF   CONS16
+01386P 035B 0F   50      A CONS16 CLR    FACHO    Clear the most significant byte.
+01387            0001    A        IFNE   ADDPRC
+01368P 035D 0F   51      A        CLR    FACMOH
+01389                             ENDC   IFN      ADDPRC
+01390P 035F 0F   06      A CONS24 CLR    VALTYP   Set VALTYP to numeric.
+01391P 0361 0F   63      A        CLR    FACOV
+01392P 0363 0F   54      A        CLR    FACSGN   Mark as positive.
+01393P 0365 C6   A0      A        LDB    #@230+@10*ADDPRC Set up the exponent.
+01394P 0367 D7   4F      A        STB    FACEXP
+01395P 0369 7E   0000    A        JMP    NORMAL   So normalize it.
+01396
+01397P 036C 9D   9F      A HEXCN0 JSR    CHRGET   Get next char.
+
