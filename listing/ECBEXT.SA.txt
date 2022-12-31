@@ -1090,3 +1090,64 @@ PAGE  019  ECBEXT  .SA:1  EXTEND The DELETE Command
 01927P 04DA BD   0000    A        JSR    OPNICK   Take sure it's open for input.
 01928P 04DD BD   0000    A        JSR    CHKCOM   A comma must follow the device number.
 
+PAGE  020  ECBEXT  .SA:1  EXTEND LINEINPUT
+
+01929            04E0    P ILNKBD EQU    *
+01930            0000    A        IFNE   CNTRLO
+01935                       ENDC   IFN CNTRLO
+01936P 04E0 81   22      A        CMPA   #DBLQTE  Is there a quoted prompt string?
+01937P 04E2 26   0B   04EF        BNE    NOPRM    No, no prompt.
+01938P 04E4 BD   0000    A        JSR    STRTXT   Yes, scan the string.
+01939P 04E7                       SYNCHK SEMCOL   It must be followed by a semicolon.
+01940P 04EC BD   0000    A        JSR    STRPRT   Print it out.  (CHROUT will suppress
+01941                      *    the output if DEVNUM is nonzero.)
+01942P 04EF 32   7E      A NOPRM  LEAS   -&2,S    Put the stack at the correct level
+01943                      *    for INLDO to handle the BREAK case.
+01944                      *    (Must have NEWSTT return under another
+01945                      *    2 bytes, under INLNDO return address.)
+01946P 04F1 BD   0000    A        JSR    INLNDO   Read line into BUF.  (If necessary
+01947                      *    the disk file case can be trapped
+01948                      *    at the INLIN hook HKINLN.)
+01949P 04F4 32   62      A        LEAS   &2,S     Fix the stack back up.
+01950P 04F6 0F   6F      A        CLR    DEVNUM   Reset for console I/O.
+01951P 04F8 BD   0000    A        JSR    PTRGET   Get a pointer to the variable and
+01952P 04FB 9F   3B      A        STX    FORPNT   save it for the LET assignment code.
+01953P 04FD BD   0000    A        JSR    CHKSTR   Make sure it's a string variable.
+01954P 0500 8E   FFFF    A        LDX    #BUF-&1  Point to the data.
+01955P 0503 4F                    CLRA            Only terminate on end of line.
+01956P 0504 BD   0000    A        JSR    STRLT3   Go build a descriptor and copy the
+01957                      *    string into string space.
+01958P 0507 7E   0000    A        JMP    INPCOM   Finish up in the LET assignment code.
+01959
+01960                             TTL    RENUM - Renumber a BASIC program
+01961
+01962                      *
+01963                      * The following steps are performed in order to renumber a
+01964                      * BASIC program:
+01965                      * 1) Read the parameter list.  The format of the RENUM command
+01966                      * is: RENUM [NN[,MM[,II]]]
+01967                      *  NN is the new line number of the first line to
+01966                      *  be renumbered.
+01969                      *  Lines below MM are not renumbered.
+01970                      *  II is the increment between the renumbered lines.
+01971                      *
+01972                      * If NN is omitted the default of 10 is used.
+01973                      * If MM is omitted the whole program is renumbered.
+01974                      * If II is omitted the default increment of 10 is used.
+01975                      * MM and NN must be such that NN is greater than the highest
+01976                      *  numbered line not being renumbered or a "Function
+01977                      *  Call" error will result.
+01978                      * II cannot be zero or an FC error will result.
+01979                      *
+01980                      * 2) Determine whether a line number greater than 63999 would
+01981                      * be created if the paramters obtained in step 1 are used to
+01982                      * renumber the program.  If so gave a "Function Call" error.
+01983                      *
+01984                      * 3) Scan the program converting all line number references from
+01985                      * ASCII to modified binary line number tokens.  A modified
+01986                      * binary line number token has the following format:
+01987                      *  1
+01988                      *  High byte of binary line number
+01989                      *  Modifier for high byte
+01990                      *  Low byte of binary line number
+

@@ -1033,3 +1033,61 @@ ILINE  JSR    ERRDIR   Disallow in direct execution mode
        JSR    GETDNM   Yes, scan the device number.
        JSR    OPNICK   Take sure it's open for input.
        JSR    CHKCOM   A comma must follow the device number.
+ILNKBD EQU    *
+       IFNE   CNTRLO
+ ENDC   IFN CNTRLO
+       CMPA   #DBLQTE  Is there a quoted prompt string?
+       BNE    NOPRM    No, no prompt.
+       JSR    STRTXT   Yes, scan the string.
+       SYNCHK SEMCOL   It must be followed by a semicolon.
+       JSR    STRPRT   Print it out.  (CHROUT will suppress
+*    the output if DEVNUM is nonzero.)
+NOPRM  LEAS   -&2,S    Put the stack at the correct level
+*    for INLDO to handle the BREAK case.
+*    (Must have NEWSTT return under another
+*    2 bytes, under INLNDO return address.)
+       JSR    INLNDO   Read line into BUF.  (If necessary
+*    the disk file case can be trapped
+*    at the INLIN hook HKINLN.)
+       LEAS   &2,S     Fix the stack back up.
+       CLR    DEVNUM   Reset for console I/O.
+       JSR    PTRGET   Get a pointer to the variable and
+       STX    FORPNT   save it for the LET assignment code.
+       JSR    CHKSTR   Make sure it's a string variable.
+       LDX    #BUF-&1  Point to the data.
+       CLRA            Only terminate on end of line.
+       JSR    STRLT3   Go build a descriptor and copy the
+*    string into string space.
+       JMP    INPCOM   Finish up in the LET assignment code.
+
+       TTL    RENUM - Renumber a BASIC program
+
+*
+* The following steps are performed in order to renumber a
+* BASIC program:
+* 1) Read the parameter list.  The format of the RENUM command
+* is: RENUM [NN[,MM[,II]]]
+*  NN is the new line number of the first line to
+*  be renumbered.
+*  Lines below MM are not renumbered.
+*  II is the increment between the renumbered lines.
+*
+* If NN is omitted the default of 10 is used.
+* If MM is omitted the whole program is renumbered.
+* If II is omitted the default increment of 10 is used.
+* MM and NN must be such that NN is greater than the highest
+*  numbered line not being renumbered or a "Function
+*  Call" error will result.
+* II cannot be zero or an FC error will result.
+*
+* 2) Determine whether a line number greater than 63999 would
+* be created if the paramters obtained in step 1 are used to
+* renumber the program.  If so gave a "Function Call" error.
+*
+* 3) Scan the program converting all line number references from
+* ASCII to modified binary line number tokens.  A modified
+* binary line number token has the following format:
+*  1
+*  High byte of binary line number
+*  Modifier for high byte
+*  Low byte of binary line number
