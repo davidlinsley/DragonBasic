@@ -1029,3 +1029,64 @@ PAGE  018  ECBEXT  .SA:1  EXTEND TIME and TIME$
 01869P 04A1 EE   C4      A DELSLP LDU    ,U       Link to the next line.
 01870P 04A3 EC   C4      A        LDD    ,U       Is the link zero?
 
+PAGE  019  ECBEXT  .SA:1  EXTEND The DELETE Command
+
+01871P 04A5 27   06   04AD        BEQ    DELDOR   Yes, have hit end of program.
+01872P 04A7 EC   42      A        LDD    &2,U     No, is the line number
+01873P 04A9 93   2B      A        SUBD   LINNUM   higher than the last specified one?
+01874P 04AB 23   F4   04A1        BLS    DELSLP   No, go link to the next line.
+01875                      *    Yes, U is pointing to the link field
+01876                      *    of the first line beyond the range.
+01877P 04AD 9E   D3      A DELDOR LDX    FSTPTR   X:=pointer to link field of first
+01878A                     *    line to be deleted.
+01879P 04AF 8D   15   04C6 *      BSR    DELDO    Move the top of the program down
+01880                      *    over the lines being deleted and
+01881                      *    update VARTAB.
+01862                      *    Note that if a null range was
+01883                      *    specified (as in the case where a
+01884                      *    single nonexistent line was given),
+01885                      *    the block transfer is done anyway
+01866                      *    but is OK since source and dest
+01887                      *    pointers are the same.
+01888  04B1 BD   0000    A        JSR    RUNC     Wipe out variables and reset the
+01889                      *    stack.
+01890P 04B4 9E   D3      A        LDX    FSTPTR   Fix up the links of the lines that
+01891P 04B6 BD   0000    A        JSR    CHEAD    were moved.
+01892P 04B9 7E   0000    A        JMP    READY    Go print "OK".
+01893
+01894
+01895P 04BC BD   0000    A LINTRM JSR    LINGET   Read a line number into LINNUM.
+01896P 04BF 7E   0000    A        JMP    TRMCHK   Check for end of statement.
+01897
+01898
+01899                      *
+01900                      * Enter at DELDO to block transfer down from U to X until U=[VARTAB].
+01901                      * Then update [VARTAB] by storing final X into it.
+01902                      *
+01903
+01904P 04C2 A6   C0      A MORDEL LDA    ,U+      Set byte and move it down.
+01905P 04C4 A7   80      A        STA    ,X+
+01906P 04C6 1193 1B      A DELDO  CMPU   VARTAB   At end of program?
+01907P 04C9 26   F7   04C2        BNE    MORDEL   No, continue moving.
+01908P 04CB 9F   1B      A        STX    VARTAB   Yes, update VARTAB and return.
+01909P 04CD 39             DELSNR RTS
+01910
+01911                             TTL    LINEINPUT
+01912
+01913                      *
+01914                      * LINEINPUT [#<device number>,]["<prompt>";]<string variable>
+01915                      *
+01916                      * The graphics LINE statement comes here when it sees an INPUT token
+01917                      * following the LINE token.
+01918                      *
+01919
+01920                             XDEF   ILINE
+01921P 04CE BD   0393    P ILINE  JSR    ERRDIR   Disallow in direct execution mode
+01922                      *    since it smashes BUF.
+01923P 04D1 9D   9F      A        JSR    CHRGET   Skip past the INPUT token.
+01924P 04D3 81   23      A        CMPA   #'#      Device number specified?
+01925P 04D5 26   09   04E0        BNE    ILNKBD   No, input will come from keyboard.
+01926P 04D7 BD   0000    A        JSR    GETDNM   Yes, scan the device number.
+01927P 04DA BD   0000    A        JSR    OPNICK   Take sure it's open for input.
+01928P 04DD BD   0000    A        JSR    CHKCOM   A comma must follow the device number.
+

@@ -975,3 +975,61 @@ DELSRC LDU    FSTPTR   Search for the first line outside
        SKIP2  the      range of lines to be deleted.
 DELSLP LDU    ,U       Link to the next line.
        LDD    ,U       Is the link zero?
+       BEQ    DELDOR   Yes, have hit end of program.
+       LDD    &2,U     No, is the line number
+       SUBD   LINNUM   higher than the last specified one?
+       BLS    DELSLP   No, go link to the next line.
+*    Yes, U is pointing to the link field
+*    of the first line beyond the range.
+DELDOR LDX    FSTPTR   X:=pointer to link field of first
+*    line to be deleted.
+*      BSR    DELDO    Move the top of the program down
+*    over the lines being deleted and
+*    update VARTAB.
+*    Note that if a null range was
+*    specified (as in the case where a
+*    single nonexistent line was given),
+*    the block transfer is done anyway
+*    but is OK since source and dest
+*    pointers are the same.
+       JSR    RUNC     Wipe out variables and reset the
+*    stack.
+       LDX    FSTPTR   Fix up the links of the lines that
+       JSR    CHEAD    were moved.
+       JMP    READY    Go print "OK".
+
+
+LINTRM JSR    LINGET   Read a line number into LINNUM.
+       JMP    TRMCHK   Check for end of statement.
+
+
+*
+* Enter at DELDO to block transfer down from U to X until U=[VARTAB].
+* Then update [VARTAB] by storing final X into it.
+*
+
+MORDEL LDA    ,U+      Set byte and move it down.
+       STA    ,X+
+DELDO  CMPU   VARTAB   At end of program?
+       BNE    MORDEL   No, continue moving.
+       STX    VARTAB   Yes, update VARTAB and return.
+DELSNR RTS
+
+       TTL    LINEINPUT
+
+*
+* LINEINPUT [#<device number>,]["<prompt>";]<string variable>
+*
+* The graphics LINE statement comes here when it sees an INPUT token
+* following the LINE token.
+*
+
+       XDEF   ILINE
+ILINE  JSR    ERRDIR   Disallow in direct execution mode
+*    since it smashes BUF.
+       JSR    CHRGET   Skip past the INPUT token.
+       CMPA   #'#      Device number specified?
+       BNE    ILNKBD   No, input will come from keyboard.
+       JSR    GETDNM   Yes, scan the device number.
+       JSR    OPNICK   Take sure it's open for input.
+       JSR    CHKCOM   A comma must follow the device number.
