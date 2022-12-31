@@ -56,5 +56,5 @@ PAGE  021  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 02044                      * being renumbered.
 02045                      *
 02046                      * 7) Scan the program converting line pointer tokens to binary
-02047                      * line number tokens.  The format of a lonary line number token
+02047                      * line number tokens.  The format of a binary line number token
 02048                      * is as follows:

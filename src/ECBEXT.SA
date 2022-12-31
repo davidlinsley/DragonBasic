@@ -1147,5 +1147,32 @@ NOPRM  LEAS   -&2,S    Put the stack at the correct level
 * being renumbered.
 *
 * 7) Scan the program converting line pointer tokens to binary
-* line number tokens.  The format of a lonary line number token
+* line number tokens.  The format of a binary line number token
 * is as follows:
+*  1
+*  High byte of binary line number
+*  Low byte of binary line number
+*  Unused
+*  Unused
+*
+* 8) Scan the program looking for binary line number tokens and
+* undefined line reference tokens. When an undefined line
+* reference token is found print the message "Undefined
+* Line XXXXX In YYYYY" where "XXXXX" is the undefined line
+* number and "YYYYY" is the line number (after renumbering)
+* of the line the reference is in.
+*
+* Convert all undefined line reference and binary line number
+* tokens to ASCII by calling FOUT.  Put the ASCII digits
+* into the space used by the token and block transfer the
+* program down if there is space left over.  (This is the
+* case if the ASCII representation is fewer than 5 digits.
+* The ASCII can never be longer than 5 digits so block
+* transferring up is never required at this point.)
+*
+* 9) Step 8 destroyed the links if any block transferring occurred
+* so call CHEAD to fix them up.
+*
+* 10) Call CLEARC to init ARYTAB and STREND to point
+* to the new end of program.  Jump to READY.
+*
