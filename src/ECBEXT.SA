@@ -866,3 +866,26 @@ USRFN  BSR    SCNUSR   X:=pointer to USRTAB entry.
        LDX    ,X       Save the address of the USR function.
        PSHS   X
        JSR    PARCHK   Evaluate formula enclosed in parens.
+       LDX    #FAC     Point to the FAC so the USR routine
+*    doesn't need to know the absolute
+*    address of the FAC for numeric
+*    arguments.
+       LDA    VALTYP   Is it numeric?
+       BEQ    USRDSP   Yes, the argument is in the FAC.
+       JSR    FREFAC   No, free up the string temporary.
+       LDX    FACMO    X:=pointer to the string descriptor.
+       LDA    VALTYP   Indicate the argument is string.
+USRDSP RTS             Dispatch to the USR function.
+
+
+*
+* Skip equals sign and evaluate 16 bit unsigned integer into X.
+*
+
+EQUADR SYNCHK EQULTK   Skip the equals sign.
+       JMP    EVLADR   Evaluate address into X and return.
+
+       TTL    TIME and TIME$
+
+       IFNE   TODCLK
+ ENDC   IFN TODCLK

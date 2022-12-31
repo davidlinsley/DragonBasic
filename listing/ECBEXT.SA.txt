@@ -912,3 +912,29 @@ PAGE  015  ECBEXT  .SA:1  EXTEND Simple User Defined Function Code.
 01569P 043E 34   10      A        PSHS   X
 01570P 0440 BD   0000    A        JSR    PARCHK   Evaluate formula enclosed in parens.
 
+PAGE  016  ECBEXT  .SA:1  EXTEND USR Function Code.
+
+01571P 0443 8E   004F    A        LDX    #FAC     Point to the FAC so the USR routine
+01572                      *    doesn't need to know the absolute
+01573                      *    address of the FAC for numeric
+01574                      *    arguments.
+01575P 0446 96   06      A        LDA    VALTYP   Is it numeric?
+01576P 0448 27   07   0451        BEQ    USRDSP   Yes, the argument is in the FAC.
+01577P 044A BD   0000    A        JSR    FREFAC   No, free up the string temporary.
+01578P 044D 9E   52      A        LDX    FACMO    X:=pointer to the string descriptor.
+01579P 044F 96   06      A        LDA    VALTYP   Indicate the argument is string.
+01580P 0451 39             USRDSP RTS             Dispatch to the USR function.
+01581
+01582
+01583                      *
+01584                      * Skip equals sign and evaluate 16 bit unsigned integer into X.
+01585                      *
+01586
+01587P 0452                EQUADR SYNCHK EQULTK   Skip the equals sign.
+01588P 0457 7E   0000    A        JMP    EVLADR   Evaluate address into X and return.
+01589
+01590                             TTL    TIME and TIME$
+01591
+01592            0000    A        IFNE   TODCLK
+01771                       ENDC   IFN TODCLK
+
