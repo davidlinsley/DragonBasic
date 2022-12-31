@@ -808,3 +808,61 @@ FNDOER BSR    GETFNM   Get pointer to function definition.
        JSR    FRMNUM   Evaluate a numeric formula.  (This
 *    is the function def formula.)
        PULS   A,B,X,Y,U Get back dummy arg value, dummy arg
+*    pointer, and call text pointer.
+       STD    ,X       Restore the dummy arg.
+       STU    &2,X
+       IFNE   ADDPRC
+       PULS   A        Restore extra byte of arg variable.
+       STA    &4,X
+       ENDC   IFN      ADDPRC
+       JSR    CHRGOT   Make sure the function definition is
+       LBNE   SNERR    Properly terminated.  (Can't make this
+*    check during definition time since
+*    it is then not known where the end of
+*    the expression is.)
+       STY    TXTPTR   Restore caller's TXTPTR.
+DEFRTS RTS
+
+       TTL    USR Function Code.
+
+*
+* Here when DEF sees a USR token.
+*
+
+DEFUSR JSR    CHRGET   Skip the first byte of the function
+*    token.
+       JSR    CHRGET
+       BSR    SCNUSR   X:=address of USRTAB entry.
+       PSHS   X        Save it.
+       BSR    EQUADR   Skip equals sign, X:=address.
+       STX    [,S++]   return.
+       RTS
+
+
+*
+* Scan USR function number and return a pointer to the specified
+* USRTAB entry in X.
+*
+
+SCNUSR CLRB            Assume no function number specified.
+*    The default is USR0.
+       JSR     CHRGOT  USR token ALREADY SKIPPED.
+       BCC     ISUSR0  No digit, default to USR0.
+       SUBA    #'0     Get rid of ASCII offset and put the
+       TFR     A,B     function number into B.
+       JSR     CHRGET  Skip the digit.
+ISUSR0 LDX     USTBAD  X:=pointer to USRTAB.
+       ASLB            USRTAB entries are two bytes each.
+       ABX             X:=pointer to specified entry and
+       RTS             return.
+
+
+*
+* Here when USR token is seen by the EVAL chain.
+*
+
+       XDEF   USRFN
+USRFN  BSR    SCNUSR   X:=pointer to USRTAB entry.
+       LDX    ,X       Save the address of the USR function.
+       PSHS   X
+       JSR    PARCHK   Evaluate formula enclosed in parens.

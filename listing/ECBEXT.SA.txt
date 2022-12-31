@@ -850,3 +850,65 @@ PAGE  014  ECBEXT  .SA:1  EXTEND Simple User Defined Function Code.
 01510P 0406 BD   0000    A        JSR    FRMNUM   Evaluate a numeric formula.  (This
 01511                      *    is the function def formula.)
 01512P 0409 35   76      A        PULS   A,B,X,Y,U Get back dummy arg value, dummy arg
+
+PAGE  015  ECBEXT  .SA:1  EXTEND Simple User Defined Function Code.
+
+01513                      *    pointer, and call text pointer.
+01514P 040B ED   84      A        STD    ,X       Restore the dummy arg.
+01515P 040D EF   02      A        STU    &2,X
+01516            0001    A        IFNE   ADDPRC
+01517P 040F 35   02      A        PULS   A        Restore extra byte of arg variable.
+01518P 0411 A7   04      A        STA    &4,X
+01519                             ENDC   IFN      ADDPRC
+01520P 0413 9D   A5      A        JSR    CHRGOT   Make sure the function definition is
+01521P 0415 1026 FBE7    A        LBNE   SNERR    Properly terminated.  (Can't make this
+01522                      *    check during definition time since
+01523                      *    it is then not known where the end of
+01524                      *    the expression is.)
+01525P 0419 109F A6      A        STY    TXTPTR   Restore caller's TXTPTR.
+01526P 041C 39             DEFRTS RTS
+01527
+01528                             TTL    USR Function Code.
+01529
+01530                      *
+01531                      * Here when DEF sees a USR token.
+01532                      *
+01533
+01534P 041D 9D   9F      A DEFUSR JSR    CHRGET   Skip the first byte of the function
+01535                      *    token.
+01536P 041F 9D   9F      A        JSR    CHRGET
+01537P 0421 8D   07   042A        BSR    SCNUSR   X:=address of USRTAB entry.
+01538P 0423 34   10      A        PSHS   X        Save it.
+01539P 0425 8D   2B   0452        BSR    EQUADR   Skip equals sign, X:=address.
+01540P 0427 AF   F1      A        STX    [,S++]   return.
+01541P 0429 39                    RTS
+01542
+01543
+01544                      *
+01545                      * Scan USR function number and return a pointer to the specified
+01546                      * USRTAB entry in X.
+01547                      *
+01548
+01549P 042A 5F             SCNUSR CLRB            Assume no function number specified.
+01550                      *    The default is USR0.
+01551P 042B 9D   A5      A        JSR     CHRGOT  USR token ALREADY SKIPPED.
+01552P 042D 24   06   0435        BCC     ISUSR0  No digit, default to USR0.
+01553P 042F 80   30      A        SUBA    #'0     Get rid of ASCII offset and put the
+01554P 0431 1F   89      A        TFR     A,B     function number into B.
+01555P 0433 9D   97      A        JSR     CHRGET  Skip the digit.
+01556P 0435 9E   B0      A ISUSR0 LDX     USTBAD  X:=pointer to USRTAB.
+01557P 0437 58                    ASLB            USRTAB entries are two bytes each.
+01558P 0438 3A                    ABX             X:=pointer to specified entry and
+01559P 0439 39                    RTS             return.
+01560
+01561
+01562                      *
+01563                      * Here when USR token is seen by the EVAL chain.
+01564                      *
+01565
+01566                             XDEF   USRFN
+01567P 043A 8D   EE   042A USRFN  BSR    SCNUSR   X:=pointer to USRTAB entry.
+01568P 043C AE   84      A        LDX    ,X       Save the address of the USR function.
+01569P 043E 34   10      A        PSHS   X
+01570P 0440 BD   0000    A        JSR    PARCHK   Evaluate formula enclosed in parens.
+
