@@ -1,72 +1,29 @@
-                  (
+PAGE  017  ECBEXT  .SA:1  EXTEND TIME and TIMES
 
-
-                          PAGE   017  ECBEXT   .SA1   EXTEND TIME and TIMES
-
-                          01773 
-                          01774                         * XRSLWC  is the clock  interrupt  routine.   It is invoked  by
-                          01775                         * an IRO. every 60th of a second.
-                          01776
-              nn          01777                         * Note that TICKER is off the direct    page.   If it were on the   direct
-                          01778                         * page it would be necessary to either set the DP register or
-                          01779                         * force extended addressing to be used
-                          01780
-                          01781
-                          01782                                XDEF    XRSLWO
-                          0178P   045A 86    0000     A XRSLWC LIDA    PIA0BC    Is the slow clock   interrupt  flag set?
-                          01784P  045D 28    01   0460         BM'     DUTIMR    Yes.
-                          01785P  045F 38                      RTI               No, return from the interrupt.
-                          01786
-                          01787P  0460 B6    0000     A DOTIMR LDA     PIAOBD    Clear the interrupt   request.
-                          01788                                XDEF    XRT1MR
-                          01789              0463     P XRTIMR EQU               The disk RUM comes here when it
-                          01790                              is  finished with the timer   IRCD.
-                          01791              0000     A        IFNE    TODCLK
-                          01804                          ENDO    IFN TODCLK
-                          01805              0000     A        IFEQ    TODOLK
-                          01806P  0453 BE    0000     A        LDX     TICKER    Increment the two byte tick count.
-                          01807P  0466 30    01       A        LEAX    1(1,X
-                          01808P  0468 BF    0000     A        STX     TICKER
-                          01809                                ENDC    IFS       TODCLK
-                          01810P  0468 7E    0000     A GOPLYC iMP     PLYCLK    so handle the special timer for
-                          01811                              the PLAY statement.
-                                                                                                                                                                          Ill!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+44[0]20E3971
-
-     For Your Nec e.,
-
+01773                      *
+01774                      * XRSLWC is the clock interrupt routine.  It is invoked by
+01775                      * an IRQ every 60th of a second.
+01776                      *
+01777                      * Note that TICKER is off the direct page.  If it were on the direct
+01778                      * page it would be necessary to either set the DP register or
+01779                      * force extended addressing to be used.
+01780                      *
+01781
+01782                             XDEF   XRSLWC
+01783P  045A B6  0000    A XRSLWC LDA    PIA0BC   Is the slow clock interrupt flag set?
+01784P  045D 2B  01   0460        BMI    DOTIMR   Yes.
+01785P  045F 3B                   RTI             No, return from the interrupt.
+01786
+01787P  0460 B6  0000    A DOTIMR LDA    PIA0BD   Clear the interrupt request.
+01788                             XDEF   XRTIMR
+01789            0463    P XRTIMR EQU    *        The disk ROM comes here when it
+01790                      *    is finished with the timer IRQ.
+01791            0000    A        IFNE    TODCLK
+01804                       ENDC    IFN TODCLK
+01805            0000    A        IFEQ    TODCLK
+01806P  0463 BE  0000    A        LDX     TICKER  Increment the two byte tick count.
+01807P  0466 30  01      A        LEAX    &1,X
+01808P  0468 BF  0000    A        STX     TICKER
+01809                             ENDC    IFE     TODCLK
+01810P  046B 7E  0000    A GOPLYC JMP     PLYCLK  Go handle the special timer for
+01811                      *    the PLAY statement.

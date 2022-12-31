@@ -889,3 +889,30 @@ EQUADR SYNCHK EQULTK   Skip the equals sign.
 
        IFNE   TODCLK
  ENDC   IFN TODCLK
+*
+* XRSLWC is the clock interrupt routine.  It is invoked by
+* an IRQ every 60th of a second.
+*
+* Note that TICKER is off the direct page.  If it were on the direct
+* page it would be necessary to either set the DP register or
+* force extended addressing to be used.
+*
+
+       XDEF   XRSLWC
+XRSLWC LDA    PIA0BC   Is the slow clock interrupt flag set?
+       BMI    DOTIMR   Yes.
+       RTI             No, return from the interrupt.
+
+DOTIMR LDA    PIA0BD   Clear the interrupt request.
+       XDEF   XRTIMR
+XRTIMR EQU    *        The disk ROM comes here when it
+*    is finished with the timer IRQ.
+       IFNE    TODCLK
+ ENDC    IFN TODCLK
+       IFEQ    TODCLK
+       LDX     TICKER  Increment the two byte tick count.
+       LEAX    &1,X
+       STX     TICKER
+       ENDC    IFE     TODCLK
+GOPLYC JMP     PLYCLK  Go handle the special timer for
+*    the PLAY statement.
