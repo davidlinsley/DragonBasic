@@ -916,3 +916,62 @@ XRTIMR EQU    *        The disk ROM comes here when it
        ENDC    IFE     TODCLK
 GOPLYC JMP     PLYCLK  Go handle the special timer for
 *    the PLAY statement.
+
+       TTL    TIMER
+
+       IFEQ   TODCLK
+
+*
+* Here to set the timer via TIMER=tick count.
+* 0 .LE. tick count .LE. 65535.
+*
+
+       XDEF   TIMSET
+TIMSET JSR    CHRGET     Skip the second byte of the function
+*    token.
+       BSR    EQUADR   Skip equals sign, X:=tick count.
+       STX    TICKER   Put it into the timer and return.
+       RTS
+
+
+*
+* Here to return the tick count for the TIMER function.
+*
+
+       XDEF   TIMER
+TIMER  LDX    TICKER   Get the tick count.
+       STX    FACMO    Float it and return.
+       JMP    CONS16
+       ENDC   IFE      TODCLK
+
+       TTL    The DELETE Command
+
+       XDEF   DELETE
+DELETE LBEQ   FCERR    At least one line number must be
+*    specified.
+       JSR    LINGET   Read the first line number.
+*    (Returns 0 if dash is first  thing.)
+       JSR    FNDLIN   Get and save a pointer to the first
+       STX    FSTPTR   line to be deleted.
+       JSR    CHRGOT   See what the terminator is.
+       BEQ    DELSRC   End of statement, delete only the
+*    specified line if it exists.
+       CMPA   #MINUTK  It must be a dash.
+       BNE    DELSNR   Return to NEWSTT to give SN error
+*    if not  dash.
+       JSR    CHRGET   Skip over the dash.
+       BEQ    DTOEND   End of statement, delete to the end
+*    of the program.
+       BSR    LINTRM   Read the final line number into
+*    LINNUM and check for a terminator.
+       BRA    DELSRC   Go find the first line in the range.
+
+DTOEND LDA    #&255    Set LINNUM so higher than any
+       STA    LINNUM   program line number.  (Don't care
+*    about low order byte since 255*256
+*    is 65280 and the highest program
+*    line number allowed is 63999.)
+DELSRC LDU    FSTPTR   Search for the first line outside
+       SKIP2  the      range of lines to be deleted.
+DELSLP LDU    ,U       Link to the next line.
+       LDD    ,U       Is the link zero?

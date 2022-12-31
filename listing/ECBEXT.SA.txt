@@ -968,3 +968,64 @@ PAGE  017  ECBEXT  .SA:1  EXTEND TIME and TIMES
 01810P  046B 7E  0000    A GOPLYC JMP     PLYCLK  Go handle the special timer for
 01811                      *    the PLAY statement.
 
+PAGE  018  ECBEXT  .SA:1  EXTEND TIME and TIME$
+
+01813                             TTL    TIMER
+01814
+01815            0000    A        IFEQ   TODCLK
+01816
+01817                      *
+01816                      * Here to set the timer via TIMER=tick count.
+01819                      * 0 .LE. tick count .LE. 65535.
+01820                      *
+01821
+01822                             XDEF   TIMSET
+01823P 046E 9D   9F      A TIMSET JSR    CHRGET     Skip the second byte of the function
+01824                      *    token.
+01825P 0470 8D   E0   0452        BSR    EQUADR   Skip equals sign, X:=tick count.
+01826P 0472 BF   0000    A        STX    TICKER   Put it into the timer and return.
+01827P 0475 39                    RTS
+01828
+01829
+01830                      *
+01831                      * Here to return the tick count for the TIMER function.
+01832                      *
+01833
+01834                             XDEF   TIMER
+01835P 0476 BE   0000    A TIMER  LDX    TICKER   Get the tick count.
+01836P 0479 9F   52      A        STX    FACMO    Float it and return.
+01837P 047B 7E   035B    P        JMP    CONS16
+01838                             ENDC   IFE      TODCLK
+01839
+01840                             TTL    The DELETE Command
+01841
+01842                             XDEF   DELETE
+01843P 047E 1027 FB7E    A DELETE LBEQ   FCERR    At least one line number must be
+01844                      *    specified.
+01845P 0482 BD   0000    A        JSR    LINGET   Read the first line number.
+01846                      *    (Returns 0 if dash is first  thing.)
+01847P 0485 BD   0000    A        JSR    FNDLIN   Get and save a pointer to the first
+01848P 0488 9F   D3      A        STX    FSTPTR   line to be deleted.
+01849P 048A 9D   A5      A        JSR    CHRGOT   See what the terminator is.
+01850P 048C 27   10   049E        BEQ    DELSRC   End of statement, delete only the
+01851                      *    specified line if it exists.
+01852P 048E 81   00      A        CMPA   #MINUTK  It must be a dash.
+01853P 0490 26   3B   04CD        BNE    DELSNR   Return to NEWSTT to give SN error
+01854                      *    if not  dash.
+01855P 0492 9D   9F      A        JSR    CHRGET   Skip over the dash.
+01856P 0494 27   04   049A        BEQ    DTOEND   End of statement, delete to the end
+01857                      *    of the program.
+01858P 0496 8D   24   04BC        BSR    LINTRM   Read the final line number into
+01859                      *    LINNUM and check for a terminator.
+01860P 0498 20   04   049E        BRA    DELSRC   Go find the first line in the range.
+01861
+01862P 049A 86   FF      A DTOEND LDA    #&255    Set LINNUM so higher than any
+01563P 049C 97   2B      A        STA    LINNUM   program line number.  (Don't care
+01864                      *    about low order byte since 255*256
+01865                      *    is 65280 and the highest program
+01866                      *    line number allowed is 63999.)
+01867P 049E DE   D3      A DELSRC LDU    FSTPTR   Search for the first line outside
+01868P 04A0                       SKIP2  the      range of lines to be deleted.
+01869P 04A1 EE   C4      A DELSLP LDU    ,U       Link to the next line.
+01870P 04A3 EC   C4      A        LDD    ,U       Is the link zero?
+
