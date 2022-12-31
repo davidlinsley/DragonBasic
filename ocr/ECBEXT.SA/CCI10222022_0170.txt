@@ -1,113 +1,60 @@
-                                PAGE 0'7'1 ECBEXT .SA:1 EXTEND RENUM - Renumber a BASIC program
-                       4, 
+PAGE  021  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 
-                                01991                                *   Modifier for low byte
-
-                                01992                                *  If the modifier byte is one then the associated line number
-                                                                                                                                                                                                                      •
-                                01993                                *  byte contains a true value between 1 and 255. If the modifier
-
-                                01994                                *  byte is two then the associated line number byte contains
-
-                                01995                                *  one but its actual value is zero. The reason for doing
-                                                                                                                                                                                                                      •
-                                01996                                *  this is to allow the use of CHEAD to fix up the links
-
-                                01997                                *  after step 3 is finished. CHEAT) assumes that
-
-                                01996                                *  a zero marks the end of a BASIC program line,
-                                                                                                                                                                                                                      40
-                                01999                                *  Note that the binary line number token is 5 bytes long.
-
-                                02000                                *  It may therefore be necessary to block transfer the program
-
-                                02001                                *  up to make room for the token since the ASCII line number
-                                                                                                                                                                                                                      •
-                                02002                                *  may be as small as one character. It is this block
-
-                                02003                                *  transferring that destroys the program links.
-
-                                02004                                *  note that BLTU is called to do the block transferring,
-                       40       02005                                *  Therefore an "Out of Memory" error could occur. If this
-
-                         I|(| 02006                                  *  does haopen the program is left in a totally useless state
-
-                                02007                                *  if any binary line number tokens have been inserted.
-                       40       02008                                *  This case isn't too likely but my apologies in advance to
-
-                                02009                                *  anyone who falls victim to it
-
-                                02010
-                       40       02011                                *  If a line number is longer than 5 characters due to                                                                                           •
-
-                                02012                                *  leading zeroes and/or embedded spaces, the rest of the
-
-                                02013                                *  program is block transferrred down to take up the space.
-                                                                                                                                                                                                                      •
-                                02014
-
-                                02015                                *  4) fix up the links by calling CHEAD. The links were
-
-                                02016                                *  probabiv destroyed by step 3 and they are needed in step 4
-                                                                                                                                                                                                                      •
-                                02017                                *  for calls to FNDLIN.
-
-                                02018
-
-                                02019                                *  5) Scan the program looking for the modified binary line number
-                                                                                                                                                                                                                      •
-                                02020                                *  tokens created in step 3. When one is found call FNDLIN to
-
-                                02021                                *  get a pointer to the link field of the BASIC program line
-
-                                02022                                *  being referenced. If the line is found convert the binary
-
-                                02023                                *  line number token into a line pointer token which has the
-
-                         PH 02024                                    *  following format:
-
-                                02025                                *   2
-
-                                02026                                *   Link pointer high byte
-
-                                02027                                *   Link pointer low byte
-
-                                02028                                *   Unused
-                                                                                                                                                                                                                      •
-                                02029                                *   Unused
-
-                                02030                                *  If the line is not found the binary line number token is
-
-                                02031                                *  converted into an undefined line reference token which
-                                                                                                                                                                                                                      •
-                                02032                                *  has the following format:
-
-                                02033
-
-                                02034                                *   Binary line number high byte
-                                                                                                                                                                                                                      el
-"Progression" - it's a          02035                                *   Binary line number low byte
-movement. The latest            02036                                *   Unused
-family of power ampl            02037                                *   Unused
-lifetime spent in the r         02038                                *  At this point it doesn't matter if there are zeroes in
-
-components that alw             02039                                *  these 5 byte entries because °HEAD won't be called again
-
-always respect the de           02040                                *  until the renumber process is finished at which time all
-convey realism from ti 4D       02041                                *  of the tokens created by RENUM will be done.
-
-111c most thunderous     '1,11  02042
-
-    nt allowed to affe          02043                                *  6) Assign the new line numbers to the portion of the program
-                       40       02044                                *  being renumbered.
-
-                                02045
-
-                                02046                                *  7) Scan the program converting line :pointer tokens to binary
-                       40       02047                                *  line number tokens. The format of a lonary line number token                                                                                  •
-
-                                02048                                *  is as follows:
-
-
-                       •                                                                                                                                                                                              •
-
+01991                      *  Modifier for low byte
+01992                      * If the modifier byte is one then the associated line number
+01993                      * byte contains a true value between 1 and 255.  If the modifier
+01994                      * byte is two then the associated line number byte contains
+01995                      * one but its actual value is zero.  The reason for doing
+01996                      * this is to allow the use of CHEAD to fix up the links
+01997                      * after step 3 is finished.  CHEAD assumes that
+01996                      * a zero marks the end of a BASIC program line.
+01999                      * Note that the binary line number token is 5 bytes long.
+02000                      * It may therefore be necessary to block transfer the program
+02001                      * up to make room for the token since the ASCII line number
+02002                      * may be as small as one character.  It is this block
+02003                      * transferring that destroys the program links.
+02004                      * note that BLTU is called to do the block transferring.
+02005                      * Therefore an "Out of Memory" error could occur.  If this
+02006                      * does happen the program is left in a totally useless state
+02007                      * if any binary line number tokens have been inserted.
+02008                      * This case isn't too likely but my apologies in advance to
+02009                      * anyone who falls victim to it.
+02010                      *
+02011                      * If a line number is longer than 5 characters due to
+02012                      * leading zeroes and/or embedded spaces, the rest of the
+02013                      * program is block transferrred down to take up the space.
+02014                      *
+02015                      * 4) fix up the links by calling CHEAD. The links were
+02016                      * probably destroyed by step 3 and they are needed in step 4
+02017                      * for calls to FNDLIN.
+02018                      *
+02019                      * 5) Scan the program looking for the modified binary line number
+02020                      * tokens created in step 3. When one is found call FNDLIN to
+02021                      * get a pointer to the link field of the BASIC program line
+02022                      * being referenced.  If the line is found convert the binary
+02023                      * line number token into a line pointer token which has the
+02024                      * following format:
+02025                      *  2
+02026                      *  Link pointer high byte
+02027                      *  Link pointer low byte
+02028                      *  Unused
+02029                      *  Unused
+02030                      * If the line is not found the binary line number token is
+02031                      * converted into an undefined line reference token which
+02032                      * has the following format:
+02033                      *  3
+02034                      *  Binary line number high byte
+02035                      *  Binary line number low byte
+02036                      *  Unused
+02037                      *  Unused
+02038                      * At this point it doesn't matter if there are zeroes in
+02039                      * these 5 byte entries because CHEAD won't be called again
+02040                      * until the renumber process is finished at which time all
+02041                      * of the tokens created by RENUM will be done.
+02042                      *
+02043                      * 6) Assign the new line numbers to the portion of the program
+02044                      * being renumbered.
+02045                      *
+02046                      * 7) Scan the program converting line pointer tokens to binary
+02047                      * line number tokens.  The format of a lonary line number token
+02048                      * is as follows:

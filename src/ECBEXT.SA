@@ -1091,3 +1091,61 @@ NOPRM  LEAS   -&2,S    Put the stack at the correct level
 *  High byte of binary line number
 *  Modifier for high byte
 *  Low byte of binary line number
+*  Modifier for low byte
+* If the modifier byte is one then the associated line number
+* byte contains a true value between 1 and 255.  If the modifier
+* byte is two then the associated line number byte contains
+* one but its actual value is zero.  The reason for doing
+* this is to allow the use of CHEAD to fix up the links
+* after step 3 is finished.  CHEAD assumes that
+* a zero marks the end of a BASIC program line.
+* Note that the binary line number token is 5 bytes long.
+* It may therefore be necessary to block transfer the program
+* up to make room for the token since the ASCII line number
+* may be as small as one character.  It is this block
+* transferring that destroys the program links.
+* note that BLTU is called to do the block transferring.
+* Therefore an "Out of Memory" error could occur.  If this
+* does happen the program is left in a totally useless state
+* if any binary line number tokens have been inserted.
+* This case isn't too likely but my apologies in advance to
+* anyone who falls victim to it.
+*
+* If a line number is longer than 5 characters due to
+* leading zeroes and/or embedded spaces, the rest of the
+* program is block transferrred down to take up the space.
+*
+* 4) fix up the links by calling CHEAD. The links were
+* probably destroyed by step 3 and they are needed in step 4
+* for calls to FNDLIN.
+*
+* 5) Scan the program looking for the modified binary line number
+* tokens created in step 3. When one is found call FNDLIN to
+* get a pointer to the link field of the BASIC program line
+* being referenced.  If the line is found convert the binary
+* line number token into a line pointer token which has the
+* following format:
+*  2
+*  Link pointer high byte
+*  Link pointer low byte
+*  Unused
+*  Unused
+* If the line is not found the binary line number token is
+* converted into an undefined line reference token which
+* has the following format:
+*  3
+*  Binary line number high byte
+*  Binary line number low byte
+*  Unused
+*  Unused
+* At this point it doesn't matter if there are zeroes in
+* these 5 byte entries because CHEAD won't be called again
+* until the renumber process is finished at which time all
+* of the tokens created by RENUM will be done.
+*
+* 6) Assign the new line numbers to the portion of the program
+* being renumbered.
+*
+* 7) Scan the program converting line pointer tokens to binary
+* line number tokens.  The format of a lonary line number token
+* is as follows:
