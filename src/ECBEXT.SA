@@ -1363,3 +1363,62 @@ BINPTR CLR    ,X       TOKEN TYPE BYTE:=0 AND CARRY:=0
        LDX    &2,X     TO BY THE LINE POINTER TOKEN.
        STX    LOWTR
        BRA    PTRB20
+
+*
+* CONVERT LINE NUMBER REFERENCES FROM ASCII TO MODIFIED BINARY
+* LINE NUMBER TOKENS.  THE FOLLOWING REFERENCES ARE HANDLED:
+*
+* THEN
+* ELSE
+* GOTO
+* GOSUB
+*
+
+BINASC LDX    TXTTAB   POINT TO THE START OF THE PROGRAM.
+       BRA    BIN020
+BIN010 LDX    TXTPTR   X:=POINTER TO THE FIRST LINK BYTE.
+       LEAX   &1,X
+BIN020 BSR    CHKLNK   QUIT IF THE LINK IS ZERO.
+       LEAX   &2,X     Skip the link and line number.
+BIN025 LEAX   &1,X
+BIN030 STX    TXTPTR   SET UP TO DO "CHRGET"'S.
+BIN040 JSR    CHRGET   GET NEXT CHAR, SKIP SPACES.
+BIN050 TSTA            END OF LINE?
+       BEQ    BIN010   YES, PROCEED TO NEXT LINE.
+       BPL    BIN040   NOT A TOKEN SO SKIP IT.
+       LDX    TXTPTR   SAVE "TXTPTR" SINCE WE MAY HAVE TO
+*    LOOK AHEAD AND WILL WANT TO RESTORE
+*    "TXTPTR" IF WE DON'T SEE WHAT WE
+*    ARE LOOKING AHEAD FOR.
+       CMPA   #@377    Is it the first byte of a function
+*    token?
+       BEQ    BIN025   Yes, skip it and the second byte since
+*    the second byte might look like one
+*    of the nonfunction tokens we are
+*    looking for.
+       JSR    HKRENM   RAM hook to handle new reserved
+*    words.
+       CMPA   #THENTK  THEN?
+       BEQ    BIN070   Yes, go look for a line number.
+       CMPA   #ELSETK  ELSE?
+       BEQ    BIN070   Yes, go look for a line number.
+       CMPA   #GOTK    GO?
+       BNE    BIN040   No, nothing special so just skip it.
+       JSR    CHRGET   Yes, read the next byte.
+       CMPA   #TOTK    TO token must follow for GOTO.
+       BEQ    BIN070   Go handle the line number(s).
+       CMPA   #SUBTK   Could also be GOSUB.
+       BNE    BIN030   Neither, go scan the char after the
+*    GO token.
+
+*
+* READ A LINE NUMBER.
+*
+
+BIN070 JSR    CHRGET   READ FIRST CHAR.
+BIN080 BCS    BIN100   IT'S A DIGIT SO READ A LINE NUMBER.
+*    IF NOT DIGIT THEN SCAN THIS CHAR.
+BIN090 JSR    CHRGOT   REGET CURRENT CHAR AND GO scan it
+       BRA    BIN050
+
+BIN100 LDX    TXTPTR   Remeber where tne number started.
