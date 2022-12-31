@@ -1,83 +1,35 @@
-          PAGE     025     E CBE X T   .SAgl      '.;,EXTEND RENUM - Renumber a BASIC program
-•
+PAGE  025  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 
-          02152                                    *
-          02153                                    *  GENERATE THE NEW LINE NUMBERS.                   ENTER PT "a-iKNMS" TO JUST CHECK
-          02154                                    *  THE NEW NUM:KERS.           ENTER AT "PuTNMS" TO ACTUALLY ASSIGN THE NEW
-   iiH    02155
-          02156                                    *
-          02157P     0575           86             CHKNMS FOB            @206         GET NON-ZERO CA3 TO SET "CHKPAS".
-          02158P     0576   4F                     PUTNMS OLRA                        PREPARE TO CLEAR "CHKPAS".
-          02159P     0577   97      D8                        STA        CHKPAS       SET OR CLEAR THE FLAG.
-          0260P      0579   9E      D3                        LDX        FSTPTR       X:=POINTER        :0 LINK FIELD OF FIRST                                                                                        •
-          02161                                    *       LINE TO     BE RENUmBERED.
-          02162P     0578   DC      D5          A             LDD        NEWNUM       Dt.=FIRST NEW LINE NUMBER.
-          02163P     057D   8D      15      0594              BSR        CHKLNK       RETURN TO CALLER               THE LINK IS
-          02164                                            ZERO    (END OF PROGRAM).
-          02165P     057F   On      D6             NXTNUM TST            CHKPAS       ARE WE JUST CHECKING THE NUMBERS?
-          02166P     0581   26      02      0565              BNE        NOPTNM       YES.
-          02167P     0583   ED      02          A             STD        &2,X         NO,   STORE THE NEW LINE NUMBER.
-          02168P     0585   AE      84          A  NOPTNM LOX            ,X           LINK TO THE NEXT LINE.
-          02169P     0587   8D      OB      0594              BSR        CHKLNK       CHECK FOR END &::" PROGRAM AND DUN'T
-          02170                                            COME BACK HERE IF          IT   IS.
-          02171P     0589   D3      0F          A             ADDD       RENINC       GENERATE THE NEXT NEW LINE NUMBFR.
-          02172P     0588   25      04      0591              RCS        RNFCER       WAY TOO BIG!
-   0'     02173P     058D   81      FA          A             CmPA       t4/1250      IS IT GREATER THAN 63999?
-          02174P     058F   25      EE                        BLO        NXTNUm       NO,   IT   IS OK.
-          02175P     0591   7E      0000        A  RNFCER JMP            FCERR        GIVE "FuNCTION CALL" ERROR.
-          02176
-          02177P     0594   34      06          A  CHRLNK PSHS           D            PRESERVE D.
-          02178P     0596   EC      84          A             LDD        ,X           IS THE LINK ZERO?                                                                                                               •
-          02179P     0598   35      06          A             PULS       D             (RETRIEVE D.)
-          02180P     059A   26      02      059E              BNF        CHKLRT       NO,   RETURN TO CALLER.
-          02181P     0590           62          A             LEAS       &2,S         YES,    END (••••  PROGRAM HAS BEEN REACHED.
-          02182                                            POP OFF     CALLER'S      RETURN ADDRESS AND
-          02183                                            RETURN THE CALLER'S CALLER.
-          02184P     059E   39                     CHKLRT RTS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                                      •
-
-
-
-
-
-
-
-
-
-
-
-
-
-(
-
-
-
-
-
-                                                                                                                                                                                                                  ftl
-
-
-                                                                                                                                                                                                                      0
-
-
-
-(
-
+02152                      *
+02153                      * GENERATE THE NEW LINE NUMBERS.  ENTER AT "CHKNMS" TO JUST CHECK
+02154                      * THE NEW NUMBERS.  ENTER AT "PUTNMS" TO ACTUALLY ASSIGN THE NEW
+02155                      * NUMBERS.
+02156                      *
+02157P 0575      86      A CHKNMS FCB    @206     GET NON-ZERO [A] TO SET "CHKPAS".
+02158P 0576  4F            PUTNMS CLRA            PREPARE TO CLEAR "CHKPAS".
+02159P 0577  97  D8      A        STA    CHKPAS   SET OR CLEAR THE FLAG.
+0260P  0579  9E  D3      A        LDX    FSTPTR   X:=POINTER TO LINK FIELD OF FIRST
+02161                      *    LINE TO BE RENUMBERED.
+02162P 057B  DC  D5      A        LDD    NEWNUM   D:=FIRST NEW LINE NUMBER.
+02163P 057D  8D  15   0594        BSR    CHKLNK   RETURN TO CALLER THE LINK IS
+02164                      *    ZERO (END OF PROGRAM).
+02165P 057F  0D  D8      A NXTNUM TST    CHKPAS   ARE WE JUST CHECKING THE NUMBERS?
+02166P 0581  26  02   0585        BNE    NOPTNM   YES.
+02167P 0583  ED  02      A        STD    &2,X     NO, STORE THE NEW LINE NUMBER.
+02168P 0585  AE  84      A NOPTNM LDX    ,X       LINK TO THE NEXT LINE.
+02169P 0587  8D  0B   0594        BSR    CHKLNK   CHECK FOR END OF PROGRAM AND DON'T
+02170                      *    COME BACK HERE IF IT IS.
+02171P 0589  D3  CF      A        ADDD   RENINC   GENERATE THE NEXT NEW LINE NUMBER.
+02172P 058B  25  04   0591        BCS    RNFCER   WAY TOO BIG!
+02173P 058D  81  FA      A        CMPA   #&250    IS IT GREATER THAN 63999?
+02174P 058F  25  EE   057F        BLO    NXTNUM   NO, IT IS OK.
+02175P 0591  7E  0000    A RNFCER JMP    FCERR    GIVE "FUNCTION CALL" ERROR.
+02176
+02177P 0594  34  06      A CHKLNK PSHS   D        PRESERVE D.
+02178P 0596  EC  84      A        LDD    ,X       IS THE LINK ZERO?
+02179P 0598  35  06      A        PULS   D        (RETRIEVE D.)
+02180P 059A  26  02   059E        BNE    CHKLRT   NO, RETURN TO CALLER.
+02181P 059C  32  62      A        LEAS   &2,S     YES, END OF PROGRAM HAS BEEN REACHED.
+02182                      *    POP OFF CALLER'S RETURN ADDRESS AND
+02183                      *    RETURN THE CALLER'S CALLER.
+02184P 059E  39            CHKLRT RTS
