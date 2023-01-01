@@ -1610,3 +1610,7 @@ HEX$50 PULS   B        Get the digit count.
        DECB            More digits to look at?
        BNE    HEX$10   Yes, go do the next one.
        LEAS   &2,S     No, get rid of the CHKNUM return.
+       LDX    #LOFBUF-&1 Go build a string result and
+       JMP    STRLTI   return.
+
+       END

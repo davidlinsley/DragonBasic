@@ -1705,3 +1705,12 @@ PAGE  033  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 02511P 075B 5A                    DECB            More digits to look at?
 02512P 075C 26   D5   0733        BNE    HEX$10   Yes, go do the next one.
 02513P 075E 32   62      A        LEAS   &2,S     No, get rid of the CHKNUM return.
+
+PAGE  034  ECBEXT  .SA:1  EXTEND The HEX$ function.
+
+02514P 0760 8E   FFFF    A        LDX    #LOFBUF-&1 Go build a string result and
+02515P 0763 7E   0000    A        JMP    STRLTI   return.
+02516
+02517                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00001--01456
