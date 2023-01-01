@@ -59,3 +59,64 @@ PAGE  001  ECBCOM  .SA:0  TXRGRP Extension ROM Direct Page RAM
 00756                      *  3 128X192  C   SCWID=32 ASPECT=2 MEM=6K
 00757                      *  4 256X192  BW  SCWID=32 ASPECT=1 MEM=6K
 
+PAGE  002  ECBGRP  .SA:1  TXRGRP GRAPHICS CODE PSET,PRESET,LINE,PUT,GET,PPOINT
+
+00758                      * SCWID GIVING SCREEN WIDTH (16 OR 32)
+00759                      * XSTORE IS THE 2 BYTE X VALUE
+00760                      * YSTORE IS THE 2 BYTE Y VALUE
+00761                      *
+00762P 0000 CE   000D    P PTADRS LDU    #PTADRG  POINT AT ADDRESS TABLE
+00763P 0003 96   B6      A        LDA    SCMODE   GET THE SCREEN MODE
+00764P 0005 48                    ASLA            CONSTRUCT A TABLE INDEX
+00765P 0006 EE   C6      A        LDU    A,U
+00766P 0008 39             FTRTS  RTS
+00767P 0009 8D   F5   0000 GENADR BSR    PTADRS   GET ADDRESS IN [U]
+00768P 000B 6E   C4      A        JMP    ,U
+00769
+00770P 000D      0017    P PTADRG FDB    GPUTMB
+00771P 000F      0033    P        FDB    GPUTMC
+00772P 0011      0017    P        FDB    GPUTMB
+00773P 0013      0033    P        FDB    GPUTMC
+00774P 0015      0017    P        FDB    GPUTMB
+00775
+00776                      *
+00777                      * IN BLACK AND WHITE MODE WE SELECT THE ADDRESS AS FOLLOWS:
+00778                      *  [X] = SCBASE + Y*SCWID + INT (X/8)
+00779                      *  [A] = 2 ^ ( 7 - ( X MOD 8 ) )
+00780                      *
+00781P 0017 34   44      A GPUTMB PSHS   B,U
+00782P 0019 D6   B9      A        LDB    SCWID    GET BYTE SIZE OF EACH ROW
+00783P 001B 96   C0      A        LDA    YLOW     GET ROW COUNTER
+00784P 001D 3D                    MUL             MULTIPLY
+00785P 001E D3   BA      A        ADDD   SCBASE   TURN INTO MEMORY SCREEN POINTER
+00786P 0020 1F   01      A        TFR    D,X      SAVE CURRENT SUM IN [X]
+00787P 0022 D6   BE      A        LDB    XLOW     LOOK AT X
+00788P 0024 54                    LSRB            DIVIDED BY 8
+00789P 0025 54                    LSRB
+00790P 0026 54                    LSRB
+00791P 0027 3A                    ABX             ADD ONTO SUM
+00792P 0028 96   BE      A        LDA    XLOW     LOOK AT X AGAIN TO GET BIT MASK
+00793P 002A 84   07      A        ANDA   #&7      LOW THREE BITS ARE AN INDEX
+00794P 002C CE   004E    P        LDU    #BITTB1  INTO A POWER OF 2 TABLE
+00795P 002F A6   C6      A        LDA    A,U      FETCH BIT MASK FROM TABLE
+00796P 0031 35   C4      A        PULS   U,B,PC
+00797                      *
+00798                      * GRAPHICS ADDRESS SELECT IN COLOR MODE WORKS AS FOLLOWS:
+00799                      *  [X] = SCBASE + Y*SCWID + INT (X/4)
+00800                      *  [A] = 3 * ( 4 ^ ( 3 - ( X MOD 4 ) ) )
+00801                      * SO BIT MASK HAS 2 BITS IN [A] AND ADDRESS IS IN [X]
+00802                      *
+00803P 0033 34   44      A GPUTMC PSHS   B,U
+00804P 0035 D6   B9      A        LDB    SCWID    GET BYTE SIZE OF EACH ROW
+00805P 0037 96   C0      A        LDA    YLOW     GET ROW COUNTER
+00806P 0039 3D                    MUL             MULTIPLY
+00807P 003A D3   BA      A        ADDD   SCBASE   TURN INTO MEMORY SCREEN POINTER
+00808P 003C 1F   01      A        TFR    D,X      SAVE CURRENT SUM IN [X]
+00809P 003E D6   BE      A        LDB    XLOW     LOOK AT X
+00810P 0040 54                    LSRB            DIVIDED BY 4
+00811P 0041 54                    LSRB
+00812P 0042 3A                    ABX             ADD ON BYTE OFFSET FROM ROW
+00813P 0043 96   BE      A        LDA    XLOW     GET BACK X COUNT TO CONSTRUCT
+00814P 0045 84   03      A        ANDA   #&3      BIT MASK
+00815P 0047 CE   0056    A        LDU    #BITTB2  USE AS INDEX INTO BIT TABLE
+
