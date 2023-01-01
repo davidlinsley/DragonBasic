@@ -1483,3 +1483,62 @@ BIN140 STB    &3,X
        CMPA   #COMMA   IF SO LOOK FOR ANOTHER LINE NUMBER.
        BEQ    BIN070
        BRA    BIN090   NOPE, SCAN THIS CHAR.
+
+*
+* CONVERT BINARY LINE NUMBER AND UNDEFINED LINE REFERENCE TOKENS TO
+* ASCII LINE NUMBERS.  FOR UNDEFINED LINE REFERENCE TOKENS PRINT
+* AN ERROR MESSAGE.
+*
+
+ASCBIN LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
+       LEAX   -&1, X   Adjust for preinc.
+ASCBLN LEAX   &1,X     POINT TO THE START OF THE LINK.
+       LDD    &2,X     CURLIN:=LINE NUMBER SO IT CAN BE
+*    BE PRINTED BY "INPRT" IF WE SEE
+       STD    CURLIN   AN UNDEFINED LINE REFERENCE TOKEN.
+       JSR    CHKLNK   QUIT IF END OF PROGRAM.
+       LEAX   &3,X     SKIP OVER LINK AND LINE NUMBER.
+ASCBCH LEAX   &1,X     POINT TO NEXT BYTE OF LINE.
+ASCCHR LDA    ,X       PICK UP THE BYTE.
+       BEQ    ASCBLN   END OF LINE, DO NEXT LINE.
+       DECA            A BINARY LINE NUMBER TOKEN?
+       BEQ    ASCCNV   YES, CONVERT IT TO ASCII.
+       SUBA   #&2      NO, AN UNDEFINED LINE REFERENCE TOKEN?
+       BNE    ASCBCH   No, go scan the next char.
+
+       PSHS   X        Yes, save the pointer.
+       LDX    #UNDREF-&1 PRINT THE MESSAGE.
+       JSR    STROUT
+       LDX    ,S       Get the line number being referenced.
+       LDD    &1,X
+       JSR    LINPRT   PRINT IT.
+       JSR    INPRT    FOLLOW WITH WHERE IT OCCURRED.
+       JSR    CRDO     START A NEW LINE.
+       PULS   X        Get the pointer back.
+ASCCNV PSHS   X        Save the pointer.
+       LDD    &1,X     CONVERT THE LINE NUMBER TO A SINGLE
+       STD    FACMO    PRECISION NUMBER IN THE FAC.
+       JSR    CONS16
+       JSR    FOUT     CONVERT TO ASCII IN "FBUFFR".
+       PULS   U        U:=pointer to start of token.
+       LDB    #&5      COUNT HOW MANY CHARS WE TRANSFER.
+MOVASC LEAX   &1,X     Point to the next ASCII digit.  (First
+*    time through the loop this skips over
+*    the leading space put in by FOUT.)
+       LDA    ,X       Get the next ASCII digit.
+       BEQ    SQUISH   Zero marks end of line number.
+       DECB            NO, DECREMENT THE COUNT.
+       STA    ,U+      PUT ASCII DIGIT INTO PROGRAM.
+       BRA    MOVASC   SEE IF MORE TO MOVE.
+
+SQUISH LEAX   ,U       X:=pointer past ASCII line number.
+       TSTB            WAS THE ASCII 5 DIGITS LONG?
+       BEQ    ASCCHR   YES, IT FILLED THE SPACE FORMERLY
+*    USED BY THE TOKEN SO NO NEED TO
+*    TO BLOCK TRANSFER,  GO SCAN NEXT CHAR.
+       LEAY   ,U       Need to block transfer down since
+*    the line number didn't use the 5
+*    bytes the token was using.
+*    Remeber where to resume the scan.
+       LEAU   B,U      U:=source pointer.
+*    (X already contains the destination

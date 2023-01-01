@@ -1571,3 +1571,64 @@ PAGE  030  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 02384P 0685 27   9A   0621        BEQ    BIN070
 02385P 0687 20   9C   0625        BRA    BIN090   NOPE, SCAN THIS CHAR.
 
+PAGE  031  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02387                      *
+02388                      * CONVERT BINARY LINE NUMBER AND UNDEFINED LINE REFERENCE TOKENS TO
+02389                      * ASCII LINE NUMBERS.  FOR UNDEFINED LINE REFERENCE TOKENS PRINT
+02390                      * AN ERROR MESSAGE.
+02391                      *
+02392
+02393P 0689 9E   19      A ASCBIN LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
+02394P 068B 30   1F      A        LEAX   -&1, X   Adjust for preinc.
+02395P 068D 30   01      A ASCBLN LEAX   &1,X     POINT TO THE START OF THE LINK.
+02396P 068F EC   02      A        LDD    &2,X     CURLIN:=LINE NUMBER SO IT CAN BE
+02397                      *    BE PRINTED BY "INPRT" IF WE SEE
+02398P 0691 DD   68      A        STD    CURLIN   AN UNDEFINED LINE REFERENCE TOKEN.
+02399P 0693 BD   0594    P        JSR    CHKLNK   QUIT IF END OF PROGRAM.
+02400P 0696 30   03      A        LEAX   &3,X     SKIP OVER LINK AND LINE NUMBER.
+02401P 0698 30   01      A ASCBCH LEAX   &1,X     POINT TO NEXT BYTE OF LINE.
+02402P 069A A6   84      A ASCCHR LDA    ,X       PICK UP THE BYTE.
+02403P 069C 27   EF   068D        BEQ    ASCBLN   END OF LINE, DO NEXT LINE.
+02404P 069E 4A                    DECA            A BINARY LINE NUMBER TOKEN?
+02405P 069F 27   1B   06BC        BEQ    ASCCNV   YES, CONVERT IT TO ASCII.
+02406P 06A1 80   02      A        SUBA   #&2      NO, AN UNDEFINED LINE REFERENCE TOKEN?
+02407P 06A3 26   F3   0698        BNE    ASCBCH   No, go scan the next char.
+02408
+02409P 06A5 34   10      A        PSHS   X        Yes, save the pointer.
+02410P 06A7 8E   06E6    P        LDX    #UNDREF-&1 PRINT THE MESSAGE.
+02411P 06AA BD   0000    A        JSR    STROUT
+02412P 06AD AE   E4      A        LDX    ,S       Get the line number being referenced.
+02413P 06AF EC   01      A        LDD    &1,X
+02414P 06B1 BD   0000    A        JSR    LINPRT   PRINT IT.
+02415P 06B4 BD   0000    A        JSR    INPRT    FOLLOW WITH WHERE IT OCCURRED.
+02416P 06B7 BD   0000    A        JSR    CRDO     START A NEW LINE.
+02417P 06BA 35   10      A        PULS   X        Get the pointer back.
+02418P 06BC 34   10      A ASCCNV PSHS   X        Save the pointer.
+02419P 06BE EC   01      A        LDD    &1,X     CONVERT THE LINE NUMBER TO A SINGLE
+02420P 06C0 DD   52      A        STD    FACMO    PRECISION NUMBER IN THE FAC.
+02421P 06C2 BD   035B    P        JSR    CONS16
+02422P 06C5 BD   0000    A        JSR    FOUT     CONVERT TO ASCII IN "FBUFFR".
+02423P 06C8 35   40      A        PULS   U        U:=pointer to start of token.
+02424P 06CA C6   05      A        LDB    #&5      COUNT HOW MANY CHARS WE TRANSFER.
+02425P 06CC 30   01      A MOVASC LEAX   &1,X     Point to the next ASCII digit.  (First
+02426                      *    time through the loop this skips over
+02427                      *    the leading space put in by FOUT.)
+02428P 06CE A6   84      A        LDA    ,X       Get the next ASCII digit.
+02429P 06D0 27   05   06D7        BEQ    SQUISH   Zero marks end of line number.
+02430P 06D2 5A                    DECB            NO, DECREMENT THE COUNT.
+02431P 06D3 A7   C0      A        STA    ,U+      PUT ASCII DIGIT INTO PROGRAM.
+02432P 06D5 20   F5   06CC        BRA    MOVASC   SEE IF MORE TO MOVE.
+02433
+02434P 06D7 30   C4      A SQUISH LEAX   ,U       X:=pointer past ASCII line number.
+02435P 06D9 5D                    TSTB            WAS THE ASCII 5 DIGITS LONG?
+02436P 06DA 27   BE   069A        BEQ    ASCCHR   YES, IT FILLED THE SPACE FORMERLY
+02437                      *    USED BY THE TOKEN SO NO NEED TO
+02438                      *    TO BLOCK TRANSFER,  GO SCAN NEXT CHAR.
+02439P 06DC 31   C4      A        LEAY   ,U       Need to block transfer down since
+02440                      *    the line number didn't use the 5
+02441                      *    bytes the token was using.
+02442                      *    Remeber where to resume the scan.
+02493P 06DE 33   C5      A        LEAU   B,U      U:=source pointer.
+02444                      *    (X already contains the destination
+
