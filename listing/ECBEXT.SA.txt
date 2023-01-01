@@ -1632,3 +1632,16 @@ PAGE  031  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 02493P 06DE 33   C5      A        LEAU   B,U      U:=source pointer.
 02444                      *    (X already contains the destination
 
+PAGE  032  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02445                      *    pointer since it points to the first
+02446                      *    byte following the ASCII line number.)
+02447P 06E0 BD   04C6    P        JSR    DELDO    Use the DELETE code to do the transfer
+02448                      *    and update VARTAB.
+02449P 06E3 30   A4      A        LEAX   ,Y       Get scan pointer back into X.
+02450P 06E5 20   B3   069A        BRA    ASCCHR   SCAN NEXT CHAR.
+02451
+02452P 06E7      55      A UNDREF FCC    /UL /    Undefined Line message.
+02453P 06EA      00      A        FCB    &0
+02454
+

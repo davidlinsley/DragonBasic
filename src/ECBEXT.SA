@@ -1542,3 +1542,13 @@ SQUISH LEAX   ,U       X:=pointer past ASCII line number.
 *    Remeber where to resume the scan.
        LEAU   B,U      U:=source pointer.
 *    (X already contains the destination
+*    pointer since it points to the first
+*    byte following the ASCII line number.)
+       JSR    DELDO    Use the DELETE code to do the transfer
+*    and update VARTAB.
+       LEAX   ,Y       Get scan pointer back into X.
+       BRA    ASCCHR   SCAN NEXT CHAR.
+
+UNDREF FCC    /UL /    Undefined Line message.
+       FCB    &0
+

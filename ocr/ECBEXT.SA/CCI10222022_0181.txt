@@ -1,96 +1,12 @@
-                          PAGE   032  ECBEXT   .SA:1   EXTEND RENUM - Renumber. a BASIC program
-                                                                                                                                                                             •
-
-                          02445                         *    pointer since it   points to the first
-                          02446                         *    byte following the ASCII    line number.)
-                          02447P  06E0 BD    04C6     P        JSR     DELDO     Use the DELETE coop to to   the  transfer
-                          02448                         *    and ubdate VARTAB.
-                          024492  06E3 30    A4       A        LEAX    ,Y        Get scan pointer back   into  X.
-                          02450P  06E5 20    B3   069A         BRA     ASCCHR    SCAN NEXT CHAR.                                                                             •
-                          02451
-                          02452P  06E7       55       A UNDREF FCC     /UL /     Undefined Line message.
-                          02453P  06EA       00       A        FOB     es0                                                                                                   40 
-                     1111 02454
-
-                                                                                                                                                                             40
-
-
-
-                   (40                                                                                                                                                       •
-
-
-
-
-                                                                                                                                                                             •
-
-
-
-
-                                                                                                                                                                             •
-
-
-
-                                                                                                                                                                             •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                   •                                                                                                                                                         •
-
-
-
-                                                                                                                                                                             •
-
-
-
-
-                                                                                                                                                                             •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+44 (0)20 89 7'
-                                                                                                                                                                             e
-     For Your Ne(
-
-
-                   (
-
+PAGE  032  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02445                      *    pointer since it points to the first
+02446                      *    byte following the ASCII line number.)
+02447P 06E0 BD   04C6    P        JSR    DELDO    Use the DELETE code to do the transfer
+02448                      *    and update VARTAB.
+02449P 06E3 30   A4      A        LEAX   ,Y       Get scan pointer back into X.
+02450P 06E5 20   B3   069A        BRA    ASCCHR   SCAN NEXT CHAR.
+02451
+02452P 06E7      55      A UNDREF FCC    /UL /    Undefined Line message.
+02453P 06EA      00      A        FCB    &0
+02454
