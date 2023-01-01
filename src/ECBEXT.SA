@@ -1422,3 +1422,61 @@ BIN090 JSR    CHRGOT   REGET CURRENT CHAR AND GO scan it
        BRA    BIN050
 
 BIN100 LDX    TXTPTR   Remeber where tne number started.
+       PSHS   X
+       JSR    LINGET   Read tne number into LINNUM.
+       LDX    TXTPTR   Scan back until X points to the
+BIN110 LDA    ,-X      last digit of the line number.
+       JSR    ISDIGC   (Last CHRGET call in LINGET skipped
+       BCS    BIN110   trailing spaces, tabs, etc.)
+       LEAX   &1,X     X:=pointer to first char after last
+*    digit.
+       TFR    X,D      B:=length of line number.
+       SUBB   &1,S
+       SUBB   #&5      5 bytes are needed for the binary
+*    line number token.
+       BEQ    BIN120   Line number was exactly 5 long.
+       BLO    BIN115   Line number is less than 5, go
+*    move program up to make room.
+       LEAU   ,X       Line number is longer than 5.  (It
+*    must have leading zeroes and/or
+*    embedded spaces.)  Block transfer
+*    the program down to take up the
+*    extra space.  Set up the source
+*    pointer for DELDO.
+       NEGB            Set up the destination pointer.
+       LEAX   B,X
+       JSR    DELDO    Call the DELETE code to move the
+*    program down and update VARTAB.
+       BRA    BIN120   Go build the token.
+
+BIN115 STX    LOWTR    Block transfer program up.
+       LDX    VARTAB   Set up LOWTR, HIGHTR, and HIGHDS
+       STX    HIGHTR   for BLTU.
+       NEGB            (B was negative from SUBBIM 5.)
+       LEAX   B,X
+       STX    HIGHDS
+       STX    VARTAB   Set new VARTAB.
+       JSR    BLTU     Move it up.  (If an OMERR occurs
+*    the program is left in a totally
+*    useless state.)
+       LDX    LOWDS    Set TXTPTR to resume scan where
+       STX    TXTPTR   the first char moved up is now.
+
+BIN120 PULS  X         Get pointer to where to build the
+*    modified binary line number token.
+       LDA    #&1      FOR SETTING TYPE BYTE AND MODIFIERS.
+       STA    ,X       SET THE TOKEN TYPE.
+       STA    &2,X     ASSUME THE HIGH AND LOW BYTES ARE
+       STA    &4,X     NON-ZERO IN WHICH CASE THE MODIFIER
+*    BYTES MUST BE ONES.
+       LDB    LINNUM   IF THE HIGH ORDER BYTE IS ZERO THEN
+       BNE    BIN130   SET THE MODIFIED TO TWO AND THE
+       LDB    #&1      HIGH BYTE TO ONE.
+       INC    &2,X
+BIN130 STB    &1,X
+       LDB    LINNUM+&1 DO SAME THING FOR LOW BYTE.
+       BNE    BIN140
+       LDB    #&1
+       INC    &4,X
+BIN140 STB    &3,X
+       JSR    CHRGOT   SEE IF A COMMA FOLLOWS.
