@@ -1,67 +1,60 @@
-                             PAGE   005  ECBEXT    .SA31   EXTEND The EDIT   Command
+PAGE  005  ECBEXT  .SA:1  EXTEND The EDIT Command
 
-
-                             00932P  011D  26    F7   0116          RNE     DELLP
-                             009332  011F  39                       RTS
-              HI             00934
-                             00935P  0120  OA    D7         DELCHR  DEC     EDTLEN    DECREMENT LINE LENGTH
-              H I            00936P  0122  31    F                  LEAY              ADJUST POINTER FOR preincrement.
-                             00937P  0124  31    21       A CMPRSS  LEAY    &1,Y      POINT TO NEXT CHAR
-                             00938P  0126  A6    21       A         LDA               MOVE CHARS DOWN A BYTE
-                             00939P  0128  A7    A4       A         STA     ,Y
-                          I  00940P  012A  26    F8   0124          BNE     CMPRSS    UNTIL END OF LINE IS REACHED
-                             00941P  012C  39                       RTS
-
-                             00942
-                             00943P  012D  81    49       A CHK I   CMPA              INSERT CHARS?
-                             00944P  012F  27         0144          BEQ     EDITI     YES,  GO DO IT
-                             00945P  0131  81    58       A         CMPA              ADD CHARS TO END OF LINE?
-                             00946P  0133  27    OD   0142          BED     EDITX     YES
-                             009472  0135  81    48       A         CMPA              HACK OFF REST OF LINE AND ADD CHARS?
-                             00948P  0137  26    5C   0195          BNE     EDITCD    NO
-                             009492  0139  6F    84       A         CLR     ,X        YES,  LINE ENDS HERE
-                             00950P  0138  1F    10       A         TFR     X,D       Calculate and store the new line
-                             00951P  013D  83    0001     A         SUBD    #BUF-t-,Kilength.
-                             00952P  0140  D7    D7       A         SIB     EDTLEN
-
-                             00953
-                             00954P  0142  8D    BF   0103 EDITX    BSR     EDTPRT    PRINT REST OF LINE
-                             00955P  0144  BD    01D6     P EDITI   JSR     EDITIN    GET CHAR TO INSERT
-                             00956P  0147  81    OD       A         CMPA    #CR       CARRIAGE RETURN?
-                             00957P  0149  27    BE   00D9          BEQ     CRINS     YES,  END INSERTION AND EDIT
-                             00958P  0148  81    IB       A         CMPA    *ESCAPE   ESCAPE?
-                             00959P  014D  27    25   0174          BEQ     CHGRTS    YES,  ALL DONE INSERTING
-                             009602  014F  81    08       A         CMPA    #CHRDEL   CHARACTER DELETE?
-                             00961P  0151  26    22   0175          BNE     EDTINS    NO,  GO INSERT THE CHAR
-                             00962P  0153  8C    000)0    A         CMPX    #BUF      IF AT START OF LINE IGNORE DELETE
-                             00963P  0156  27    EC   0144          BEQ     EDITI     AND GET NEXT CHAR TO INSERT
-                             00964P  0158  8D    45   019F          BSR     GOBACK    BACK UP THE CURSOR
-                             00965P  015A  8D    C4   0120          BSR     DELCHR    DELETE THE CHAR AND COMPRESS THE LINE
-                             005662  0150  20    ES   0144          BRA     EDITI     GU GET NEXT CHAR TO INSERT
-                             00967
-                             009682  015E  81    43       A EDITC   CMPA              CHANGE CHARACTERS?
-                             00969P  0160  26    CB   012D          BNE     CHKI      NO
-                             009702  0162  6D    84       A EDTCHG  TqT     ,X        AT END OF LINE?
-                             00971P  0164  27    OE   0174          BEQ     CHGRTS    YES, NOTHING LEFT TO CHANGE
-                             009722  0166  BD    01D6     P         JSR     EDITIN    GET CHAR TO REPLACE CURRENT CHAR
-                             00973P  0169        02   016D          BCS     OKCCHR    IF IT'S A CR,   ESCAPE,  OR CHRDEL
-                             009742  0168  20    E5   0162          BRA     EDTCHG    ignore  it
-                             00975P  016D  A7    80       A OKCCHR  STA               OVERWRITE THE OLD CHAR
-                       m'    009762  OISF  8D    37   01A8          BSR     GCHROT    ECHO THE NEW CHAR
-                             00977P  0171  5A                       DECB              REPEAT
-                             009762  0172  26    SE   0162          BNE     EDTCHG
-                             00979P  0174  39               CHGRTS  RTS
-                             00960
-                             00981
-                             009822  0175  D6    D7       A EDTINS  LDB     EDTLEN    WILL LINE BE TOO LONG?
-                             009832  0177  Cl    F9       A.        CMPB    #MAXLEN
-                             009842  0179  26    02   017D          BNE     OKINS     NO
-                      (      009852  0178  20    C7   0144          BRA     EDITI     Yes,  wait for escape or CR.
-                             00566
-                             00987P  017D  34    10       A OKINS   PSHS    X         SAVE EDIT POINTER
-                             009882  017F  6D    80       A FNDEND  TST     ,X+       FIND THE END OF THE LINE
-+44 (0)20 89 71 L:           009892  0181  26    FC   017F          BNE     FNDEND
-
-
-     For Your Near(
-
+00932P 011D 26   F7   0116        BNE    DELLP
+00933P 011F 39                    RTS
+00934
+00935P 0120 0A   D7      A DELCHR DEC    EDTLEN   DECREMENT LINE LENGTH
+00936P 0122 31   1F      A        LEAY   -&1,Y    ADJUST POINTER FOR preincrement.
+00937P 0124 31   21      A CMPRSS LEAY   &1,Y     POINT TO NEXT CHAR
+00938P 0126 A6   21      A        LDA    &1,Y     MOVE CHARS DOWN A BYTE
+00939P 0128 A7   A4      A        STA    ,Y
+00940P 012A 26   F8   0124        BNE    CMPRSS   UNTIL END OF LINE IS REACHED
+00941P 012C 39                    RTS
+00942
+00943P 012D 81   49      A CHKI   CMPA   #'I      INSERT CHARS?
+00944P 012F 27   13   0144        BEQ    EDITI    YES, GO DO IT
+00945P 0131 81   58      A        CMPA   #'X      ADD CHARS TO END OF LINE?
+00946P 0133 27   0D   0142        BEQ    EDITX    YES
+00947P 0135 81   48      A        CMPA   #'H      HACK OFF REST OF LINE AND ADD CHARS?
+00948P 0137 26   5C   0195        BNE    EDITCD   NO
+00949P 0139 6F   84      A        CLR    ,X       YES, LINE ENDS HERE
+00950P 013B 1F   10      A        TFR    X,D      Calculate and store the new line
+00951P 013D 83   0001    A        SUBD   #BUF+&1  length.
+00952P 0140 D7   D7      A        STB    EDTLEN
+00953
+00954P 0142 8D   BF   0103 EDITX  BSR    EDTPRT   PRINT REST OF LINE
+00955P 0144 BD   01D6    P EDITI  JSR    EDITIN   GET CHAR TO INSERT
+00956P 0147 81   0D      A        CMPA   #CR      CARRIAGE RETURN?
+00957P 0149 27   8E   00D9        BEQ    CRINS    YES, END INSERTION AND EDIT
+00958P 014B 81   1B      A        CMPA   #ESCAPE  ESCAPE?
+00959P 014D 27   25   0174        BEQ    CHGRTS   YES, ALL DONE INSERTING
+00960P 014F 81   08      A        CMPA   #CHRDEL  CHARACTER DELETE?
+00961P 0151 26   22   0175        BNE    EDTINS   NO, GO INSERT THE CHAR
+00962P 0153 8C   0000    A        CMPX   #BUF     IF AT START OF LINE IGNORE DELETE
+00963P 0156 27   EC   0144        BEQ    EDITI    AND GET NEXT CHAR TO INSERT
+00964P 0158 8D   45   019F        BSR    GOBACK   BACK UP THE CURSOR
+00965P 015A 8D   C4   0120        BSR    DELCHR   DELETE THE CHAR AND COMPRESS THE LINE
+00566P 015C 20   E6   0144        BRA    EDITI    GO GET NEXT CHAR TO INSERT
+00967
+00968P 015E 81   43      A EDITC  CMPA   #'C      CHANGE CHARACTERS?
+00969P 0160 26   CB   012D        BNE    CHKI     NO
+00970P 0162 6D   84      A EDTCHG TST    ,X       AT END OF LINE?
+00971P 0164 27   0E   0174        BEQ    CHGRTS   YES, NOTHING LEFT TO CHANGE
+00972P 0166 BD   01D6    P        JSR    EDITIN   GET CHAR TO REPLACE CURRENT CHAR
+00973P 0169 25   02   016D        BCS    OKCCHR   IF IT'S A CR, ESCAPE, OR CHRDEL
+00974P 016B 20   F5   0162        BRA    EDTCHG   ignore  it.
+00975P 016D A7   80      A OKCCHR STA    ,X+      OVERWRITE THE OLD CHAR
+00976P 016F 8D   37   01A8        BSR    GCHROT   ECHO THE NEW CHAR
+00977P 0171 5A                    DECB            REPEAT
+00976P 0172 26   EE   0162        BNE    EDTCHG
+00979P 0174 39             CHGRTS RTS
+00960
+00981
+00982P 0175 D6   D7      A EDTINS LDB    EDTLEN   WILL LINE BE TOO LONG?
+00983P 0177 C1   F9      A        CMPB   #MAXLEN
+00984P 0179 26   02   017D        BNE    OKINS    NO
+00985P 017B 20   C7   0144        BRA    EDITI    Yes, wait for escape or CR.
+00566
+00987P 017D 34   10      A OKINS  PSHS   X        SAVE EDIT POINTER
+00988P 017F 6D   80      A FNDEND TST    ,X+      FIND THE END OF THE LINE
+00989P 0181 26   FC   017F        BNE    FNDEND

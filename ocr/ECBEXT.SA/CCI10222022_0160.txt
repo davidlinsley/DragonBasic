@@ -1,70 +1,60 @@
-                       PAGE 011 ""'CBEXT.82:1 EXTEND The INSTR Function.
+PAGE  011  ECBEXT  .SA:1  EXTEND The INSTR Function.
 
-
-                       01282                   * INSTR(Noffset>,<81$7,<S2$7) searches 81$ for the first
-                       01283                   * occurence of 82$ starting at the specified offset or at the
-                       01284                   * start of 81$ if no offset is specified.
-                       01285                   *
-            UU         01286                   * The value returned is the position of the first char if a match
-                       01287                   * is found, zero if a match is not found.
-                       01268                   *
-                       01289                   * If 82$ is null, the soecified offset or 1 is returned.
-                       01290                   *
-                       01291                   * If 81$ is null, or the offset is beyond the end of 81$,
-                       01292                   * 0 is returned. (These are not really special cases
-                       01293                   * from the user's viewpoint, but the code checks for them as
-                       01254                   * special cases.) 
-                       01295                   *
-                       01296                   * If an offset of zero is specified, an FC error results. 
-                       01297                   *
-                       01298
-                       01299                          XDEF  INSTR 
-                       01300P 02D1 BD 0000   A INSTR JSR    CHKOPN  Check for the left parenthesis. 
-                       01301P 02D4 BD 0000   A        JSR   FRMEVL  Evaluate the first argument. 
-                       01302P 02D7 C6 01     A        LDB   #&1     Assume no offset is specified and 
-                       013032 02D9 34 04     A        PSHS  B       set up the default.
-                       01304P 02DB 96 06     A        LDA   VALTYP  Is the first argument numeric? 
-                       013052 02DD 26 10   02FF       BNE   INST10  No, no offset.
-                       01306P 02DF BD 0000   A        JSR   CONINT  Yes, B:=specified offset.
-                       01307P 02E2 E7 64     A        STB           Overwrite the default.
-                       013082 02E4 27 91   0277       BEO   XRFC1   Don't allow an offset of zero.
-                       013092 02E6 BD 0000   A        JSR   CHKCOM  Eat the comma, evaluate and check
-                       01102 02E9 BD  0000   A        JSR   FRMEVL  the 81$ argument. (Don't want to call 
-                       013112 02EC BD 0000   A        JSR   CHKSTR  EVLSTR since it would free up the
-                       01312                   *    temporary and we can't do that until
-                       01313                   *    the 62$ argument has been evaluated.)
-                       013142 02EF 9E 52     A INST10 LDX   FACMO   Save the pointer to t 81$
-                       013152 02F1 34 10     A        PSHS  X       descriptor.
-                       01316P 02F3 BD 0000   A        JSR   CHKCOM  Skip the comma and evaluate the 82$ 
-                       013172 02F6 BD 029B            JSR   EVLSTR  argument.
-                       013182 02F9 34 14     A        PSHS  X,B     Save data pointer and length of 82$. 
-                       013192 02FB BD 0000   A        jSR   CHKCLS  Check for the right parenthesis. 
-                       01320P 02FE AE 63     A        LDX   &3, S   Free up the 81$ temp.
-                       01321P 0300 BD 0000   A        jSR   FRETMP  Xg=data pointer, B:=1encth.
-                       013222 0303 34 04     A        PSHS  B       Save length of 81$.
-                             0.30b E1 66     A        CMPB  &E,S    Is the offset beyond the end of 81$? 
-                       01324P 0307 25 23   032r;      BLO   INST50  Yes, return 0.
-                       013252 0309 A6 61     A        LDA   &l,S    No, is S2$ null?
-                       01326P 030R 27 1C   0329       BEQ   INST40  Yes, return the offset.
-                       013272 030D 66 66     A        LDB   &E,,S   No, X:=pointer into 81$ where the 
-                       013282 030F 5A                 DECR          search must begin.
-                       013292 0310 3A                 PBX
-                       01330
-                       013312 0311 31 84     A INST20 LE:AY ,X      Save S1$ pointer where current
-                       01332                   •    search began.
-                       013332 0313 EE 62     A        LDU   &2,S    U:=pointer to 82$.
-                       01334P 0315 66 61     A        LDB   &l,S    B:=1ength of 82$.
-                       013352 0317 A6 64     A        LDA   ,S      Ag=number of chars between the 
-                       013362 0319 AO 66     A        SUBA  &6,8    search starting point and the end
-                       013372 0318 4C                 INCA          of 81$.
-                       013382 031C Al 61     A        CM2A  &l, S   Is it shorter than 82$? 
-+44 (0)20 B9 71        013392 031E 25 OC   03:2C      BLO   INST50  Yes, dive up and return O.
-
-
-     For Your Nec
-
-
-
-
-                                                                                                                                                 •
-
+01282                      * INSTR([<offset>,<S1$>,<S2$>) searches S1$ for the first
+01283                      * occurence of S2$ starting at the specified offset or at the
+01284                      * start of S1$ if no offset is specified.
+01285                      *
+01286                      * The value returned is the position of the first char if a match
+01287                      * is found, zero if a match is not found.
+01268                      *
+01289                      * If S2$ is null, the specified offset or 1 is returned.
+01290                      *
+01291                      * If S1$ is null, or the offset is beyond the end of S1$,
+01292                      * 0 is returned. (These are not really special cases
+01293                      * from the user's viewpoint, but the code checks for them as
+01254                      * special cases.)
+01295                      *
+01296                      * If an offset of zero is specified, an FC error results.
+01297                      *
+01298
+01299                             XDEF   INSTR
+01300P 02D1 BD   0000    A INSTR  JSR    CHKOPN   Check for the left parenthesis.
+01301P 02D4 BD   0000    A        JSR    FRMEVL   Evaluate the first argument.
+01302P 02D7 C6   01      A        LDB    #&1      Assume no offset is specified and
+01303P 02D9 34   04      A        PSHS   B        set up the default.
+01304P 02DB 96   06      A        LDA    VALTYP   Is the first argument numeric?
+01305P 02DD 26   10   02EF        BNE    INST10   No, no offset.
+01306P 02DF BD   0000    A        JSR    CONINT   Yes, B:=specified offset.
+01307P 02E2 E7   E4      A        STB    ,S       Overwrite the default.
+01308P 02E4 27   91   0277        BEQ    XRFC1    Don't allow an offset of zero.
+01309P 02E6 BD   0000    A        JSR    CHKCOM   Eat the comma, evaluate and check
+01310P 02E9 BD   0000    A        JSR    FRMEVL   the S1$ argument.  (Don't want to call
+01311P 02EC BD   0000    A        JSR    CHKSTR   EVLSTR since it would free up the
+01312                      *    temporary and we can't do that until
+01313                      *    the S2$ argument has been evaluated.)
+01314P 02EF 9E   52      A INST10 LDX    FACMO    Save the pointer to the S1$
+01315P 02F1 34   10      A        PSHS   X        descriptor.
+01316P 02F3 BD   0000    A        JSR    CHKCOM   Skip the comma and evaluate the S2$
+01317P 02F6 BD   029B    P        JSR    EVLSTR   argument.
+01318P 02F9 34   14      A        PSHS   X,B      Save data pointer and length of S2$.
+01319P 02FB BD   0000    A        JSR    CHKCLS   Check for the right parenthesis.
+01320P 02FE AE   63      A        LDX    &3,S     Free up the S1$ temp.
+01321P 0300 BD   0000    A        JSR    FRETMP   X:=data pointer, B:=length.
+01322P 0303 34   04      A        PSHS   B        Save length of S1$.
+01323P 0305 E1   66      A        CMPB   &6,S     Is the offset beyond the end of S1$?
+01324P 0307 25   23   032C        BLO    INST50   Yes, return 0.
+01325P 0309 A6   61      A        LDA    &1,S     No, is S2$ null?
+01326P 030B 27   1C   0329        BEQ    INST40   Yes, return the offset.
+01327P 030D E6   66      A        LDB    &6,S     No, X:=pointer into S1$ where the
+01328P 030F 5A                    DECB            search must begin.
+01329P 0310 3A                    ABX
+01330
+01331P 0311 31   84      A INST20 LEAY   ,X       Save S1$ pointer where current
+01332                      *    search began.
+01333P 0313 EE   62      A        LDU    &2,S     U:=pointer to S2$.
+01334P 0315 E6   61      A        LDB    &1,S     B:=length of S2$.
+01335P 0317 A6   E4      A        LDA    ,S       A:=number of chars between the
+01336P 0319 A0   66      A        SUBA   &6,S     search starting point and the end
+01337P 031B 4C                    INCA            of S1$.
+01338P 031C A1   61      A        CMPA   &1,S     Is it shorter than S2$?
+01339P 031E 25   0C   032C        BLO    INST50   Yes, give up and return 0.

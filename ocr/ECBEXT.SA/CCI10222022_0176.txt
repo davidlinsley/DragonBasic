@@ -1,73 +1,44 @@
-                                          I I I
-                                                   PAGE        027       ECBEXT           .SA:1         EXTEND RENUM - Renumber a BASIC brogram
+PAGE  027  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 
-                                                   02224                                                  *
-                                                   02225                                                  *   CONVERT A BINARY LINE NUMBER TOKEN TO A LINE POINTER TOKEN.
-                                                   02226                                                  *
-                         81          0             022272        0500       EC        01              A   2TRBIN LDD                   &1,X               D:=BINARY LINE NUMBER.
-                                                   022282        0502       6A        02              A                  DEC           8,2,X              CHECK THE MODIFIER BYTE TO SEE IF
-                         H                         022292        05C4       27        01        0507                     BEQ           PTRB10             THE HIGH BYTE IS REALLY ZERO.
-                                                   02230P        0506       4F                                           CORP                             IT IS SO MAKE IT SO.
-                                                   022312        0507       ES        03              A   PTRRIO LOB                   &3,X               DO SAME THING FOR LOW ORDER BYTE.
-                                                   022322        0509       6A        04              A                  DEC           &4,X
-                                                   02233P        050B       27        01        05CE                     BEID          PTRB15
-                                                   02234P        050D       5F                                           CLRB
-                                                   022352        05CE       ED        01              A   PTRB15 STD                   &1,X               Store the unmodified binary line
-                                                   02236                                                             line number so                 if the line              isn't
-                                                   02237                                                             found an undefined line reference
-                                     40            02238                                                             token will be created.
-                                         !1H       022392        05D0       DO        2B              A                  STD           LINNUM             SET IT UP FOR "FNDLIN" CALL.
-                                                   02240P        0502       BD        0000            A                  SSR           FNDLIN             SEARCH FOR THE LINE.
-                                     40            022412        0505       9E        OF              A   PTRB20 LOX                   TEM2X1             GET BACK POINTER TO TOKEN.
-                                                   022422        05D7       25        El        05BA                     BCS           S0N040             LINE WASN'T FOUND,                     MAKE AN UNDEFINED
-                                                   02243                                                             LINE REFERENCE TOKEN.
-                                                   02244                                                             NOTE THAT WHEN "BINPTR" COMES HERE
-                                                   02245                                                             THE CARRY IS ALWAYS CLEAR.
-                                                   02246P        0509       DC        47              A                  L00           LOWTR              PUT THE NEW INFO INTO THE TOKEN AND
-                                     ('            02247P        05DB       60        80                                 INC           ,X+                SET UP THE TOKEN TYPE.
-                                                   022482        0500       ED        84                                 STD           ,X                 FOR "PTRBIN" WE ARE STORING THE POINTER
-                                                   02249                                                             RETURNED BY "FNDLIN" AND CHANGING THE
-                                     40            02250                                                             TOKEN CODE FROM ONE TO TWO.                                FOR
-                                                   02251                                                             "BINPTR" WE ARE STORING THE BINARY
-                                                   02252                                                             LINE NUMBER AND SETTING THE TOKEN CODE
-                                                   02253                                                             TO ONE.
-                                                   022542        05DF                 C6        OFiA7                    BRA           SONO20             SKIP OVER THE TOKEN AND CONTINUE SCAN.
-                                                   02255
-                                     40            02256                                                  *
-                                         1M        02257                                                  *   "BINPTR" CONVERTS A LINE POINTER TO A 10KEN TO A BINARY LINE                                                                  NUMBER
-                                                   02258                                                  *   TOKEN wITHTOUT MODIFIER BYTES.
-                                     40            02259                                                  *
-                                                   022602        05E1       BE        84              A   BINPTR CLR                   ,X                 TOKEN TYPE BYTE:=0 AND CARRY:=0
-                                                   02261                                                             SO WE CAN FINISH UP IN "PTRBIN".
-                                                   022622        05E3       AE        01              A                  LOX           &1,X               LOWTR:=LINE NUMBER C.: LINE POINTED
-                                                   022632        05E5       AE        02              A                  LDX           &2,X               TO BY THE LINE POINTER TOKEN.
-                                                   022642        05E7       9F        47              A                  SIX           LOWTR
-                                                   02265P        05E9       ?0        EA        Ot5D5                    BRA           PTRB20
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-14 (0)20 89 71 39 —
-                                     (
-   For Your Neares-
-
+02224                      *
+02225                      * CONVERT A BINARY LINE NUMBER TOKEN TO A LINE POINTER TOKEN.
+02226                      *
+02227P 05C0 EC 01        A PTRBIN LDD    &1,X     D:=BINARY LINE NUMBER.
+02228P 05C2 6A 02        A        DEC    &2,X     CHECK THE MODIFIER BYTE TO SEE IF
+02229P 05C4 27 01     05C7        BEQ    PTRB10   THE HIGH BYTE IS REALLY ZERO.
+02230P 05C6 4F                    CLRA            IT IS SO MAKE IT SO.
+02231P 05C7 E6 03        A PTRB10 LDB    &3,X     DO SAME THING FOR LOW ORDER BYTE.
+02232P 05C9 6A 04        A        DEC    &4,X
+02233P 05CB 27 01     05CE        BEQ    PTRB15
+02234P 05CD 5F                    CLRB
+02235P 05CE ED 01        A PTRB15 STD    &1,X     Store the unmodified binary line
+02236                      *    line number so if the line isn't
+02237                      *    found an undefined line reference
+02238                      *    token will be created.
+02239P 05D0 DD 2B        A        STD    LINNUM   SET IT UP FOR "FNDLIN" CALL.
+02240P 05D2 BD 0000      A        JSR    FNDLIN   SEARCH FOR THE LINE.
+02241P 05D5 9E 0F        A PTRB20 LDX    TEMPX1   GET BACK POINTER TO TOKEN.
+02242P 05D7 25 E1     05BA        BCS    SCN040   LINE WASN'T FOUND, MAKE AN UNDEFINED
+02243                      *    LINE REFERENCE TOKEN.
+02244                      *    NOTE THAT WHEN "BINPTR" COMES HERE
+02245                      *    THE CARRY IS ALWAYS CLEAR.
+02246P 05D9 DC 47        A        LDD    LOWTR    PUT THE NEW INFO INTO THE TOKEN AND
+02247P 05DB 6C 80        A        INC    ,X+      SET UP THE TOKEN TYPE.
+02248P 05DD ED 84        A        STD    ,X       FOR "PTRBIN" WE ARE STORING THE POINTER
+02249                      *    RETURNED BY "FNDLIN" AND CHANGING THE
+02250                      *    TOKEN CODE FROM ONE TO TWO. FOR
+02251                      *    "BINPTR" WE ARE STORING THE BINARY
+02252                      *    LINE NUMBER AND SETTING THE TOKEN CODE
+02253                      *    TO ONE.
+02254P 05DF 20 C6     05A7        BRA    SCN020   SKIP OVER THE TOKEN AND CONTINUE SCAN.
+02255
+02256                         *
+02257                         * "BINPTR" CONVERTS A LINE POINTER TO A TOKEN TO A BINARY LINE NUMBER
+02258                         * TOKEN WITHTOUT MODIFIER BYTES.
+02259                         *
+02260P 05E1 6F 84        A BINPTR CLR    ,X       TOKEN TYPE BYTE:=0 AND CARRY:=0
+02261                      *    SO WE CAN FINISH UP IN "PTRBIN".
+02262P 05E3 AE 01        A        LDX    &1,X     LOWTR:=LINE NUMBER OF LINE POINTED
+02263P 05E5 AE 02        A        LDX    &2,X     TO BY THE LINE POINTER TOKEN.
+02264P 05E7 9F 47        A        STX    LOWTR
+02265P 05E9 20 EA     05D5        BRA    PTRB20

@@ -1,77 +1,8 @@
-                                                                                                                                                                          •
+PAGE  034  ECBEXT  .SA:1  EXTEND The HEX$ function.
 
-                         PAGE 034 ECBEXT .SA'41 EXTEND The HEX$ function.
-                                                                                                                                                                          •
-                         0:251 4P 0760 I-1E FFFF              LDX     WLOFBUF-&1 Go build a string result ant
-                         025152 0763 7F     0000    A         jMP     STRLTI    return. 
-                  a      02516                                                                                                                                            a
-                         02517                                END                                                                                                      II
-                         TOTAL ERRORS 00000 - -00000 
-                         TOTAL WARNINGS 00001 --01456                                                                                                                     40
-
-
-                                                                                                                                                                          40
-
-
-
-                                                                                                                                                                          40
-
-
-
-                                                                                                                                                                          41
-
-
-                  •                                                                                                                                                       40
-
-
-
-         I                                                                                                                                                                40
-                                                                                                                                                                       IFtI
-                                                                                                                                                                          41
-
-
-
-                                                                                                                                                                          41
-
-
-
-                                                                                                                                                                          41
-
-
-
-                                                                                                                                                                          40
-
-
-
-                                                                                                                                                                          40
-
-
-
-                                                                                                                                                                          40
-
-                                                                                                                                                                       I'f
-                  a
-
-
-
-                                                                                                                                                                          •
-
-
-
-
-
-
-
-                                                                                                                                                                          a
-
-
-
-                                                                                                                                                                          S 
-
-
-
-                                                                                                                                                                          S
-+44 (0)20 89 7      1111                                                                                                                                               H I
-
-     For Your Ne
-
+02514P 0760 8E   FFFF    A        LDX    #LOFBUF-&1 Go build a string result and
+02515P 0763 7E   0000    A        JMP    STRLTI   return.
+02516
+02517                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00001--01456

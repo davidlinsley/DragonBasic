@@ -1,0 +1,1716 @@
+PAGE  001  ECBCOM  .SA:0  EXTEND Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    EXTEND   - Extended Features for TCC / MLC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   ASC2
+00712                             XREF   BASRST,BLKOUT,BLTU,BUF
+00713                             XREF   CASOFF,CHEAD,CHEADA,CHKCLS,CHKCOM,CHKNUM,CHKOPN,CHKSTR,CHROUT
+00714                             XREF   CIRCLE,CLEARC,CLOATK,COLORS,COMBYT,CONDCR,CONINT,COPLOP
+00715                             XREF   CRDO,CSAVE,CSAVTK
+00716                             XREF   DATA,DCRNCH,DEVPRM,DLOAD,DOFDSP,DOSDSP,DRAW
+00717                             XREF   EDTENT,ELSETK,ENDCON,EOFFIN,EOFWRT,EQULTK
+00718                             XREF   ERPRNT,ERRID,ERROR,ERRUF,EVLADR
+00719                             XREF   FADD,FCERR,FDIV,FHALF,FINIT
+00720                             XREF   FINLOG,FINSAV,FMULT,FNDLIN,FNTK,FONE
+00721                             XREF   FOUT,FOUTCP,FPWRT,FREFAC,FRESTR,FRETMP,FRMEVL
+00722                             XREF   FRMNUM,FSUB,FUNDS1
+00723                             XREF   GET,GETADR,GETBYT,GETDNM,GETFLN,GETSPA
+00724                             XREF   GIVABF,GOGONE,GONE3,GOPTNW,GOTK
+00725                             XREF   HKASGN,HKCHRI,HKCHRO,HKCLS1,HKCRNC,HKERR,HKEVAL
+00726                             XREF   HKNWST,HKRENM,HKRUN
+00727                             XREF   INCHR,INIT,INLNDO,INPCOM,INPRT,INT,ISCNTC,ISDIGC,ISLETC
+00728                             XREF   LET,LINE,LINGET,LINPRT,LOADAD,LOFBUF
+00729                             XREF   MID$TK,MINUTK,ML1632,MLDVEX,MOVAF,MOV1F,MOVFA1,MOVFM
+00730                             XREF   MOVINS,MOVMF,MULDIV
+00731                             XREF   NEGOP,NORMAL
+00732                             XREF   OPNICK,OPNCSO,OPNOCK,OUTQST,OUTSPC,OVERR
+007,Z                             XREF   PAINT,PARCHK,PCLEAR,PCLS,PCOPY,PIA0BC,PIA0BD,PIA1BD
+00734                             XREF   PINIT,PLAY,PLYCLK,PMODE
+00735                             XREF   POLY,POLYX,PPOINT,PRESET,PSET,PTRGET,PTRGT2,PUT
+00736                             XREF   READY,RUNC
+00737                             XREF   SAM,SAMALP,SCREEN,SCRTCH,SETDNM,SIGN,SIN,SIN1,SNDOFF,SNERR
+00738                             XREF   SNGFLT,STRLTI,STRSPA,STRTAD,STKINI,STMDS1
+00739                             XREF   STRLT3,STROUT,STRPRT,STRTXT,STUB1,SUBTK,SYNCHR
+00740                             XREF   THENTK,TICKER,TOTK,TRMCHK
+00741                             XREF   ULERR,USRTAB,USRTK
+00742                             XREF   VIRQ
+00743                             XREF   WRTLDR
+00744                             XREF   ZEROF1
+00745
+00746                             TTL    Miscellanous Routines
+00747
+00748                      *
+00749                      * The RUN code comes here to set up the defaults for the PLAY
+00750                      * and DRAW code.  The initialization code also comes here for
+00751                      * the same reason.
+00752                      *
+00753
+00754                             XDEF   XRRUN
+00755P 0000 CC   B844    A XRRUN  LDD    #$B844   Init the PLAY arguments.
+00756P 0003 DD   DF      A        STD    HIGHA    Set volume to 15 decimal.
+00757P 0005 86   02      A        LDA    #&2      Set tempo to 2.
+
+PAGE  002  ECBEXT  .SA:1  EXTEND Miscellanous Routines
+
+00758P 0007 97   E2      A        STA    TEMPO
+00759P 0009 97   DE      A        STA    OCTAVE   Select middle C octave.
+00760P 000B 48                    ASLA            Set to undotted quarter notes.
+00761P 000C 97   E1      A        STA    LNOTE
+00762P 000E 0F   E5      A        CLR    DOTFLG
+00763P 0010 DC   8A      A        LDD    DBLZER   Init the DRAW arguments.
+00764P 0012 DD   E8      A        STD    DRWANG   Set angle and scale to zero.
+00765P 0014 C6   80      A        LDB    #&128    Position to the middle.  (128,96) 
+00766P 0016 DD   C7      A        STD    LSAVEX
+00767P 0018 C6   60      A        LDB    #&96
+00768P 001A DD   C9      A        STD    LSAVEY
+00769P 001C 39             RUNRTS RTS             Return to RUN or initialization code.
+00770
+00771                             TTL    CSAVEM Code
+00772
+00773                      *
+00774                      * CSAVEM <filename>,<first address>,<last address>,<execution address>
+00775                      *
+00776
+00777                             XDEF   CSAVEM
+00778P 001D 9D   9F      A CSAVEM JSR    CHRGET   Eat the "M" of CSAVEM.
+00779P 001F BD   0000    A        JSR    GETFLN   Scan the filename.
+00780P 0022 8D   43   0067        BSR    STKXAD   Evaluate the first address.
+00781P 0024 BF   0000    A        STX    LOADAD   Put it in the file header too.
+00782P 0027 8D   3E   0067        BSR    STKXAD   Evaluate the last address.
+00783P 0029 AC   62      A        CMPX   &2,S     Is last .GE. first?
+00784P 002B 1025 FFD1    A        LBLO   FCERR    No, give FC error.
+00785P 002F 8D   36   0067        BSR    STKXAD   Yes, evaluate the execution address
+00786P 0031 BF   0000    A        STX    STRTAD   and put it in the file header block.
+00787P 0034 9D   A5      A        JSR    CHRGOT   The statement must end now or we
+00788P 0036 26   E4   001C        BNE    RUNRTS   to a RTS so NEWSTT will give a
+00789                      *    syntax error.
+00790P 0038 86   02      A CSMDOR LDA    #&2      File type is machine language.
+00791P 003A 9E   8A      A        LDX    DBLZER   GAPFLG:=ASCFLG:=.FALSE.
+00792P 003C BD   0000    A        JSR    OPNCSO   Open cassette output file.
+00793P 003F 0F   78      A        CLR    CASOPN   Mark cassette as closed since
+00794                      *    OPNCSO marked it as open.
+00795P 0041 0C   7C      A        INC    BLKTYP   Set block type to data.
+00796P 0043 BD   0000    A        JSR    WRTLDR   Turn on the cassette and write a
+00797                      *    leader.
+00798
+00799P 0046 AE   64      A        LDX    &4,S     X:=first address.
+00800P 0048 9F   7E      A CSAVML STX    CBUFAD   Set the buffer address to write the
+00801                      *    next block out 
+00802P 004A 86   FF      A        LDA    #&255    Assume it's a full block.
+00803P 004C 97   7D      A        STA    BLKLEN
+00804P 004E EC   62      A        LDD    &2,S     See how many more bytes to write.
+00805P 0050 93   7E      A        SUBD   CBUFAD
+00606P 0052 24   05   0059        BHS    MORSAV   There's more to save.
+00807P 0054 32   66      A        LEAS   &6,S     Nothing more, clean up the stack
+00808P 0056 7E   0000    A        JMP    FINSAV   and go close the file.
+00809
+00810P 0059 1083 00FF    A MORSAV CMPD   #&255    Is there a full block?
+00811P 005D 24   03   0062        BHS    BIGBLK   Yes.
+00812P 005F 5C                    INCB            No be sure to get the last byte.
+00813P 0060 D7   7D      A        STB    BLKLEN   Set actual block length.
+00814P 0062 BD   0000    A BIGBLK JSR    BLKOUT   Write out the block.
+00815P 0065 20   E1   0048        BRA    CSAVML   Go back for more.
+
+PAGE  003  ECBEXT  .SA:1  EXTEND CSAVEM Code
+
+00816
+00817                             XDEF   STKXAD
+00818P 0067 BD   0000    A STKXAD JSR    CHKCOM   Eat the comma.
+00819P 006A BD   0000    A        JSR    EVLADR   Evaluate address into X.
+00820P 006D EE   E4      A        LDU    ,S       U:=return address.
+00821P 006F AF   E4      A        STX    ,S       Stack the evaluated address.
+00822P 0071 1F   35      A        TFR    U,PC     Return with evaluated address on
+00823                      *    the stack and in X.
+00824
+00825                              TTL   The FIX function.
+00826
+00827                      *
+00828                      * FIX(X) returns the truncated integer part of X.
+00829                      * FIX(X) is equivalent to SGN(X)*INT(ABS(X)).
+00830                      * FIX differs from INT in that FIX does not return the next lower
+00831                      * integer for negative arguments.
+00832                      *
+00833
+00834
+00835                             XDEF   FIX
+00336P 0073 BD   0000    A FIX    JSR    SIGN     Is the number positive?
+00837P 0076 2B   03   007B        BMI    FIXNEG   No.
+00838P 0078 7E   0000    A GOINT  JMP    INT      Yes, just do normal INT function.
+00839
+00840P 007B 03   54      A FIXNEG COM    FACSGN   Negate the argument.
+00841P 007D 8D   F9   0078        BSR    GOINT    Take the INT.
+00842P 007F 7E   0000    A        JMP    NEGOP    Restore the original sign and return.
+00843                      *    (Can't COM FACSGN, RTS since 0
+00844                      *    would become -0. For example,
+00845                      *    ?FIX(-.1) would print -0.)
+00846
+00847                             TTL    The EDIT Command
+00848
+00849                             XDEF   EDIT
+00850P 0082 BD   04BC    P EDIT   JSR    LINTRM   LINNUM:=number of line to EDIT.
+00851                      *    (Line number must be terminated.)
+00852P 0085 32   62      A        LEAS   &2,S     Get rid of the NEWSTT return address
+00853                      *    since EDIT exits into the MAIN code.
+00854P 0087 86   01      A EDITA  LDA    #&1      Set flag so line will be listed
+00855P 0089 97   D8      A        STA    EDTLST   prior to starting the edit.
+00856P 008B BD   0000    A        JSR    FNDLIN   X:=pointer to link field of line.
+00857P 008E 1025 FF6E    A        LBCS   ULERR    If carry set then line doesn't exist.
+00858P 0092 BD   0000    A        JSR    DCRNCH   Decrunch the line into BUF.
+00859P 0095 1F   20      A        TFR    Y,D      Calculate and store the line length.
+00860P 0097 83   0001    A        SUBD   #BUF+&1  (The zero byte terminator isn't
+00861P 009A D7   D7      A        STB    EDTLEN   included in the length.)
+00862
+00863P 009C DC   2B      A EDTPLN LDD    LINNUM   Print the line number followed
+00864P 009E BD   0000    A        JSR    LINPRT   by a space.
+00865P 00A1 BD   0000    A        JSR    OUTSPC
+00866P 00A4 8E   0000    A        LDX    #BUF     Point to the start of the line.
+00667P 00A7 D6   D8      A        LDB    EDTLST   Should the line be listed?
+00868P 00A9 26   25   00D0        BNE    ELSTIT   Yes, go do it
+00869
+00870P 00AB 5F             EDTSUB CLRB            Repetition count:=0.
+00871P 00AC BD   01D6    P EDTREP JSR    EDITIN   Get char - screen out bad ones.
+00872P 00AF BD   0000    A        JSR    ISDIGC   Is it a digit?
+00877P 00B2 25   0B   00BF        BCS    EDNTDG   No.
+
+PAGE  004  ECBEXT  .SA:1  EXTEND The EDIT Command
+
+00874P 00B4 80   30      A        SUBA   #'0      Its a digit, get  rid of ASCII offset.
+00875P 00B6 34   02      A        PSHS   A        Save the digit.
+00876P 00B8 86   0A      A        LDA    #&10     Rep count:=rep count*10.
+00877P 00BA 3D                    MUL
+00878P 00BB EB   E0      A        ADDB   ,S+      Add in the new digit.
+00879P 00BD 20   ED   00AC        BRA    EDTREP   Look for more digits.
+00880
+00881P 00BF C0   01      A EDNTDG SUBB   #&1      If REP COUNT=0 then REP COUNT:=1.
+00882P 00C1 C9   01      A        ADCB   #&1
+00883P 00C3 81   41      A        CMPA   #'A      EDIT again?
+00884P 00C5 26   05   00CC        BNE    EDITL    No.
+00885P 00C7 BD   0000    A        JSR    CRDO     Yes,  start new line
+00886P 00CA 20   BB   0087        BRA    EDITA    and  restart edit.
+00887
+00888P 00CC 81   4C      A EDITL  CMPA   #'L      LIST AND CONTINUE EDIT?
+00889P 00CE 26   0B   00DB        BNE    EDITCR   NO
+00890P 00D0 8D   31   0103 ELSTIT BSR    EDTPRT   YES, PRINT REST OF LINE
+00891P 00D2 0F   D8      A        CLR    EDTLST   CLEAR LIST FLAG
+00892P 00D4 BD   0000    A        JSR    CRDO     START A NEW LINE
+00893P 00D7 20   C3   009C        BRA    EDTPLN   CONTINUE EDIT AT START OF LINE
+00894
+00895P 00D9 32   62      A CRINS  LEAS   &2,S     GET RID OF EDTSUB RETURN ADDRESS
+00896P 00DB 81   0D      A EDITCR CMPA   #CR      CARRIAGE RETURN, LIST AND FINISH EDIT?
+00897P 00DD 26   0D   00EC        BNE    EDITE    NO
+00898P 00DF 8D   22   0103        BSR    EDTPRT   YES, PRINT REST OF LINE
+00899P 00E1 BD   0000    A EDTEND JSR    CRDO     START A NEW LINE
+00900P 00E4 8E   0000    A AUTENT LDX    #BUF     SET TXTPTR FOR CRUNCH CODE
+00901P 00E7 9F   A6      A        STX    TXTPTR
+0090P  00E9 7E   0000    A        JMP    EDTENT   JUMP INTO "MAIN" CODE
+00903
+00904P 00EC 81   45      A EDITE  CMPA   #'E      END EDIT?
+00905P 00EE 27   F1   00E1        BEQ    EDTEND   YES
+00906P 00F0 81   51      A        CMPA   #'Q      ABORT EDIT?
+00907P 00F2 26   06   00FA        BNE    NOTQ     NO
+00908P 00F4 BD   0000    A        JSR    CRDO     YES, START NEW LINE
+00909P 00F7 7E   0000    A        JMP    READY    AND ABORT EDIT
+00910P 00FA 8D   02   00FE NOTQ   BSR    DOSUBC   ALL OTHER SUBCOMMANDS RETURN TO EDTSUB
+00911P 00FC 20   AD   00AB        BRA    EDTSUB   TO GET NEXT SUBCOMMAND
+00912
+00913P 00FE 81   20      A DOSUBC CMPA   #'       MOVE CURSOR RIGHT?
+00914P 0100 26   10   0112        BNE    EDITD    NO
+00915P 0102                       SKIP2  JUST     PRINT [B] CHARS
+00916                             XDEF   EDTPRT
+00917P 0103 C6   F9      A EDTPRT LDB    #MAXLEN  PRINT REST OF CHARS ON LINE
+00918P 0105 A6   84      A EPLOOP LDA    ,X       GET CURRENT CHAR
+00919P 0107 27   08   0111        BEQ    EPRTFN   IF END OF LINE THEN RETURN
+00920P 0109 BD   0000    A        JSR    CHROUT   PRINT THE CHAR
+00921P 010C 30   01               INX             BUMP EDIT POSITION
+00922P 010E 5A                    DECB            DECREMENT REP COUNT
+00923P 010F 26   F4   0105        BNE    EPLOOP   REPEAT AS NECESSARY
+00924P 0111 39             EPRTFN RTS
+00925
+00926P 0112 81   44      A EDITD  CMPA   #'D      DELETE CHARS?
+00927P 0114 26   48   015E        BNE    EDITC    NO
+00928P 0116 6D   84      A DELLP  TST    ,X       AT END OF LINE?
+00929P 0118 27   F7   0111        BEQ    EPRTFN   YES, NOTHING MORE TO DELETE
+00930P 011A 8D   04   0120        BSR    DELCHR   NO, DELETE CURRENT CHAR
+00931P 011C 5A                    DECB            REPEAT AS INDICATED
+
+PAGE  005  ECBEXT  .SA:1  EXTEND The EDIT Command
+
+00932P 011D 26   F7   0116        BNE    DELLP
+00933P 011F 39                    RTS
+00934
+00935P 0120 0A   D7      A DELCHR DEC    EDTLEN   DECREMENT LINE LENGTH
+00936P 0122 31   1F      A        LEAY   -&1,Y    ADJUST POINTER FOR preincrement.
+00937P 0124 31   21      A CMPRSS LEAY   &1,Y     POINT TO NEXT CHAR
+00938P 0126 A6   21      A        LDA    &1,Y     MOVE CHARS DOWN A BYTE
+00939P 0128 A7   A4      A        STA    ,Y
+00940P 012A 26   F8   0124        BNE    CMPRSS   UNTIL END OF LINE IS REACHED
+00941P 012C 39                    RTS
+00942
+00943P 012D 81   49      A CHKI   CMPA   #'I      INSERT CHARS?
+00944P 012F 27   13   0144        BEQ    EDITI    YES, GO DO IT
+00945P 0131 81   58      A        CMPA   #'X      ADD CHARS TO END OF LINE?
+00946P 0133 27   0D   0142        BEQ    EDITX    YES
+00947P 0135 81   48      A        CMPA   #'H      HACK OFF REST OF LINE AND ADD CHARS?
+00948P 0137 26   5C   0195        BNE    EDITCD   NO
+00949P 0139 6F   84      A        CLR    ,X       YES, LINE ENDS HERE
+00950P 013B 1F   10      A        TFR    X,D      Calculate and store the new line
+00951P 013D 83   0001    A        SUBD   #BUF+&1  length.
+00952P 0140 D7   D7      A        STB    EDTLEN
+00953
+00954P 0142 8D   BF   0103 EDITX  BSR    EDTPRT   PRINT REST OF LINE
+00955P 0144 BD   01D6    P EDITI  JSR    EDITIN   GET CHAR TO INSERT
+00956P 0147 81   0D      A        CMPA   #CR      CARRIAGE RETURN?
+00957P 0149 27   8E   00D9        BEQ    CRINS    YES, END INSERTION AND EDIT
+00958P 014B 81   1B      A        CMPA   #ESCAPE  ESCAPE?
+00959P 014D 27   25   0174        BEQ    CHGRTS   YES, ALL DONE INSERTING
+00960P 014F 81   08      A        CMPA   #CHRDEL  CHARACTER DELETE?
+00961P 0151 26   22   0175        BNE    EDTINS   NO, GO INSERT THE CHAR
+00962P 0153 8C   0000    A        CMPX   #BUF     IF AT START OF LINE IGNORE DELETE
+00963P 0156 27   EC   0144        BEQ    EDITI    AND GET NEXT CHAR TO INSERT
+00964P 0158 8D   45   019F        BSR    GOBACK   BACK UP THE CURSOR
+00965P 015A 8D   C4   0120        BSR    DELCHR   DELETE THE CHAR AND COMPRESS THE LINE
+00566P 015C 20   E6   0144        BRA    EDITI    GO GET NEXT CHAR TO INSERT
+00967
+00968P 015E 81   43      A EDITC  CMPA   #'C      CHANGE CHARACTERS?
+00969P 0160 26   CB   012D        BNE    CHKI     NO
+00970P 0162 6D   84      A EDTCHG TST    ,X       AT END OF LINE?
+00971P 0164 27   0E   0174        BEQ    CHGRTS   YES, NOTHING LEFT TO CHANGE
+00972P 0166 BD   01D6    P        JSR    EDITIN   GET CHAR TO REPLACE CURRENT CHAR
+00973P 0169 25   02   016D        BCS    OKCCHR   IF IT'S A CR, ESCAPE, OR CHRDEL
+00974P 016B 20   F5   0162        BRA    EDTCHG   ignore  it.
+00975P 016D A7   80      A OKCCHR STA    ,X+      OVERWRITE THE OLD CHAR
+00976P 016F 8D   37   01A8        BSR    GCHROT   ECHO THE NEW CHAR
+00977P 0171 5A                    DECB            REPEAT
+00976P 0172 26   EE   0162        BNE    EDTCHG
+00979P 0174 39             CHGRTS RTS
+00960
+00981
+00982P 0175 D6   D7      A EDTINS LDB    EDTLEN   WILL LINE BE TOO LONG?
+00983P 0177 C1   F9      A        CMPB   #MAXLEN
+00984P 0179 26   02   017D        BNE    OKINS    NO
+00985P 017B 20   C7   0144        BRA    EDITI    Yes, wait for escape or CR.
+00566
+00987P 017D 34   10      A OKINS  PSHS   X        SAVE EDIT POINTER
+00988P 017F 6D   80      A FNDEND TST    ,X+      FIND THE END OF THE LINE
+00989P 0181 26   FC   017F        BNE    FNDEND
+
+PAGE  006  ECBEXT  .SA:1  EXTEND The EDIT Command
+
+00990P 0183 E6   82      A INSMOV LDB    ,-X      MAKE ROOM FOR THE NEW CHAR BY MOVING
+00991P 0185 E7   01      A        STB    &1,X     THE REST OF THE CHARS UP A BYTE
+00992P 0187 AC   E4      A        CMPX   ,S       MOVE ALL INCLUDING CURRENT CHAR
+00993P 0189 26   F8   0183        BNE    INSMOV
+00994P 018B 32   62      A        LEAS   &2,S     Clean up the stack.
+00995P 018D A7   80      A        STA    ,X+      PUT THE NEW CHAR INTO THE LINE
+00996P 018F 8D   17   01A8        BSR    GCHROT   ECHO THE NEW CHAR
+00997P 0191 0C   D7      A        INC    EDTLEN   INCREMENT THE LENGTH
+00998P 0193 20   AF   0144        BRA    EDITI    GET NEXT CHAR TO INSERT
+00999
+01000P 0195 81   08      A EDITCD CMPA   #CHRDEL  CHARACTER DELETE?
+01001P 0197 26   12   01AB        BNE    CHKK     NO
+01002P 0199 8D   04   019F BACKB  BSR    GOBACK   Yes, output B backspaces.
+01003P 019B 5A                    DECB
+01004P 019C 26   FB   0199        BNE    BACKB
+01005P 019E 39                    RTS
+01006
+01007P 019F 8C   0000    A GOBACK CMPX   #BUF     IF AT START OF LINE DO NOTHING
+01008P 01A2 27   D0   0174        BEQ    CHGRTS
+01009P 01A4 30   1F               DEX             OTHERWISE BACK UP THE EDIT POINTER
+01010                      *    AND BACK UP THE CURSOR
+01011            0001    A        IFEQ   REALIO
+01014                       ENDC  IFN    REALIO
+01015P 01A6 86   08      A BCKSPC LDA    #CHRDEL  Back up the cursor.
+01016P 01A8 7E   0000    A GCHROT JMP    CHROUT
+01017
+01018P 01AB 81   4B      A CHKK   CMPA   #'K      KILL UNTIL MATCH FOUND?
+01019P 01AD 27   05   01B4        BEQ    EDITK    YES
+01020P 01AF 80   53      A        SUBA   #'S      SEARCH FOR CHAR?
+01021P 01B1 27   01   01B4        BEQ    EDITK    YES, USE SAME CODE AS K EXCEPT
+01022                      *    ACCA IS CLEAR AS A FLAG NOT TO KILL
+01023P 01B3 39                    RTS             Unrecognizable command, ignore it and
+01024                      *    go get another one.
+01026P 01B4 34   02      A EDITK  PSHS   A        SAVE KILL FLAG
+01027P 01B6 8D   1E   01D6        BSR    EDITIN   GET SEARCH CHAR
+01028P 01B8 34   02      A        PSHS   A        PUT IT AWAY
+01029P 01BA A6   84      A EDTSRC LDA    ,X       END OF LINE?
+01030P 01BC 27   16   01D4        BEQ    SRCFIN   YES, GIVE UP SEARCH
+010312 01BE 6D   61      A        TST    &1,S     IF NOT KILLING THEN PRINT CHARS
+01032P 01C0 26   06   01C8        BNE    ISKILL   INSTEAD OF DELETING THEM
+01033P 01C2 8D   E4   01A8        BSR    GCHROT
+01034P 01C4 30   01               INX             POINT TO NEXT CHAR
+01035P 01C6 20   03   01CB        BRA    NOKILL
+01036P 01C8 BD   0120    P ISKILL JSR    DELCHR   DELETE THE CHAR
+01037P 01CB A6   84      A NOKILL LDA    ,X       DO THE CHARS MATCH?
+01038P 01CD A1   E4      A        CMPA   ,S
+01039P 01CF 26   E9   01BA        BNE    EDTSRC   NO, CONTINUE SEARCH
+01040P 01D1 5A                    DECB            YES, BUT MUST SEARCH REP COUNT TIMES
+01041P 01D2 26   E6   01BA        BNE    EDTSRC
+01042P 01D4 35   A0      A SRCFIN PULS   Y,PC     Clean up the stack and return.
+01043
+01044P 01D6 BD   0000    A EDITIN JSR    INCHR    GET A CHAR
+01045P 01D9 81   7F      A        CMPA   #&127    THROW AWAY ALL BIGGER THAN TILDA.
+01046P 01DB 24   F9   01D6        BCC    EDITIN
+01047P 01DD 81   5F      A        CMPA   #@137    Translate shift uparrow key which
+01048P 01DF 26   02   01E3        BNE    NOTESC   generates a backarrow to an escape
+01049P 01E1 86   1B      A        LDA    #ESCAPE  for compatibility with the TRS-80.
+
+PAGE  007  ECBEXT  .SA:1  EXTEND The EDIT Command
+
+01050P 01E3 81   0D      A NOTESC CMPA   #CR      ADMIT LOW EXCEPTIONS
+01051P 01E5 27   0E   01F5        BEQ    EDTINR
+01052P 01E7 81   1B      A        CMPA   #ESCAPE
+01053P 01E9 27   0A   01F5        BEQ    EDTINR
+01054P 01EB 81   08      A        CMPA   #CHRDEL
+01055P 01ED 27   06   01F5        BEQ    EDTINR
+01056P 01EF 81   20      A        CMPA   #'       ALL OTHERS BELOW SPACE ARE BAD
+01057P 01F1 25   E3   01D6        BCS    EDITIN
+01058P 01F3 lA   01        EDTSEC SEC             SAY IT ISN'T A LOW EXCEPTION.
+01059P 01F5 39             EDTINR RTS
+010E0
+01061                             TTL    TRON and TROFF
+01062
+01063                      *
+01064                      * TRON turns on program tracing by setting TRCFLG to a nonzero
+01065                      * value.  TRCFLG is checked at NEWSTT and if it is nonzero the
+01066                      * line number of the line about to be executed is printed enclosed
+01067                      * in square brackets.  TROFF turns off the program tracing by clearing
+01068                      * TRCFLG.
+01069
+01070                             XDEF   TRON
+01071P 01F6      86      A TRON   FCB    @206     LDAIM CLRA opcode to make A nonzero
+01072                      *    skip over the CLRA.
+01073                             XDEF   TROFF
+01074P 01F7 4F             TROFF  CLRA            Prepare to clear TRCFLG.
+01075P 01F8 97   AF      A        STA    TRCFLG   Set or clear the trace flag.
+01076P 01FA 39             TRORTS RTS
+01077
+01078                             TTL    The POS function.
+01079
+01080                      *
+01081                      * POS(<device number>) returns the print postion of the specified
+01082                      * device.
+01083                      *
+01084                      * POS(0) returns the cursor column position.
+01085                      * POS(-1), if the cassette is open for output, returns a meaningless
+01086                      * result.  If the cassette is not  open a File Not Open error results.
+01087                      * If the cassette is open for input, a Bad File Mode error results.
+01088                      * POS(-2) returns the print position of the lineprinter.
+01089                      *
+01090
+01091                             XDEF   POS
+01092P 01FB 96   6F      A POS    LDA    DEVNUM   Preserve DEVNUM since this could be
+01093P 01FD 34   02      A        PSHS   A        a case such as PRINT #-1,POS(0).
+01094P 01FF BD   0000    A        JSR    SETDNM   Convert and check the argument.
+01095P 0202 BD   0000    A        JSR    OPNOCK   Make sure the device is open for
+01096                      *    output.
+01097P 0205 BD   0000    A        JSR    DEVPRM   Get the device parameters.
+01098P 0208 D6   6C      A        LDB    DEVPOS   Get the position into B.
+01099P 020A 35   02      A        PULS   A        Restore DEVNUM.
+01100P 020C 97   6F      A        STA    DEVNUM
+01101P 020E 7E   0000    A        JMP    SNGFLT   Float the result and return.
+01102
+01103                             TTL    The VARPTR function.
+01104
+01105                      *
+01106                      * VARPTR(<variable name>) returns the address of the specified
+01107                      *
+
+PAGE  008  ECBEXT  .SA:1  EXTEND The VARPTR function.
+
+01106                      * It is important to note that VARPTR is not legal for undefined
+01109                      * variables.  This is due to the fact that PTRGET will block transfer
+01110                      * to make room for the new variable. A case such as A(0)=VARPTR(S)
+01111                      * where S is undefined would cause disastrous results since the array
+01112                      * A would have moved. Therefore, an FC error results is VARPTR is
+01113                      * called with an undefined variable as the argument.
+01114                      * This is accomplished by saving STREND prior to the PRTGET call
+01115                      * and checking to see that it hasn't changed when PTRGET returns.
+01116                      *
+01117
+01118                             XDEF   VARPTR
+01119P 0211 BD   0000    A VARPTR JSR    CHKOPN   Eat the opening parenthesis.
+01120P 0214 DC   1F      A        LDD    STREND   Remember the top of storage.
+01121P 0216 34   06      A        PSHS   D
+01122P 0218 BD   0000    A        JSR    PTRGET   X:=pointer to the variable.
+01123P 021B BD   0000    A        JSR    CHKCLS   Check for the closing parenthesis.
+01124P 021E 35   06      A        PULS   D        X:=original top of storage,
+01125P 0220 1E   10      A        EXG    X,D      D:=pointer to variable.
+01126P 0222 9C   1F      A        CMPX   STREND   Did the top of storage change during
+01127                      *    the call to PTRGET?
+01128P 0224 26   51   0277        BNE    XRFC1    Yes, give an FC error since the
+01129                      *    variable was undefined prior to the
+01130                      *    PTRGET call.
+01131P 0226 7E   06ED    P        JMP    PATCHV   No, go float the result and return.
+01132
+01133                             TTL    MID$ Assignment (MID$ on the Left Side).
+01134
+01135                             XDEF   LHMID$
+01136P 0229 9D   9F      A LHMID$ JSR    CHRGET   Eat the second byte of the function
+01137P 022B BD   0000    A        JSR    CHKOPN   token and the left parenthesis.
+01138P 022E BD   0000    A        JSR    PTRGET   X:=pointer to left string
+01139                      *    variable's descriptor.
+01140P 0231 34   10      A        PSHS   X        Save it.
+01141P 0233 EC   02      A        LDD    &2,X     X:=pointer to left string data.
+01142P 0235 1093 21      A        CMPD   STKTOP   is it in string space?
+01143P 0238 23   04   023E        BLS    LHMD05   No, must copy.
+01144P 023A 93   27      A        SUBD   MEMSIZ
+01145P 023C 23   12   0250        BLS    LHMD10   Yes, don't copy.
+01146                      *    No, it must be copied into string
+01147                      *    space prior ro being modified.  (It
+01148                      *    could be a string literal in the
+01149                      *    program for example.)
+01150                      *    Note that this code checks both
+01151                      *    ends of string space rather than
+01152                      *    just checking to see if the string
+01153                      *    is above STKTOP.  This is done
+01154                      *    so it will be possible to put
+01155                      *    random file buffers above MEMSIZ
+01156                      *    and the copy will still occur for
+01157                      *    compatibility with other versions
+01158                      *    of BASIC.
+01159P 023E E6   84      A LHMD05 LDB    ,X       Get the required amount of string
+01160P 0240 BD   0000    A        JSR    GETSPA   space.
+01161P 0243 34   10      A        PSHS   X        Save the pointer to the free space.
+01162P 0245 AE   62      A        LDX    &2,S     Copy the string.
+01163P 0247 BD   0000    A        JSR    MOVINS
+01164P 024A 35   50      A        PULS   X,U      Put the new string data address into
+01165P 024C AF   42      A        STX    &2,U     the string descriptor.
+
+PAGE  009  ECBEXT  .SA:1  EXTEND MID$ Assignment (MID$ on the Left Side).
+
+01166P 024E 34   40      A        PSHS   U        Resave the descriptor pointer.
+01167P 0250 BD   0000    A LHMD10 JSR    COMBYT   Skip comma, B:=offset into left
+01168                      *    string.
+01169P 0253 34   04      A        PSHS   B        Save the offset.
+01170P 0255 5D                    TSTB            Give a Function Call error if the
+01171P 0256 27   1F   0277        BEQ    XRFC1    offset is zero.
+01772P 0258 C6   FF      A        LDB    #&255    Assume no third argument, in which
+01173                      *    case as many chars as possible will
+01174                      *    be replaced.
+01175P 025A 81   29      A        CMPA   #CLSPAR  Arrived at the closing parenthesis?
+01176P 025C 27   03   0261        BEQ    LHMD30   Yes, no third argument.
+01177P 025E BD   0000    A        JSR    COMBYT   No, skip the comma and evaluate the
+01178                      *    number of chars to replace.
+01179P 0261 34   04      A LHMD30 PSHS   B        Save the number of chars to replace.
+01180P 0263 BD   0000    A        JSR    CHKCLS   Eat the closing parenthesis and
+01181P 0266                       SYNCHK EQULTK   the equals sign.
+01182P 026B 8D   2E   029B        BSR    EVLSTR   Evaluate the right string
+01183                      *    formula, B:=length, X:=pointer to
+01184                      *    string data.
+01185P 026D 1F   13      A        TFR    X,U      Save pointer in U.
+01186P 026F AE   62      A        LDX    &2,S     X:=pointer to left string
+01187                      *    descriptor.
+01188P 0271 A6   84      A        LDA    ,X       A:=length of left string.
+01189P 0273 A0   61      A        SUBA   &1,S     Is the specified offset beyond the
+01190                      *    end of the left string?
+01191P 0275 24   03   027A        BHS    LHMD35   No.
+01192P 0277 7E   0000    A XRFC1  JMP    FCERR    Yes, give FC error.
+01193
+01194P 027A 4C             LHMD35 INCA            No, A:=number of chars between the
+01195                      *    offset and theend of the left
+01196                      *    string.
+01197P 027B A1   E4      A        CMPA   ,S       Is the number of chars that can be
+01198                      *    replaced greater than or equal to
+01199                      *    the specified number or default (255)?
+01200P 027D 24   02   0281        BHS    LHMD40   Yes, use the use the specified or
+01201                      *    default number.
+01202P 027F A7   E4      A        STA    ,S       No, use the lesser number.
+01203P 0281 A6   61      A LHMD40 LDA    &1,S     A:=offset into left string.
+01204P 0283 1E   89      A        EXG    A,B      A:=length of right string,
+01205                      *    B:=offset into left string.
+01206                      *    (Want to use ABX below since it
+01207                      *    does an unsigned addition.)
+01208P 0285 AE   02      A        LDX    &2,X     X:=pointer to left string data.
+01209P 0287 5A                    DECB            X:=pointer into left string
+01210P 0288 3A                    ABX             where replacement will begin.
+01211P 0289 4D                    TSTA            Is the right string null?
+01212P 028A 27   0D   0299        BEQ    LHMD60   Yes, no replacement can be done.
+01213P 028C A1   E4      A        CMPA   ,S       No, is the right string shorter 
+01214                      *    than the number of chars to be
+01215                      *    replaced?
+01216P 028E 23   02   0292        BLS    LHMD50   Yes, only replace the number of chars
+01217                      *    contained in the right string.
+01218P 0290 A6   E4      A        LDA    ,S       No, use the replacement count
+01219                      *    previously determined.
+01220P 0292 1F   89      A LHMD50 TFR    A,B      B:=number of chars to move.
+01221P 0294 1E   31      A        EXG    U,X      X:=source pointer (right string),
+01222                      *    U:=destination pointer (left
+01223                      *    string).
+
+PAGE  010  ECBEXT  .SA:1  EXTEND MID$ Assignment (MID$ on the Left Side).
+
+01224P 0296 BD   0000    A        JSR     COPLOP  Go move the characters.
+01225P 0299 35   96      A LHMD60 PULS    D,X,PC  Clean up the stack and return.
+01226
+01227
+01228                      *
+01229                      * EVLSTR evaluates a numeric formula and returns with
+01230                      * B containing the length of the string and X containing
+01231                      * a pointer to the string data.
+01232                      *
+01233
+01234                             XDEF   EVLSTR
+01235P  029B BD  0000    A EVLSTR JSR    FRMEVL   Evaluate a formula.
+01236P  029E 7E  0000    A        JMP    FRESTR   Make sure it's a string, free up
+01237                      *    the temporary, X:=pointer to string
+01238                      *    data, B:=length of string.
+01239
+01240                             TTL    The STRING$ Function.
+01241
+01242                      *
+01243                      * STRING$(<count>, <character>) returns a string of length <count>
+01244                      * which is filled with the character specified by <character>.
+01245                      * <character> can be specified as a string or a numeric formula.
+01246                      * If string, the first  character is used to fill the result.
+01247                      * If numeric, the value is used as an ASCII code to fill the
+01248                      * result.
+01249                      *
+01250
+01251                             XDEF   STRNG$
+01252P  02A1 BD  0000    A STRNG$ JSR    CHKOPN   Eat the open parenthesis.
+01253P  02A4 BD  0000    A        JSR    GETBYT   Evaluate and save the count.
+01254P  02A7 34  04      A        PSHS   B
+01255P  02A9 BD  0000    A        JSR    CHKCOM   Eat the comma.
+01256P  02AC BD  0000    A        JSR    FRMEVL   Evaluate the second argument.
+01257P  02AF BD  0000    A        JSR    CHKCLS   Check for the closing parenthesis.
+01258P  02B2 96  06      A        LDA    VALTYP   Is the second argument numeric?
+01259P  02B4 26  05   02BB        BNE    STR2AR   No, it's a string.
+01260P  02B6 BD  0000    A        JSR    CONINT   Yes, convert it to an integer in B.
+01261P  02B9 20  03   02BE        BRA    GTROOM   Go get space for the string.
+01262
+01263P  02BB BD  0000    A STR2AR JSR    ASC2     B:=ASCII code of the first byte of
+01264                      *    the second argument.
+01265P  02BE 34  04      A GTROOM PSHS   B        Save the character code.
+01266P  02C0 E6  61      A        LDB    &1,S     Get length of result string.
+01267P  02C2 BD  0000    A        JSR    STRSPA   Get the required amount of string
+01268                      *    space.
+01269P  02C5 35  06      A        PULS   A,B      A:=char code, B:=string length.
+01270P  02C7 27  05   02CE        BEQ    FINBLD   Zero length string, don't put
+01271                      *    any chars into it.  (STRSPA set
+01272                      *    the condition codes on the length
+01273                      *    of the string.)
+01274P  02C9 A7  80      A BUILDS STA    ,X+      Build the result string by storing
+01275P  02CB 5A                   DECB            the character code into each
+01276P  02CC 26  FB   02C9        BNE    BUILDS   byte of the string.
+01277P  02CE 7E  0000    A FINBLD JMP    GOPTNW   Go put away the result.
+01278
+01279                             TTL    The INSTR Function.
+01280
+01281                      *
+
+PAGE  011  ECBEXT  .SA:1  EXTEND The INSTR Function.
+
+01282                      * INSTR([<offset>,<S1$>,<S2$>) searches S1$ for the first
+01283                      * occurence of S2$ starting at the specified offset or at the
+01284                      * start of S1$ if no offset is specified.
+01285                      *
+01286                      * The value returned is the position of the first char if a match
+01287                      * is found, zero if a match is not found.
+01268                      *
+01289                      * If S2$ is null, the specified offset or 1 is returned.
+01290                      *
+01291                      * If S1$ is null, or the offset is beyond the end of S1$,
+01292                      * 0 is returned. (These are not really special cases
+01293                      * from the user's viewpoint, but the code checks for them as
+01254                      * special cases.)
+01295                      *
+01296                      * If an offset of zero is specified, an FC error results.
+01297                      *
+01298
+01299                             XDEF   INSTR
+01300P 02D1 BD   0000    A INSTR  JSR    CHKOPN   Check for the left parenthesis.
+01301P 02D4 BD   0000    A        JSR    FRMEVL   Evaluate the first argument.
+01302P 02D7 C6   01      A        LDB    #&1      Assume no offset is specified and
+01303P 02D9 34   04      A        PSHS   B        set up the default.
+01304P 02DB 96   06      A        LDA    VALTYP   Is the first argument numeric?
+01305P 02DD 26   10   02EF        BNE    INST10   No, no offset.
+01306P 02DF BD   0000    A        JSR    CONINT   Yes, B:=specified offset.
+01307P 02E2 E7   E4      A        STB    ,S       Overwrite the default.
+01308P 02E4 27   91   0277        BEQ    XRFC1    Don't allow an offset of zero.
+01309P 02E6 BD   0000    A        JSR    CHKCOM   Eat the comma, evaluate and check
+01310P 02E9 BD   0000    A        JSR    FRMEVL   the S1$ argument.  (Don't want to call
+01311P 02EC BD   0000    A        JSR    CHKSTR   EVLSTR since it would free up the
+01312                      *    temporary and we can't do that until
+01313                      *    the S2$ argument has been evaluated.)
+01314P 02EF 9E   52      A INST10 LDX    FACMO    Save the pointer to the S1$
+01315P 02F1 34   10      A        PSHS   X        descriptor.
+01316P 02F3 BD   0000    A        JSR    CHKCOM   Skip the comma and evaluate the S2$
+01317P 02F6 BD   029B    P        JSR    EVLSTR   argument.
+01318P 02F9 34   14      A        PSHS   X,B      Save data pointer and length of S2$.
+01319P 02FB BD   0000    A        JSR    CHKCLS   Check for the right parenthesis.
+01320P 02FE AE   63      A        LDX    &3,S     Free up the S1$ temp.
+01321P 0300 BD   0000    A        JSR    FRETMP   X:=data pointer, B:=length.
+01322P 0303 34   04      A        PSHS   B        Save length of S1$.
+01323P 0305 E1   66      A        CMPB   &6,S     Is the offset beyond the end of S1$?
+01324P 0307 25   23   032C        BLO    INST50   Yes, return 0.
+01325P 0309 A6   61      A        LDA    &1,S     No, is S2$ null?
+01326P 030B 27   1C   0329        BEQ    INST40   Yes, return the offset.
+01327P 030D E6   66      A        LDB    &6,S     No, X:=pointer into S1$ where the
+01328P 030F 5A                    DECB            search must begin.
+01329P 0310 3A                    ABX
+01330
+01331P 0311 31   84      A INST20 LEAY   ,X       Save S1$ pointer where current
+01332                      *    search began.
+01333P 0313 EE   62      A        LDU    &2,S     U:=pointer to S2$.
+01334P 0315 E6   61      A        LDB    &1,S     B:=length of S2$.
+01335P 0317 A6   E4      A        LDA    ,S       A:=number of chars between the
+01336P 0319 A0   66      A        SUBA   &6,S     search starting point and the end
+01337P 031B 4C                    INCA            of S1$.
+01338P 031C A1   61      A        CMPA   &1,S     Is it shorter than S2$?
+01339P 031E 25   0C   032C        BLO    INST50   Yes, give up and return 0.
+
+PAGE  012  ECBEXT  .SA:1  EXTEND The INSTR Function.
+
+01340
+01341P 0320 A6   80      A INST30 LDA    ,X+      Get char from S1$.
+01342P 0322 A1   C0      A        CMPA   ,U+      Compare to char in S2$.
+01343P 0324 26   0C   0332        BNE    INST60   Not the same.
+01344P 0326 5A                    DECB            Same, more to check?
+01345P 0327 26   F7   0320        BNE    INST30   Yes, check next chars.
+01346
+01347P 0329 E6   66      A INST40 LDB    &6,S     Match, return the offset.
+01348P 032B      21      A        FCB    @41      BRN over CLRB.
+01349P 032C 5F             INST50 CLRB            No match, return 0.
+01350P 032D 32   67      A        LEAS   &7,S     Clean up the stack.
+01351P 032F 7E   0000    A        JMP    SNGFLT   Float the result and return.
+01352
+01353P 0332 6C   66      A INST60 INC    &6,S     Chars not the same, increment offset
+01354                      *    into S1$.
+01355P 0334 30   21      A        LEAX   &1,Y     Start searching one char to the right
+01356P 0336 20   D9   0311        BRA    INST20   in S1$.
+01357
+01358                             TTL    Hex and Octal Constants
+01359
+01360                             XDEF   HOCONS
+01361P 0338 0F   52      A HOCONS CLR    FACMO    Clear FACMO,FACLO since that's where
+01362P 033A 0F   53      A        CLR    FACLO    the result is built.
+01363P 033C 8E   0052    A        LDX    #FACMO   Set up a pointer to the FAC.
+01364P 033F 9D   9F      A        JSR    CHRGET   See if O or H specified.
+01365P 0341 81   4F      A        CMPA   #'O      O for octal?
+01366P 0343 27   12   0357        BEQ    OCTCN1   Yes, go do octal.
+01367P 0345 81   48      A        CMPA   #'H      No, H for hex?
+01368P 0347 27   23   036C        BEQ    HEXCN0   Yes, go do hex.
+01369                      *    No, default to octal.
+01370P 0349 9D   A5      A        JSR    CHRGOT   Reget current char to set
+01371P 034B 20   0C   0359        BRA    OCTCN2   condition codes.
+01372
+01373P 034D 81   38      A OCTCN0 CMPA   #'8      Is it a valid octal digit?
+01374P 034F 1022 FCAD    A        LBHI   SNERR    No, give a syntax error.
+01375P 0353 C6   03      A        LDB    #&3      Yes, bits/digit:=3.
+01376P 0355 8D   2A   0381        BSR    HODIG    Go add in the new digit.
+01377P 0357 9D   9F      A OCTCN1 JSR    CHRGET   Get next char.
+01378P 0359 25   F2   034D OCTCN2 BCS    OCTCN0   It's a digit, continue.
+01379                      *    Not a digit, time to quit.
+01380
+01381                      *
+01382                      * Float the sixteen bit unsigned value in FACMO,FACLO.
+01383                      *
+01384
+01385                             XDEF   CONS16
+01386P 035B 0F   50      A CONS16 CLR    FACHO    Clear the most significant byte.
+01387            0001    A        IFNE   ADDPRC
+01368P 035D 0F   51      A        CLR    FACMOH
+01389                             ENDC   IFN      ADDPRC
+01390P 035F 0F   06      A CONS24 CLR    VALTYP   Set VALTYP to numeric.
+01391P 0361 0F   63      A        CLR    FACOV
+01392P 0363 0F   54      A        CLR    FACSGN   Mark as positive.
+01393P 0365 C6   A0      A        LDB    #@230+@10*ADDPRC Set up the exponent.
+01394P 0367 D7   4F      A        STB    FACEXP
+01395P 0369 7E   0000    A        JMP    NORMAL   So normalize it.
+01396
+01397P 036C 9D   9F      A HEXCN0 JSR    CHRGET   Get next char.
+
+PAGE  013  ECBEXT  .SA:1  EXTEND Hex and Octal Constants
+
+01398                             XDEF   HEXCNX
+01399P 036E 25   0B   037B HEXCNX BCS    HEXCN1   It's a numeric digit.
+01400P 0370 BD   0000    A        JSR    ISLETC   Not numeric, see if letter.
+01401P 0373 25   E6   035B        BCS    CONS16   Not letter, finished.
+01402P 0375 81   47      A        CMPA   #'F+&1   Valid hex alpha digit?
+01403P 0377 24   E2   035B        BCC    CONS16   No, all done.
+01404P 0379 80   07      A        SUBA   #'A-'0-&10 Yes, adjust alpha code.
+01405
+01406P 037B C6   04      A HEXCN1 LDB    #&4      Bits/digit:=4.
+01407P 037D 8D   02   0381        BSR    HODIG    Add in new digit.
+01408P 037F 20   EB   036C        BRA    HEXCN0   Do next digit.
+01409
+01410
+01411P 0381 68   01      A HODIG  ASL    &1,X     Shift current value left bits/digit
+01412P 0383 69   84      A        ROL    ,X       times while checking for overflow.
+01413P 0385 1025 FC77    A        LBCS   OVERR
+01414P 0389 5A                    DECB
+01415P 038A 26   F5   0381        BNE    HODIG
+01416P 038C 80   30      A        SUBA   #'0      Subtract out ASCII offset.
+01417P 036E AB   01      A        ADDA   &1,X     Add in new digit to
+01418P 0390 A7   01      A        STA    &1,X     low order byte.
+01419P 0392 39             HORTS  RTS             (Can't get carry since low order
+01420                      *    hex or octal digit is a zero from
+01421                      *    shifting done above.)
+01422
+01423                             TTL    Simple User Defined Function Code.
+01424
+01425
+01426                      *
+01427                      * Note only single arguments are allowed to functions
+01428                      * and functions must be of the single line form:
+01429                      * DEF FNA(X)=X^2+X-2
+01430                      * Both the argument and result must be numeric.
+01431                      *
+01432                      * Idea: create a simple variable entry
+01433                      * whose first character has the 200 bit set.
+01434                      * The value will be:
+01433                      *
+01436                      * A text pntr to the formula.
+01437                      * A pntr to the argument variable.
+01438                      *
+01439                      * Function names can be like FNA4.
+01440                      *
+01441                      *
+01442                      * Subroutine to see if we are in direct mode
+01443                      * and complain if so.
+01444                      *
+01445
+01446                             XDEF   ERRDIR
+01447P 0393 9E   68      A ERRDIR LDX    CURLIN   Dir mode has CURLIN=65535.
+01446P 0395 30   01      A        LEAX   &1,X     So now, is result zero?
+01449P 0397 26   F9   0392        BNE    HORTS    Yes.
+01450P 0399 C6   00      A        LDB    #ERRID   Illegal Direct Error.
+01451P 039B 7E   0000    A ERRGO1 JMP    ERROR
+01452
+01453                             XDEF   DEF
+01454P 039E AE   9F 00A6 A DEF    LDX    [TXTPTR] Is it DEF USR?
+01455P 03A2 8C   FF00    A        CMPX   #$FF00+USRTK
+
+PAGE  014  ECBEXT  .SA:1  EXTEND Simple User Defined Function Code.
+
+****WARNING   001--00000
+01456P 03A5 1027 0074 041D        LBEQ   DEFUSR   Yes, go define the USR function
+01457                      *    address.
+01458P 03A9 8D   23   03CE        BSR    GETFNM   Get a pntr to the function.
+01459P 03AB 8D   E6   0393        BSR    ERRDIR
+01460P 03AD BD   0000    A        JSR    CHKOPN   Must have "(".
+01461P 03B0 C6   80      A        LDB    #&128
+01462P 03B2 D7   08      A        STB    SUBFLG   Prohibit subscripted variables.
+01463P 03B4 BD   0000    A        JSR    PTRGET   Get pntr to argument.
+01464P 03B7 8D   25   03DE        BSR    CHKNU2   Is it a number?
+01465P 03B9 BD   0000    A        JSR    CHKCLS   Must have ")"
+01466P 03BC                       SYNCHK EQULTK   Must have "=".
+01467P 03C1 9E   4B      A        LDX    DEFPNT   Get pntr to thing to store in.
+01468P 03C3 DC   A6      A        LDD    TXTPTR   Get thing to store.
+01469P 03C5 ED   84      A        STD    ,X       Put down text pointer.
+01470P 03C7 DC   39      A        LDD    VARPNT   Get more to store.
+01471P 03C9 ED   02      A        STD    &2,X     Store it.
+01472P 03CB 7E   0000    A        JMP    DATA     Skip to end.
+01473
+01474                      *
+01475                      * Subroutine to get a pntr to a function name.
+01476                      *
+01477
+01478P 03CE                GETFNM SYNCHK FNTK     Must start with FN.
+01479P 03D3 C6   80      A        LDB    #&128    Don't allow an array.
+01460P 03D5 D7   08      A        STB    SUBFLG
+01481P 03D7 8A   80      A        ORA    #&128    Put function bit on.
+01482P 03D9 BD   0000    A        JSR    PTRGT2   Get pntr to function or create anew.
+01483P 03DC 9F   4B      A        STX    DEFPNT
+01484P 03DE 7E   0000    A CHKNU2 JMP    CHKNUM   Make sure it's numeric and return.
+01485
+01486                             XDEF   FNDOER
+01487P 03E1 8D   EB   03CE FNDOER BSR    GETFNM   Get pointer to function definition.
+01488P 03E3 34   10      A        PSHS   X        Save it.
+01489P 03E5 BD   0000    A        JSR    PARCHK   Evaluate the actual parameter.
+01490                      *    (It's enclosed in parentheses.)
+01491P 03E8 8D   F4   03DE        BSR    CHKNU2   Make sure it's numeric.
+01492P 03EA 35   40      A        PULS   U        U:=pointer to function def.
+01493P 03EC C6   00      A        LDB    #ERRUF   In case function is undefined.
+01494P 03EE AE   42      A        LDX    &2,U     X:=pointer to dummy arg variable.
+01495P 03F0 27   A9   039B        BEQ    ERRGO1   If zero the function isn't defined.
+01496P 03F2 109E A6      A        LDY    TXTPTR   Y:=text pointer which points into
+01497                      *    function call.
+01498P 03F5 EE   C4      A        LDU    ,U       U:=function definition text pointer.
+01499P 03F7 DF   A6      A        STU    TXTPTR   Set up txtptr for FRMEVL.
+01500            0001    A        IFNE   ADDPRC
+01501P 03F9 A6   04      A        LDA    &4,X     Push on extra byte of arg variable.
+01502P 03FB 34   02      A        PSHS   A
+01503                             ENDC   IFN      ADDPRC
+01504P 03FD EC   84      A        LDD    ,X       D,U:=dummy arg variable value.
+01505P 03FF EE   02      A        LDU    &2,X
+01506P 0401 34   76      A        PSHS   U,Y,X,B,A Save dummy arg variable value, pointer
+01507                      *    to dummy arg, and call text pointer.
+01508P 0403 BD   0000    A        JSR    MOVMF    Move actual parm value into dummy
+01509                      *    arg variable from FAC.
+01510P 0406 BD   0000    A        JSR    FRMNUM   Evaluate a numeric formula.  (This
+01511                      *    is the function def formula.)
+01512P 0409 35   76      A        PULS   A,B,X,Y,U Get back dummy arg value, dummy arg
+
+PAGE  015  ECBEXT  .SA:1  EXTEND Simple User Defined Function Code.
+
+01513                      *    pointer, and call text pointer.
+01514P 040B ED   84      A        STD    ,X       Restore the dummy arg.
+01515P 040D EF   02      A        STU    &2,X
+01516            0001    A        IFNE   ADDPRC
+01517P 040F 35   02      A        PULS   A        Restore extra byte of arg variable.
+01518P 0411 A7   04      A        STA    &4,X
+01519                             ENDC   IFN      ADDPRC
+01520P 0413 9D   A5      A        JSR    CHRGOT   Make sure the function definition is
+01521P 0415 1026 FBE7    A        LBNE   SNERR    Properly terminated.  (Can't make this
+01522                      *    check during definition time since
+01523                      *    it is then not known where the end of
+01524                      *    the expression is.)
+01525P 0419 109F A6      A        STY    TXTPTR   Restore caller's TXTPTR.
+01526P 041C 39             DEFRTS RTS
+01527
+01528                             TTL    USR Function Code.
+01529
+01530                      *
+01531                      * Here when DEF sees a USR token.
+01532                      *
+01533
+01534P 041D 9D   9F      A DEFUSR JSR    CHRGET   Skip the first byte of the function
+01535                      *    token.
+01536P 041F 9D   9F      A        JSR    CHRGET
+01537P 0421 8D   07   042A        BSR    SCNUSR   X:=address of USRTAB entry.
+01538P 0423 34   10      A        PSHS   X        Save it.
+01539P 0425 8D   2B   0452        BSR    EQUADR   Skip equals sign, X:=address.
+01540P 0427 AF   F1      A        STX    [,S++]   return.
+01541P 0429 39                    RTS
+01542
+01543
+01544                      *
+01545                      * Scan USR function number and return a pointer to the specified
+01546                      * USRTAB entry in X.
+01547                      *
+01548
+01549P 042A 5F             SCNUSR CLRB            Assume no function number specified.
+01550                      *    The default is USR0.
+01551P 042B 9D   A5      A        JSR     CHRGOT  USR token ALREADY SKIPPED.
+01552P 042D 24   06   0435        BCC     ISUSR0  No digit, default to USR0.
+01553P 042F 80   30      A        SUBA    #'0     Get rid of ASCII offset and put the
+01554P 0431 1F   89      A        TFR     A,B     function number into B.
+01555P 0433 9D   97      A        JSR     CHRGET  Skip the digit.
+01556P 0435 9E   B0      A ISUSR0 LDX     USTBAD  X:=pointer to USRTAB.
+01557P 0437 58                    ASLB            USRTAB entries are two bytes each.
+01558P 0438 3A                    ABX             X:=pointer to specified entry and
+01559P 0439 39                    RTS             return.
+01560
+01561
+01562                      *
+01563                      * Here when USR token is seen by the EVAL chain.
+01564                      *
+01565
+01566                             XDEF   USRFN
+01567P 043A 8D   EE   042A USRFN  BSR    SCNUSR   X:=pointer to USRTAB entry.
+01568P 043C AE   84      A        LDX    ,X       Save the address of the USR function.
+01569P 043E 34   10      A        PSHS   X
+01570P 0440 BD   0000    A        JSR    PARCHK   Evaluate formula enclosed in parens.
+
+PAGE  016  ECBEXT  .SA:1  EXTEND USR Function Code.
+
+01571P 0443 8E   004F    A        LDX    #FAC     Point to the FAC so the USR routine
+01572                      *    doesn't need to know the absolute
+01573                      *    address of the FAC for numeric
+01574                      *    arguments.
+01575P 0446 96   06      A        LDA    VALTYP   Is it numeric?
+01576P 0448 27   07   0451        BEQ    USRDSP   Yes, the argument is in the FAC.
+01577P 044A BD   0000    A        JSR    FREFAC   No, free up the string temporary.
+01578P 044D 9E   52      A        LDX    FACMO    X:=pointer to the string descriptor.
+01579P 044F 96   06      A        LDA    VALTYP   Indicate the argument is string.
+01580P 0451 39             USRDSP RTS             Dispatch to the USR function.
+01581
+01582
+01583                      *
+01584                      * Skip equals sign and evaluate 16 bit unsigned integer into X.
+01585                      *
+01586
+01587P 0452                EQUADR SYNCHK EQULTK   Skip the equals sign.
+01588P 0457 7E   0000    A        JMP    EVLADR   Evaluate address into X and return.
+01589
+01590                             TTL    TIME and TIME$
+01591
+01592            0000    A        IFNE   TODCLK
+01771                       ENDC   IFN TODCLK
+
+PAGE  017  ECBEXT  .SA:1  EXTEND TIME and TIMES
+
+01773                      *
+01774                      * XRSLWC is the clock interrupt routine.  It is invoked by
+01775                      * an IRQ every 60th of a second.
+01776                      *
+01777                      * Note that TICKER is off the direct page.  If it were on the direct
+01778                      * page it would be necessary to either set the DP register or
+01779                      * force extended addressing to be used.
+01780                      *
+01781
+01782                             XDEF   XRSLWC
+01783P  045A B6  0000    A XRSLWC LDA    PIA0BC   Is the slow clock interrupt flag set?
+01784P  045D 2B  01   0460        BMI    DOTIMR   Yes.
+01785P  045F 3B                   RTI             No, return from the interrupt.
+01786
+01787P  0460 B6  0000    A DOTIMR LDA    PIA0BD   Clear the interrupt request.
+01788                             XDEF   XRTIMR
+01789            0463    P XRTIMR EQU    *        The disk ROM comes here when it
+01790                      *    is finished with the timer IRQ.
+01791            0000    A        IFNE    TODCLK
+01804                       ENDC    IFN TODCLK
+01805            0000    A        IFEQ    TODCLK
+01806P  0463 BE  0000    A        LDX     TICKER  Increment the two byte tick count.
+01807P  0466 30  01      A        LEAX    &1,X
+01808P  0468 BF  0000    A        STX     TICKER
+01809                             ENDC    IFE     TODCLK
+01810P  046B 7E  0000    A GOPLYC JMP     PLYCLK  Go handle the special timer for
+01811                      *    the PLAY statement.
+
+PAGE  018  ECBEXT  .SA:1  EXTEND TIME and TIME$
+
+01813                             TTL    TIMER
+01814
+01815            0000    A        IFEQ   TODCLK
+01816
+01817                      *
+01816                      * Here to set the timer via TIMER=tick count.
+01819                      * 0 .LE. tick count .LE. 65535.
+01820                      *
+01821
+01822                             XDEF   TIMSET
+01823P 046E 9D   9F      A TIMSET JSR    CHRGET     Skip the second byte of the function
+01824                      *    token.
+01825P 0470 8D   E0   0452        BSR    EQUADR   Skip equals sign, X:=tick count.
+01826P 0472 BF   0000    A        STX    TICKER   Put it into the timer and return.
+01827P 0475 39                    RTS
+01828
+01829
+01830                      *
+01831                      * Here to return the tick count for the TIMER function.
+01832                      *
+01833
+01834                             XDEF   TIMER
+01835P 0476 BE   0000    A TIMER  LDX    TICKER   Get the tick count.
+01836P 0479 9F   52      A        STX    FACMO    Float it and return.
+01837P 047B 7E   035B    P        JMP    CONS16
+01838                             ENDC   IFE      TODCLK
+01839
+01840                             TTL    The DELETE Command
+01841
+01842                             XDEF   DELETE
+01843P 047E 1027 FB7E    A DELETE LBEQ   FCERR    At least one line number must be
+01844                      *    specified.
+01845P 0482 BD   0000    A        JSR    LINGET   Read the first line number.
+01846                      *    (Returns 0 if dash is first  thing.)
+01847P 0485 BD   0000    A        JSR    FNDLIN   Get and save a pointer to the first
+01848P 0488 9F   D3      A        STX    FSTPTR   line to be deleted.
+01849P 048A 9D   A5      A        JSR    CHRGOT   See what the terminator is.
+01850P 048C 27   10   049E        BEQ    DELSRC   End of statement, delete only the
+01851                      *    specified line if it exists.
+01852P 048E 81   00      A        CMPA   #MINUTK  It must be a dash.
+01853P 0490 26   3B   04CD        BNE    DELSNR   Return to NEWSTT to give SN error
+01854                      *    if not  dash.
+01855P 0492 9D   9F      A        JSR    CHRGET   Skip over the dash.
+01856P 0494 27   04   049A        BEQ    DTOEND   End of statement, delete to the end
+01857                      *    of the program.
+01858P 0496 8D   24   04BC        BSR    LINTRM   Read the final line number into
+01859                      *    LINNUM and check for a terminator.
+01860P 0498 20   04   049E        BRA    DELSRC   Go find the first line in the range.
+01861
+01862P 049A 86   FF      A DTOEND LDA    #&255    Set LINNUM so higher than any
+01563P 049C 97   2B      A        STA    LINNUM   program line number.  (Don't care
+01864                      *    about low order byte since 255*256
+01865                      *    is 65280 and the highest program
+01866                      *    line number allowed is 63999.)
+01867P 049E DE   D3      A DELSRC LDU    FSTPTR   Search for the first line outside
+01868P 04A0                       SKIP2  the      range of lines to be deleted.
+01869P 04A1 EE   C4      A DELSLP LDU    ,U       Link to the next line.
+01870P 04A3 EC   C4      A        LDD    ,U       Is the link zero?
+
+PAGE  019  ECBEXT  .SA:1  EXTEND The DELETE Command
+
+01871P 04A5 27   06   04AD        BEQ    DELDOR   Yes, have hit end of program.
+01872P 04A7 EC   42      A        LDD    &2,U     No, is the line number
+01873P 04A9 93   2B      A        SUBD   LINNUM   higher than the last specified one?
+01874P 04AB 23   F4   04A1        BLS    DELSLP   No, go link to the next line.
+01875                      *    Yes, U is pointing to the link field
+01876                      *    of the first line beyond the range.
+01877P 04AD 9E   D3      A DELDOR LDX    FSTPTR   X:=pointer to link field of first
+01878A                     *    line to be deleted.
+01879P 04AF 8D   15   04C6 *      BSR    DELDO    Move the top of the program down
+01880                      *    over the lines being deleted and
+01881                      *    update VARTAB.
+01862                      *    Note that if a null range was
+01883                      *    specified (as in the case where a
+01884                      *    single nonexistent line was given),
+01885                      *    the block transfer is done anyway
+01866                      *    but is OK since source and dest
+01887                      *    pointers are the same.
+01888  04B1 BD   0000    A        JSR    RUNC     Wipe out variables and reset the
+01889                      *    stack.
+01890P 04B4 9E   D3      A        LDX    FSTPTR   Fix up the links of the lines that
+01891P 04B6 BD   0000    A        JSR    CHEAD    were moved.
+01892P 04B9 7E   0000    A        JMP    READY    Go print "OK".
+01893
+01894
+01895P 04BC BD   0000    A LINTRM JSR    LINGET   Read a line number into LINNUM.
+01896P 04BF 7E   0000    A        JMP    TRMCHK   Check for end of statement.
+01897
+01898
+01899                      *
+01900                      * Enter at DELDO to block transfer down from U to X until U=[VARTAB].
+01901                      * Then update [VARTAB] by storing final X into it.
+01902                      *
+01903
+01904P 04C2 A6   C0      A MORDEL LDA    ,U+      Set byte and move it down.
+01905P 04C4 A7   80      A        STA    ,X+
+01906P 04C6 1193 1B      A DELDO  CMPU   VARTAB   At end of program?
+01907P 04C9 26   F7   04C2        BNE    MORDEL   No, continue moving.
+01908P 04CB 9F   1B      A        STX    VARTAB   Yes, update VARTAB and return.
+01909P 04CD 39             DELSNR RTS
+01910
+01911                             TTL    LINEINPUT
+01912
+01913                      *
+01914                      * LINEINPUT [#<device number>,]["<prompt>";]<string variable>
+01915                      *
+01916                      * The graphics LINE statement comes here when it sees an INPUT token
+01917                      * following the LINE token.
+01918                      *
+01919
+01920                             XDEF   ILINE
+01921P 04CE BD   0393    P ILINE  JSR    ERRDIR   Disallow in direct execution mode
+01922                      *    since it smashes BUF.
+01923P 04D1 9D   9F      A        JSR    CHRGET   Skip past the INPUT token.
+01924P 04D3 81   23      A        CMPA   #'#      Device number specified?
+01925P 04D5 26   09   04E0        BNE    ILNKBD   No, input will come from keyboard.
+01926P 04D7 BD   0000    A        JSR    GETDNM   Yes, scan the device number.
+01927P 04DA BD   0000    A        JSR    OPNICK   Take sure it's open for input.
+01928P 04DD BD   0000    A        JSR    CHKCOM   A comma must follow the device number.
+
+PAGE  020  ECBEXT  .SA:1  EXTEND LINEINPUT
+
+01929            04E0    P ILNKBD EQU    *
+01930            0000    A        IFNE   CNTRLO
+01935                       ENDC   IFN CNTRLO
+01936P 04E0 81   22      A        CMPA   #DBLQTE  Is there a quoted prompt string?
+01937P 04E2 26   0B   04EF        BNE    NOPRM    No, no prompt.
+01938P 04E4 BD   0000    A        JSR    STRTXT   Yes, scan the string.
+01939P 04E7                       SYNCHK SEMCOL   It must be followed by a semicolon.
+01940P 04EC BD   0000    A        JSR    STRPRT   Print it out.  (CHROUT will suppress
+01941                      *    the output if DEVNUM is nonzero.)
+01942P 04EF 32   7E      A NOPRM  LEAS   -&2,S    Put the stack at the correct level
+01943                      *    for INLDO to handle the BREAK case.
+01944                      *    (Must have NEWSTT return under another
+01945                      *    2 bytes, under INLNDO return address.)
+01946P 04F1 BD   0000    A        JSR    INLNDO   Read line into BUF.  (If necessary
+01947                      *    the disk file case can be trapped
+01948                      *    at the INLIN hook HKINLN.)
+01949P 04F4 32   62      A        LEAS   &2,S     Fix the stack back up.
+01950P 04F6 0F   6F      A        CLR    DEVNUM   Reset for console I/O.
+01951P 04F8 BD   0000    A        JSR    PTRGET   Get a pointer to the variable and
+01952P 04FB 9F   3B      A        STX    FORPNT   save it for the LET assignment code.
+01953P 04FD BD   0000    A        JSR    CHKSTR   Make sure it's a string variable.
+01954P 0500 8E   FFFF    A        LDX    #BUF-&1  Point to the data.
+01955P 0503 4F                    CLRA            Only terminate on end of line.
+01956P 0504 BD   0000    A        JSR    STRLT3   Go build a descriptor and copy the
+01957                      *    string into string space.
+01958P 0507 7E   0000    A        JMP    INPCOM   Finish up in the LET assignment code.
+01959
+01960                             TTL    RENUM - Renumber a BASIC program
+01961
+01962                      *
+01963                      * The following steps are performed in order to renumber a
+01964                      * BASIC program:
+01965                      * 1) Read the parameter list.  The format of the RENUM command
+01966                      * is: RENUM [NN[,MM[,II]]]
+01967                      *  NN is the new line number of the first line to
+01966                      *  be renumbered.
+01969                      *  Lines below MM are not renumbered.
+01970                      *  II is the increment between the renumbered lines.
+01971                      *
+01972                      * If NN is omitted the default of 10 is used.
+01973                      * If MM is omitted the whole program is renumbered.
+01974                      * If II is omitted the default increment of 10 is used.
+01975                      * MM and NN must be such that NN is greater than the highest
+01976                      *  numbered line not being renumbered or a "Function
+01977                      *  Call" error will result.
+01978                      * II cannot be zero or an FC error will result.
+01979                      *
+01980                      * 2) Determine whether a line number greater than 63999 would
+01981                      * be created if the paramters obtained in step 1 are used to
+01982                      * renumber the program.  If so gave a "Function Call" error.
+01983                      *
+01984                      * 3) Scan the program converting all line number references from
+01985                      * ASCII to modified binary line number tokens.  A modified
+01986                      * binary line number token has the following format:
+01987                      *  1
+01988                      *  High byte of binary line number
+01989                      *  Modifier for high byte
+01990                      *  Low byte of binary line number
+
+PAGE  021  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+01991                      *  Modifier for low byte
+01992                      * If the modifier byte is one then the associated line number
+01993                      * byte contains a true value between 1 and 255.  If the modifier
+01994                      * byte is two then the associated line number byte contains
+01995                      * one but its actual value is zero.  The reason for doing
+01996                      * this is to allow the use of CHEAD to fix up the links
+01997                      * after step 3 is finished.  CHEAD assumes that
+01996                      * a zero marks the end of a BASIC program line.
+01999                      * Note that the binary line number token is 5 bytes long.
+02000                      * It may therefore be necessary to block transfer the program
+02001                      * up to make room for the token since the ASCII line number
+02002                      * may be as small as one character.  It is this block
+02003                      * transferring that destroys the program links.
+02004                      * note that BLTU is called to do the block transferring.
+02005                      * Therefore an "Out of Memory" error could occur.  If this
+02006                      * does happen the program is left in a totally useless state
+02007                      * if any binary line number tokens have been inserted.
+02008                      * This case isn't too likely but my apologies in advance to
+02009                      * anyone who falls victim to it.
+02010                      *
+02011                      * If a line number is longer than 5 characters due to
+02012                      * leading zeroes and/or embedded spaces, the rest of the
+02013                      * program is block transferrred down to take up the space.
+02014                      *
+02015                      * 4) fix up the links by calling CHEAD. The links were
+02016                      * probably destroyed by step 3 and they are needed in step 4
+02017                      * for calls to FNDLIN.
+02018                      *
+02019                      * 5) Scan the program looking for the modified binary line number
+02020                      * tokens created in step 3. When one is found call FNDLIN to
+02021                      * get a pointer to the link field of the BASIC program line
+02022                      * being referenced.  If the line is found convert the binary
+02023                      * line number token into a line pointer token which has the
+02024                      * following format:
+02025                      *  2
+02026                      *  Link pointer high byte
+02027                      *  Link pointer low byte
+02028                      *  Unused
+02029                      *  Unused
+02030                      * If the line is not found the binary line number token is
+02031                      * converted into an undefined line reference token which
+02032                      * has the following format:
+02033                      *  3
+02034                      *  Binary line number high byte
+02035                      *  Binary line number low byte
+02036                      *  Unused
+02037                      *  Unused
+02038                      * At this point it doesn't matter if there are zeroes in
+02039                      * these 5 byte entries because CHEAD won't be called again
+02040                      * until the renumber process is finished at which time all
+02041                      * of the tokens created by RENUM will be done.
+02042                      *
+02043                      * 6) Assign the new line numbers to the portion of the program
+02044                      * being renumbered.
+02045                      *
+02046                      * 7) Scan the program converting line pointer tokens to binary
+02047                      * line number tokens.  The format of a binary line number token
+02048                      * is as follows:
+
+PAGE  022  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02049                      *  1
+02050                      *  High byte of binary line number
+02051                      *  Low byte of binary line number
+02052                      *  Unused
+02053                      *  Unused
+02054                      *
+02055                      * 8) Scan the program looking for binary line number tokens and
+02056                      * undefined line reference tokens. When an undefined line
+02057                      * reference token is found print the message "Undefined
+02058                      * Line XXXXX In YYYYY" where "XXXXX" is the undefined line
+02059                      * number and "YYYYY" is the line number (after renumbering)
+02050                      * of the line the reference is in.
+02061                      *
+02062                      * Convert all undefined line reference and binary line number
+02063                      * tokens to ASCII by calling FOUT.  Put the ASCII digits
+02064                      * into the space used by the token and block transfer the
+02055                      * program down if there is space left over.  (This is the
+02066                      * case if the ASCII representation is fewer than 5 digits.
+02067                      * The ASCII can never be longer than 5 digits so block
+02068                      * transferring up is never required at this point.)
+02069                      *
+02070                      * 9) Step 8 destroyed the links if any block transferring occurred
+02071                      * so call CHEAD to fix them up.
+02072                      *
+02073                      * 10) Call CLEARC to init ARYTAB and STREND to point
+02074                      * to the new end of program.  Jump to READY.
+02075                      *
+
+PAGE  023  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02077P 050A BD   0000    A GTLINE JSR    LINGET   READ A LINE NUMBER.
+02078P 050D 9E   2B      A        LDX    LINNUM   X:=THE LINE NUMBER READ.
+02079P 050F 39                    RTS
+02080
+02081P 0510 9E   D1      A FNDFST LDX    FSTNUM   GET A POINTER TO THE FIRST LINE
+02082                      *    TO BE RENUMBERED.
+02083P 0512 9F   2B      A FNDLNX STX    LINNUM   FIND LINE WITH NUMBER [X].
+02084P 0514 7E   0000    A        JMP    FNDLIN
+02085
+02086                             XDEF   RENUM
+02087P 0517 BD   0000    A RENUM  JSR    CLEARC   LIBERATE MEMORY USED BY VARIABLES
+02088                      *    AND STACK AND PROHIBIT CONTINUING.
+02089P 051A CC   000A    A        LDD    #&10     SET UP THE DEFAULT OF TEN FOR THE
+02090P 051D DD   D5      A        STD    NEWNUM   FIRST NEW LINE NUMBER TO BE ASSIGNED.
+02091P 051F DD   CF      A        STD    RENINC   THE DEFAULT INCREMENT IS ALSO TEN.
+02092P 0521 5F                    CLRB            THE DEFAULT IS TO RENUMBER THE WHOLE
+02093P 0522 DD   D1      A        STD    FSTNUM   PROGRAM SO SET FIRST OLD LINE NUMBER
+02094                      *    TO BE RENUMBERED TO ZERO.
+02095P 0524 9D   A5      A        JSR    CHRGOT   RESET COND CODES.
+02096P 0526 24   06   052E        BCC    DFLTNN   NOT A DIGIT, USE DEFAULT NN.
+02097P 0528 8D   E0   050A        BSR    GTLINE   READ NN.
+02098P 052A 9F   D5      A        STX    NEWNUM   OVERRIDE THE DEFAULT.
+02099P 052C 9D   A5      A        JSR    CHRGOT   SET TERMINATOR'S COND CODES.
+02100P 052E 27   1B   054B DFLTNN BEQ    ENDPRM   END OF PARAMETERS, DEFAULT THE REST.
+02101P 0530 BD   0000    A        JSR    CHKCOM   MUST BE COMMA AS PLACE HOLDER AND/OR
+02102                      *    SEPARATOR.
+02103P 0533 24   06   053B        BCC    DFLTMM   NOT DIGIT, USE DEFALTULT MM.
+02104P 0535 8D   D3   050A        BSR    GTLINE   READ MM.
+02105P 0537 9F   D1      A        STX    FSTNUM   SAVE IT.
+02106P 0539 9D   A5      A        JSR    CHRGOT   GET TERMINTOR'S COND CODES.
+02107P 053B 27   0E   054B DFLTMM BEQ    ENDPRM   NO MORE PARMS, DEFAULT II.
+02108P 053D BD   0000    A        JSR    CHKCOM   MUST BE COMMA.
+02109P 0540 24   06   0548        BCC    DFLTII   NOT DIGIT, USE DEFAULT II.
+02110P 0542 8D   C6   050A        BSR    GTLINE   READ AND SAVE II.
+02111P 0544 9F   CF      A        STX    RENINC
+02112P 0546 27   49   0591        BEQ    RNFCER   GIVE "FUNCTION CALL" ERROR IF ZERO.
+02113P 0548 BD   0000    A DFLTII JSR    TRMCHK   The statement must end now.
+02114
+02115P 054B 8D   C3   0510 ENDPRM BSR    FNDFST   GET A POINTER TO THE FIRST LINE
+02116P 054D 9F   D3      A        STX    FSTPTR   TO BE RENUMBERED.
+02117P 054F 9E   D5      A        LDX    NEWNUM   GET A POINTER TO AN EXISTING PROGRAM
+02118P 0551 8D   BF   0512        BSR    FNDLNX   LINE WHOSE NUMBER IS GREATER THAN OR
+02119                      *    EQUAL TO THE FIRST NEW LINE NUMBER.
+02120P 0553 9C   D3      A        CMPX   FSTPTR   GIVE A "FUNCTION CALL" ERROR IF
+02121                      *    THE USER IS ATTEMPTING TO RENUMBER
+02122P 0555 25   3A   0591        BLO    RNFCER   THE PROGRAM ON TOP OF ITSELF.  THIS
+02123                      *    MEANS THAT NN IS LESS THAN EQUAL
+02124                      *    TO THE HIGHEST LINE NUMBER NOT BEING
+02125                      *    RENUMBERED.
+02126P 0557 8D   1C   0575        BSR    CHKNMS   GENERATE THE NEW LINE NUMBERS BUT DON'T
+02127                      *    ACTUALLY PUT THEM INTO THE PROGRAM.
+02128                      *    THIS IS DONE JUST TO CHECK THAT A
+02129                      *    LINE NUMBER BIGGER THAN 63999 WON'T
+02130                      *    BE GENERATED.
+02131P 0559 BD   05EB    P        JSR    BINASC   CONVERT LINE NUMBER REFERENCES FROM
+02132                      *    ASCII TO BINARY LINE NUMBER TOKENS.
+02133P 055C BD   0000    A        JSR    CHEADA   FIX UP THE LINKS.
+02134P 055F 8D   AF   0510        BSR    FNDFST   THINGS HAVE BEEN MOVED AROUND SO GET
+
+PAGE  024  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02135P 0561 9F   D3               STX    FSTPTR   A NEW POINTER TO WHERE RENUMBERING
+02136                      *    STARTS.
+02137P 0563 BD   3A   059F        BSR    SCNPRG   SCAN THE ENTIRE PROGRAm CONVERTING
+02138                      *    BINARY LINE NUMBER TOKENS TO LINE
+02139                      *    POINTER TOKENS.
+02140P 0565 SD   OF   0576        BSR    PUTNMS   ASSIGN THE NEW LINE NUMBERS.
+02141P 0567 SD   36   059F        BSR    SCNPRG   SCAN THE ENTIRE PROGRAM CONVERTING
+02142                      *    POINTER TOKENS TO BINARY LINE NUMBER
+02143                      *    TOKENS CONTAINING THE NEW NUMBERS.
+02144P 0569 BD   0689             JSR    ASCBIN   TYPE MESSAGE FOR ALL UNDEFINED LINE
+02145                      *    REFERENCE TOKENS. CONVERT ALL
+02146                      *    UNDEFINED LINE REFERENCE AND BINARY
+02147                      *    LINE NUMBER TOKENS TO ASCII.
+02148P 056C BD   0000    A        JSR    CLEARC   SET UP 'ARYTAB" AND "STREND".
+02149P 056F BD   0000    A        JSR    CHEADA   FIX UP THE LINKS.
+02150P 0572 7E   0000    A        JMP    READY    ALL DONE.
+
+PAGE  025  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02152                      *
+02153                      * GENERATE THE NEW LINE NUMBERS.  ENTER AT "CHKNMS" TO JUST CHECK
+02154                      * THE NEW NUMBERS.  ENTER AT "PUTNMS" TO ACTUALLY ASSIGN THE NEW
+02155                      * NUMBERS.
+02156                      *
+02157P 0575      86      A CHKNMS FCB    @206     GET NON-ZERO [A] TO SET "CHKPAS".
+02158P 0576  4F            PUTNMS CLRA            PREPARE TO CLEAR "CHKPAS".
+02159P 0577  97  D8      A        STA    CHKPAS   SET OR CLEAR THE FLAG.
+0260P  0579  9E  D3      A        LDX    FSTPTR   X:=POINTER TO LINK FIELD OF FIRST
+02161                      *    LINE TO BE RENUMBERED.
+02162P 057B  DC  D5      A        LDD    NEWNUM   D:=FIRST NEW LINE NUMBER.
+02163P 057D  8D  15   0594        BSR    CHKLNK   RETURN TO CALLER THE LINK IS
+02164                      *    ZERO (END OF PROGRAM).
+02165P 057F  0D  D8      A NXTNUM TST    CHKPAS   ARE WE JUST CHECKING THE NUMBERS?
+02166P 0581  26  02   0585        BNE    NOPTNM   YES.
+02167P 0583  ED  02      A        STD    &2,X     NO, STORE THE NEW LINE NUMBER.
+02168P 0585  AE  84      A NOPTNM LDX    ,X       LINK TO THE NEXT LINE.
+02169P 0587  8D  0B   0594        BSR    CHKLNK   CHECK FOR END OF PROGRAM AND DON'T
+02170                      *    COME BACK HERE IF IT IS.
+02171P 0589  D3  CF      A        ADDD   RENINC   GENERATE THE NEXT NEW LINE NUMBER.
+02172P 058B  25  04   0591        BCS    RNFCER   WAY TOO BIG!
+02173P 058D  81  FA      A        CMPA   #&250    IS IT GREATER THAN 63999?
+02174P 058F  25  EE   057F        BLO    NXTNUM   NO, IT IS OK.
+02175P 0591  7E  0000    A RNFCER JMP    FCERR    GIVE "FUNCTION CALL" ERROR.
+02176
+02177P 0594  34  06      A CHKLNK PSHS   D        PRESERVE D.
+02178P 0596  EC  84      A        LDD    ,X       IS THE LINK ZERO?
+02179P 0598  35  06      A        PULS   D        (RETRIEVE D.)
+02180P 059A  26  02   059E        BNE    CHKLRT   NO, RETURN TO CALLER.
+02181P 059C  32  62      A        LEAS   &2,S     YES, END OF PROGRAM HAS BEEN REACHED.
+02182                      *    POP OFF CALLER'S RETURN ADDRESS AND
+02183                      *    RETURN THE CALLER'S CALLER.
+02184P 059E  39            CHKLRT RTS
+
+PAGE  026  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02186                      *
+02187                      * "SCNPRG" SCANS THE ENTIRE PROGRAM LOOKING FOR BINARY LINE NUMBER,
+02188                      * UNDEFINED LINE REFERENCE, AND LINE POINTER TOKENS.  BINARY LINE
+02189                      * NUMBER TOKENS ARE CONVERTED TO LINE POINTER TOKENS, UNDEFINED
+02190                      * LINE REFERENCE TOKENS ARE LEFT AS IS BUT MUST BE CHECKED FOR SO
+02191                      * THEY CAN BE SKIPPED OVER SINCE THEY CONTAIN BINARY DATA, LINE
+02192                      * POINTER TOKENS ARE CONVERTED TO BINARY LINE NUMBER TOKENS.
+02193                      *
+02194P 059F 9E   19      A SCNPRG LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
+02195P 05A1 30   1F      A        LEAX   -&1,X    Setup for preincrement.
+02196P 05A3 30   01      A SCN010 LEAX   &1,X     POINT TO THE FIRST BYTE OF THE LINK.
+02197P 05A5 8D   ED   0594        BSR    CHKLNK   RETURN IF ZERO LINK (END OF PROGRAM).
+02198P 05A7 30   03      A SCN020 LEAX   &3,X     SKIP THE LINK AND LINE NUMBER.
+02199P 05A9 30   01      A SCN030 LEAX   &1,X     POINT TO THE NEXT BYTE OF THE LINE.
+02200P 05AB A6   84      A        LDA    ,X       A:=BYTE OF LINE.
+02201P 05AD 27   F4   05A3        BEQ    SCN010   END OF LINE, PROCEED TO NEXT LINE.
+02202P 05AF 9F   0F      A        STX    TEMPX1   SAVE POINTER TO THIS BYTE.
+02203P 05B1 4A                    DECA            BINARY LINE NUMBER TOKEN?
+02204P 05B2 27   0C   05C0        BEQ    PTRBIN   YES, CONVERT IT TO A LINE POINTER TOKEN.
+02205P 05B4 4A                    DECA            NO, IS IT A LINE POINTER TOKEN?
+02206P 05B5 27   2A   05E1        BEQ    BINPTR   YES, CONVERT IT TO A BINARY LINE NUMBER
+02207                      *    TOKEN.
+02208P 05B7 4A                    DECA            NO, IS IT AN UNDEFINED LINE REFERENCE
+02209                      *    TOKEN?
+02210P 05B8 26   EF   05A9        BNE    SCN030   NO, IT'S NOTHING THAT INTERESTS US SO
+02211                      *    PROCEED TO THE NEXT BYTE OF THE LINE.
+02212                      *    YES, SKIP OVER IT SO THE BINARY DATA
+02213                      *    IT CONTAINS WON'T BE INTERPRETED AS
+02214                      *    OTHER TOKEN TYPES OR END OF LINE.
+02215                      *    THE TOKEN TYPE BYTE IS SET TO 3
+02216                      *    BECAUSE THE CODE THAT CREATES UNDEFINED
+02217                      *    LINE REFERENCE TOKENS COMES THORUGH HERE.
+02218P 05BA 86   03      A SCN040 LDA    #&3      SET TOKEN TYPE TO UNDEFINED LINE
+02219P 05BC A7   80      A        STA    ,X+      REFERENCE.
+02220P 05BE 20   E7   05A7        BRA    SCN020   Skip the token.  Bump X once here
+02221                      *    and four more times by going to
+02222                      *    SCN020.
+
+PAGE  027  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02224                      *
+02225                      * CONVERT A BINARY LINE NUMBER TOKEN TO A LINE POINTER TOKEN.
+02226                      *
+02227P 05C0 EC 01        A PTRBIN LDD    &1,X     D:=BINARY LINE NUMBER.
+02228P 05C2 6A 02        A        DEC    &2,X     CHECK THE MODIFIER BYTE TO SEE IF
+02229P 05C4 27 01     05C7        BEQ    PTRB10   THE HIGH BYTE IS REALLY ZERO.
+02230P 05C6 4F                    CLRA            IT IS SO MAKE IT SO.
+02231P 05C7 E6 03        A PTRB10 LDB    &3,X     DO SAME THING FOR LOW ORDER BYTE.
+02232P 05C9 6A 04        A        DEC    &4,X
+02233P 05CB 27 01     05CE        BEQ    PTRB15
+02234P 05CD 5F                    CLRB
+02235P 05CE ED 01        A PTRB15 STD    &1,X     Store the unmodified binary line
+02236                      *    line number so if the line isn't
+02237                      *    found an undefined line reference
+02238                      *    token will be created.
+02239P 05D0 DD 2B        A        STD    LINNUM   SET IT UP FOR "FNDLIN" CALL.
+02240P 05D2 BD 0000      A        JSR    FNDLIN   SEARCH FOR THE LINE.
+02241P 05D5 9E 0F        A PTRB20 LDX    TEMPX1   GET BACK POINTER TO TOKEN.
+02242P 05D7 25 E1     05BA        BCS    SCN040   LINE WASN'T FOUND, MAKE AN UNDEFINED
+02243                      *    LINE REFERENCE TOKEN.
+02244                      *    NOTE THAT WHEN "BINPTR" COMES HERE
+02245                      *    THE CARRY IS ALWAYS CLEAR.
+02246P 05D9 DC 47        A        LDD    LOWTR    PUT THE NEW INFO INTO THE TOKEN AND
+02247P 05DB 6C 80        A        INC    ,X+      SET UP THE TOKEN TYPE.
+02248P 05DD ED 84        A        STD    ,X       FOR "PTRBIN" WE ARE STORING THE POINTER
+02249                      *    RETURNED BY "FNDLIN" AND CHANGING THE
+02250                      *    TOKEN CODE FROM ONE TO TWO. FOR
+02251                      *    "BINPTR" WE ARE STORING THE BINARY
+02252                      *    LINE NUMBER AND SETTING THE TOKEN CODE
+02253                      *    TO ONE.
+02254P 05DF 20 C6     05A7        BRA    SCN020   SKIP OVER THE TOKEN AND CONTINUE SCAN.
+02255
+02256                         *
+02257                         * "BINPTR" CONVERTS A LINE POINTER TO A TOKEN TO A BINARY LINE NUMBER
+02258                         * TOKEN WITHTOUT MODIFIER BYTES.
+02259                         *
+02260P 05E1 6F 84        A BINPTR CLR    ,X       TOKEN TYPE BYTE:=0 AND CARRY:=0
+02261                      *    SO WE CAN FINISH UP IN "PTRBIN".
+02262P 05E3 AE 01        A        LDX    &1,X     LOWTR:=LINE NUMBER OF LINE POINTED
+02263P 05E5 AE 02        A        LDX    &2,X     TO BY THE LINE POINTER TOKEN.
+02264P 05E7 9F 47        A        STX    LOWTR
+02265P 05E9 20 EA     05D5        BRA    PTRB20
+
+PAGE  028  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02267                      *
+02268                      * CONVERT LINE NUMBER REFERENCES FROM ASCII TO MODIFIED BINARY
+02269                      * LINE NUMBER TOKENS.  THE FOLLOWING REFERENCES ARE HANDLED:
+02270                      *
+02271                      * THEN
+02272                      * ELSE
+02273                      * GOTO
+02274                      * GOSUB
+02275                      *
+02276
+02277P 05EB 9E   19      A BINASC LDX    TXTTAB   POINT TO THE START OF THE PROGRAM.
+02278P 05ED 20   04   05F3        BRA    BIN020
+02279P 05EF 9E   A6      A BIN010 LDX    TXTPTR   X:=POINTER TO THE FIRST LINK BYTE.
+02280P 05F1 30   01      A        LEAX   &1,X
+02281P 05F3 8D   9F   0594 BIN020 BSR    CHKLNK   QUIT IF THE LINK IS ZERO.
+02282P 05F5 30   02      A        LEAX   &2,X     Skip the link and line number.
+02283P 05F7 30   01      A BIN025 LEAX   &1,X
+02284P 05F9 9F   A6      A BIN030 STX    TXTPTR   SET UP TO DO "CHRGET"'S.
+02285P 05FB 9D   9F      A BIN040 JSR    CHRGET   GET NEXT CHAR, SKIP SPACES.
+02286P 05FD 4D             BIN050 TSTA            END OF LINE?
+02287P 05FE 27   EF   05EF        BEQ    BIN010   YES, PROCEED TO NEXT LINE.
+022B8P 0600 2A   F9   05FB        BPL    BIN040   NOT A TOKEN SO SKIP IT.
+02289P 0602 9E   A6      A        LDX    TXTPTR   SAVE "TXTPTR" SINCE WE MAY HAVE TO
+02290                      *    LOOK AHEAD AND WILL WANT TO RESTORE
+02291                      *    "TXTPTR" IF WE DON'T SEE WHAT WE
+02292                      *    ARE LOOKING AHEAD FOR.
+02293P 0604 81   FF      A        CMPA   #@377    Is it the first byte of a function
+02294                      *    token?
+02295P 0606 27   EF   05F7        BEQ    BIN025   Yes, skip it and the second byte since
+02296                      *    the second byte might look like one
+02297                      *    of the nonfunction tokens we are
+02298                      *    looking for.
+02299P 0608 BD   0000    A        JSR    HKRENM   RAM hook to handle new reserved
+02300                      *    words.
+02301P 060B 81   00      A        CMPA   #THENTK  THEN?
+02302P 060D 27   12   0621        BEQ    BIN070   Yes, go look for a line number.
+02303P 060F 81   00      A        CMPA   #ELSETK  ELSE?
+02304P 0611 27   0E   0621        BEQ    BIN070   Yes, go look for a line number.
+02305P 0613 81   00      A        CMPA   #GOTK    GO?
+02306P 0615 26   E4   05FB        BNE    BIN040   No, nothing special so just skip it.
+02307P 0617 9D   9F      A        JSR    CHRGET   Yes, read the next byte.
+02308P 0619 81   00      A        CMPA   #TOTK    TO token must follow for GOTO.
+02309P 061B 27   04   0621        BEQ    BIN070   Go handle the line number(s).
+02310P 061D 81   00      A        CMPA   #SUBTK   Could also be GOSUB.
+02311P 061F 26   D8   05F9        BNE    BIN030   Neither, go scan the char after the
+02312                      *    GO token.
+02313
+02314                      *
+02315                      * READ A LINE NUMBER.
+02316                      *
+02317
+02318P 0621 9D   9F      A BIN070 JSR    CHRGET   READ FIRST CHAR.
+02319P 0623 25   04   0629 BIN080 BCS    BIN100   IT'S A DIGIT SO READ A LINE NUMBER.
+02320                      *    IF NOT DIGIT THEN SCAN THIS CHAR.
+02321P 0625 9D   A5      A BIN090 JSR    CHRGOT   REGET CURRENT CHAR AND GO scan it
+02322P 0627 20   D4   05FD        BRA    BIN050
+02323
+02324P 0629 9E   A6      A BIN100 LDX    TXTPTR   Remeber where tne number started.
+
+PAGE  029  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02325P 062B 34   10      A        PSHS   X
+02326P 062D BD   0000    A        JSR    LINGET   Read tne number into LINNUM.
+02327P 0630 9E   A6      A        LDX    TXTPTR   Scan back until X points to the
+02328P 0632 A6   82      A BIN110 LDA    ,-X      last digit of the line number.
+02329P 0634 BD   0000    A        JSR    ISDIGC   (Last CHRGET call in LINGET skipped
+02330P 0637 25   F9   0632        BCS    BIN110   trailing spaces, tabs, etc.)
+02331P 0639 30   01      A        LEAX   &1,X     X:=pointer to first char after last
+02332                      *    digit.
+02333P 063B 1F   10      A        TFR    X,D      B:=length of line number.
+02334P 063D E0   61      A        SUBB   &1,S
+02335P 063F C0   05      A        SUBB   #&5      5 bytes are needed for the binary
+02336                      *    line number token.
+02337P 0641 27   20   0663        BEQ    BIN120   Line number was exactly 5 long.
+02338P 0643 25   0A   064F        BLO    BIN115   Line number is less than 5, go
+02339                      *    move program up to make room.
+02340P 0645 33   84      A        LEAU   ,X       Line number is longer than 5.  (It
+02341                      *    must have leading zeroes and/or
+02342                      *    embedded spaces.)  Block transfer
+02343                      *    the program down to take up the
+02344                      *    extra space.  Set up the source
+02345                      *    pointer for DELDO.
+02346P 0647 50                    NEGB            Set up the destination pointer.
+02347P 0648 30   85      A        LEAX   B,X
+02348P 064A BD   04C6    P        JSR    DELDO    Call the DELETE code to move the
+02349                      *    program down and update VARTAB.
+02350P 064D 20   14   0663        BRA    BIN120   Go build the token.
+02351
+00352P 064F 9F   47      A BIN115 STX    LOWTR    Block transfer program up.
+02353P 0651 9E   1B      A        LDX    VARTAB   Set up LOWTR, HIGHTR, and HIGHDS
+02354P 0653 9F   43      A        STX    HIGHTR   for BLTU.
+02355P 0655 50                    NEGB            (B was negative from SUBBIM 5.)
+02356P 0656 30   85      A        LEAX   B,X
+02357P 0658 9F   41      A        STX    HIGHDS
+02358P 065A 9F   1B      A        STX    VARTAB   Set new VARTAB.
+02359P 065C BD   0000    A        JSR    BLTU     Move it up.  (If an OMERR occurs
+02360                      *    the program is left in a totally
+02361                      *    useless state.)
+02362P 065F 9E   45      A        LDX    LOWDS    Set TXTPTR to resume scan where
+02363P 0661 9F   A6      A        STX    TXTPTR   the first char moved up is now.
+02364
+02365P 0663 35   10      A BIN120 PULS  X         Get pointer to where to build the
+02366                      *    modified binary line number token.
+02367P 0665 86   01      A        LDA    #&1      FOR SETTING TYPE BYTE AND MODIFIERS.
+02368P 0667 A7   84      A        STA    ,X       SET THE TOKEN TYPE.
+02369P 0669 A7   02      A        STA    &2,X     ASSUME THE HIGH AND LOW BYTES ARE
+02370P 066B A7   04      A        STA    &4,X     NON-ZERO IN WHICH CASE THE MODIFIER
+02371                      *    BYTES MUST BE ONES.
+02372P 066D D6   2B      A        LDB    LINNUM   IF THE HIGH ORDER BYTE IS ZERO THEN
+02373P 066F 26   04   0675        BNE    BIN130   SET THE MODIFIED TO TWO AND THE
+02374P 0671 C6   01      A        LDB    #&1      HIGH BYTE TO ONE.
+02375P 0673 6C   02      A        INC    &2,X
+02376P 0675 E7   01      A BIN130 STB    &1,X
+02377P 0677 D6   2C      A        LDB    LINNUM+&1 DO SAME THING FOR LOW BYTE.
+02378P 0679 26   04   067F        BNE    BIN140
+02379P 067D C6   01      A        LDB    #&1
+02380P 067D 6C   04      A        INC    &4,X
+02381P 067F E7   03      A BIN140 STB    &3,X
+02382P 0681 9D   A5      A        JSR    CHRGOT   SEE IF A COMMA FOLLOWS.
+
+PAGE  030  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02383P 0683 81   2C      A        CMPA   #COMMA   IF SO LOOK FOR ANOTHER LINE NUMBER.
+02384P 0685 27   9A   0621        BEQ    BIN070
+02385P 0687 20   9C   0625        BRA    BIN090   NOPE, SCAN THIS CHAR.
+
+PAGE  031  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02387                      *
+02388                      * CONVERT BINARY LINE NUMBER AND UNDEFINED LINE REFERENCE TOKENS TO
+02389                      * ASCII LINE NUMBERS.  FOR UNDEFINED LINE REFERENCE TOKENS PRINT
+02390                      * AN ERROR MESSAGE.
+02391                      *
+02392
+02393P 0689 9E   19      A ASCBIN LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
+02394P 068B 30   1F      A        LEAX   -&1, X   Adjust for preinc.
+02395P 068D 30   01      A ASCBLN LEAX   &1,X     POINT TO THE START OF THE LINK.
+02396P 068F EC   02      A        LDD    &2,X     CURLIN:=LINE NUMBER SO IT CAN BE
+02397                      *    BE PRINTED BY "INPRT" IF WE SEE
+02398P 0691 DD   68      A        STD    CURLIN   AN UNDEFINED LINE REFERENCE TOKEN.
+02399P 0693 BD   0594    P        JSR    CHKLNK   QUIT IF END OF PROGRAM.
+02400P 0696 30   03      A        LEAX   &3,X     SKIP OVER LINK AND LINE NUMBER.
+02401P 0698 30   01      A ASCBCH LEAX   &1,X     POINT TO NEXT BYTE OF LINE.
+02402P 069A A6   84      A ASCCHR LDA    ,X       PICK UP THE BYTE.
+02403P 069C 27   EF   068D        BEQ    ASCBLN   END OF LINE, DO NEXT LINE.
+02404P 069E 4A                    DECA            A BINARY LINE NUMBER TOKEN?
+02405P 069F 27   1B   06BC        BEQ    ASCCNV   YES, CONVERT IT TO ASCII.
+02406P 06A1 80   02      A        SUBA   #&2      NO, AN UNDEFINED LINE REFERENCE TOKEN?
+02407P 06A3 26   F3   0698        BNE    ASCBCH   No, go scan the next char.
+02408
+02409P 06A5 34   10      A        PSHS   X        Yes, save the pointer.
+02410P 06A7 8E   06E6    P        LDX    #UNDREF-&1 PRINT THE MESSAGE.
+02411P 06AA BD   0000    A        JSR    STROUT
+02412P 06AD AE   E4      A        LDX    ,S       Get the line number being referenced.
+02413P 06AF EC   01      A        LDD    &1,X
+02414P 06B1 BD   0000    A        JSR    LINPRT   PRINT IT.
+02415P 06B4 BD   0000    A        JSR    INPRT    FOLLOW WITH WHERE IT OCCURRED.
+02416P 06B7 BD   0000    A        JSR    CRDO     START A NEW LINE.
+02417P 06BA 35   10      A        PULS   X        Get the pointer back.
+02418P 06BC 34   10      A ASCCNV PSHS   X        Save the pointer.
+02419P 06BE EC   01      A        LDD    &1,X     CONVERT THE LINE NUMBER TO A SINGLE
+02420P 06C0 DD   52      A        STD    FACMO    PRECISION NUMBER IN THE FAC.
+02421P 06C2 BD   035B    P        JSR    CONS16
+02422P 06C5 BD   0000    A        JSR    FOUT     CONVERT TO ASCII IN "FBUFFR".
+02423P 06C8 35   40      A        PULS   U        U:=pointer to start of token.
+02424P 06CA C6   05      A        LDB    #&5      COUNT HOW MANY CHARS WE TRANSFER.
+02425P 06CC 30   01      A MOVASC LEAX   &1,X     Point to the next ASCII digit.  (First
+02426                      *    time through the loop this skips over
+02427                      *    the leading space put in by FOUT.)
+02428P 06CE A6   84      A        LDA    ,X       Get the next ASCII digit.
+02429P 06D0 27   05   06D7        BEQ    SQUISH   Zero marks end of line number.
+02430P 06D2 5A                    DECB            NO, DECREMENT THE COUNT.
+02431P 06D3 A7   C0      A        STA    ,U+      PUT ASCII DIGIT INTO PROGRAM.
+02432P 06D5 20   F5   06CC        BRA    MOVASC   SEE IF MORE TO MOVE.
+02433
+02434P 06D7 30   C4      A SQUISH LEAX   ,U       X:=pointer past ASCII line number.
+02435P 06D9 5D                    TSTB            WAS THE ASCII 5 DIGITS LONG?
+02436P 06DA 27   BE   069A        BEQ    ASCCHR   YES, IT FILLED THE SPACE FORMERLY
+02437                      *    USED BY THE TOKEN SO NO NEED TO
+02438                      *    TO BLOCK TRANSFER,  GO SCAN NEXT CHAR.
+02439P 06DC 31   C4      A        LEAY   ,U       Need to block transfer down since
+02440                      *    the line number didn't use the 5
+02441                      *    bytes the token was using.
+02442                      *    Remeber where to resume the scan.
+02493P 06DE 33   C5      A        LEAU   B,U      U:=source pointer.
+02444                      *    (X already contains the destination
+
+PAGE  032  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02445                      *    pointer since it points to the first
+02446                      *    byte following the ASCII line number.)
+02447P 06E0 BD   04C6    P        JSR    DELDO    Use the DELETE code to do the transfer
+02448                      *    and update VARTAB.
+02449P 06E3 30   A4      A        LEAX   ,Y       Get scan pointer back into X.
+02450P 06E5 20   B3   069A        BRA    ASCCHR   SCAN NEXT CHAR.
+02451
+02452P 06E7      55      A UNDREF FCC    /UL /    Undefined Line message.
+02453P 06EA      00      A        FCB    &0
+02454
+
+PAGE  033  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
+
+02456                      *
+02457                      *           AFTER A PATCH OR TWO
+02458                      *  ENTRY POINT TABLE FOR MACHINE CODE ROUTINES
+02459                      *        OFFSET TO GIVE START AT $E000
+02460                      *
+02461
+02462                             XDEF   PATCHM
+02463P 06EB 93   1F      A PATCHM SUBD   STREND
+02464P 06ED 0F   06      A PATCHV CLR    VALTYP
+02465P 06EF DD   52      A        STD    FACMO    STORE UNSIGNED INTEGER
+02466P 06F1 C6   90      A        LDB    #144
+02467P 06F3 7E   035B    P        JMP    CONS16   CONVERT IT TO FLOATING POINT
+02468
+02469P 06F6      0027    A        RMB    $27
+02470                             XREF   POLCAT,CSRDON,BLKIN,JOYIN
+02471
+02472                             XDEF   IOVECT
+02473P 071D      0000    A IOVECT FDB    POLCAT   Poll keyboard.
+02474P 071F      0000    A        FDB    CHROUT   Output char to screen or printer.
+02475P 0721      0000    A        FDB    CSRDON   Turn on cassette and sync up for
+02476                      *    reading.
+02477P 0723      0000    A        FDB    BLKIN    Read block from cassette.
+02478P 0725      0000    A        FDB    BLKOUT   Output block to cassette.
+02479P 0727      0000    A        FDB    JOYIN    Joystick input routine.
+02480P 0729      0000    A        FDB    WRTLDR   Turn on cassette and write leader.
+02481
+02482                             TTL    The HEX$ function.
+02483
+02484                             XDEF   HEX$
+02485P 072B BD   0000    A HEX$   JSR    GETADR   FACMO,FACLO:=16 bit unsigned integer.
+02486P 072E 8E   0000    A        LDX    #LOFBUF  Build the result in LOFBUF to force
+02487                      *    it to be copied into string space.
+02488P 0731 C6   04      A        LDB    #&4      Set up and save the digit count.
+02489P 0733 34   04      A HEX$10 PSHS   B
+02490P 0735 5F                    CLRB            Clear the digit.
+02491P 0736 86   04      A        LDA    #&4      Set up the bits per digit count.
+02492P 0738 08   53      A HEX$20 ASL    FACLO    Shift the next digit into B.
+02493P 073A 09   52      A        ROL    FACMO
+02494P 073C 59                    ROLB
+02495P 073D 4A                    DECA
+02496P 073E 26   F8   0738        BNE    HEX$20
+02497P 0740 5D                    TSTB            Is the digit a zero?
+02498P 0741 26   0A   074D        BNE    HEX$30   No, go put it away.
+02499P 0743 A6   E4      A        LDA    ,S       Yes, is it the last digit?
+02500P 0745 4A                    DECA
+02501P 0746 27   05   074D        BEQ    HEX$30   Yes, force it out.
+02502P 0748 8C   0000    A        CMPX   #LOFBUF  No, is it a leading zero?
+02503P 074B 27   0C   0759        BEQ    HEX$50   Yes, throw it away.
+02504P 074D CB   30      A HEX$30 ADDB   #'0      Add in the ASCII offset.
+02505P 074F C1   39      A        CMPB   #'9      Is it a numeric digit?
+02506P 0751 23   02   0755        BLS    HEX$40   Yes.
+02507P 0753 CB   07      A        ADDB   #'A-'9-&1 No, make it an alpha digit.
+02508P 0755 E7   80      A HEX$40 STB    ,X+      Put the digit in the buffer.
+02509P 0757 6F   84      A        CLR    ,X       Mark the end.
+02510P 0759 35   04      A HEX$50 PULS   B        Get the digit count.
+02511P 075B 5A                    DECB            More digits to look at?
+02512P 075C 26   D5   0733        BNE    HEX$10   Yes, go do the next one.
+02513P 075E 32   62      A        LEAS   &2,S     No, get rid of the CHKNUM return.
+
+PAGE  034  ECBEXT  .SA:1  EXTEND The HEX$ function.
+
+02514P 0760 8E   FFFF    A        LDX    #LOFBUF-&1 Go build a string result and
+02515P 0763 7E   0000    A        JMP    STRLTI   return.
+02516
+02517                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00001--01456

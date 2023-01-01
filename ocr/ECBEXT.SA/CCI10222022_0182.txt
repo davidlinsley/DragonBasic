@@ -1,62 +1,60 @@
-      PAGE 033 ECBEXT .SA:1     EXTEND RENUM - Renumber a BASIC program
+PAGE  033  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 
-
-      0245E 
-      02457                                  AFTER A PATCH OR TWO
-      02458                         ENTRY POINT TABLE FOR MACHINE CODE ROUTINES 
-      02459                               OFFSET TO GIVE START AT $E000
-      02460 
-      02461 
-      02462                             XDEF   PATOHM 
-      02463P 06EB 93   1F      A 2ATCHM SUBD   P.TREND 
-      02464P 06FD OF   06        PATCHV OLR    VALTYP 
-      024652 OGEE DD   52      A        STD    FACMO STORE UNSIGNED INTEGER
-      02466P 06F1 C6   90      A        LOB    #144
-      02467P 06F3 7E   035B             jM2    CONS16   CONVERT IT TO FLOATING POINT
-      02468
-      024692 06F6      0027             RMB    $27
-      02470                             XREF   POLCAT,CSRDON,BLKIN,JOYIN
-      02471
-      0247'?                            XDEF   IOVECT 
-      02473P 07ID      0000      IOVECT FDB    POLCAT   Poll keyboard.
-      02474P 07IF      0000             FDB    CHROUT   Output char to screen or printer. 
-      02475P 0721      0000             FDB    CSRDON   Turn on cassette and sync up for
-      02476                           reading. 
-      02477P 0723      0000    A        FDB    BLKIN    Read block from cassette.
-      024782 0725      0000    A        FDB    BLKOUT   Output block to cassette.
-      02479P 0727      0000             FDB    jOYIN    Joystick input routine.
-      02480P 0729      0000             FDB    WRTLDR   Turn on cassette and write leaden-.
-      02481
-oPt   02482                             TTL    The HEX$ function.
-      02483
-      02484                             XDEF   HEX$
-      02485P 0728 BD   0000    A HEX$   JSR    GETADR   FACMO,FACLO:=16 bit unsigned integer.
-      024862 0726 8E   0000             LOX    #LOFBUF Build the result in LOFBUF to force 
-      02487                           it to be copied into string space.
-      024882 0731 C6   04               LOB    .#&.4    Set Up and save the digit count.
-      02489P 0733 34   04      A HEX$10 PSHS   B
-      02490P 0735                       CLRB            Clear the digit.
-      024912 0736 86   04               LOA    #&4      Set um the bits per digit count. 
-      024922 0738 08   53        HEX$20 ASL    FACLO    Shift the next digit into B.
-      02493P 073A 09   52               ROL    FACMO
-      024942 0730 59                    ROLB 
-      02495P 073D 4A                    DECA
-      02496P 073E 26   F8   0738        BNE    HEX$20 
-      024972 0740 5D                    TSTB            Is the digit a zero?
-      024982 0741 26   0A   0740        BNE    HEX$30   No, go put it away.
-      024992 0743 AG   E4.              LOA    ,S       Yes, is it the last digit?
-      025002 0745 4A                    DECA 
-      025012 0746 27   05   074D        BEO    HEX$30   Yes, force it out
-      025022 0748 8C   0000    A        CMPX   #_OFBUF No, is it a leading zero?
-      02503P 074B 27   00   0759        BEO    HEX$50   Yes, throw it away.
-      025042 074D CB           A HEX$30 ADOB   WO       Add in the ASCII offset.
-      025052 074F Cl   39      A        CM2B   W9       is it a numeric digit?
-      02506P 0751 23   02   0755        BLS    HEX$40   Yes.
-      025072 0753 CB   07      A        ADOB   WA-'9-8,1 No, make it an alpha digit. 
-      025082 0755      80      A HEX$40 STB             Put the digit in the buffer.
-      025092 0757 EF   84      A        CLR    ,• X     Mark the end.
-      02510P 0759 35   04      A HEX$50 PULS   B        Get the digit count. 
-      025112 075B 5A                    DECB            More digits to look at?
-      025122 0750 26   05   0733        BNE    HEX$10   Yes, go do the next one.
-      025132 075E 32   62      A        LEAS   6,2,S    No, pet rid of the CHKNUM return.
-
+02456                      *
+02457                      *           AFTER A PATCH OR TWO
+02458                      *  ENTRY POINT TABLE FOR MACHINE CODE ROUTINES
+02459                      *        OFFSET TO GIVE START AT $E000
+02460                      *
+02461
+02462                             XDEF   PATCHM
+02463P 06EB 93   1F      A PATCHM SUBD   STREND
+02464P 06ED 0F   06      A PATCHV CLR    VALTYP
+02465P 06EF DD   52      A        STD    FACMO    STORE UNSIGNED INTEGER
+02466P 06F1 C6   90      A        LDB    #144
+02467P 06F3 7E   035B    P        JMP    CONS16   CONVERT IT TO FLOATING POINT
+02468
+02469P 06F6      0027    A        RMB    $27
+02470                             XREF   POLCAT,CSRDON,BLKIN,JOYIN
+02471
+02472                             XDEF   IOVECT
+02473P 071D      0000    A IOVECT FDB    POLCAT   Poll keyboard.
+02474P 071F      0000    A        FDB    CHROUT   Output char to screen or printer.
+02475P 0721      0000    A        FDB    CSRDON   Turn on cassette and sync up for
+02476                      *    reading.
+02477P 0723      0000    A        FDB    BLKIN    Read block from cassette.
+02478P 0725      0000    A        FDB    BLKOUT   Output block to cassette.
+02479P 0727      0000    A        FDB    JOYIN    Joystick input routine.
+02480P 0729      0000    A        FDB    WRTLDR   Turn on cassette and write leader.
+02481
+02482                             TTL    The HEX$ function.
+02483
+02484                             XDEF   HEX$
+02485P 072B BD   0000    A HEX$   JSR    GETADR   FACMO,FACLO:=16 bit unsigned integer.
+02486P 072E 8E   0000    A        LDX    #LOFBUF  Build the result in LOFBUF to force
+02487                      *    it to be copied into string space.
+02488P 0731 C6   04      A        LDB    #&4      Set up and save the digit count.
+02489P 0733 34   04      A HEX$10 PSHS   B
+02490P 0735 5F                    CLRB            Clear the digit.
+02491P 0736 86   04      A        LDA    #&4      Set up the bits per digit count.
+02492P 0738 08   53      A HEX$20 ASL    FACLO    Shift the next digit into B.
+02493P 073A 09   52      A        ROL    FACMO
+02494P 073C 59                    ROLB
+02495P 073D 4A                    DECA
+02496P 073E 26   F8   0738        BNE    HEX$20
+02497P 0740 5D                    TSTB            Is the digit a zero?
+02498P 0741 26   0A   074D        BNE    HEX$30   No, go put it away.
+02499P 0743 A6   E4      A        LDA    ,S       Yes, is it the last digit?
+02500P 0745 4A                    DECA
+02501P 0746 27   05   074D        BEQ    HEX$30   Yes, force it out.
+02502P 0748 8C   0000    A        CMPX   #LOFBUF  No, is it a leading zero?
+02503P 074B 27   0C   0759        BEQ    HEX$50   Yes, throw it away.
+02504P 074D CB   30      A HEX$30 ADDB   #'0      Add in the ASCII offset.
+02505P 074F C1   39      A        CMPB   #'9      Is it a numeric digit?
+02506P 0751 23   02   0755        BLS    HEX$40   Yes.
+02507P 0753 CB   07      A        ADDB   #'A-'9-&1 No, make it an alpha digit.
+02508P 0755 E7   80      A HEX$40 STB    ,X+      Put the digit in the buffer.
+02509P 0757 6F   84      A        CLR    ,X       Mark the end.
+02510P 0759 35   04      A HEX$50 PULS   B        Get the digit count.
+02511P 075B 5A                    DECB            More digits to look at?
+02512P 075C 26   D5   0733        BNE    HEX$10   Yes, go do the next one.
+02513P 075E 32   62      A        LEAS   &2,S     No, get rid of the CHKNUM return.

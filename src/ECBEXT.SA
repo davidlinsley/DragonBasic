@@ -1,0 +1,1616 @@
+       NAM    EXTEND   - Extended Features for TCC / MLC
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   ASC2
+       XREF   BASRST,BLKOUT,BLTU,BUF
+       XREF   CASOFF,CHEAD,CHEADA,CHKCLS,CHKCOM,CHKNUM,CHKOPN,CHKSTR,CHROUT
+       XREF   CIRCLE,CLEARC,CLOATK,COLORS,COMBYT,CONDCR,CONINT,COPLOP
+       XREF   CRDO,CSAVE,CSAVTK
+       XREF   DATA,DCRNCH,DEVPRM,DLOAD,DOFDSP,DOSDSP,DRAW
+       XREF   EDTENT,ELSETK,ENDCON,EOFFIN,EOFWRT,EQULTK
+       XREF   ERPRNT,ERRID,ERROR,ERRUF,EVLADR
+       XREF   FADD,FCERR,FDIV,FHALF,FINIT
+       XREF   FINLOG,FINSAV,FMULT,FNDLIN,FNTK,FONE
+       XREF   FOUT,FOUTCP,FPWRT,FREFAC,FRESTR,FRETMP,FRMEVL
+       XREF   FRMNUM,FSUB,FUNDS1
+       XREF   GET,GETADR,GETBYT,GETDNM,GETFLN,GETSPA
+       XREF   GIVABF,GOGONE,GONE3,GOPTNW,GOTK
+       XREF   HKASGN,HKCHRI,HKCHRO,HKCLS1,HKCRNC,HKERR,HKEVAL
+       XREF   HKNWST,HKRENM,HKRUN
+       XREF   INCHR,INIT,INLNDO,INPCOM,INPRT,INT,ISCNTC,ISDIGC,ISLETC
+       XREF   LET,LINE,LINGET,LINPRT,LOADAD,LOFBUF
+       XREF   MID$TK,MINUTK,ML1632,MLDVEX,MOVAF,MOV1F,MOVFA1,MOVFM
+       XREF   MOVINS,MOVMF,MULDIV
+       XREF   NEGOP,NORMAL
+       XREF   OPNICK,OPNCSO,OPNOCK,OUTQST,OUTSPC,OVERR
+       XREF   PAINT,PARCHK,PCLEAR,PCLS,PCOPY,PIA0BC,PIA0BD,PIA1BD
+       XREF   PINIT,PLAY,PLYCLK,PMODE
+       XREF   POLY,POLYX,PPOINT,PRESET,PSET,PTRGET,PTRGT2,PUT
+       XREF   READY,RUNC
+       XREF   SAM,SAMALP,SCREEN,SCRTCH,SETDNM,SIGN,SIN,SIN1,SNDOFF,SNERR
+       XREF   SNGFLT,STRLTI,STRSPA,STRTAD,STKINI,STMDS1
+       XREF   STRLT3,STROUT,STRPRT,STRTXT,STUB1,SUBTK,SYNCHR
+       XREF   THENTK,TICKER,TOTK,TRMCHK
+       XREF   ULERR,USRTAB,USRTK
+       XREF   VIRQ
+       XREF   WRTLDR
+       XREF   ZEROF1
+
+       TTL    Miscellanous Routines
+
+*
+* The RUN code comes here to set up the defaults for the PLAY
+* and DRAW code.  The initialization code also comes here for
+* the same reason.
+*
+
+       XDEF   XRRUN
+XRRUN  LDD    #$B844   Init the PLAY arguments.
+       STD    HIGHA    Set volume to 15 decimal.
+       LDA    #&2      Set tempo to 2.
+       STA    TEMPO
+       STA    OCTAVE   Select middle C octave.
+       ASLA            Set to undotted quarter notes.
+       STA    LNOTE
+       CLR    DOTFLG
+       LDD    DBLZER   Init the DRAW arguments.
+       STD    DRWANG   Set angle and scale to zero.
+       LDB    #&128    Position to the middle.  (128,96) 
+       STD    LSAVEX
+       LDB    #&96
+       STD    LSAVEY
+RUNRTS RTS             Return to RUN or initialization code.
+
+       TTL    CSAVEM Code
+
+*
+* CSAVEM <filename>,<first address>,<last address>,<execution address>
+*
+
+       XDEF   CSAVEM
+CSAVEM JSR    CHRGET   Eat the "M" of CSAVEM.
+       JSR    GETFLN   Scan the filename.
+       BSR    STKXAD   Evaluate the first address.
+       STX    LOADAD   Put it in the file header too.
+       BSR    STKXAD   Evaluate the last address.
+       CMPX   &2,S     Is last .GE. first?
+       LBLO   FCERR    No, give FC error.
+       BSR    STKXAD   Yes, evaluate the execution address
+       STX    STRTAD   and put it in the file header block.
+       JSR    CHRGOT   The statement must end now or we
+       BNE    RUNRTS   to a RTS so NEWSTT will give a
+*    syntax error.
+CSMDOR LDA    #&2      File type is machine language.
+       LDX    DBLZER   GAPFLG:=ASCFLG:=.FALSE.
+       JSR    OPNCSO   Open cassette output file.
+       CLR    CASOPN   Mark cassette as closed since
+*    OPNCSO marked it as open.
+       INC    BLKTYP   Set block type to data.
+       JSR    WRTLDR   Turn on the cassette and write a
+*    leader.
+
+       LDX    &4,S     X:=first address.
+CSAVML STX    CBUFAD   Set the buffer address to write the
+*    next block out 
+       LDA    #&255    Assume it's a full block.
+       STA    BLKLEN
+       LDD    &2,S     See how many more bytes to write.
+       SUBD   CBUFAD
+       BHS    MORSAV   There's more to save.
+       LEAS   &6,S     Nothing more, clean up the stack
+       JMP    FINSAV   and go close the file.
+
+MORSAV CMPD   #&255    Is there a full block?
+       BHS    BIGBLK   Yes.
+       INCB            No be sure to get the last byte.
+       STB    BLKLEN   Set actual block length.
+BIGBLK JSR    BLKOUT   Write out the block.
+       BRA    CSAVML   Go back for more.
+
+       XDEF   STKXAD
+STKXAD JSR    CHKCOM   Eat the comma.
+       JSR    EVLADR   Evaluate address into X.
+       LDU    ,S       U:=return address.
+       STX    ,S       Stack the evaluated address.
+       TFR    U,PC     Return with evaluated address on
+*    the stack and in X.
+
+        TTL   The FIX function.
+
+*
+* FIX(X) returns the truncated integer part of X.
+* FIX(X) is equivalent to SGN(X)*INT(ABS(X)).
+* FIX differs from INT in that FIX does not return the next lower
+* integer for negative arguments.
+*
+
+
+       XDEF   FIX
+FIX    JSR    SIGN     Is the number positive?
+       BMI    FIXNEG   No.
+GOINT  JMP    INT      Yes, just do normal INT function.
+
+FIXNEG COM    FACSGN   Negate the argument.
+       BSR    GOINT    Take the INT.
+       JMP    NEGOP    Restore the original sign and return.
+*    (Can't COM FACSGN, RTS since 0
+*    would become -0. For example,
+*    ?FIX(-.1) would print -0.)
+
+       TTL    The EDIT Command
+
+       XDEF   EDIT
+EDIT   JSR    LINTRM   LINNUM:=number of line to EDIT.
+*    (Line number must be terminated.)
+       LEAS   &2,S     Get rid of the NEWSTT return address
+*    since EDIT exits into the MAIN code.
+EDITA  LDA    #&1      Set flag so line will be listed
+       STA    EDTLST   prior to starting the edit.
+       JSR    FNDLIN   X:=pointer to link field of line.
+       LBCS   ULERR    If carry set then line doesn't exist.
+       JSR    DCRNCH   Decrunch the line into BUF.
+       TFR    Y,D      Calculate and store the line length.
+       SUBD   #BUF+&1  (The zero byte terminator isn't
+       STB    EDTLEN   included in the length.)
+
+EDTPLN LDD    LINNUM   Print the line number followed
+       JSR    LINPRT   by a space.
+       JSR    OUTSPC
+       LDX    #BUF     Point to the start of the line.
+       LDB    EDTLST   Should the line be listed?
+       BNE    ELSTIT   Yes, go do it
+
+EDTSUB CLRB            Repetition count:=0.
+EDTREP JSR    EDITIN   Get char - screen out bad ones.
+       JSR    ISDIGC   Is it a digit?
+       BCS    EDNTDG   No.
+       SUBA   #'0      Its a digit, get  rid of ASCII offset.
+       PSHS   A        Save the digit.
+       LDA    #&10     Rep count:=rep count*10.
+       MUL
+       ADDB   ,S+      Add in the new digit.
+       BRA    EDTREP   Look for more digits.
+
+EDNTDG SUBB   #&1      If REP COUNT=0 then REP COUNT:=1.
+       ADCB   #&1
+       CMPA   #'A      EDIT again?
+       BNE    EDITL    No.
+       JSR    CRDO     Yes,  start new line
+       BRA    EDITA    and  restart edit.
+
+EDITL  CMPA   #'L      LIST AND CONTINUE EDIT?
+       BNE    EDITCR   NO
+ELSTIT BSR    EDTPRT   YES, PRINT REST OF LINE
+       CLR    EDTLST   CLEAR LIST FLAG
+       JSR    CRDO     START A NEW LINE
+       BRA    EDTPLN   CONTINUE EDIT AT START OF LINE
+
+CRINS  LEAS   &2,S     GET RID OF EDTSUB RETURN ADDRESS
+EDITCR CMPA   #CR      CARRIAGE RETURN, LIST AND FINISH EDIT?
+       BNE    EDITE    NO
+       BSR    EDTPRT   YES, PRINT REST OF LINE
+EDTEND JSR    CRDO     START A NEW LINE
+AUTENT LDX    #BUF     SET TXTPTR FOR CRUNCH CODE
+       STX    TXTPTR
+       JMP    EDTENT   JUMP INTO "MAIN" CODE
+
+EDITE  CMPA   #'E      END EDIT?
+       BEQ    EDTEND   YES
+       CMPA   #'Q      ABORT EDIT?
+       BNE    NOTQ     NO
+       JSR    CRDO     YES, START NEW LINE
+       JMP    READY    AND ABORT EDIT
+NOTQ   BSR    DOSUBC   ALL OTHER SUBCOMMANDS RETURN TO EDTSUB
+       BRA    EDTSUB   TO GET NEXT SUBCOMMAND
+
+DOSUBC CMPA   #'       MOVE CURSOR RIGHT?
+       BNE    EDITD    NO
+       SKIP2  JUST     PRINT [B] CHARS
+       XDEF   EDTPRT
+EDTPRT LDB    #MAXLEN  PRINT REST OF CHARS ON LINE
+EPLOOP LDA    ,X       GET CURRENT CHAR
+       BEQ    EPRTFN   IF END OF LINE THEN RETURN
+       JSR    CHROUT   PRINT THE CHAR
+       INX             BUMP EDIT POSITION
+       DECB            DECREMENT REP COUNT
+       BNE    EPLOOP   REPEAT AS NECESSARY
+EPRTFN RTS
+
+EDITD  CMPA   #'D      DELETE CHARS?
+       BNE    EDITC    NO
+DELLP  TST    ,X       AT END OF LINE?
+       BEQ    EPRTFN   YES, NOTHING MORE TO DELETE
+       BSR    DELCHR   NO, DELETE CURRENT CHAR
+       DECB            REPEAT AS INDICATED
+       BNE    DELLP
+       RTS
+
+DELCHR DEC    EDTLEN   DECREMENT LINE LENGTH
+       LEAY   -&1,Y    ADJUST POINTER FOR preincrement.
+CMPRSS LEAY   &1,Y     POINT TO NEXT CHAR
+       LDA    &1,Y     MOVE CHARS DOWN A BYTE
+       STA    ,Y
+       BNE    CMPRSS   UNTIL END OF LINE IS REACHED
+       RTS
+
+CHKI   CMPA   #'I      INSERT CHARS?
+       BEQ    EDITI    YES, GO DO IT
+       CMPA   #'X      ADD CHARS TO END OF LINE?
+       BEQ    EDITX    YES
+       CMPA   #'H      HACK OFF REST OF LINE AND ADD CHARS?
+       BNE    EDITCD   NO
+       CLR    ,X       YES, LINE ENDS HERE
+       TFR    X,D      Calculate and store the new line
+       SUBD   #BUF+&1  length.
+       STB    EDTLEN
+
+EDITX  BSR    EDTPRT   PRINT REST OF LINE
+EDITI  JSR    EDITIN   GET CHAR TO INSERT
+       CMPA   #CR      CARRIAGE RETURN?
+       BEQ    CRINS    YES, END INSERTION AND EDIT
+       CMPA   #ESCAPE  ESCAPE?
+       BEQ    CHGRTS   YES, ALL DONE INSERTING
+       CMPA   #CHRDEL  CHARACTER DELETE?
+       BNE    EDTINS   NO, GO INSERT THE CHAR
+       CMPX   #BUF     IF AT START OF LINE IGNORE DELETE
+       BEQ    EDITI    AND GET NEXT CHAR TO INSERT
+       BSR    GOBACK   BACK UP THE CURSOR
+       BSR    DELCHR   DELETE THE CHAR AND COMPRESS THE LINE
+       BRA    EDITI    GO GET NEXT CHAR TO INSERT
+
+EDITC  CMPA   #'C      CHANGE CHARACTERS?
+       BNE    CHKI     NO
+EDTCHG TST    ,X       AT END OF LINE?
+       BEQ    CHGRTS   YES, NOTHING LEFT TO CHANGE
+       JSR    EDITIN   GET CHAR TO REPLACE CURRENT CHAR
+       BCS    OKCCHR   IF IT'S A CR, ESCAPE, OR CHRDEL
+       BRA    EDTCHG   ignore  it.
+OKCCHR STA    ,X+      OVERWRITE THE OLD CHAR
+       BSR    GCHROT   ECHO THE NEW CHAR
+       DECB            REPEAT
+       BNE    EDTCHG
+CHGRTS RTS
+
+
+EDTINS LDB    EDTLEN   WILL LINE BE TOO LONG?
+       CMPB   #MAXLEN
+       BNE    OKINS    NO
+       BRA    EDITI    Yes, wait for escape or CR.
+
+OKINS  PSHS   X        SAVE EDIT POINTER
+FNDEND TST    ,X+      FIND THE END OF THE LINE
+       BNE    FNDEND
+INSMOV LDB    ,-X      MAKE ROOM FOR THE NEW CHAR BY MOVING
+       STB    &1,X     THE REST OF THE CHARS UP A BYTE
+       CMPX   ,S       MOVE ALL INCLUDING CURRENT CHAR
+       BNE    INSMOV
+       LEAS   &2,S     Clean up the stack.
+       STA    ,X+      PUT THE NEW CHAR INTO THE LINE
+       BSR    GCHROT   ECHO THE NEW CHAR
+       INC    EDTLEN   INCREMENT THE LENGTH
+       BRA    EDITI    GET NEXT CHAR TO INSERT
+
+EDITCD CMPA   #CHRDEL  CHARACTER DELETE?
+       BNE    CHKK     NO
+BACKB  BSR    GOBACK   Yes, output B backspaces.
+       DECB
+       BNE    BACKB
+       RTS
+
+GOBACK CMPX   #BUF     IF AT START OF LINE DO NOTHING
+       BEQ    CHGRTS
+       DEX             OTHERWISE BACK UP THE EDIT POINTER
+*    AND BACK UP THE CURSOR
+       IFEQ   REALIO
+ ENDC  IFN    REALIO
+BCKSPC LDA    #CHRDEL  Back up the cursor.
+GCHROT JMP    CHROUT
+
+CHKK   CMPA   #'K      KILL UNTIL MATCH FOUND?
+       BEQ    EDITK    YES
+       SUBA   #'S      SEARCH FOR CHAR?
+       BEQ    EDITK    YES, USE SAME CODE AS K EXCEPT
+*    ACCA IS CLEAR AS A FLAG NOT TO KILL
+       RTS             Unrecognizable command, ignore it and
+*    go get another one.
+EDITK  PSHS   A        SAVE KILL FLAG
+       BSR    EDITIN   GET SEARCH CHAR
+       PSHS   A        PUT IT AWAY
+EDTSRC LDA    ,X       END OF LINE?
+       BEQ    SRCFIN   YES, GIVE UP SEARCH
+       TST    &1,S     IF NOT KILLING THEN PRINT CHARS
+       BNE    ISKILL   INSTEAD OF DELETING THEM
+       BSR    GCHROT
+       INX             POINT TO NEXT CHAR
+       BRA    NOKILL
+ISKILL JSR    DELCHR   DELETE THE CHAR
+NOKILL LDA    ,X       DO THE CHARS MATCH?
+       CMPA   ,S
+       BNE    EDTSRC   NO, CONTINUE SEARCH
+       DECB            YES, BUT MUST SEARCH REP COUNT TIMES
+       BNE    EDTSRC
+SRCFIN PULS   Y,PC     Clean up the stack and return.
+
+EDITIN JSR    INCHR    GET A CHAR
+       CMPA   #&127    THROW AWAY ALL BIGGER THAN TILDA.
+       BCC    EDITIN
+       CMPA   #@137    Translate shift uparrow key which
+       BNE    NOTESC   generates a backarrow to an escape
+       LDA    #ESCAPE  for compatibility with the TRS-80.
+NOTESC CMPA   #CR      ADMIT LOW EXCEPTIONS
+       BEQ    EDTINR
+       CMPA   #ESCAPE
+       BEQ    EDTINR
+       CMPA   #CHRDEL
+       BEQ    EDTINR
+       CMPA   #'       ALL OTHERS BELOW SPACE ARE BAD
+       BCS    EDITIN
+EDTSEC SEC             SAY IT ISN'T A LOW EXCEPTION.
+EDTINR RTS
+
+       TTL    TRON and TROFF
+
+*
+* TRON turns on program tracing by setting TRCFLG to a nonzero
+* value.  TRCFLG is checked at NEWSTT and if it is nonzero the
+* line number of the line about to be executed is printed enclosed
+* in square brackets.  TROFF turns off the program tracing by clearing
+* TRCFLG.
+
+       XDEF   TRON
+TRON   FCB    @206     LDAIM CLRA opcode to make A nonzero
+*    skip over the CLRA.
+       XDEF   TROFF
+TROFF  CLRA            Prepare to clear TRCFLG.
+       STA    TRCFLG   Set or clear the trace flag.
+TRORTS RTS
+
+       TTL    The POS function.
+
+*
+* POS(<device number>) returns the print postion of the specified
+* device.
+*
+* POS(0) returns the cursor column position.
+* POS(-1), if the cassette is open for output, returns a meaningless
+* result.  If the cassette is not  open a File Not Open error results.
+* If the cassette is open for input, a Bad File Mode error results.
+* POS(-2) returns the print position of the lineprinter.
+*
+
+       XDEF   POS
+POS    LDA    DEVNUM   Preserve DEVNUM since this could be
+       PSHS   A        a case such as PRINT #-1,POS(0).
+       JSR    SETDNM   Convert and check the argument.
+       JSR    OPNOCK   Make sure the device is open for
+*    output.
+       JSR    DEVPRM   Get the device parameters.
+       LDB    DEVPOS   Get the position into B.
+       PULS   A        Restore DEVNUM.
+       STA    DEVNUM
+       JMP    SNGFLT   Float the result and return.
+
+       TTL    The VARPTR function.
+
+*
+* VARPTR(<variable name>) returns the address of the specified
+*
+
+* It is important to note that VARPTR is not legal for undefined
+* variables.  This is due to the fact that PTRGET will block transfer
+* to make room for the new variable. A case such as A(0)=VARPTR(S)
+* where S is undefined would cause disastrous results since the array
+* A would have moved. Therefore, an FC error results is VARPTR is
+* called with an undefined variable as the argument.
+* This is accomplished by saving STREND prior to the PRTGET call
+* and checking to see that it hasn't changed when PTRGET returns.
+*
+
+       XDEF   VARPTR
+VARPTR JSR    CHKOPN   Eat the opening parenthesis.
+       LDD    STREND   Remember the top of storage.
+       PSHS   D
+       JSR    PTRGET   X:=pointer to the variable.
+       JSR    CHKCLS   Check for the closing parenthesis.
+       PULS   D        X:=original top of storage,
+       EXG    X,D      D:=pointer to variable.
+       CMPX   STREND   Did the top of storage change during
+*    the call to PTRGET?
+       BNE    XRFC1    Yes, give an FC error since the
+*    variable was undefined prior to the
+*    PTRGET call.
+       JMP    PATCHV   No, go float the result and return.
+
+       TTL    MID$ Assignment (MID$ on the Left Side).
+
+       XDEF   LHMID$
+LHMID$ JSR    CHRGET   Eat the second byte of the function
+       JSR    CHKOPN   token and the left parenthesis.
+       JSR    PTRGET   X:=pointer to left string
+*    variable's descriptor.
+       PSHS   X        Save it.
+       LDD    &2,X     X:=pointer to left string data.
+       CMPD   STKTOP   is it in string space?
+       BLS    LHMD05   No, must copy.
+       SUBD   MEMSIZ
+       BLS    LHMD10   Yes, don't copy.
+*    No, it must be copied into string
+*    space prior ro being modified.  (It
+*    could be a string literal in the
+*    program for example.)
+*    Note that this code checks both
+*    ends of string space rather than
+*    just checking to see if the string
+*    is above STKTOP.  This is done
+*    so it will be possible to put
+*    random file buffers above MEMSIZ
+*    and the copy will still occur for
+*    compatibility with other versions
+*    of BASIC.
+LHMD05 LDB    ,X       Get the required amount of string
+       JSR    GETSPA   space.
+       PSHS   X        Save the pointer to the free space.
+       LDX    &2,S     Copy the string.
+       JSR    MOVINS
+       PULS   X,U      Put the new string data address into
+       STX    &2,U     the string descriptor.
+       PSHS   U        Resave the descriptor pointer.
+LHMD10 JSR    COMBYT   Skip comma, B:=offset into left
+*    string.
+       PSHS   B        Save the offset.
+       TSTB            Give a Function Call error if the
+       BEQ    XRFC1    offset is zero.
+       LDB    #&255    Assume no third argument, in which
+*    case as many chars as possible will
+*    be replaced.
+       CMPA   #CLSPAR  Arrived at the closing parenthesis?
+       BEQ    LHMD30   Yes, no third argument.
+       JSR    COMBYT   No, skip the comma and evaluate the
+*    number of chars to replace.
+LHMD30 PSHS   B        Save the number of chars to replace.
+       JSR    CHKCLS   Eat the closing parenthesis and
+       SYNCHK EQULTK   the equals sign.
+       BSR    EVLSTR   Evaluate the right string
+*    formula, B:=length, X:=pointer to
+*    string data.
+       TFR    X,U      Save pointer in U.
+       LDX    &2,S     X:=pointer to left string
+*    descriptor.
+       LDA    ,X       A:=length of left string.
+       SUBA   &1,S     Is the specified offset beyond the
+*    end of the left string?
+       BHS    LHMD35   No.
+XRFC1  JMP    FCERR    Yes, give FC error.
+
+LHMD35 INCA            No, A:=number of chars between the
+*    offset and theend of the left
+*    string.
+       CMPA   ,S       Is the number of chars that can be
+*    replaced greater than or equal to
+*    the specified number or default (255)?
+       BHS    LHMD40   Yes, use the use the specified or
+*    default number.
+       STA    ,S       No, use the lesser number.
+LHMD40 LDA    &1,S     A:=offset into left string.
+       EXG    A,B      A:=length of right string,
+*    B:=offset into left string.
+*    (Want to use ABX below since it
+*    does an unsigned addition.)
+       LDX    &2,X     X:=pointer to left string data.
+       DECB            X:=pointer into left string
+       ABX             where replacement will begin.
+       TSTA            Is the right string null?
+       BEQ    LHMD60   Yes, no replacement can be done.
+       CMPA   ,S       No, is the right string shorter 
+*    than the number of chars to be
+*    replaced?
+       BLS    LHMD50   Yes, only replace the number of chars
+*    contained in the right string.
+       LDA    ,S       No, use the replacement count
+*    previously determined.
+LHMD50 TFR    A,B      B:=number of chars to move.
+       EXG    U,X      X:=source pointer (right string),
+*    U:=destination pointer (left
+*    string).
+       JSR     COPLOP  Go move the characters.
+LHMD60 PULS    D,X,PC  Clean up the stack and return.
+
+
+*
+* EVLSTR evaluates a numeric formula and returns with
+* B containing the length of the string and X containing
+* a pointer to the string data.
+*
+
+       XDEF   EVLSTR
+EVLSTR JSR    FRMEVL   Evaluate a formula.
+       JMP    FRESTR   Make sure it's a string, free up
+*    the temporary, X:=pointer to string
+*    data, B:=length of string.
+
+       TTL    The STRING$ Function.
+
+*
+* STRING$(<count>, <character>) returns a string of length <count>
+* which is filled with the character specified by <character>.
+* <character> can be specified as a string or a numeric formula.
+* If string, the first  character is used to fill the result.
+* If numeric, the value is used as an ASCII code to fill the
+* result.
+*
+
+       XDEF   STRNG$
+STRNG$ JSR    CHKOPN   Eat the open parenthesis.
+       JSR    GETBYT   Evaluate and save the count.
+       PSHS   B
+       JSR    CHKCOM   Eat the comma.
+       JSR    FRMEVL   Evaluate the second argument.
+       JSR    CHKCLS   Check for the closing parenthesis.
+       LDA    VALTYP   Is the second argument numeric?
+       BNE    STR2AR   No, it's a string.
+       JSR    CONINT   Yes, convert it to an integer in B.
+       BRA    GTROOM   Go get space for the string.
+
+STR2AR JSR    ASC2     B:=ASCII code of the first byte of
+*    the second argument.
+GTROOM PSHS   B        Save the character code.
+       LDB    &1,S     Get length of result string.
+       JSR    STRSPA   Get the required amount of string
+*    space.
+       PULS   A,B      A:=char code, B:=string length.
+       BEQ    FINBLD   Zero length string, don't put
+*    any chars into it.  (STRSPA set
+*    the condition codes on the length
+*    of the string.)
+BUILDS STA    ,X+      Build the result string by storing
+       DECB            the character code into each
+       BNE    BUILDS   byte of the string.
+FINBLD JMP    GOPTNW   Go put away the result.
+
+       TTL    The INSTR Function.
+
+*
+* INSTR([<offset>,<S1$>,<S2$>) searches S1$ for the first
+* occurence of S2$ starting at the specified offset or at the
+* start of S1$ if no offset is specified.
+*
+* The value returned is the position of the first char if a match
+* is found, zero if a match is not found.
+*
+* If S2$ is null, the specified offset or 1 is returned.
+*
+* If S1$ is null, or the offset is beyond the end of S1$,
+* 0 is returned. (These are not really special cases
+* from the user's viewpoint, but the code checks for them as
+* special cases.)
+*
+* If an offset of zero is specified, an FC error results.
+*
+
+       XDEF   INSTR
+INSTR  JSR    CHKOPN   Check for the left parenthesis.
+       JSR    FRMEVL   Evaluate the first argument.
+       LDB    #&1      Assume no offset is specified and
+       PSHS   B        set up the default.
+       LDA    VALTYP   Is the first argument numeric?
+       BNE    INST10   No, no offset.
+       JSR    CONINT   Yes, B:=specified offset.
+       STB    ,S       Overwrite the default.
+       BEQ    XRFC1    Don't allow an offset of zero.
+       JSR    CHKCOM   Eat the comma, evaluate and check
+       JSR    FRMEVL   the S1$ argument.  (Don't want to call
+       JSR    CHKSTR   EVLSTR since it would free up the
+*    temporary and we can't do that until
+*    the S2$ argument has been evaluated.)
+INST10 LDX    FACMO    Save the pointer to the S1$
+       PSHS   X        descriptor.
+       JSR    CHKCOM   Skip the comma and evaluate the S2$
+       JSR    EVLSTR   argument.
+       PSHS   X,B      Save data pointer and length of S2$.
+       JSR    CHKCLS   Check for the right parenthesis.
+       LDX    &3,S     Free up the S1$ temp.
+       JSR    FRETMP   X:=data pointer, B:=length.
+       PSHS   B        Save length of S1$.
+       CMPB   &6,S     Is the offset beyond the end of S1$?
+       BLO    INST50   Yes, return 0.
+       LDA    &1,S     No, is S2$ null?
+       BEQ    INST40   Yes, return the offset.
+       LDB    &6,S     No, X:=pointer into S1$ where the
+       DECB            search must begin.
+       ABX
+
+INST20 LEAY   ,X       Save S1$ pointer where current
+*    search began.
+       LDU    &2,S     U:=pointer to S2$.
+       LDB    &1,S     B:=length of S2$.
+       LDA    ,S       A:=number of chars between the
+       SUBA   &6,S     search starting point and the end
+       INCA            of S1$.
+       CMPA   &1,S     Is it shorter than S2$?
+       BLO    INST50   Yes, give up and return 0.
+
+INST30 LDA    ,X+      Get char from S1$.
+       CMPA   ,U+      Compare to char in S2$.
+       BNE    INST60   Not the same.
+       DECB            Same, more to check?
+       BNE    INST30   Yes, check next chars.
+
+INST40 LDB    &6,S     Match, return the offset.
+       FCB    @41      BRN over CLRB.
+INST50 CLRB            No match, return 0.
+       LEAS   &7,S     Clean up the stack.
+       JMP    SNGFLT   Float the result and return.
+
+INST60 INC    &6,S     Chars not the same, increment offset
+*    into S1$.
+       LEAX   &1,Y     Start searching one char to the right
+       BRA    INST20   in S1$.
+
+       TTL    Hex and Octal Constants
+
+       XDEF   HOCONS
+HOCONS CLR    FACMO    Clear FACMO,FACLO since that's where
+       CLR    FACLO    the result is built.
+       LDX    #FACMO   Set up a pointer to the FAC.
+       JSR    CHRGET   See if O or H specified.
+       CMPA   #'O      O for octal?
+       BEQ    OCTCN1   Yes, go do octal.
+       CMPA   #'H      No, H for hex?
+       BEQ    HEXCN0   Yes, go do hex.
+*    No, default to octal.
+       JSR    CHRGOT   Reget current char to set
+       BRA    OCTCN2   condition codes.
+
+OCTCN0 CMPA   #'8      Is it a valid octal digit?
+       LBHI   SNERR    No, give a syntax error.
+       LDB    #&3      Yes, bits/digit:=3.
+       BSR    HODIG    Go add in the new digit.
+OCTCN1 JSR    CHRGET   Get next char.
+OCTCN2 BCS    OCTCN0   It's a digit, continue.
+*    Not a digit, time to quit.
+
+*
+* Float the sixteen bit unsigned value in FACMO,FACLO.
+*
+
+       XDEF   CONS16
+CONS16 CLR    FACHO    Clear the most significant byte.
+       IFNE   ADDPRC
+       CLR    FACMOH
+       ENDC   IFN      ADDPRC
+CONS24 CLR    VALTYP   Set VALTYP to numeric.
+       CLR    FACOV
+       CLR    FACSGN   Mark as positive.
+       LDB    #@230+@10*ADDPRC Set up the exponent.
+       STB    FACEXP
+       JMP    NORMAL   So normalize it.
+
+HEXCN0 JSR    CHRGET   Get next char.
+       XDEF   HEXCNX
+HEXCNX BCS    HEXCN1   It's a numeric digit.
+       JSR    ISLETC   Not numeric, see if letter.
+       BCS    CONS16   Not letter, finished.
+       CMPA   #'F+&1   Valid hex alpha digit?
+       BCC    CONS16   No, all done.
+       SUBA   #'A-'0-&10 Yes, adjust alpha code.
+
+HEXCN1 LDB    #&4      Bits/digit:=4.
+       BSR    HODIG    Add in new digit.
+       BRA    HEXCN0   Do next digit.
+
+
+HODIG  ASL    &1,X     Shift current value left bits/digit
+       ROL    ,X       times while checking for overflow.
+       LBCS   OVERR
+       DECB
+       BNE    HODIG
+       SUBA   #'0      Subtract out ASCII offset.
+       ADDA   &1,X     Add in new digit to
+       STA    &1,X     low order byte.
+HORTS  RTS             (Can't get carry since low order
+*    hex or octal digit is a zero from
+*    shifting done above.)
+
+       TTL    Simple User Defined Function Code.
+
+
+*
+* Note only single arguments are allowed to functions
+* and functions must be of the single line form:
+* DEF FNA(X)=X^2+X-2
+* Both the argument and result must be numeric.
+*
+* Idea: create a simple variable entry
+* whose first character has the 200 bit set.
+* The value will be:
+*
+* A text pntr to the formula.
+* A pntr to the argument variable.
+*
+* Function names can be like FNA4.
+*
+*
+* Subroutine to see if we are in direct mode
+* and complain if so.
+*
+
+       XDEF   ERRDIR
+ERRDIR LDX    CURLIN   Dir mode has CURLIN=65535.
+       LEAX   &1,X     So now, is result zero?
+       BNE    HORTS    Yes.
+       LDB    #ERRID   Illegal Direct Error.
+ERRGO1 JMP    ERROR
+
+       XDEF   DEF
+DEF    LDX    [TXTPTR] Is it DEF USR?
+       CMPX   #$FF00+USRTK
+       LBEQ   DEFUSR   Yes, go define the USR function
+*    address.
+       BSR    GETFNM   Get a pntr to the function.
+       BSR    ERRDIR
+       JSR    CHKOPN   Must have "(".
+       LDB    #&128
+       STB    SUBFLG   Prohibit subscripted variables.
+       JSR    PTRGET   Get pntr to argument.
+       BSR    CHKNU2   Is it a number?
+       JSR    CHKCLS   Must have ")"
+       SYNCHK EQULTK   Must have "=".
+       LDX    DEFPNT   Get pntr to thing to store in.
+       LDD    TXTPTR   Get thing to store.
+       STD    ,X       Put down text pointer.
+       LDD    VARPNT   Get more to store.
+       STD    &2,X     Store it.
+       JMP    DATA     Skip to end.
+
+*
+* Subroutine to get a pntr to a function name.
+*
+
+GETFNM SYNCHK FNTK     Must start with FN.
+       LDB    #&128    Don't allow an array.
+       STB    SUBFLG
+       ORA    #&128    Put function bit on.
+       JSR    PTRGT2   Get pntr to function or create anew.
+       STX    DEFPNT
+CHKNU2 JMP    CHKNUM   Make sure it's numeric and return.
+
+       XDEF   FNDOER
+FNDOER BSR    GETFNM   Get pointer to function definition.
+       PSHS   X        Save it.
+       JSR    PARCHK   Evaluate the actual parameter.
+*    (It's enclosed in parentheses.)
+       BSR    CHKNU2   Make sure it's numeric.
+       PULS   U        U:=pointer to function def.
+       LDB    #ERRUF   In case function is undefined.
+       LDX    &2,U     X:=pointer to dummy arg variable.
+       BEQ    ERRGO1   If zero the function isn't defined.
+       LDY    TXTPTR   Y:=text pointer which points into
+*    function call.
+       LDU    ,U       U:=function definition text pointer.
+       STU    TXTPTR   Set up txtptr for FRMEVL.
+       IFNE   ADDPRC
+       LDA    &4,X     Push on extra byte of arg variable.
+       PSHS   A
+       ENDC   IFN      ADDPRC
+       LDD    ,X       D,U:=dummy arg variable value.
+       LDU    &2,X
+       PSHS   U,Y,X,B,A Save dummy arg variable value, pointer
+*    to dummy arg, and call text pointer.
+       JSR    MOVMF    Move actual parm value into dummy
+*    arg variable from FAC.
+       JSR    FRMNUM   Evaluate a numeric formula.  (This
+*    is the function def formula.)
+       PULS   A,B,X,Y,U Get back dummy arg value, dummy arg
+*    pointer, and call text pointer.
+       STD    ,X       Restore the dummy arg.
+       STU    &2,X
+       IFNE   ADDPRC
+       PULS   A        Restore extra byte of arg variable.
+       STA    &4,X
+       ENDC   IFN      ADDPRC
+       JSR    CHRGOT   Make sure the function definition is
+       LBNE   SNERR    Properly terminated.  (Can't make this
+*    check during definition time since
+*    it is then not known where the end of
+*    the expression is.)
+       STY    TXTPTR   Restore caller's TXTPTR.
+DEFRTS RTS
+
+       TTL    USR Function Code.
+
+*
+* Here when DEF sees a USR token.
+*
+
+DEFUSR JSR    CHRGET   Skip the first byte of the function
+*    token.
+       JSR    CHRGET
+       BSR    SCNUSR   X:=address of USRTAB entry.
+       PSHS   X        Save it.
+       BSR    EQUADR   Skip equals sign, X:=address.
+       STX    [,S++]   return.
+       RTS
+
+
+*
+* Scan USR function number and return a pointer to the specified
+* USRTAB entry in X.
+*
+
+SCNUSR CLRB            Assume no function number specified.
+*    The default is USR0.
+       JSR     CHRGOT  USR token ALREADY SKIPPED.
+       BCC     ISUSR0  No digit, default to USR0.
+       SUBA    #'0     Get rid of ASCII offset and put the
+       TFR     A,B     function number into B.
+       JSR     CHRGET  Skip the digit.
+ISUSR0 LDX     USTBAD  X:=pointer to USRTAB.
+       ASLB            USRTAB entries are two bytes each.
+       ABX             X:=pointer to specified entry and
+       RTS             return.
+
+
+*
+* Here when USR token is seen by the EVAL chain.
+*
+
+       XDEF   USRFN
+USRFN  BSR    SCNUSR   X:=pointer to USRTAB entry.
+       LDX    ,X       Save the address of the USR function.
+       PSHS   X
+       JSR    PARCHK   Evaluate formula enclosed in parens.
+       LDX    #FAC     Point to the FAC so the USR routine
+*    doesn't need to know the absolute
+*    address of the FAC for numeric
+*    arguments.
+       LDA    VALTYP   Is it numeric?
+       BEQ    USRDSP   Yes, the argument is in the FAC.
+       JSR    FREFAC   No, free up the string temporary.
+       LDX    FACMO    X:=pointer to the string descriptor.
+       LDA    VALTYP   Indicate the argument is string.
+USRDSP RTS             Dispatch to the USR function.
+
+
+*
+* Skip equals sign and evaluate 16 bit unsigned integer into X.
+*
+
+EQUADR SYNCHK EQULTK   Skip the equals sign.
+       JMP    EVLADR   Evaluate address into X and return.
+
+       TTL    TIME and TIME$
+
+       IFNE   TODCLK
+ ENDC   IFN TODCLK
+*
+* XRSLWC is the clock interrupt routine.  It is invoked by
+* an IRQ every 60th of a second.
+*
+* Note that TICKER is off the direct page.  If it were on the direct
+* page it would be necessary to either set the DP register or
+* force extended addressing to be used.
+*
+
+       XDEF   XRSLWC
+XRSLWC LDA    PIA0BC   Is the slow clock interrupt flag set?
+       BMI    DOTIMR   Yes.
+       RTI             No, return from the interrupt.
+
+DOTIMR LDA    PIA0BD   Clear the interrupt request.
+       XDEF   XRTIMR
+XRTIMR EQU    *        The disk ROM comes here when it
+*    is finished with the timer IRQ.
+       IFNE    TODCLK
+ ENDC    IFN TODCLK
+       IFEQ    TODCLK
+       LDX     TICKER  Increment the two byte tick count.
+       LEAX    &1,X
+       STX     TICKER
+       ENDC    IFE     TODCLK
+GOPLYC JMP     PLYCLK  Go handle the special timer for
+*    the PLAY statement.
+
+       TTL    TIMER
+
+       IFEQ   TODCLK
+
+*
+* Here to set the timer via TIMER=tick count.
+* 0 .LE. tick count .LE. 65535.
+*
+
+       XDEF   TIMSET
+TIMSET JSR    CHRGET     Skip the second byte of the function
+*    token.
+       BSR    EQUADR   Skip equals sign, X:=tick count.
+       STX    TICKER   Put it into the timer and return.
+       RTS
+
+
+*
+* Here to return the tick count for the TIMER function.
+*
+
+       XDEF   TIMER
+TIMER  LDX    TICKER   Get the tick count.
+       STX    FACMO    Float it and return.
+       JMP    CONS16
+       ENDC   IFE      TODCLK
+
+       TTL    The DELETE Command
+
+       XDEF   DELETE
+DELETE LBEQ   FCERR    At least one line number must be
+*    specified.
+       JSR    LINGET   Read the first line number.
+*    (Returns 0 if dash is first  thing.)
+       JSR    FNDLIN   Get and save a pointer to the first
+       STX    FSTPTR   line to be deleted.
+       JSR    CHRGOT   See what the terminator is.
+       BEQ    DELSRC   End of statement, delete only the
+*    specified line if it exists.
+       CMPA   #MINUTK  It must be a dash.
+       BNE    DELSNR   Return to NEWSTT to give SN error
+*    if not  dash.
+       JSR    CHRGET   Skip over the dash.
+       BEQ    DTOEND   End of statement, delete to the end
+*    of the program.
+       BSR    LINTRM   Read the final line number into
+*    LINNUM and check for a terminator.
+       BRA    DELSRC   Go find the first line in the range.
+
+DTOEND LDA    #&255    Set LINNUM so higher than any
+       STA    LINNUM   program line number.  (Don't care
+*    about low order byte since 255*256
+*    is 65280 and the highest program
+*    line number allowed is 63999.)
+DELSRC LDU    FSTPTR   Search for the first line outside
+       SKIP2  the      range of lines to be deleted.
+DELSLP LDU    ,U       Link to the next line.
+       LDD    ,U       Is the link zero?
+       BEQ    DELDOR   Yes, have hit end of program.
+       LDD    &2,U     No, is the line number
+       SUBD   LINNUM   higher than the last specified one?
+       BLS    DELSLP   No, go link to the next line.
+*    Yes, U is pointing to the link field
+*    of the first line beyond the range.
+DELDOR LDX    FSTPTR   X:=pointer to link field of first
+*    line to be deleted.
+*      BSR    DELDO    Move the top of the program down
+*    over the lines being deleted and
+*    update VARTAB.
+*    Note that if a null range was
+*    specified (as in the case where a
+*    single nonexistent line was given),
+*    the block transfer is done anyway
+*    but is OK since source and dest
+*    pointers are the same.
+       JSR    RUNC     Wipe out variables and reset the
+*    stack.
+       LDX    FSTPTR   Fix up the links of the lines that
+       JSR    CHEAD    were moved.
+       JMP    READY    Go print "OK".
+
+
+LINTRM JSR    LINGET   Read a line number into LINNUM.
+       JMP    TRMCHK   Check for end of statement.
+
+
+*
+* Enter at DELDO to block transfer down from U to X until U=[VARTAB].
+* Then update [VARTAB] by storing final X into it.
+*
+
+MORDEL LDA    ,U+      Set byte and move it down.
+       STA    ,X+
+DELDO  CMPU   VARTAB   At end of program?
+       BNE    MORDEL   No, continue moving.
+       STX    VARTAB   Yes, update VARTAB and return.
+DELSNR RTS
+
+       TTL    LINEINPUT
+
+*
+* LINEINPUT [#<device number>,]["<prompt>";]<string variable>
+*
+* The graphics LINE statement comes here when it sees an INPUT token
+* following the LINE token.
+*
+
+       XDEF   ILINE
+ILINE  JSR    ERRDIR   Disallow in direct execution mode
+*    since it smashes BUF.
+       JSR    CHRGET   Skip past the INPUT token.
+       CMPA   #'#      Device number specified?
+       BNE    ILNKBD   No, input will come from keyboard.
+       JSR    GETDNM   Yes, scan the device number.
+       JSR    OPNICK   Take sure it's open for input.
+       JSR    CHKCOM   A comma must follow the device number.
+ILNKBD EQU    *
+       IFNE   CNTRLO
+ ENDC   IFN CNTRLO
+       CMPA   #DBLQTE  Is there a quoted prompt string?
+       BNE    NOPRM    No, no prompt.
+       JSR    STRTXT   Yes, scan the string.
+       SYNCHK SEMCOL   It must be followed by a semicolon.
+       JSR    STRPRT   Print it out.  (CHROUT will suppress
+*    the output if DEVNUM is nonzero.)
+NOPRM  LEAS   -&2,S    Put the stack at the correct level
+*    for INLDO to handle the BREAK case.
+*    (Must have NEWSTT return under another
+*    2 bytes, under INLNDO return address.)
+       JSR    INLNDO   Read line into BUF.  (If necessary
+*    the disk file case can be trapped
+*    at the INLIN hook HKINLN.)
+       LEAS   &2,S     Fix the stack back up.
+       CLR    DEVNUM   Reset for console I/O.
+       JSR    PTRGET   Get a pointer to the variable and
+       STX    FORPNT   save it for the LET assignment code.
+       JSR    CHKSTR   Make sure it's a string variable.
+       LDX    #BUF-&1  Point to the data.
+       CLRA            Only terminate on end of line.
+       JSR    STRLT3   Go build a descriptor and copy the
+*    string into string space.
+       JMP    INPCOM   Finish up in the LET assignment code.
+
+       TTL    RENUM - Renumber a BASIC program
+
+*
+* The following steps are performed in order to renumber a
+* BASIC program:
+* 1) Read the parameter list.  The format of the RENUM command
+* is: RENUM [NN[,MM[,II]]]
+*  NN is the new line number of the first line to
+*  be renumbered.
+*  Lines below MM are not renumbered.
+*  II is the increment between the renumbered lines.
+*
+* If NN is omitted the default of 10 is used.
+* If MM is omitted the whole program is renumbered.
+* If II is omitted the default increment of 10 is used.
+* MM and NN must be such that NN is greater than the highest
+*  numbered line not being renumbered or a "Function
+*  Call" error will result.
+* II cannot be zero or an FC error will result.
+*
+* 2) Determine whether a line number greater than 63999 would
+* be created if the paramters obtained in step 1 are used to
+* renumber the program.  If so gave a "Function Call" error.
+*
+* 3) Scan the program converting all line number references from
+* ASCII to modified binary line number tokens.  A modified
+* binary line number token has the following format:
+*  1
+*  High byte of binary line number
+*  Modifier for high byte
+*  Low byte of binary line number
+*  Modifier for low byte
+* If the modifier byte is one then the associated line number
+* byte contains a true value between 1 and 255.  If the modifier
+* byte is two then the associated line number byte contains
+* one but its actual value is zero.  The reason for doing
+* this is to allow the use of CHEAD to fix up the links
+* after step 3 is finished.  CHEAD assumes that
+* a zero marks the end of a BASIC program line.
+* Note that the binary line number token is 5 bytes long.
+* It may therefore be necessary to block transfer the program
+* up to make room for the token since the ASCII line number
+* may be as small as one character.  It is this block
+* transferring that destroys the program links.
+* note that BLTU is called to do the block transferring.
+* Therefore an "Out of Memory" error could occur.  If this
+* does happen the program is left in a totally useless state
+* if any binary line number tokens have been inserted.
+* This case isn't too likely but my apologies in advance to
+* anyone who falls victim to it.
+*
+* If a line number is longer than 5 characters due to
+* leading zeroes and/or embedded spaces, the rest of the
+* program is block transferrred down to take up the space.
+*
+* 4) fix up the links by calling CHEAD. The links were
+* probably destroyed by step 3 and they are needed in step 4
+* for calls to FNDLIN.
+*
+* 5) Scan the program looking for the modified binary line number
+* tokens created in step 3. When one is found call FNDLIN to
+* get a pointer to the link field of the BASIC program line
+* being referenced.  If the line is found convert the binary
+* line number token into a line pointer token which has the
+* following format:
+*  2
+*  Link pointer high byte
+*  Link pointer low byte
+*  Unused
+*  Unused
+* If the line is not found the binary line number token is
+* converted into an undefined line reference token which
+* has the following format:
+*  3
+*  Binary line number high byte
+*  Binary line number low byte
+*  Unused
+*  Unused
+* At this point it doesn't matter if there are zeroes in
+* these 5 byte entries because CHEAD won't be called again
+* until the renumber process is finished at which time all
+* of the tokens created by RENUM will be done.
+*
+* 6) Assign the new line numbers to the portion of the program
+* being renumbered.
+*
+* 7) Scan the program converting line pointer tokens to binary
+* line number tokens.  The format of a binary line number token
+* is as follows:
+*  1
+*  High byte of binary line number
+*  Low byte of binary line number
+*  Unused
+*  Unused
+*
+* 8) Scan the program looking for binary line number tokens and
+* undefined line reference tokens. When an undefined line
+* reference token is found print the message "Undefined
+* Line XXXXX In YYYYY" where "XXXXX" is the undefined line
+* number and "YYYYY" is the line number (after renumbering)
+* of the line the reference is in.
+*
+* Convert all undefined line reference and binary line number
+* tokens to ASCII by calling FOUT.  Put the ASCII digits
+* into the space used by the token and block transfer the
+* program down if there is space left over.  (This is the
+* case if the ASCII representation is fewer than 5 digits.
+* The ASCII can never be longer than 5 digits so block
+* transferring up is never required at this point.)
+*
+* 9) Step 8 destroyed the links if any block transferring occurred
+* so call CHEAD to fix them up.
+*
+* 10) Call CLEARC to init ARYTAB and STREND to point
+* to the new end of program.  Jump to READY.
+*
+GTLINE JSR    LINGET   READ A LINE NUMBER.
+       LDX    LINNUM   X:=THE LINE NUMBER READ.
+       RTS
+
+FNDFST LDX    FSTNUM   GET A POINTER TO THE FIRST LINE
+*    TO BE RENUMBERED.
+FNDLNX STX    LINNUM   FIND LINE WITH NUMBER [X].
+       JMP    FNDLIN
+
+       XDEF   RENUM
+RENUM  JSR    CLEARC   LIBERATE MEMORY USED BY VARIABLES
+*    AND STACK AND PROHIBIT CONTINUING.
+       LDD    #&10     SET UP THE DEFAULT OF TEN FOR THE
+       STD    NEWNUM   FIRST NEW LINE NUMBER TO BE ASSIGNED.
+       STD    RENINC   THE DEFAULT INCREMENT IS ALSO TEN.
+       CLRB            THE DEFAULT IS TO RENUMBER THE WHOLE
+       STD    FSTNUM   PROGRAM SO SET FIRST OLD LINE NUMBER
+*    TO BE RENUMBERED TO ZERO.
+       JSR    CHRGOT   RESET COND CODES.
+       BCC    DFLTNN   NOT A DIGIT, USE DEFAULT NN.
+       BSR    GTLINE   READ NN.
+       STX    NEWNUM   OVERRIDE THE DEFAULT.
+       JSR    CHRGOT   SET TERMINATOR'S COND CODES.
+DFLTNN BEQ    ENDPRM   END OF PARAMETERS, DEFAULT THE REST.
+       JSR    CHKCOM   MUST BE COMMA AS PLACE HOLDER AND/OR
+*    SEPARATOR.
+       BCC    DFLTMM   NOT DIGIT, USE DEFALTULT MM.
+       BSR    GTLINE   READ MM.
+       STX    FSTNUM   SAVE IT.
+       JSR    CHRGOT   GET TERMINTOR'S COND CODES.
+DFLTMM BEQ    ENDPRM   NO MORE PARMS, DEFAULT II.
+       JSR    CHKCOM   MUST BE COMMA.
+       BCC    DFLTII   NOT DIGIT, USE DEFAULT II.
+       BSR    GTLINE   READ AND SAVE II.
+       STX    RENINC
+       BEQ    RNFCER   GIVE "FUNCTION CALL" ERROR IF ZERO.
+DFLTII JSR    TRMCHK   The statement must end now.
+
+ENDPRM BSR    FNDFST   GET A POINTER TO THE FIRST LINE
+       STX    FSTPTR   TO BE RENUMBERED.
+       LDX    NEWNUM   GET A POINTER TO AN EXISTING PROGRAM
+       BSR    FNDLNX   LINE WHOSE NUMBER IS GREATER THAN OR
+*    EQUAL TO THE FIRST NEW LINE NUMBER.
+       CMPX   FSTPTR   GIVE A "FUNCTION CALL" ERROR IF
+*    THE USER IS ATTEMPTING TO RENUMBER
+       BLO    RNFCER   THE PROGRAM ON TOP OF ITSELF.  THIS
+*    MEANS THAT NN IS LESS THAN EQUAL
+*    TO THE HIGHEST LINE NUMBER NOT BEING
+*    RENUMBERED.
+       BSR    CHKNMS   GENERATE THE NEW LINE NUMBERS BUT DON'T
+*    ACTUALLY PUT THEM INTO THE PROGRAM.
+*    THIS IS DONE JUST TO CHECK THAT A
+*    LINE NUMBER BIGGER THAN 63999 WON'T
+*    BE GENERATED.
+       JSR    BINASC   CONVERT LINE NUMBER REFERENCES FROM
+*    ASCII TO BINARY LINE NUMBER TOKENS.
+       JSR    CHEADA   FIX UP THE LINKS.
+       BSR    FNDFST   THINGS HAVE BEEN MOVED AROUND SO GET
+       STX    FSTPTR   A NEW POINTER TO WHERE RENUMBERING
+*    STARTS.
+       BSR    SCNPRG   SCAN THE ENTIRE PROGRAm CONVERTING
+*    BINARY LINE NUMBER TOKENS TO LINE
+*    POINTER TOKENS.
+       BSR    PUTNMS   ASSIGN THE NEW LINE NUMBERS.
+       BSR    SCNPRG   SCAN THE ENTIRE PROGRAM CONVERTING
+*    POINTER TOKENS TO BINARY LINE NUMBER
+*    TOKENS CONTAINING THE NEW NUMBERS.
+       JSR    ASCBIN   TYPE MESSAGE FOR ALL UNDEFINED LINE
+*    REFERENCE TOKENS. CONVERT ALL
+*    UNDEFINED LINE REFERENCE AND BINARY
+*    LINE NUMBER TOKENS TO ASCII.
+       JSR    CLEARC   SET UP 'ARYTAB" AND "STREND".
+       JSR    CHEADA   FIX UP THE LINKS.
+       JMP    READY    ALL DONE.
+*
+* GENERATE THE NEW LINE NUMBERS.  ENTER AT "CHKNMS" TO JUST CHECK
+* THE NEW NUMBERS.  ENTER AT "PUTNMS" TO ACTUALLY ASSIGN THE NEW
+* NUMBERS.
+*
+CHKNMS FCB    @206     GET NON-ZERO [A] TO SET "CHKPAS".
+PUTNMS CLRA            PREPARE TO CLEAR "CHKPAS".
+       STA    CHKPAS   SET OR CLEAR THE FLAG.
+       LDX    FSTPTR   X:=POINTER TO LINK FIELD OF FIRST
+*    LINE TO BE RENUMBERED.
+       LDD    NEWNUM   D:=FIRST NEW LINE NUMBER.
+       BSR    CHKLNK   RETURN TO CALLER THE LINK IS
+*    ZERO (END OF PROGRAM).
+NXTNUM TST    CHKPAS   ARE WE JUST CHECKING THE NUMBERS?
+       BNE    NOPTNM   YES.
+       STD    &2,X     NO, STORE THE NEW LINE NUMBER.
+NOPTNM LDX    ,X       LINK TO THE NEXT LINE.
+       BSR    CHKLNK   CHECK FOR END OF PROGRAM AND DON'T
+*    COME BACK HERE IF IT IS.
+       ADDD   RENINC   GENERATE THE NEXT NEW LINE NUMBER.
+       BCS    RNFCER   WAY TOO BIG!
+       CMPA   #&250    IS IT GREATER THAN 63999?
+       BLO    NXTNUM   NO, IT IS OK.
+RNFCER JMP    FCERR    GIVE "FUNCTION CALL" ERROR.
+
+CHKLNK PSHS   D        PRESERVE D.
+       LDD    ,X       IS THE LINK ZERO?
+       PULS   D        (RETRIEVE D.)
+       BNE    CHKLRT   NO, RETURN TO CALLER.
+       LEAS   &2,S     YES, END OF PROGRAM HAS BEEN REACHED.
+*    POP OFF CALLER'S RETURN ADDRESS AND
+*    RETURN THE CALLER'S CALLER.
+CHKLRT RTS
+
+*
+* "SCNPRG" SCANS THE ENTIRE PROGRAM LOOKING FOR BINARY LINE NUMBER,
+* UNDEFINED LINE REFERENCE, AND LINE POINTER TOKENS.  BINARY LINE
+* NUMBER TOKENS ARE CONVERTED TO LINE POINTER TOKENS, UNDEFINED
+* LINE REFERENCE TOKENS ARE LEFT AS IS BUT MUST BE CHECKED FOR SO
+* THEY CAN BE SKIPPED OVER SINCE THEY CONTAIN BINARY DATA, LINE
+* POINTER TOKENS ARE CONVERTED TO BINARY LINE NUMBER TOKENS.
+*
+SCNPRG LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
+       LEAX   -&1,X    Setup for preincrement.
+SCN010 LEAX   &1,X     POINT TO THE FIRST BYTE OF THE LINK.
+       BSR    CHKLNK   RETURN IF ZERO LINK (END OF PROGRAM).
+SCN020 LEAX   &3,X     SKIP THE LINK AND LINE NUMBER.
+SCN030 LEAX   &1,X     POINT TO THE NEXT BYTE OF THE LINE.
+       LDA    ,X       A:=BYTE OF LINE.
+       BEQ    SCN010   END OF LINE, PROCEED TO NEXT LINE.
+       STX    TEMPX1   SAVE POINTER TO THIS BYTE.
+       DECA            BINARY LINE NUMBER TOKEN?
+       BEQ    PTRBIN   YES, CONVERT IT TO A LINE POINTER TOKEN.
+       DECA            NO, IS IT A LINE POINTER TOKEN?
+       BEQ    BINPTR   YES, CONVERT IT TO A BINARY LINE NUMBER
+*    TOKEN.
+       DECA            NO, IS IT AN UNDEFINED LINE REFERENCE
+*    TOKEN?
+       BNE    SCN030   NO, IT'S NOTHING THAT INTERESTS US SO
+*    PROCEED TO THE NEXT BYTE OF THE LINE.
+*    YES, SKIP OVER IT SO THE BINARY DATA
+*    IT CONTAINS WON'T BE INTERPRETED AS
+*    OTHER TOKEN TYPES OR END OF LINE.
+*    THE TOKEN TYPE BYTE IS SET TO 3
+*    BECAUSE THE CODE THAT CREATES UNDEFINED
+*    LINE REFERENCE TOKENS COMES THORUGH HERE.
+SCN040 LDA    #&3      SET TOKEN TYPE TO UNDEFINED LINE
+       STA    ,X+      REFERENCE.
+       BRA    SCN020   Skip the token.  Bump X once here
+*    and four more times by going to
+*    SCN020.
+*
+* CONVERT A BINARY LINE NUMBER TOKEN TO A LINE POINTER TOKEN.
+*
+PTRBIN LDD    &1,X     D:=BINARY LINE NUMBER.
+       DEC    &2,X     CHECK THE MODIFIER BYTE TO SEE IF
+       BEQ    PTRB10   THE HIGH BYTE IS REALLY ZERO.
+       CLRA            IT IS SO MAKE IT SO.
+PTRB10 LDB    &3,X     DO SAME THING FOR LOW ORDER BYTE.
+       DEC    &4,X
+       BEQ    PTRB15
+       CLRB
+PTRB15 STD    &1,X     Store the unmodified binary line
+*    line number so if the line isn't
+*    found an undefined line reference
+*    token will be created.
+       STD    LINNUM   SET IT UP FOR "FNDLIN" CALL.
+       JSR    FNDLIN   SEARCH FOR THE LINE.
+PTRB20 LDX    TEMPX1   GET BACK POINTER TO TOKEN.
+       BCS    SCN040   LINE WASN'T FOUND, MAKE AN UNDEFINED
+*    LINE REFERENCE TOKEN.
+*    NOTE THAT WHEN "BINPTR" COMES HERE
+*    THE CARRY IS ALWAYS CLEAR.
+       LDD    LOWTR    PUT THE NEW INFO INTO THE TOKEN AND
+       INC    ,X+      SET UP THE TOKEN TYPE.
+       STD    ,X       FOR "PTRBIN" WE ARE STORING THE POINTER
+*    RETURNED BY "FNDLIN" AND CHANGING THE
+*    TOKEN CODE FROM ONE TO TWO. FOR
+*    "BINPTR" WE ARE STORING THE BINARY
+*    LINE NUMBER AND SETTING THE TOKEN CODE
+*    TO ONE.
+       BRA    SCN020   SKIP OVER THE TOKEN AND CONTINUE SCAN.
+
+   *
+   * "BINPTR" CONVERTS A LINE POINTER TO A TOKEN TO A BINARY LINE NUMBER
+   * TOKEN WITHTOUT MODIFIER BYTES.
+   *
+BINPTR CLR    ,X       TOKEN TYPE BYTE:=0 AND CARRY:=0
+*    SO WE CAN FINISH UP IN "PTRBIN".
+       LDX    &1,X     LOWTR:=LINE NUMBER OF LINE POINTED
+       LDX    &2,X     TO BY THE LINE POINTER TOKEN.
+       STX    LOWTR
+       BRA    PTRB20
+
+*
+* CONVERT LINE NUMBER REFERENCES FROM ASCII TO MODIFIED BINARY
+* LINE NUMBER TOKENS.  THE FOLLOWING REFERENCES ARE HANDLED:
+*
+* THEN
+* ELSE
+* GOTO
+* GOSUB
+*
+
+BINASC LDX    TXTTAB   POINT TO THE START OF THE PROGRAM.
+       BRA    BIN020
+BIN010 LDX    TXTPTR   X:=POINTER TO THE FIRST LINK BYTE.
+       LEAX   &1,X
+BIN020 BSR    CHKLNK   QUIT IF THE LINK IS ZERO.
+       LEAX   &2,X     Skip the link and line number.
+BIN025 LEAX   &1,X
+BIN030 STX    TXTPTR   SET UP TO DO "CHRGET"'S.
+BIN040 JSR    CHRGET   GET NEXT CHAR, SKIP SPACES.
+BIN050 TSTA            END OF LINE?
+       BEQ    BIN010   YES, PROCEED TO NEXT LINE.
+       BPL    BIN040   NOT A TOKEN SO SKIP IT.
+       LDX    TXTPTR   SAVE "TXTPTR" SINCE WE MAY HAVE TO
+*    LOOK AHEAD AND WILL WANT TO RESTORE
+*    "TXTPTR" IF WE DON'T SEE WHAT WE
+*    ARE LOOKING AHEAD FOR.
+       CMPA   #@377    Is it the first byte of a function
+*    token?
+       BEQ    BIN025   Yes, skip it and the second byte since
+*    the second byte might look like one
+*    of the nonfunction tokens we are
+*    looking for.
+       JSR    HKRENM   RAM hook to handle new reserved
+*    words.
+       CMPA   #THENTK  THEN?
+       BEQ    BIN070   Yes, go look for a line number.
+       CMPA   #ELSETK  ELSE?
+       BEQ    BIN070   Yes, go look for a line number.
+       CMPA   #GOTK    GO?
+       BNE    BIN040   No, nothing special so just skip it.
+       JSR    CHRGET   Yes, read the next byte.
+       CMPA   #TOTK    TO token must follow for GOTO.
+       BEQ    BIN070   Go handle the line number(s).
+       CMPA   #SUBTK   Could also be GOSUB.
+       BNE    BIN030   Neither, go scan the char after the
+*    GO token.
+
+*
+* READ A LINE NUMBER.
+*
+
+BIN070 JSR    CHRGET   READ FIRST CHAR.
+BIN080 BCS    BIN100   IT'S A DIGIT SO READ A LINE NUMBER.
+*    IF NOT DIGIT THEN SCAN THIS CHAR.
+BIN090 JSR    CHRGOT   REGET CURRENT CHAR AND GO scan it
+       BRA    BIN050
+
+BIN100 LDX    TXTPTR   Remeber where tne number started.
+       PSHS   X
+       JSR    LINGET   Read tne number into LINNUM.
+       LDX    TXTPTR   Scan back until X points to the
+BIN110 LDA    ,-X      last digit of the line number.
+       JSR    ISDIGC   (Last CHRGET call in LINGET skipped
+       BCS    BIN110   trailing spaces, tabs, etc.)
+       LEAX   &1,X     X:=pointer to first char after last
+*    digit.
+       TFR    X,D      B:=length of line number.
+       SUBB   &1,S
+       SUBB   #&5      5 bytes are needed for the binary
+*    line number token.
+       BEQ    BIN120   Line number was exactly 5 long.
+       BLO    BIN115   Line number is less than 5, go
+*    move program up to make room.
+       LEAU   ,X       Line number is longer than 5.  (It
+*    must have leading zeroes and/or
+*    embedded spaces.)  Block transfer
+*    the program down to take up the
+*    extra space.  Set up the source
+*    pointer for DELDO.
+       NEGB            Set up the destination pointer.
+       LEAX   B,X
+       JSR    DELDO    Call the DELETE code to move the
+*    program down and update VARTAB.
+       BRA    BIN120   Go build the token.
+
+BIN115 STX    LOWTR    Block transfer program up.
+       LDX    VARTAB   Set up LOWTR, HIGHTR, and HIGHDS
+       STX    HIGHTR   for BLTU.
+       NEGB            (B was negative from SUBBIM 5.)
+       LEAX   B,X
+       STX    HIGHDS
+       STX    VARTAB   Set new VARTAB.
+       JSR    BLTU     Move it up.  (If an OMERR occurs
+*    the program is left in a totally
+*    useless state.)
+       LDX    LOWDS    Set TXTPTR to resume scan where
+       STX    TXTPTR   the first char moved up is now.
+
+BIN120 PULS  X         Get pointer to where to build the
+*    modified binary line number token.
+       LDA    #&1      FOR SETTING TYPE BYTE AND MODIFIERS.
+       STA    ,X       SET THE TOKEN TYPE.
+       STA    &2,X     ASSUME THE HIGH AND LOW BYTES ARE
+       STA    &4,X     NON-ZERO IN WHICH CASE THE MODIFIER
+*    BYTES MUST BE ONES.
+       LDB    LINNUM   IF THE HIGH ORDER BYTE IS ZERO THEN
+       BNE    BIN130   SET THE MODIFIED TO TWO AND THE
+       LDB    #&1      HIGH BYTE TO ONE.
+       INC    &2,X
+BIN130 STB    &1,X
+       LDB    LINNUM+&1 DO SAME THING FOR LOW BYTE.
+       BNE    BIN140
+       LDB    #&1
+       INC    &4,X
+BIN140 STB    &3,X
+       JSR    CHRGOT   SEE IF A COMMA FOLLOWS.
+       CMPA   #COMMA   IF SO LOOK FOR ANOTHER LINE NUMBER.
+       BEQ    BIN070
+       BRA    BIN090   NOPE, SCAN THIS CHAR.
+
+*
+* CONVERT BINARY LINE NUMBER AND UNDEFINED LINE REFERENCE TOKENS TO
+* ASCII LINE NUMBERS.  FOR UNDEFINED LINE REFERENCE TOKENS PRINT
+* AN ERROR MESSAGE.
+*
+
+ASCBIN LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
+       LEAX   -&1, X   Adjust for preinc.
+ASCBLN LEAX   &1,X     POINT TO THE START OF THE LINK.
+       LDD    &2,X     CURLIN:=LINE NUMBER SO IT CAN BE
+*    BE PRINTED BY "INPRT" IF WE SEE
+       STD    CURLIN   AN UNDEFINED LINE REFERENCE TOKEN.
+       JSR    CHKLNK   QUIT IF END OF PROGRAM.
+       LEAX   &3,X     SKIP OVER LINK AND LINE NUMBER.
+ASCBCH LEAX   &1,X     POINT TO NEXT BYTE OF LINE.
+ASCCHR LDA    ,X       PICK UP THE BYTE.
+       BEQ    ASCBLN   END OF LINE, DO NEXT LINE.
+       DECA            A BINARY LINE NUMBER TOKEN?
+       BEQ    ASCCNV   YES, CONVERT IT TO ASCII.
+       SUBA   #&2      NO, AN UNDEFINED LINE REFERENCE TOKEN?
+       BNE    ASCBCH   No, go scan the next char.
+
+       PSHS   X        Yes, save the pointer.
+       LDX    #UNDREF-&1 PRINT THE MESSAGE.
+       JSR    STROUT
+       LDX    ,S       Get the line number being referenced.
+       LDD    &1,X
+       JSR    LINPRT   PRINT IT.
+       JSR    INPRT    FOLLOW WITH WHERE IT OCCURRED.
+       JSR    CRDO     START A NEW LINE.
+       PULS   X        Get the pointer back.
+ASCCNV PSHS   X        Save the pointer.
+       LDD    &1,X     CONVERT THE LINE NUMBER TO A SINGLE
+       STD    FACMO    PRECISION NUMBER IN THE FAC.
+       JSR    CONS16
+       JSR    FOUT     CONVERT TO ASCII IN "FBUFFR".
+       PULS   U        U:=pointer to start of token.
+       LDB    #&5      COUNT HOW MANY CHARS WE TRANSFER.
+MOVASC LEAX   &1,X     Point to the next ASCII digit.  (First
+*    time through the loop this skips over
+*    the leading space put in by FOUT.)
+       LDA    ,X       Get the next ASCII digit.
+       BEQ    SQUISH   Zero marks end of line number.
+       DECB            NO, DECREMENT THE COUNT.
+       STA    ,U+      PUT ASCII DIGIT INTO PROGRAM.
+       BRA    MOVASC   SEE IF MORE TO MOVE.
+
+SQUISH LEAX   ,U       X:=pointer past ASCII line number.
+       TSTB            WAS THE ASCII 5 DIGITS LONG?
+       BEQ    ASCCHR   YES, IT FILLED THE SPACE FORMERLY
+*    USED BY THE TOKEN SO NO NEED TO
+*    TO BLOCK TRANSFER,  GO SCAN NEXT CHAR.
+       LEAY   ,U       Need to block transfer down since
+*    the line number didn't use the 5
+*    bytes the token was using.
+*    Remeber where to resume the scan.
+       LEAU   B,U      U:=source pointer.
+*    (X already contains the destination
+*    pointer since it points to the first
+*    byte following the ASCII line number.)
+       JSR    DELDO    Use the DELETE code to do the transfer
+*    and update VARTAB.
+       LEAX   ,Y       Get scan pointer back into X.
+       BRA    ASCCHR   SCAN NEXT CHAR.
+
+UNDREF FCC    /UL /    Undefined Line message.
+       FCB    &0
+
+*
+*           AFTER A PATCH OR TWO
+*  ENTRY POINT TABLE FOR MACHINE CODE ROUTINES
+*        OFFSET TO GIVE START AT $E000
+*
+
+       XDEF   PATCHM
+PATCHM SUBD   STREND
+PATCHV CLR    VALTYP
+       STD    FACMO    STORE UNSIGNED INTEGER
+       LDB    #144
+       JMP    CONS16   CONVERT IT TO FLOATING POINT
+
+       RMB    $27
+       XREF   POLCAT,CSRDON,BLKIN,JOYIN
+
+       XDEF   IOVECT
+IOVECT FDB    POLCAT   Poll keyboard.
+       FDB    CHROUT   Output char to screen or printer.
+       FDB    CSRDON   Turn on cassette and sync up for
+*    reading.
+       FDB    BLKIN    Read block from cassette.
+       FDB    BLKOUT   Output block to cassette.
+       FDB    JOYIN    Joystick input routine.
+       FDB    WRTLDR   Turn on cassette and write leader.
+
+       TTL    The HEX$ function.
+
+       XDEF   HEX$
+HEX$   JSR    GETADR   FACMO,FACLO:=16 bit unsigned integer.
+       LDX    #LOFBUF  Build the result in LOFBUF to force
+*    it to be copied into string space.
+       LDB    #&4      Set up and save the digit count.
+HEX$10 PSHS   B
+       CLRB            Clear the digit.
+       LDA    #&4      Set up the bits per digit count.
+HEX$20 ASL    FACLO    Shift the next digit into B.
+       ROL    FACMO
+       ROLB
+       DECA
+       BNE    HEX$20
+       TSTB            Is the digit a zero?
+       BNE    HEX$30   No, go put it away.
+       LDA    ,S       Yes, is it the last digit?
+       DECA
+       BEQ    HEX$30   Yes, force it out.
+       CMPX   #LOFBUF  No, is it a leading zero?
+       BEQ    HEX$50   Yes, throw it away.
+HEX$30 ADDB   #'0      Add in the ASCII offset.
+       CMPB   #'9      Is it a numeric digit?
+       BLS    HEX$40   Yes.
+       ADDB   #'A-'9-&1 No, make it an alpha digit.
+HEX$40 STB    ,X+      Put the digit in the buffer.
+       CLR    ,X       Mark the end.
+HEX$50 PULS   B        Get the digit count.
+       DECB            More digits to look at?
+       BNE    HEX$10   Yes, go do the next one.
+       LEAS   &2,S     No, get rid of the CHKNUM return.
+       LDX    #LOFBUF-&1 Go build a string result and
+       JMP    STRLTI   return.
+
+       END

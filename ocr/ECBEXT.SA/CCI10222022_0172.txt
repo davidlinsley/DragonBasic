@@ -1,71 +1,60 @@
-                                                        PAGE 02u EOBFXT                           .SA:1          EXTEND RENUM - Renumber a BASIC program
+PAGE  023  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 
-
-                                                        02077P         050A BD               0000              A GTLINE JSR                       LINSET              READ A LINE NUMBER. 
-                                                        02078P         050D 9E 2B                              A                   LDX            LINNUM              X:=THE LINE NUMBER READ.
-                                                        02079P         050F 39                                                     RTS
-                                                        02080
-                          H I                           02081P 0510 9E                       Di                A FNDFST LOX                       FSTNUM              GET A POINTER TO THE FIRST LINE
-                                                        02082                                                       •         TO BE RENUMBERED.
-                                                        02083P 0512 9F                       28                A FNDLNX STX                       LINNUM              FIND LINE WITH NUMBER [X].
-                                                        02084P 0514 7E                       0000              A                   JMP            FNOLIN                                                                                                                                                                                                     •
-                                                        02085
-                                                        02086                                                                      XDEF           RENUM
-                                                        02087P 0517 BD                       0000              A    RENUM JSR                     CLEARC              LIBERATE MEMORY USED BY VARIABLES
-                                                        02088                                                       •         AND STACK AND PROHIBIT CONTINUING.
-                                                        02089P 051A CC                       000A              A                   LDD            #&10                SET UP THE DEFAULT OF TEN FOR THE 
-                                                        02090P 051D DD                       D5                A                   STD            NEWNUM              FIRST NEA LINE NUMBER TO BE ASSIGNED. 
-                                                        02091P 051F DD                       CF                A                   STD            RENINC              THE DEFAULT INCREMENT IS ALSO TEN. 
-                                                        02092P 0521 5F                                                             CLRB                               THE DE7AULT IS TO RENUmBER THE WHOLE 
-                                                        02093P 0522 DO                       01                A                   STD            FSTNUM              PROGRAM SO SET FIRST OLD LINE NUMBER
-                                                        02094                                                       •          TO BE        RENUMBERED              TO ZERO.
-                                                        02095P 0524 90                       A5                A                   JSR            CHRGOT              RESET COND CODES.
-                                                        02096P 0526 24                       06          052E                      BCC            DFLTNN              NOT A DIGIT, USE DEFAULT NN.
-                                                        02097P 0528 8D                       E0          050A                      BSR            GTLINE              READ NN.
-                                                        02098P 052A 9F                       05                A                   STX            NEWNUM              OVERRIDE THE DEFAULT.
-                                                        02099P 0520 90                       125               A                   JSR            CHRGOT              SET TERMINATOR'S COND CODES.
-                                                        02100P 052E 27                       IB          054B       DFLTNN BED                    ENDPRM              END OF PARAMETERS, DEFAULT THE REST. 
-                                                        02101P 0530 BD                       0000              A                   JSR            CHKCOM              MUST BE COMMA AS PLACE HOLDER AND/OR
-                                                        02102                                                       •          SEPARATOR.
-                                                        02103P 0533 24                       06 053B                               BCC            DFLTMM              NOT DIGIT, USE DEFALTULT Mn. 
-                                                        02104P 0535 8D                       D3 050A                               BSR            GTLINE              READ MM.
-                                                        02105P 0537 9F                       Di                                    STX            FSTNUM              SAVE IT.
-                                                        02106P 0539 90                       A5                A                   JSR            CHRGOT              GET TERMINTOR'S COND CODES. 
-                                                        02107P 053B 27                       0E 054B                DFLTMM BED                    ENDPRM              NO MORE PARmS, DEFAULT II. 
-                                                        02108P 053D BD                       0000 A                                JSR            CHKCOM              MUST BE COMMA.
-                                                        02109P 0540 24                       06 0548                               BCC            DFLTII              NOT DIGIT, USE DEFAULT II. 
-                                                        02110P 0542 8D                       C6 050A                               BSR            BYLINE              READ AND SAVE II.
-                                                        02111P 0544 9F                       CF                                    STX            RENINC
-                                                        02112P 0546 27                       49          0591                      BED            RNFCER              GIVE "FUNCTION CALL" ERROR IF ZERO.
-                                                        02113P 0548 BD                       0000              A    DFLTII JSR                    TRMOHK              The statement must enC now.
-                                                        02114
-                                                        02115P 054B 80                       03          0510       ENDPRm BSR                    FNDFST              GET A POINTER TO THE FIRST LINE
-                                                        02116P 054D 9F                       D3                A                   STX            FSTPTR              TO BE RENUMBERED.
-                                                        02117P 054F 9E                       D5                A                   LDX            NEWNUM              GET A POINTER TO AN EXISTING PROGRAM
-                                                        02118P 0551 8D                       BF          0512                      BSR            FNDLNX              LINE WHOSE NUMBER IS GREATER THAN OR
-                                                        02119                                                       •          EQUAL TO THE FIRST NEW LINE NUMBER.
-                                                        02120P 0553 9C                       D3                A                   CMPX           FSTPTR              GIVE A "FUNCTION CALL" ERROR IF                                                                                                                                                    -    •
-                                                        02121                                                       •          THE USER IS ATTEmPTING TO RENUMBER
-                                                        02122P 0555 25                       3A          0591                      BLO            RNFCER              THE PROGRAM ON TOP OF ITSELF. THIS
-                                                        02123                                                       •          MEANS THA            NN IS LESS THAN                              EQUAL
-                                                        02124                                                       •          TO THE HIGHEST LINE NUMBER NOT BEING
-                                                        02125                                                       •          RENUMBERED.
-                                                        02126P 0537 8D                        1C         0575                      BSR            CHKNMS              GENERATE THE NEW LINE NUMBERS BUT DON'T                                                                                                                                                 0
-                                                        02127                                                       *          ACTUALLY PUT THEM INTO THE PROGRAM.
-                                                        02128                                                       *          THIS IS DONE JUST TO CHECK THAT A
-                                                        02129                                                       *          LINE NUMBER BIGGER THAN 63999 WON'T
-                                                        02130                                                                  BE GENERATED. 
-                                                        02131P 0559 BD                        05EB                                 JSR            BINASC              CONVERT LINE NUMBER REFERENCES FROM
-                                                        02132                                                       *          ASCII TO BINARY                    LINE NUMBER Ta,;:ENS. 
-                                                        02133P 0550 BD                        0000              A                  JSR            CHEADA              FIX UP THE LINKS. 
-1-44 (0)20 89 71 a                                       02134P 055-. 8D                      AF         0510                       BSR            FNDFST             THINGS HAVE BEEN MOVED AROUND SO GET
-
-         For Your Neare (L.                                                                                                                                                                                                                                                                                                                                   •
-
-
-
-
-
-
-                                              I '   I
-
+02077P 050A BD   0000    A GTLINE JSR    LINGET   READ A LINE NUMBER.
+02078P 050D 9E   2B      A        LDX    LINNUM   X:=THE LINE NUMBER READ.
+02079P 050F 39                    RTS
+02080
+02081P 0510 9E   D1      A FNDFST LDX    FSTNUM   GET A POINTER TO THE FIRST LINE
+02082                      *    TO BE RENUMBERED.
+02083P 0512 9F   2B      A FNDLNX STX    LINNUM   FIND LINE WITH NUMBER [X].
+02084P 0514 7E   0000    A        JMP    FNDLIN
+02085
+02086                             XDEF   RENUM
+02087P 0517 BD   0000    A RENUM  JSR    CLEARC   LIBERATE MEMORY USED BY VARIABLES
+02088                      *    AND STACK AND PROHIBIT CONTINUING.
+02089P 051A CC   000A    A        LDD    #&10     SET UP THE DEFAULT OF TEN FOR THE
+02090P 051D DD   D5      A        STD    NEWNUM   FIRST NEW LINE NUMBER TO BE ASSIGNED.
+02091P 051F DD   CF      A        STD    RENINC   THE DEFAULT INCREMENT IS ALSO TEN.
+02092P 0521 5F                    CLRB            THE DEFAULT IS TO RENUMBER THE WHOLE
+02093P 0522 DD   D1      A        STD    FSTNUM   PROGRAM SO SET FIRST OLD LINE NUMBER
+02094                      *    TO BE RENUMBERED TO ZERO.
+02095P 0524 9D   A5      A        JSR    CHRGOT   RESET COND CODES.
+02096P 0526 24   06   052E        BCC    DFLTNN   NOT A DIGIT, USE DEFAULT NN.
+02097P 0528 8D   E0   050A        BSR    GTLINE   READ NN.
+02098P 052A 9F   D5      A        STX    NEWNUM   OVERRIDE THE DEFAULT.
+02099P 052C 9D   A5      A        JSR    CHRGOT   SET TERMINATOR'S COND CODES.
+02100P 052E 27   1B   054B DFLTNN BEQ    ENDPRM   END OF PARAMETERS, DEFAULT THE REST.
+02101P 0530 BD   0000    A        JSR    CHKCOM   MUST BE COMMA AS PLACE HOLDER AND/OR
+02102                      *    SEPARATOR.
+02103P 0533 24   06   053B        BCC    DFLTMM   NOT DIGIT, USE DEFALTULT MM.
+02104P 0535 8D   D3   050A        BSR    GTLINE   READ MM.
+02105P 0537 9F   D1      A        STX    FSTNUM   SAVE IT.
+02106P 0539 9D   A5      A        JSR    CHRGOT   GET TERMINTOR'S COND CODES.
+02107P 053B 27   0E   054B DFLTMM BEQ    ENDPRM   NO MORE PARMS, DEFAULT II.
+02108P 053D BD   0000    A        JSR    CHKCOM   MUST BE COMMA.
+02109P 0540 24   06   0548        BCC    DFLTII   NOT DIGIT, USE DEFAULT II.
+02110P 0542 8D   C6   050A        BSR    GTLINE   READ AND SAVE II.
+02111P 0544 9F   CF      A        STX    RENINC
+02112P 0546 27   49   0591        BEQ    RNFCER   GIVE "FUNCTION CALL" ERROR IF ZERO.
+02113P 0548 BD   0000    A DFLTII JSR    TRMCHK   The statement must end now.
+02114
+02115P 054B 8D   C3   0510 ENDPRM BSR    FNDFST   GET A POINTER TO THE FIRST LINE
+02116P 054D 9F   D3      A        STX    FSTPTR   TO BE RENUMBERED.
+02117P 054F 9E   D5      A        LDX    NEWNUM   GET A POINTER TO AN EXISTING PROGRAM
+02118P 0551 8D   BF   0512        BSR    FNDLNX   LINE WHOSE NUMBER IS GREATER THAN OR
+02119                      *    EQUAL TO THE FIRST NEW LINE NUMBER.
+02120P 0553 9C   D3      A        CMPX   FSTPTR   GIVE A "FUNCTION CALL" ERROR IF
+02121                      *    THE USER IS ATTEMPTING TO RENUMBER
+02122P 0555 25   3A   0591        BLO    RNFCER   THE PROGRAM ON TOP OF ITSELF.  THIS
+02123                      *    MEANS THAT NN IS LESS THAN EQUAL
+02124                      *    TO THE HIGHEST LINE NUMBER NOT BEING
+02125                      *    RENUMBERED.
+02126P 0557 8D   1C   0575        BSR    CHKNMS   GENERATE THE NEW LINE NUMBERS BUT DON'T
+02127                      *    ACTUALLY PUT THEM INTO THE PROGRAM.
+02128                      *    THIS IS DONE JUST TO CHECK THAT A
+02129                      *    LINE NUMBER BIGGER THAN 63999 WON'T
+02130                      *    BE GENERATED.
+02131P 0559 BD   05EB    P        JSR    BINASC   CONVERT LINE NUMBER REFERENCES FROM
+02132                      *    ASCII TO BINARY LINE NUMBER TOKENS.
+02133P 055C BD   0000    A        JSR    CHEADA   FIX UP THE LINKS.
+02134P 055F 8D   AF   0510        BSR    FNDFST   THINGS HAVE BEEN MOVED AROUND SO GET

@@ -1,64 +1,60 @@
-                                                     PAGE             001          ECBCOM                .SAg0              EXTEND Extension ROM Direct Page RAM
+PAGE  001  ECBCOM  .SA:0  EXTEND Extension ROM Direct Page RAM
 
-
-                                                     00700                                                                                         OPT                L,LLF=120
-                                                     00701                                                                                         NAM                EXTEND                  -     Extended Features for TCC / MLC
-                                                     00702 
-                                                     00703                                                                     ********************************************************************** 
-                                                     00704 
-                                                     00705                                                                                   Copyright                   1982 by Microsoft Corporation,                                                      all         rights reserved
-                                                     00706
-                                                     00707                                                                     **********************************************************************
-                                                     00708
-                                                     00709                                                                                         TTL                External Declarations
-                                                     00710
-                                                     00711                                                                                         XREF               ASC2
-                                                     00712                                                                                         XREF               BASRST,BLKOUT,BLTU,BUF
-                                                     00713                                                                                         XREF               CASOFF,CHEAD,CHEADA,CHKCLS,CHKCOM,CHKNUM,CHKOPN,CHKSTR,CHROUT
-                                                     00714                                                                                         XREF               CIRCLE,CLEARC,CLOATK,COLORS,COMBYT,CONDCR,CONINT,COPLOPI
-                                                     00715                                                                                         XREF               CRDO,CSAVE,CSAVTK
-                                                     00716                                                                                         XREF               DATA,DCRNCH,DEVPRM,DLOAD,D0FDSP,DOSDSP,DRAW
-                                  40                 00717                                                                                         XREF               EDTENT,ELSETK,ENDCON,EOFFIN,EOFWRT,EQULTK
-                                                     00718                                                                                         XREF               ERPRNT,ERRID,ERROR,ERRUF,EVLADR
-                                                     00719                                                                                         XREF               FADD,FCERR,FDIV,FHALF,FINIT
-                                  C;x=               00720                                                                                         XREF               FINLOG,FINSAV,FMULT,FNDLIN,FNTK,FONE
-                                        I I r '      00721                                                                                         XREF               FOUT,FOUTOP,FPWRT,FREFAC,FRESTR,FRETMP,FRMEVL
-                                                     00722                                                                                         XREF               FRMNUM,FSUB,FUNDS1
-                                                     00723                                                                                         XREF               GET,GETADR,GETBYT,GETONM,GETFLN,GETSPA
-                                                     00724                                                                                         XREF               GIVABF,GOGONE,GONE3,GOPTNW,GOTK
-                                                     00725                                                                                         XREF               HKASON,HKCHRI,HKCHRO,HKOLS1,HKCRNC,HKERR,HKEVAL
-                                                     00726                                                                                         XREF               HKNWST,HKRENM,HKRUN
-                                                     00727                                                                                         XREF               INCHR,INIT,INLNDO,INPCOM,INPRT,INT,ISCNTC,ISDIGC,ISLETC
-                                                     00728                                                                                         XREF               LET,LINE,LINGET,LINPRT,LOADAD,LOFBUF
-                                  Cr'                00729                                                                                         XREF               MIDSTK,MINUTK,ML1632,MLOVEX,MOVAF,MOV1F,MOVFA1,MOVFM
-                                                     00730                                                                                         XREF               MOVINS,MOVMF,MULDIV
-                                                     00731                                                                                         XREF               NEGOP,NORMAL
-                                                     00732                                                                                         XREF               OPNICK,OPNCSO,OPNOCK,OUTOST,OUTSPC,OVERR
-                                                     007,Z                                                                                         XREF               PAINT,PARCHK,PCLEAR,PCLS,PCOPY,PIA0BC,PIA0BD,PIA1BO
-                                                     00734                                                                                         XREF               PINIT,PLAY,PLYCLK,PMODE
-                                                     00735                                                                                         XREF               POLY,POLYX,PPOINT,PRESET,PSET,PTRGET,PTRGT2,PUT
-                                                     00736                                                                                         XREF               READY,RUNC
-                                                     00737                                                                                         XREF               SAM,SAMALP,SCREEN,SCRTCH,SETONM,SIGN,SIN,SIN1,SNDOFF,SNERR
-                                                     00738                                                                                         XREF               SNGFLT,STRLTI,STRSPA,STRTAD,STKINI,STMDS1
-                                                     00739                                                                                         XREF               STRLT3,STROUT,STRPRT,STRTXT,STOB1,SUBTK,SYNCHR
-                                                     00740                                                                                         XREF               THENTK,TICKER,TOTK,TRMCHK
-                                  do                 00741                                                                                         XREF               ULERR,OSRTAB,USRTK
-                                                     00742                                                                                         XREF               VIRG!
-                                                     00743                                                                                         XREF               WRTLOR
-                                                     00744                                                                                         XREF               ZEROF1
-                                                     00745
-                                                     00746                                                                                         TTL                Miscellanous Routines
-                                                     00747
-                                                     00748
-                                                     00749                                                                     *     The RUN code comes here to set up the defaults for the PLAY
-                                                     00750                                                                     *     and DRAW code.                             The initialization code also comes here for
-                                                     00751                                                                  .  *     the same reason.
-                                                     00752
-                                                     00753
-                                                     00754                                                                                         XDEF               XRRUN
-                                                     00755P             0000          CC            B844                  A    XRRUN               LIDO               #$8844                  init the PLAY arguments.
-                                                     007562             0003          00            OF                    A                        STD                HIGHA                   Set volume to 15 decimal.
-+44 (0)20 E                                          00757P             0005          86            02                    A                        LOA                #&2                     Set tempo to 2.
-
-             For You Nt
-
+00700                             OPT    L,LLE=120
+00701                             NAM    EXTEND   - Extended Features for TCC / MLC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   ASC2
+00712                             XREF   BASRST,BLKOUT,BLTU,BUF
+00713                             XREF   CASOFF,CHEAD,CHEADA,CHKCLS,CHKCOM,CHKNUM,CHKOPN,CHKSTR,CHROUT
+00714                             XREF   CIRCLE,CLEARC,CLOATK,COLORS,COMBYT,CONDCR,CONINT,COPLOP
+00715                             XREF   CRDO,CSAVE,CSAVTK
+00716                             XREF   DATA,DCRNCH,DEVPRM,DLOAD,DOFDSP,DOSDSP,DRAW
+00717                             XREF   EDTENT,ELSETK,ENDCON,EOFFIN,EOFWRT,EQULTK
+00718                             XREF   ERPRNT,ERRID,ERROR,ERRUF,EVLADR
+00719                             XREF   FADD,FCERR,FDIV,FHALF,FINIT
+00720                             XREF   FINLOG,FINSAV,FMULT,FNDLIN,FNTK,FONE
+00721                             XREF   FOUT,FOUTCP,FPWRT,FREFAC,FRESTR,FRETMP,FRMEVL
+00722                             XREF   FRMNUM,FSUB,FUNDS1
+00723                             XREF   GET,GETADR,GETBYT,GETDNM,GETFLN,GETSPA
+00724                             XREF   GIVABF,GOGONE,GONE3,GOPTNW,GOTK
+00725                             XREF   HKASGN,HKCHRI,HKCHRO,HKCLS1,HKCRNC,HKERR,HKEVAL
+00726                             XREF   HKNWST,HKRENM,HKRUN
+00727                             XREF   INCHR,INIT,INLNDO,INPCOM,INPRT,INT,ISCNTC,ISDIGC,ISLETC
+00728                             XREF   LET,LINE,LINGET,LINPRT,LOADAD,LOFBUF
+00729                             XREF   MID$TK,MINUTK,ML1632,MLDVEX,MOVAF,MOV1F,MOVFA1,MOVFM
+00730                             XREF   MOVINS,MOVMF,MULDIV
+00731                             XREF   NEGOP,NORMAL
+00732                             XREF   OPNICK,OPNCSO,OPNOCK,OUTQST,OUTSPC,OVERR
+007,Z                             XREF   PAINT,PARCHK,PCLEAR,PCLS,PCOPY,PIA0BC,PIA0BD,PIA1BD
+00734                             XREF   PINIT,PLAY,PLYCLK,PMODE
+00735                             XREF   POLY,POLYX,PPOINT,PRESET,PSET,PTRGET,PTRGT2,PUT
+00736                             XREF   READY,RUNC
+00737                             XREF   SAM,SAMALP,SCREEN,SCRTCH,SETDNM,SIGN,SIN,SIN1,SNDOFF,SNERR
+00738                             XREF   SNGFLT,STRLTI,STRSPA,STRTAD,STKINI,STMDS1
+00739                             XREF   STRLT3,STROUT,STRPRT,STRTXT,STUB1,SUBTK,SYNCHR
+00740                             XREF   THENTK,TICKER,TOTK,TRMCHK
+00741                             XREF   ULERR,USRTAB,USRTK
+00742                             XREF   VIRQ
+00743                             XREF   WRTLDR
+00744                             XREF   ZEROF1
+00745
+00746                             TTL    Miscellanous Routines
+00747
+00748                      *
+00749                      * The RUN code comes here to set up the defaults for the PLAY
+00750                      * and DRAW code.  The initialization code also comes here for
+00751                      * the same reason.
+00752                      *
+00753
+00754                             XDEF   XRRUN
+00755P 0000 CC   B844    A XRRUN  LDD    #$B844   Init the PLAY arguments.
+00756P 0003 DD   DF      A        STD    HIGHA    Set volume to 15 decimal.
+00757P 0005 86   02      A        LDA    #&2      Set tempo to 2.
