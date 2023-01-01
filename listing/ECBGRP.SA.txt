@@ -58,3 +58,4 @@ PAGE  001  ECBCOM  .SA:0  TXRGRP Extension ROM Direct Page RAM
 00755                      *  2 128X192  BW  SCWID=16 ASPECT=2 MEM=3K
 00756                      *  3 128X192  C   SCWID=32 ASPECT=2 MEM=6K
 00757                      *  4 256X192  BW  SCWID=32 ASPECT=1 MEM=6K
+
