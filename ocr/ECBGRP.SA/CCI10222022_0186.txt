@@ -1,68 +1,60 @@
-                  PAGE   003  ECBORP   .SA:1   TXRGRP GRAPHICS  CODE PSE,PRESET,LINE,PCT,SET,PPOINT
+PAGE  003  ECBGRP  .SA:1  TXRGRP GRAPHICS CODE PSET,PRESET,LINE,PUT,GET,PPOINT
 
-
-                  008I6P  004A A6    C6       A        LDA     A , U     GET BIT MASK WITH 2 BITS FROM TABLE
-                  00817P  0040 35    C4       A        PULS    u,B,PC
-                  00818
-                  00819
-                  00820P  004E       80       A BITT81 FCB     8,128     BACKWARDS BECAUSE OF THE WAY
-                  00821P  004F       40       A        FCB     &64       GRAPHICS BITS ARE HANDLED
-                  00822P  0050       20       A        FCB     &32
-                  00823P  0051       10       A        FCB     &16
-                  00824P  0052       08       A        FCB     6,8
-                  00875P  0053       04       A        FOB     &4
-           (      00826P  0054       02       A        FCB     ev2
-                  00827P  0055       01       A        FOB     &a.
-                  00828
-                  00829P  0056       CO       A BITTB2 FOB     6,192     MASK FOR COLOR GRAPHICS CASE
-                  00830P  0057       30       A        FCB     &48       TWO   BITS PER PIXEL
-                  00831P  0058       OC       A        FCB     &12
-                  00832P  0059       03       A        FCB     &3
-                  00833
-                  00834                         *
-                  00835                         * THESE ARE THE RELATIVE POSITION ROUTINES THAT MOVE
-                  00836                         * UP ONE IN X  OR Y
-                  00837                         *
-                  00838P  005A D6    B9       A GINCY  LDB     SCWID
-                  00839P  0050 3A                      ABX
-                  00840P  005D 39                      RTS
-                  00841P  005E 44               GINXB  LSRA              SHIFT BIT MASK TO THE RIGHT
-                  00842P  005F 24    03   0064         BCC     GIXRTS    IF NO CARRY THATS ALL
-                  00843P  0061 46                      RORA              SET HIGH BIT IN   EAJ
-           Cr     00844P  0062 30    01       A        LEAX    &1,X      UPDATE DISPLAY ADDRESS
-                  00845P  0064 39               GIXRTS RTS                                                                                                           a
-                  00846P  0065 44               GINX0  LSRA              MOVE OVER 1 BIT
-                  00847P  0066 24    F6   005E         BCC     GINXB     JUST SHIFT ONE MORE IF NO CARRY
-                  00848P  0068 86    CO       A        LDA     #&192     SET UP FOR 2 LEFTMOST BITS
-                  00849P  006A 30    01       A        LEAX    &1,X      UPDATE DISPLAY ADDRESS
-                  00850P  006C 39                      RTS
-                  00851                                                                                                                                              a
-                  00852
-                  00853                         *
-                  00854                         * THIS ROUTINE  SCANS A POINT AT THE CURRENT TEXT POSITION INTO                                                      a
-                  00855                         * XSTORE AND YSTORE.   THE RANGE IS COMPRESSED TO Y=0 TO CYMAX-1                                                  xoUV
-                  00856                         * AND X=0 TO CXMAX-1
-                  00857                         *                                                                                                                    410
-                  00858                                XDEF    SCNPNT
-                  00859P  0060 BD    0000     A SCNPNT JSR     GETNUM    SET X INTO POKER AND Y INTO LED
-                  00860P  0070 108E  00BD     A        LDY     #XSTORE
-                  00861P  0074 01    CO       A SCNPN2 CMPB    #CYMAX    IS IT TOO BIG?
-                  00862P  0076 25    02   007A         BCS     SCNYNT
-                  00863P  0078 C6    BF       A        LOB     #CYMAX—&1 SET MAXIMUM VALUE                                                                           a
-                  00864P  007A 4F               SCNYNT CLRA              MAKE DOUBLE BYTE
-                  00865P  0078 ED    22       A        STD     &2,Y
-                  00866P  0070 DC    28       P        LDD     POKER     GET X VALUE
-                  00867P  007F 1083  0100     A        CMPD    #CXMAX    SEE IF TOO BIG
-                  00868P  0083 25    03   0088         BCS     SVXRTS
-                  00869P  0085 CC    (DOFF    A        LDD     #CXMAX—&1                                                                                             a
-                  00870P  0088 ED    A4       A SVXRTS STD     ,V
-                  00871P  008A 39                      RTS
-                  0087'7'                                                                                                                                            a
-+44 [0]2          00873                         *
-
-     For) 0                                                                                                                                                          0
-
-
-
-                                                                                                                                                                     a
-
+00816P 004A A6   C6      A        LDA    A,U      GET BIT MASK WITH 2 BITS FROM TABLE
+00817P 004C 35   C4      A        PULS   U,B,PC
+00818
+00819
+00820P 004E      80      A BITTB1 FCB    &128     BACKWARDS BECAUSE OF THE WAY
+00821P 004F      40      A        FCB    &64      GRAPHICS BITS ARE HANDLED
+00822P 0050      20      A        FCB    &32
+00823P 0051      10      A        FCB    &16
+00824P 0052      08      A        FCB    &8
+00875P 0053      04      A        FCB    &4
+00826P 0054      02      A        FCB    &2
+00827P 0055      01      A        FCB    &1
+00828
+00829P 0056      C0      A BITTB2 FCB    &192     MASK FOR COLOR GRAPHICS CASE
+00830P 0057      30      A        FCB    &48      TWO  BITS PER PIXEL
+00831P 0058      0C      A        FCB    &12
+00832P 0059      03      A        FCB    &3
+00833
+00834                      *
+00835                      * THESE ARE THE RELATIVE POSITION ROUTINES THAT MOVE
+00836                      * UP ONE IN X OR Y
+00837                      *
+00838P 005A D6   B9      A GINCY  LDB    SCWID
+00839P 005C 3A                    ABX
+00840P 005D 39                    RTS
+00841P 005E 44             GINXB  LSRA            SHIFT BIT MASK TO THE RIGHT
+00842P 005F 24   03   0064        BCC    GIXRTS   IF NO CARRY THATS ALL
+00843P 0061 46                    RORA            SET HIGH BIT IN [A]
+00844P 0062 30   01      A        LEAX   &1,X     UPDATE DISPLAY ADDRESS
+00845P 0064 39             GIXRTS RTS
+00846P 0065 44             GINXC  LSRA            MOVE OVER 1 BIT
+00847P 0066 24   F6   005E        BCC    GINXB    JUST SHIFT ONE MORE IF NO CARRY
+00848P 0068 86   C0      A        LDA    #&192    SET UP FOR 2 LEFTMOST BITS
+00849P 006A 30   01      A        LEAX   &1,X     UPDATE DISPLAY ADDRESS
+00850P 006C 39                    RTS
+00851
+00852
+00853                      *
+00854                      * THIS ROUTINE SCANS A POINT AT THE CURRENT TEXT POSITION INTO
+00855                      * XSTORE AND YSTORE. THE RANGE IS COMPRESSED TO Y=0 TO CYMAX-1
+00856                      * AND X=0 TO CXMAX-1
+00857                      *
+00858                             XDEF   SCNPNT
+00859P 006D BD   0000    A SCNPNT JSR    GETNUM   SET X INTO POKER AND Y INTO [B]
+00860P 0070 108E 00BD    A        LDY    #XSTORE
+00861P 0074 C1   C0      A SCNPN2 CMPB   #CYMAX   IS IT TOO BIG?
+00862P 0076 25   02   007A        BCS    SCNYNT
+00863P 0078 C6   BF      A        LDB    #CYMAX—&1 SET MAXIMUM VALUE
+00864P 007A 4F             SCNYNT CLRA            MAKE DOUBLE BYTE
+00865P 007B ED   22      A        STD    &2,Y
+00866P 007D DC   2B      A        LDD    POKER    GET X VALUE
+00867P 007F 1083 0100    A        CMPD   #CXMAX   SEE IF TOO BIG
+00868P 0083 25   03   0088        BCS    SVXRTS
+00869P 0085 CC   00FF    A        LDD    #CXMAX—&1
+00870P 0088 ED   A4      A SVXRTS STD    ,Y
+00871P 008A 39                    RTS
+00872
+00873                      *
