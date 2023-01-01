@@ -1552,3 +1552,61 @@ SQUISH LEAX   ,U       X:=pointer past ASCII line number.
 UNDREF FCC    /UL /    Undefined Line message.
        FCB    &0
 
+*
+*           AFTER A PATCH OR TWO
+*  ENTRY POINT TABLE FOR MACHINE CODE ROUTINES
+*        OFFSET TO GIVE START AT $E000
+*
+
+       XDEF   PATCHM
+PATCHM SUBD   STREND
+PATCHV CLR    VALTYP
+       STD    FACMO    STORE UNSIGNED INTEGER
+       LDB    #144
+       JMP    CONS16   CONVERT IT TO FLOATING POINT
+
+       RMB    $27
+       XREF   POLCAT,CSRDON,BLKIN,JOYIN
+
+       XDEF   IOVECT
+IOVECT FDB    POLCAT   Poll keyboard.
+       FDB    CHROUT   Output char to screen or printer.
+       FDB    CSRDON   Turn on cassette and sync up for
+*    reading.
+       FDB    BLKIN    Read block from cassette.
+       FDB    BLKOUT   Output block to cassette.
+       FDB    JOYIN    Joystick input routine.
+       FDB    WRTLDR   Turn on cassette and write leader.
+
+       TTL    The HEX$ function.
+
+       XDEF   HEX$
+HEX$   JSR    GETADR   FACMO,FACLO:=16 bit unsigned integer.
+       LDX    #LOFBUF  Build the result in LOFBUF to force
+*    it to be copied into string space.
+       LDB    #&4      Set up and save the digit count.
+HEX$10 PSHS   B
+       CLRB            Clear the digit.
+       LDA    #&4      Set up the bits per digit count.
+HEX$20 ASL    FACLO    Shift the next digit into B.
+       ROL    FACMO
+       ROLB
+       DECA
+       BNE    HEX$20
+       TSTB            Is the digit a zero?
+       BNE    HEX$30   No, go put it away.
+       LDA    ,S       Yes, is it the last digit?
+       DECA
+       BEQ    HEX$30   Yes, force it out.
+       CMPX   #LOFBUF  No, is it a leading zero?
+       BEQ    HEX$50   Yes, throw it away.
+HEX$30 ADDB   #'0      Add in the ASCII offset.
+       CMPB   #'9      Is it a numeric digit?
+       BLS    HEX$40   Yes.
+       ADDB   #'A-'9-&1 No, make it an alpha digit.
+HEX$40 STB    ,X+      Put the digit in the buffer.
+       CLR    ,X       Mark the end.
+HEX$50 PULS   B        Get the digit count.
+       DECB            More digits to look at?
+       BNE    HEX$10   Yes, go do the next one.
+       LEAS   &2,S     No, get rid of the CHKNUM return.
