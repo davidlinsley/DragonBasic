@@ -852,3 +852,63 @@ PAGE  014  ECBGRP  .SA:1  TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
 01521P 0488      10      A        FCB    &16
 01522P 0489      0C      A        FCB    &12
 
+PAGE  015  ECBGRP  .SA:1  TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
+
+01523P 048A      20      A        FCB    &32
+01524P 048B      18      A        FCB    &24
+01525P 048C      20      A        FCB    &32
+01526P 048D      18      A        FCB    &24
+01527P 048E DC   C5      A YDELTS LDD    Y2STOR   CALCULATE DELTA Y IN [D]
+01528P 0490 93   BF      A        SUBD   YSTORE
+01529P 0492 24   3B   04CF YDLCON BCC    YDLRTS
+01530P 0494 34   01      A        PSHS   CC       Save carry and zero flags.
+01531P 0496 BD   0B41    P        JSR    NEGD     Get a positive delta.
+01532P 0499 35   81      A        PULS   CC,PC    Restore carry and zero and return.
+01533
+01534P 049B DC   C3      A XDELTS LDD    X2STOR   CALCULATE DELTA X
+01535P 049D 93   BD      A        SUBD   XSTORE
+01536P 049F 20   F1   0492        BRA    YDLCON
+01537P                            XDEF   PCOPY
+01538P 04A1 8D   1A   04BD PCOPY  BSR    PCOPR    READ A PAGE NUMBER ARGUMENT AND
+01539P 04A3 34   06      A        PSHS   D        GET PAGE ADDRESS IN [D]
+01540P 04A5                       SYNCHK TOTK     Format is PCOPY <source> TO <dest>.
+01541P 04AA 8D   11   04BD        BSR    PCOPR    GET dest PAGE ARGUMENT
+01542P 04AC 35   10      A        PULS   X        GET source PAGE IN [X]
+01543P 04AE 1F   03      A        TFR    D,U      PUT dest PAGE IN [U]
+01544P 04B0 108E 0300    A        LDY    #&0768   NUMBER OF BYTES ON A PAGE IS 2*768
+01545P 04B4 EC   81      A PCOPLP LDD    ,X++     READ FROM SOURCE PAGE
+01546P 04B6 ED   C1      A        STD    ,U++     AND STORE WITHOUT MODIFYING
+01547P 04B8 31   3F      A        LEAY   -&1,Y
+01548P 04BA 26   F8   04B4        BNE    PCOPLP
+01549P 04BC 39                    RTS
+01550P 04BD BD   0000    A PCOPR  JSR    GETBYT   PAGE NUMBERS ARE 1-8
+01551P 04C0 5D                    TSTB            ZERO IS ILLEGAL
+01552P 04C1 27   0D   04D0        BEQ    GFCER
+01553P 04C3 5A                    DECB            MAP PAGE NUMBER TO 0 TO 7
+01554P 04C4 86   06      A        LDA    #&6      TRANSLATE TO MEMORY ADDRESS
+01555P 04C6 3D                    MUL             MAKE [B] NUMBER OF 256 BYTE PAGES
+01556P 04C7 DB   BC      A        ADDB   SCRBAS   ADD GRAPHICS MEMORY BASE ADDRESS
+01557P 04C9 D1   19      A        CMPB   TXTTAB   SHOULDN'T POINT INTO PROGRAM
+01558P 04CB 24   03   04D0        BHS    GFCER
+01559P 04CD lE   89      A        EXG    A,B      Turn it into a 16 bit address.
+01560P 04CF 39             YDLRTS RTS             (A was zero from MUL.)
+01561
+01562                             TTL    Graphics PUT and GET
+01563
+01564
+01565                      *
+01566                      * GET[@](X1,Y1)-(X2,Y2),ARRAY NAME[,G]
+01567                      * PUT[@](X1,Y1)-(X2,Y2),ARRAY NAME[ACTION=AND,OR,PSET,PRESET,NOT]
+01568                      *
+01569
+01570P 04D0 7E   0000    A GFCER  JMP    FCERR    FUNCTION CALL FROM SEVERAL SOURCES
+01571
+01572                             XDEF   GET
+01573P 04D3 5F             GET    CLRB            FLAG AS GET -- SHARE CODE WITH PUT
+01574P 04D4 20   02   04D8        BRA    GGETCN
+01575
+01576                             XDEF   PUT
+01577P 04D6 C6   01      A PUT    LDB    #&1      FLAG AS PUT NOT GET
+01578P 04D8 D7   D8      A GGETCN STB    GTPTFL   SAVE INDICATION OF WHICH IT IS
+01579P 04DA BD   0000    A        JSR    HKPTGT   ALLOW EXIT IN CASE GET/PUT USED OTHERPLACES
+01580                             XDEF   GGPRET

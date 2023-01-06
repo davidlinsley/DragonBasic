@@ -807,3 +807,61 @@ SCRTAB FCB    &16      MODE 0 HAS SCWID 16
        FCB    &12      AND DOUBLE THE MEMORY
        FCB    &16
        FCB    &12
+       FCB    &32
+       FCB    &24
+       FCB    &32
+       FCB    &24
+YDELTS LDD    Y2STOR   CALCULATE DELTA Y IN [D]
+       SUBD   YSTORE
+YDLCON BCC    YDLRTS
+       PSHS   CC       Save carry and zero flags.
+       JSR    NEGD     Get a positive delta.
+       PULS   CC,PC    Restore carry and zero and return.
+
+XDELTS LDD    X2STOR   CALCULATE DELTA X
+       SUBD   XSTORE
+       BRA    YDLCON
+       XDEF   PCOPY
+PCOPY  BSR    PCOPR    READ A PAGE NUMBER ARGUMENT AND
+       PSHS   D        GET PAGE ADDRESS IN [D]
+       SYNCHK TOTK     Format is PCOPY <source> TO <dest>.
+       BSR    PCOPR    GET dest PAGE ARGUMENT
+       PULS   X        GET source PAGE IN [X]
+       TFR    D,U      PUT dest PAGE IN [U]
+       LDY    #&0768   NUMBER OF BYTES ON A PAGE IS 2*768
+PCOPLP LDD    ,X++     READ FROM SOURCE PAGE
+       STD    ,U++     AND STORE WITHOUT MODIFYING
+       LEAY   -&1,Y
+       BNE    PCOPLP
+       RTS
+PCOPR  JSR    GETBYT   PAGE NUMBERS ARE 1-8
+       TSTB            ZERO IS ILLEGAL
+       BEQ    GFCER
+       DECB            MAP PAGE NUMBER TO 0 TO 7
+       LDA    #&6      TRANSLATE TO MEMORY ADDRESS
+       MUL             MAKE [B] NUMBER OF 256 BYTE PAGES
+       ADDB   SCRBAS   ADD GRAPHICS MEMORY BASE ADDRESS
+       CMPB   TXTTAB   SHOULDN'T POINT INTO PROGRAM
+       BHS    GFCER
+       EXG    A,B      Turn it into a 16 bit address.
+YDLRTS RTS             (A was zero from MUL.)
+
+       TTL    Graphics PUT and GET
+
+
+*
+* GET[@](X1,Y1)-(X2,Y2),ARRAY NAME[,G]
+* PUT[@](X1,Y1)-(X2,Y2),ARRAY NAME[ACTION=AND,OR,PSET,PRESET,NOT]
+*
+
+GFCER  JMP    FCERR    FUNCTION CALL FROM SEVERAL SOURCES
+
+       XDEF   GET
+GET    CLRB            FLAG AS GET -- SHARE CODE WITH PUT
+       BRA    GGETCN
+
+       XDEF   PUT
+PUT    LDB    #&1      FLAG AS PUT NOT GET
+GGETCN STB    GTPTFL   SAVE INDICATION OF WHICH IT IS
+       JSR    HKPTGT   ALLOW EXIT IN CASE GET/PUT USED OTHERPLACES
+       XDEF   GGPRET
