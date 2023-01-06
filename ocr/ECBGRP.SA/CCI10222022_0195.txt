@@ -1,109 +1,60 @@
-                                                                                                                                                                                                                                               •
+PAGE  012  ECBGRP  .SA:1  TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
 
-
-
-                                   PAGE 012 ECBGRP .SAg1 TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
-
-
-
-                                   01349P     0352    34 02                            PSHS       A
-
-                                   013502     0354    EA EO                            ORB                     OR IN OLD WITH NEW
-                                   0135IP     0356    F7     0000                      STB        PIA1BD       SET UP FOR GRAPHICS NOW
-                                   01352P     0359    96     RA                        LOA        SCBASE GET SCREEN BASE
-
-                                   01353P     035B    44                               LSRA                    AS A .5K COUNT
-
-                                   01354P     035C    BD 0360                          JSR        sETVAD AND SET UP AS A VIDEO ADDRESS
-
-                                   01355P     035F    96 66              A             LDA        SCMODE       GET SCREEN MODE AGAIN
-                                   01356P     0361    8B 03              A             ADDA       4&3          TO PROGRAM SAM CHIP
-                                   013572     0363    81     07          A             CMPA       4&7          ONLY CHANGE IS MAP 7 TO 6
-                                   013582     0365    26     01      0368              BNE        GSTVMD
-
-                                   01359P     0367    4A                               OECA
-
-                                   01360P     0368    8D 02 036C            GSTVMD BSR            SETVMD       SET VIDEO MODE
-
-                                   01361P     036A    35 96              A             PULS       D,X,PC
-
-                                   01362P     036C    C6 03              A  sETVMD LOB            #8,3         THREE BITS TO SET
-                                   01363P     036E    SE     EEC()       A             LDX        #SAM         START AT SAM BASE ADDRESS
-                                   013642     0371    46                    SETVLP RORA                        SET IF NEXT BIT IS HIGH OR LOW
-
-                                   01365P     0372    24 04 0378                       BCC        SETVZR       IF LOW STORE INTO LOW ADDRESS
-
-                                   01366P     0374    A7     01          A             STA        &1,X
-
-                                   01367P     0376    20     02      037A              BRA        SETVON 
-
-                         114       01368P     0378    A7 84              A  SETVZR STA            ,X
-                                   01369P     037A    30 02              A  SETVON LEAX           &2,X         MOVE UP TO SET NEXT BIT
-
-                                   013702     037C    5A                               DECB                    MORE BITS TO SET?
-
-                                   01371P     037D    26     F2      0371              BNE        SETVLP
-
-                                   0137)7.9   037F    39                               RTS
-
-                                   01373P     0380    C6 07              A  SETVAD LOB            #&7          SEVEN BITS TO SET IN VIDEO BASE
-
-                                   01374P     0382    SE FF06            A             LDX        4SAM+&6 STARTING PLACE IS 6 BYTES INTO SAM 
-
-                                   013752     0385    20     EA      0371              BRA        SETVLP                                                                                                                                       •
-                                   01376P     0387    66 0000            A  SETCSS LOA            PIA1BO       GET VIDEO STATUS
-
-                                   01377P     038A    84 F7              A             ANDA       #@377-@10 TURN OFF BIT 3
-
-                                   01378P     0380    9A     Ci          A             ORA        SCCSS        OR IN CURRENT CSS VALUE                                                                                                         •
-                                   013792     038E    B7 0000            A             STA        PIA1BD       SET NEW VALUE TO PIA
-
-                                   01380P     0391    39                    SETRTS RTS
-
-                                   01381                                                                                                                                                                                                       •
-
-                                   01382                                    *
-
-                                   01383                                       PMODE SCREEN MODE (0-4),PASE NUMBER (WHICH 1.5K BLOCK)
-
-                                   01384                                    *                                                                                                                                                                  •
-
-                                   01385                                               XDEF       PMODE
-
-                                   01386P     0392    81     20          A  PMODE CMPA #COMMA
-
-                                   01387P     0394    27     28      0301              BEQ        PMDPGS       IF NO MODE, READ NEW PAGE NUMBER                                                                                                40
-                                   01388P     0396    BD 0000            A             JSR        GETBYT       GET THE MODE                                                                                                                   u
-
-                                   01389P     0399    Cl     05          A             CMPB 4&5                MAX MODE IS 4
-
-                                   01390P     0396    24     41      03DE              BCC        FCGRP1
-
-                                   01391P     039D    96 BC              A             LOA        SCRBAS       REINIT SCBASE TO PAGE I
-
-                                   01392                                               XDEF       XRPMOD
-
-                                   01393P     039F    97 BA              A XRPMOD STA             SCBASE                                                                                                                                       40
-
-                                   01394P     03A1    58                               ASLB                    CONSTRUCT INDEX INTO SCREEN DATA TABLE 
-
-                                   013952     03A2    CE 0485                          LDU        4SCRTAB+&1 EACH ENTRY HAS 2 BYTES
-
-                                   013962     03A5    AB C5              A             ADDA       B,U          NUMBER OF MEMORY PAGES IS 42 
-
-                                   01397P     03A7    91     19          A             CMPA       TXTTAB       COMPARE WITH MAXIMUM
-                                   01398P     03A9    22 33          03DE              BHI        FOGRP1       NO MEMORY FOR THAT MODE 
-                                   01399P     03AB    97 87              A             STA        SCTOP        SET TOP ADDRESS OF SCREEN                                                                                                       40
-
-                                   01400A     03AD    33 5F                            LEAU                    GET FIRST BYTE IN TABLE
-                                   01401P     03AF    A6     05                        LDA        B,U          WHICH IS THE SCWID FOR THE MODE
-
-                                   01402P     03-01   97     69          A             STA        SCWID                                                                                                                                        •
-
-                                   014032     0383    54                               LSRB                    GET BACK MODE
-
-                                   01404P     0384    D7     P6          A             STB        SCMODE
-+44 (0)20 89                       014052     0386    4F                               rLRA                    DEFAULT BACKROUND AND FOREGROUND
-                                   01406P     0387    97     63          A             STA        BAKCLR COLORS
-       For Your NE            ') 
-
+01349P 0352 34   02      A        PSHS   A
+01350P 0354 EA   E0      A        ORB    ,S+      OR IN OLD WITH NEW
+01351P 0356 F7   0000    A        STB    PIA1BD   SET UP FOR GRAPHICS NOW
+01352P 0359 96   BA      A        LDA    SCBASE   GET SCREEN BASE
+01353P 035B 44                    LSRA            AS A .5K COUNT
+01354P 035C BD   0380    P        JSR    SETVAD   AND SET UP AS A VIDEO ADDRESS
+01355P 035F 96   B6      A        LDA    SCMODE   GET SCREEN MODE AGAIN
+01356P 0361 8B   03      A        ADDA   #&3      TO PROGRAM SAM CHIP
+01357P 0363 81   07      A        CMPA   #&7      ONLY CHANGE IS MAP 7 TO 6
+01358P 0365 26   01   0368        BNE    GSTVMD
+01359P 0367 4A                    DECA
+01360P 0368 8D   02   036C GSTVMD BSR    SETVMD   SET VIDEO MODE
+01361P 036A 35   96      A        PULS   D,X,PC
+01362P 036C C6   03      A SETVMD LDB    #&3      THREE BITS TO SET
+01363P 036E 8E   FFC0    A        LDX    #SAM     START AT SAM BASE ADDRESS
+01364P 0371 46             SETVLP RORA            SET IF NEXT BIT IS HIGH OR LOW
+01365P 0372 24   04   0378        BCC    SETVZR   IF LOW STORE INTO LOW ADDRESS
+01366P 0374 A7   01      A        STA    &1,X
+01367P 0376 20   02   037A        BRA    SETVON
+01368P 0378 A7   84      A SETVZR STA    ,X
+01369P 037A 30   02      A SETVON LEAX   &2,X     MOVE UP TO SET NEXT BIT
+01370P 037C 5A                    DECB            MORE BITS TO SET?
+01371P 037D 26   F2   0371        BNE    SETVLP
+01372P 037F 39                    RTS
+01373P 0380 C6   07      A SETVAD LDB    #&7      SEVEN BITS TO SET IN VIDEO BASE
+01374P 0382 8E   FFC6    A        LDX    #SAM+&6  STARTING PLACE IS 6 BYTES INTO SAM
+01375P 0385 20   EA   0371        BRA    SETVLP
+01376P 0387 B6   0000    A SETCSS LDA    PIA1BD   GET VIDEO STATUS
+01377P 038A 84   F7      A        ANDA   #@377-@10 TURN OFF BIT 3
+01378P 038C 9A   C1      A        ORA    SCCSS    OR IN CURRENT CSS VALUE
+01379P 038E B7   0000    A        STA    PIA1BD   SET NEW VALUE TO PIA
+01380P 0391 39             SETRTS RTS
+01381
+01382                      *
+01383                      * PMODE SCREEN MODE (0-4),PAGE NUMBER (WHICH 1.5K BLOCK)
+01384                      *
+01385                             XDEF   PMODE
+01386P 0392 81   2C      A PMODE  CMPA   #COMMA
+01387P 0394 27   2B   03C1        BEQ    PMDPGS   IF NO MODE, READ NEW PAGE NUMBER
+01388P 0396 BD   0000    A        JSR    GETBYT   GET THE MODE
+01389P 0399 C1   05      A        CMPB   #&5      MAX MODE IS 4
+01390P 039B 24   41   03DE        BCC    FCGRP1
+01391P 039D 96   BC      A        LDA    SCRBAS   REINIT SCBASE TO PAGE 1
+01392                             XDEF   XRPMOD
+01393P 039F 97   BA      A XRPMOD STA    SCBASE
+01394P 03A1 58                    ASLB            CONSTRUCT INDEX INTO SCREEN DATA TABLE
+01395P 03A2 CE   0485    P        LDU    #SCRTAB+&1 EACH ENTRY HAS 2 BYTES
+01396P 03A5 AB   C5      A        ADDA   B,U      NUMBER OF MEMORY PAGES IS #2
+01397P 03A7 91   19      A        CMPA   TXTTAB   COMPARE WITH MAXIMUM
+01398P 03A9 22   33   03DE        BHI    FCGRP1   NO MEMORY FOR THAT MODE
+01399P 03AB 97   B7      A        STA    SCTOP    SET TOP ADDRESS OF SCREEN
+01400P 03AD 33   5F      A        LEAU   -&1,U    GET FIRST BYTE IN TABLE
+01401P 03AF A6   C5      A        LDA    B,U      WHICH IS THE SCWID FOR THE MODE
+01402P 03B1 97   B9      A        STA    SCWID
+01403P 03B3 54                    LSRB            GET BACK MODE
+01404P 03B4 D7   B6      A        STB    SCMODE
+01405P 03B6 4F                    CLRA            DEFAULT BACKROUND AND FOREGROUND
+01406P 03B7 97   B3      A        STA    BAKCLR   COLORS
