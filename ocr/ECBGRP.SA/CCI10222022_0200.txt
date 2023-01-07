@@ -1,122 +1,60 @@
-                                                  PAGE                  017               ECBGRP                        .SA:1                    TXRGRP Graphics PUT and GET
+PAGE  017  ECBGRP  .SA:1  TXRGRP Graphics PUT and GET
 
-
-
-
-                                                  01639P                    053E              IP                 98                           A GNOTRB TFR                                              B,A                              MAKE 2 COPIES OF THE BIT MASK
-
-                                                  01640P                    0540              D4                 BE                           A                               ANDB                      XLOW                             AND FIRST COORDINATE
-
-                                                  01641P                    0542              D7                 BE                           A                               STB                       XLOW
-
-                                                  01642P                    0544              94                 C4                           A                               ANDA                      X2STOR+&1 AND SECOND COORDINATE
-
-                                                  01643P                    0546              97                 C4                           A                               STA                       X2STOR-1-8,1
-
-                                                  01644P                    0548              BD                 049B                         P GETCN2 JSR                                              XDELTS                           CALCULATE DELTA X IN CD3
-
-                                                  01645P                    054B              24                 04                0551                                       BCC                       STXDLT                           SKIP OVER IF XSTORE IS LOWER
-
-                                                  01646P                    054D              9E                 C3                           A                               LDX                       X2STOR                           FORCE XSTORE TO BE THE SMALLER
-
-                                                  01647P                    054F              9F                 BD                           A                               STX                       XSTORE
-
-                                                  01648P                    0551              DD                 C3                           A STXDLT STD                                              X2STOR                           USE X2STOR TO KEEP COUNT OF COLUMNS
-
-                                                  01649P                    0553              BD                 048E                         P                               JSR                       YDELTS                           CALCULATE DELTA Y IN ED3
-
-                                                  01650P                    0556              24                 04                0550                                       BCC                       STYDLT                           OK IF YSTORE IS ALREADY SMALLER
-
-                                                  01651P                    0558              9E                 C5                           A                               LDX                       Y2STOR                           MAKE SURE YSTORE IS SMALLER
-
-                                                  01652P                    055A              9F                 BF                           A                               STX                       YSTORE
-                          4110                    01653P                    0550              DD                 C5                           A STYDLT STD                                              Y2STOR                           USE Y2STOR FOR COUNT OF ROWS
-
-                                in!               01654P                    055E              96                 BE                           A                               LDA                       SCMODE                           WE HAVE TO DOUBLE THE X COUNT FOR COLOR
-
-                                                  01655P                    0560              46                                                                              RORA                                                       MODE SINCE THERE ARE 2 BITS PER PIXEL
-
-                                                  01656P                    0561              DC                 03                           A                               LDD                       X2STOR
-
-                                                  01657P                    0563              24                 04                0569                                       BCC                       GTPTBW
-
-                                                  01658P                    0565              D3                 03                           A                               ADDD                      X2STOR                           Double it and put                                                 it back.
-
-                                                  01659P                    0567              DD                 03                           A                               STD                       X2STOR
-
-                                                  01660P                    0569              BD                 0191                         P GTPTBW JSR                                              GSCAL2                           Scale the deltas according to the
-
-                                                  01661                                                                                                                current graphics mode.
-
-                                                  01662P                    0560              DC                 C3                           A                               LDD                       X2STOR                           Get X delta into D.
-
-                                                  01663P                    056E              9E                 05                           A                               LDX                       Y2STOR                           Make Y2STOR a count.
-
-                                                  01664P                    0570              30                 01                           A                               LEAX                      &1,X
-
-                                                  01665P                    0572              9F                 05                           A                               STX                       Y2STOR
-
-                                                  01666P                    0574              OD                 D4                           A                               TST                       GGRPFL                           SEE IF GRAPHICS OR NOT
-
-                                                  01667P                    0576              26                 58                05DO                                       BNE                       GRPGTP                           USE A VERY DIFFERENT LOOP FOR
-
-                                                  01668                                                                                                                ITERATING THROUGH GRAPHICS BITS
-
-                                                  01669P                    0576              44                                                                              LSRA                                                       Now divide by 8 for byte mode.
-
-                                                  01670P                    0579              56                                                                              RORB
-
-                                                  01671P                    057A              44                                                                              LSRA
-
-                                ||/               01672P                    057B              56                                                                              RORB
-
-
-                                                  01673P                    0570              44                                                                              LSRA
-
-                                                  01674P                    057D              56                                                                              RORB
-
-                                                  01675P                    057E              C3                 0001                         A                               ADDD                      #81                              MAKE IT A COUNT
-
-                                                  01676P                    0581              DD                 03                                                           STD                       X2STOR
-
-                                                  01677P                    0583              BD                 0009                                                         JSR                       GENADR                           EX3=VIDEO RAM ADDRESS TO START AT
-
-                                                  01678P                    0586              D6                 04                           A POOLLP LDB                                              X2STOR+&1 GET COLUMN COUNT IN [U]
-
-                                                  01679P                    0586              34                 10                           A                               PSHS                      X                                SAVE ADDRESS AT START OF COLUMN
-
-                          40                      01680                                                                                                                AND PUT COLUMN COUNTERON STACK
-
-                                                  01681P                    058A              OD                 D8                           A PROWL? TST                                              GTPTFL                           IS THIS GET OR PUT?
-
-  I H                                             01682P                    0580              27                 21                05AF                                       BEG!                      GROWSB                           HANDLE GET FOR ONE CHARACTER
-                          to                      01683P                    058E              8D                 11                05AI                                       BSR                       GARYSB                           INDEX NEXT BYTE IN ARRAY
-
-                                                  01684P                    0590              A6                 C4                           A                               LDA                       ,U                               GET THE BYTE OLT OF THE ARRAY
-"Progre 
-                                                  01685P                    0592              A7                 80                           A                               STA                                                        SAVE THE CHARACTER
-movern                    Or
-                                                  01686P                    0594              5A                                                     PRWINC DEOB                                                                         DECREMENT COLUMN COUNT
-family o 
-                                                  01667P                    0595              26                 F3                058A                                       BNF                       PROWLP                           ITERATE FOR THE ENTIRE ROW
-ffethlie
-                                                  01688P                    0597              65                 10                           A                               pULS                      X                                [X]=ADDRESS AT START OR ROW
-(;ompor 
-                                                  01689
-; dways
-                                                  016902                    0599              BD                 005A                         P.GSKPCH JSR                                              GINCY                            GO TO THE NEXT ROW
-(Jmoy
-I        I 1 10.                                  01691P                    0590              OA                 C6                           A GGSKPC DEC                                              Y2STOR4-&1 COUNT DOWN FOR EACH ROW
-  Cl;i!  IV        ;      40                      01692P                    059E                                 E6                0586                                       EINE                      POOLLA
-
-                                                  01693?                    05A0              39                                                     CPTRTS RTS
-
-                                                  C1694
-                          40                      016952                    05A1              DE                 CF                           A GARYSD LDU                                              ARYIDX                           INDEX INTO THE ARRAY
-
-                                                  01696P                    05A3              33                 41                           A                               LEAU                      &AI,U                            UPDATE INDEX
-
-
-
-                          to
-
+01639P 053E 1F   98      A GNOTRB TFR    B,A      MAKE 2 COPIES OF THE BIT MASK
+01640P 0540 D4   BE      A        ANDB   XLOW     AND FIRST COORDINATE
+01641P 0542 D7   BE      A        STB    XLOW
+01642P 0544 94   C4      A        ANDA   X2STOR+&1 AND SECOND COORDINATE
+01643P 0546 97   C4      A        STA    X2STOR+&1
+01644P 0548 BD   049B    P GETCN2 JSR    XDELTS   CALCULATE DELTA X IN [D]
+01645P 054B 24   04   0551        BCC    STXDLT   SKIP OVER IF XSTORE IS LOWER
+01646P 054D 9E   C3      A        LDX    X2STOR   FORCE XSTORE TO BE THE SMALLER
+01647P 054F 9F   BD      A        STX    XSTORE
+01648P 0551 DD   C3      A STXDLT STD    X2STOR   USE X2STOR TO KEEP COUNT OF COLUMNS
+01649P 0553 BD   048E    P        JSR    YDELTS   CALCULATE DELTA Y IN [D]
+01650P 0556 24   04   055C        BCC    STYDLT   OK IF YSTORE IS ALREADY SMALLER
+01651P 0558 9E   C5      A        LDX    Y2STOR   MAKE SURE YSTORE IS SMALLER
+01652P 055A 9F   BF      A        STX    YSTORE
+01653P 055C DD   C5      A STYDLT STD    Y2STOR   USE Y2STOR FOR COUNT OF ROWS
+01654P 055E 96   B6      A        LDA    SCMODE   WE HAVE TO DOUBLE THE X COUNT FOR COLOR
+01655P 0560 46                    RORA            MODE SINCE THERE ARE 2 BITS PER PIXEL
+01656P 0561 DC   C3      A        LDD    X2STOR
+01657P 0563 24   04   0569        BCC    GTPTBW
+01658P 0565 D3   C3      A        ADDD   X2STOR   Double it and put it back.
+01659P 0567 DD   C3      A        STD    X2STOR
+01660P 0569 BD   0191    P GTPTBW JSR    GSCAL2   Scale the deltas according to the
+01661                      *    current graphics mode.
+01662P 056C DC   C3      A        LDD    X2STOR   Get X delta into D.
+01663P 056E 9E   C5      A        LDX    Y2STOR   Make Y2STOR a count.
+01664P 0570 30   01      A        LEAX   &1,X
+01665P 0572 9F   C5      A        STX    Y2STOR
+01666P 0574 0D   D4      A        TST    GGRPFL   SEE IF GRAPHICS OR NOT
+01667P 0576 26   58   05D0        BNE    GRPGTP   USE A VERY DIFFERENT LOOP FOR
+01668                      *    ITERATING THROUGH GRAPHICS BITS
+01669P 0578 44                    LSRA            Now divide by 8 for byte mode.
+01670P 0579 56                    RORB
+01671P 057A 44                    LSRA
+01672P 057B 56                    RORB
+01673P 057C 44                    LSRA
+01674P 057D 56                    RORB
+01675P 057E C3   0001    A        ADDD   #&1      MAKE IT A COUNT
+01676P 0581 DD   C3      A        STD    X2STOR
+01677P 0583 BD   0009    P        JSR    GENADR   [X]=VIDEO RAM ADDRESS TO START AT
+01678P 0586 D6   C4      A PCOLLP LDB    X2STOR+&1 GET COLUMN COUNT IN [U]
+01679P 0588 34   10      A        PSHS   X        SAVE ADDRESS AT START OF COLUMN
+01680                      *    AND PUT COLUMN COUNTER ON STACK
+01681P 058A 0D   D8      A PROWLP TST    GTPTFL   IS THIS GET OR PUT?
+01682P 058C 27   21   05AF        BEQ    GROWSB   HANDLE GET FOR ONE CHARACTER
+01683P 058E 8D   11   05A1        BSR    GARYSB   INDEX NEXT BYTE IN ARRAY
+01684P 0590 A6   C4      A        LDA    ,U       GET THE BYTE OUT OF THE ARRAY
+01685P 0592 A7   80      A        STA    ,X+      SAVE THE CHARACTER
+01686P 0594 5A             PRWINC DECB            DECREMENT COLUMN COUNT
+01667P 0595 26   F3   058A        BNE    PROWLP   ITERATE FOR THE ENTIRE ROW
+01688P 0597 35   10      A        PULS   X        [X]=ADDRESS AT START OR ROW
+01689
+01690P 0599 BD   005A    P GSKPCH JSR    GINCY    GO TO THE NEXT ROW
+01691P 059C 0A   C6      A GGSKPC DEC    Y2STOR+&1 COUNT DOWN FOR EACH ROW
+01692P 059E 26   E6   0586        BNE    PCOLLP
+01693P 05A0 39             CPTRTS RTS
+01694
+01695P 05A1 DE   CF      A GARYSB LDU    ARYIDX   INDEX INTO THE ARRAY
+01696P 05A3 33   41      A        LEAU   &1,U     UPDATE INDEX
