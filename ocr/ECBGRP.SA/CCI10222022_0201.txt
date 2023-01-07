@@ -1,70 +1,60 @@
-                                                                                                                                                                                                                                                                                                                                                                                                                         •
+PAGE  018  ECBGRP  .SA:1  TXRGRP Graphics PUT and GET
 
-
-                                                                   PAGE           018         ECBGRP               .S A:1            TXRGRP Graphics PUT and GET
-
-
-                                                                   01697P .05A5 DF                            CF                                          STU               ARYIDX
-                                                                   01698P 05A7 1193                           D1                   A                      CMPU              ARYFIN                 ARE WE PAST THE ARRAY?
-                                                                   0:_699P 05AP 26                            F4           05A0                           ERNE              CPTRTS                                                                                                                                                                                                                                       EP
-                                                                   01700P 05AC 7E                             0000                 A G2FOER JMP                             FCERR
-                                                                   01701
-                                                                   01702P 05AF A6                             80                   A GROWSB LDA                             ,X+                    GET CHARACTERS AT CURRENT POSITION                                                                                                                                                                                    40
-                                                                   01703P 05B1 80                             EE           05A1                           BSR               GARYSB                 GET INDEX
-                                                                   01704P 05B3 A7                             C4                   A                      STA               7U                     STORE INTO THE ARRAY
-                                                                   01705P 05E15                               DD           0594                           BRA               PRWINC                 RETURN TO CHARACTER ITERATION                                                                                                                                                                                         •
-                                                                   01706
-                                                                   01707
-                                                                   01708                                                                *
-                                                                   01709                                                                     THE FOLLOWING CODE IS THE ITERATION LOOP FOR GRAPHICS GET AND PUT
-                                                                   01710                                                                     THE IDEA IS TO GO THROUGH A GRAPHICS AREA BIT BY BIT AND EITHER
-                                                                   01711                                                                     READ BITS FROM THE SCREEN INTO THE ARRAY OR READ BITS FROM THE
-                                                                   01712                                                                     ARRAY AND USE THE BIT ALONG WITH THE ACTION VERB TO AFFECT THE
-                                                                   01713                                                                     SCREEN BIT
-                                                                   01714                                                                *                                                                                                                                                                                                                                                                                •
-                                                                   01715
-                                                                   01716                                                                *
-                                                 •                 01717                                                                     THIS TABLE IS INDEXED WHEN THE VERB IS READ
-                                                                   01718                                                                     IT GIVES THE SCREEN ACTION FOR THE CASE WHEN THE ARRAY BIT IS                                                                                                                                                                                                         10b
-                                                                   01719                                                                     SET AND NOT SET
-                                                 •                 01720                                                                *
-                                                                   01721
-                                                                   01722P 05B7                                0612                      PUTTAB FDB                          ZERIT                  ZERO ON 0
-                                                                   01723P 05B9                                0619                                        FDB               SETIT                  SET ON 1 - IGNORE OLD VALUE OF BIT
-                                                                   01724P 05BB                                00                                          FOB               PSETTK                 PSET
-                                                                   01725P 05BC                                0619                                        FOB               SETIT                  OPPOSITE OF PSET,                             STILL IGNORE OLD BIT
-                                                                   01726P 05BE                                0612                                        FOB               ZERIT
-                                                                   01727P 0500                                00                                          FCB               PRESTK                 PRESET
-                                                                   01728P 0501                                062F                                        FOB               LVEIT                  ON ZERO WITH OR,                           LEAVE OLD VALUE
-                                                                   0729P 0503                                 0619                                        FOB               SETIT                  ON ONE WITH OT SETIT
-                                                                   01730P 0505                                00                   A                      FCB               ORTK                   OR
-                                                  '                0173IP 05CE                                OF;12                                       FOB               ZERIT                  ON ZERO WITH AND ZERO IT.
-                                                                   017322 0508                                062F                                        FDB               LVEIT                  ON ONE WITH AND LEAVE IT ALONE
-                                                                   01733P 05CA                                00                   A                      FOB               ANDTK                  AND
-                                                                   01734P 050B                                01F                                         FDB               COMIT                  COMPLEMENT IN BUTH CASES WIH NOT
-                                                                   01735P 05CD                                061F                                        FOB               COMIT
-                                                                   01736P 050F                                00                   A                      FCB               NOTTK
-                                                                   01737                                      0005                 A PUTCNT EQU                             (*-PUTTAB)/e,5
-                                                                   01738                                                                                                                                                                                                                                                                                                                                                 40
-                                                                   01739P 0500 C3                             0001                 A GRPGTP ADDD                            4441                   Turn D into the X count.
-                                                                   01740P 0503 DO                             C3                                          STD               X2STOR                 SAVE WHERE LOOP EXPECTS COUNT
-                                                                   01741P 0505 96                             08                   A                      LOA               GTPTFL                 IF IT IS GET WE CLEAR THE ARRAY FIRST
-  ression" - it's a word t                                         01742P 0507 26                             Oq           05E2                           BNE               PSKPCL                 IF IT IS PUT SKIP CLEARING
-  ment. The latest in Dan                                          01743P 0509 DE                             D1                   A                      LOU               ARYFIN                 GET END PLUS ONE
-y of power amplifiers is                                           01744P 05DB A7                             C2                   A GTLPCL STA.                            ,-U
-  e spent in the research                                          01745P 05DD 1193                                                A                      CMPU              ARYIDX                 GO BACK TO START MINUS ONE
-ponents that always rise                                           01746P 05E0 22                             F9           05DB                           BHI               G7LPCL
-ys respect the demands                                             01747P 05E2 Bp                             0009                      PSKPCL jSR                          GENADR                 GET X=ADDRESS AND B=BIT MASK OF START
-ey realism from the most                                           01748P 05E5 DE                             BE                   A                      LOB               SCMODE                 SEE IF COLOR OR BLACK AND WHITE
-ylost thunderous of cre                                            01749P 05E7 56                                                                         RORB                                     SET CARRY FOR COLOR
-iol allowed to affect the d                                        01750P 05E8 24                             02           05EC                           BCC               GCOLST                 NOTHING SPECIAL FOR BLACK AND WHITE
-                                                                   01751P 05EA 34                             AA                   A                      ANDA              1.01.12                ONLY ONE OF COLOR BITS SHOULD BE ON
-                                                                   01752P 05EC C6                             01                   A GCOLST LOB                                                    INITIALIZE BIT MASK IN ARRAY
-                                                                   01753P 05EE 1095                                                A                      LOY               ARYIDX                 CARRY ARRAY INDEX IN                                  EY:
-  absolute s                                                       01754P 05F1 34                             12                   A GCOLLP PSS                             X,A                    SAVE ROW START ADDRESS AND BIT MASK
-             11.     'I lt,t !,   (MP I, ;Al
-
-
-
-                                          lh
-
+01697P 05A5 DF   CF      A        STU    ARYIDX
+01698P 05A7 1193 D1      A        CMPU   ARYFIN   ARE WE PAST THE ARRAY?
+01699P 05AA 26   F4   05A0        BNE    CPTRTS
+01700P 05AC 7E   0000    A G2FCER JMP    FCERR
+01701
+01702P 05AF A6   80      A GROWSB LDA    ,X+      GET CHARACTERS AT CURRENT POSITION
+01703P 05B1 8D   EE   05A1        BSR    GARYSB   GET INDEX
+01704P 05B3 A7   C4      A        STA    ,U       STORE INTO THE ARRAY
+01705P 05B5 20   DD   0594        BRA    PRWINC   RETURN TO CHARACTER ITERATION
+01706
+01707
+01708                      *
+01709                      * THE FOLLOWING CODE IS THE ITERATION LOOP FOR GRAPHICS GET AND PUT
+01710                      * THE IDEA IS TO GO THROUGH A GRAPHICS AREA BIT BY BIT AND EITHER
+01711                      * READ BITS FROM THE SCREEN INTO THE ARRAY OR READ BITS FROM THE
+01712                      * ARRAY AND USE THE BIT ALONG WITH THE ACTION VERB TO AFFECT THE
+01713                      * SCREEN BIT
+01714                      *
+01715
+01716                      *
+01717                      * THIS TABLE IS INDEXED WHEN THE VERB IS READ
+01718                      * IT GIVES THE SCREEN ACTION FOR THE CASE WHEN THE ARRAY BIT IS
+01719                      * SET AND NOT SET
+01720                      *
+01721
+01722P 05B7      0612    P PUTTAB FDB    ZERIT    ZERO ON 0
+01723P 05B9      0619    P        FDB    SETIT    SET ON 1 - IGNORE OLD VALUE OF BIT
+01724P 05BB      00      A        FCB    PSETTK   PSET
+01725P 05BC      0619    P        FDB    SETIT    OPPOSITE OF PSET, STILL IGNORE OLD BIT
+01726P 05BE      0612    P        FDB    ZERIT
+01727P 05C0      00      A        FCB    PRESTK   PRESET
+01728P 05C1      062F    P        FDB    LVEIT    ON ZERO WITH OR, LEAVE OLD VALUE
+01729P 05C3      0619    P        FDB    SETIT    ON ONE WITH OT SETIT
+01730P 05C5      00      A        FCB    ORTK     OR
+01731P 05C6      0612    P        FDB    ZERIT    ON ZERO WITH AND ZERO IT
+01732P 05C8      062F    P        FDB    LVEIT    ON ONE WITH AND LEAVE IT ALONE
+01733P 05CA      00      A        FCB    ANDTK    AND
+01734P 05CB      061F    P        FDB    COMIT    COMPLEMENT IN BOTH CASES WIH NOT
+01735P 05CD      061F    P        FDB    COMIT
+01736P 05CF      00      A        FCB    NOTTK
+01737            0005    A PUTCNT EQU    (*-PUTTAB)/&5
+01738
+01739P 05D0 C3   0001    A GRPGTP ADDD   #&1      Turn D into the X count.
+01740P 05D3 DD   C3      A        STD    X2STOR   SAVE WHERE LOOP EXPECTS COUNT
+01741P 05D5 96   D8      A        LDA    GTPTFL   IF IT IS GET WE CLEAR THE ARRAY FIRST
+01742P 05D7 26   09   05E2        BNE    PSKPCL   IF IT IS PUT SKIP CLEARING
+01743P 05D9 DE   D1      A        LDU    ARYFIN   GET END PLUS ONE
+01744P 05DB A7   C2      A GTLPCL STA    ,-U
+01745P 05DD 1193 CF      A        CMPU   ARYIDX   GO BACK TO START MINUS ONE
+01746P 05E0 22   F9   05DB        BHI    GTLPCL
+01747P 05E2 BD   0009    P PSKPCL JSR    GENADR   GET X=ADDRESS AND B=BIT MASK OF START
+01748P 05E5 D6   B6      A        LDB    SCMODE   SEE IF COLOR OR BLACK AND WHITE
+01749P 05E7 56                    RORB            SET CARRY FOR COLOR
+01750P 05E8 24   02   05EC        BCC    GCOLST   NOTHING SPECIAL FOR BLACK AND WHITE
+01751P 05EA 84   AA      A        ANDA   #@252    ONLY ONE OF COLOR BITS SHOULD BE ON
+01752P 05EC C6   01      A GCOLST LDB    #&1      INITIALIZE BIT MASK IN ARRAY
+01753P 05EE 109E CF      A        LDY    ARYIDX   CARRY ARRAY INDEX IN [Y]
+01754P 05F1 34   12      A GCOLLP PSHS   X,A      SAVE ROW START ADDRESS AND BIT MASK
