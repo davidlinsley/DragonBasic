@@ -1401,3 +1401,64 @@ PAGE  023  ECBGRP  .SA:1  TXRGRP PAINT CODE
 02043                      * Left Angle Bracket (DIVIDE CURRENT VALUE BY 2)
 02044                      * =VAR NAME; (USE VARIABLE VALUE)
 
+PAGE  024  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
+
+02045                      * NUMERIC CONSTANT (SET TO CONSTANT VALUE)
+02046                      *
+02047                             XDEF   PLAY
+02048P 07A0 9E   8A      A PLAY   LDX    DBLZER   MAKE DUMMY ENTRY
+02049P 07A2 C6   01      A        LDB    #&1      (Must have nonzero length so
+02050                      *    the zero pointer will be detected
+02051                      *    at PLYSET.)
+02052P 07A4 34   14      A        PSHS   B,X      SO EXECUTE WILL STOP ITERATION
+02053P 07A6 BD   0000    A        JSR    FRMEVL   EVALUATE THE STRING ARG
+02054P 07A9 5F                    CLRB            Select D/A sound.
+02055P 07AA BD   0000    A        JSR    SETSEL
+02056P 07AD BD   0000    A        JSR    SNDON    Turn on the TV sound.
+02057P 07B0 BD   0000    A PLYSC4 JSR    FRESTR   FREE UP THE STRING AND SET [B] & [X]
+02058P 07B3 20   02   07B7        BRA    PLYSET
+02059P 07B5 35   14      A PLYCON PULS   B,X      GO BACK UP ONE LEVEL OF EXECUTE
+02060P 07B7 D7   D8      A PLYSET STB    PSTLEN   STORE THE LENGTH
+02061P 07B9 27   FA   07B5        BEQ    PLYCON   Null string, don't allow test for
+02062                      *    zero pointer since if the execute
+02063                      *    string was undefined its pointer
+02064                      *    could be zero.
+02065P 07BB 9F   D9      A        STX    PSTPTR   STORE THE LOCATION
+02066P 07BD 1027 F83F    A        LBEQ   SNDOFF   All done, turn off the TV sound.
+02067
+02068P 07C1 0D   D8      A PLYSCN TST    PSTLEN   AT THE END OF THIS STRING?
+02069P 07C3 27   F0   07B5        BEQ    PLYCON   SEE IF NESTED IN EXECUTE
+02070P 07C5 BD   0916    P        JSR    FETCHR   GET THE NEXT CHARACTER
+02071P 07C8 81   3B      A        CMPA   #SEMCOL  IGNORE SEMICOLONS
+02072P 07CA 27   F5   07C1        BECI   PLYSCN
+02073P 07CC 81   27      A        CMPA   #''      IGNORE SINGLE QUOTE
+02074P 07CE 27   F1   07C1        BEQ    PLYSCN
+02075P 07D0 81   58      A        CMPA   #`X      IS IT EXECUTE?
+02076P 07D2 1027 01B2 0988        LBEQ   PXCUTR   GO SCAN NAME AND START SUBSTRING
+02077P 07D6 8D   02   07DA        BSR    PLYDOH   Do command and return to PLYSCN.
+02078P 07D8 20   E7   07C1        BRA    PLYSCN
+02079
+02080P 07DA 81   4F      A PLYDOH CMPA   #'O      Select octave?
+02081P 07DC 26   0D   07EB        BNE    NTMUSO   No.
+02082P 07DE D6   DE      A        LDB    OCTAVE   Yes, evaluate the argument.
+02083P 07E0 5C                    INCB
+02084P 07E1 8D   5B   083E        BSR    GPARG
+02085P 07E3 5A                    DECB            Must be between 1 and 5.
+02086P 07E4 C1   04      A        CMPB   #&4
+02087P 07E6 22   63   084B        BHI    BADPLY
+02088P 07E8 D7   DE      A        STB    OCTAVE
+02089P 07EA 39                    RTS
+02090
+02091P 07EB 81   56      A NTMUSO CMPA   #'V      Select volume?
+02092P 07ED 26   1A   0809        BNE    NTMUSV   No.
+02093P 07EF D6   DF      A        LDB    HIGHA    Yes, evaluate the specified volume.
+02094P 07F1 54                    LSRB
+02095P 07F2 54                    LSRB
+02096P 07F3 C0   1F      A        SUBB   #&31
+02097P 07F5 8D   47   083E        BSR    GPARG
+02098P 07F7 C1   1F      A        CMPB   #&31     Check the range 0 to 31.
+0209SP 07F9 22   50   084B        BHS    BADPLY
+021000 07FB 58                    ASLB
+02101P 07FC 58                    ASLB
+02102P 07FD 34   04      A        PSHS   B
+

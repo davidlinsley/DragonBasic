@@ -1329,3 +1329,61 @@ TSTBRD JSR    [PNTADR] GET ADDRESS OF THIS POINT
 * Right Angle Bracket (MULTIPLY CURRENT VALUE BY 2)
 * Left Angle Bracket (DIVIDE CURRENT VALUE BY 2)
 * =VAR NAME; (USE VARIABLE VALUE)
+* NUMERIC CONSTANT (SET TO CONSTANT VALUE)
+*
+       XDEF   PLAY
+PLAY   LDX    DBLZER   MAKE DUMMY ENTRY
+       LDB    #&1      (Must have nonzero length so
+*    the zero pointer will be detected
+*    at PLYSET.)
+       PSHS   B,X      SO EXECUTE WILL STOP ITERATION
+       JSR    FRMEVL   EVALUATE THE STRING ARG
+       CLRB            Select D/A sound.
+       JSR    SETSEL
+       JSR    SNDON    Turn on the TV sound.
+PLYSC4 JSR    FRESTR   FREE UP THE STRING AND SET [B] & [X]
+       BRA    PLYSET
+PLYCON PULS   B,X      GO BACK UP ONE LEVEL OF EXECUTE
+PLYSET STB    PSTLEN   STORE THE LENGTH
+       BEQ    PLYCON   Null string, don't allow test for
+*    zero pointer since if the execute
+*    string was undefined its pointer
+*    could be zero.
+       STX    PSTPTR   STORE THE LOCATION
+       LBEQ   SNDOFF   All done, turn off the TV sound.
+
+PLYSCN TST    PSTLEN   AT THE END OF THIS STRING?
+       BEQ    PLYCON   SEE IF NESTED IN EXECUTE
+       JSR    FETCHR   GET THE NEXT CHARACTER
+       CMPA   #SEMCOL  IGNORE SEMICOLONS
+       BECI   PLYSCN
+       CMPA   #''      IGNORE SINGLE QUOTE
+       BEQ    PLYSCN
+       CMPA   #`X      IS IT EXECUTE?
+       LBEQ   PXCUTR   GO SCAN NAME AND START SUBSTRING
+       BSR    PLYDOH   Do command and return to PLYSCN.
+       BRA    PLYSCN
+
+PLYDOH CMPA   #'O      Select octave?
+       BNE    NTMUSO   No.
+       LDB    OCTAVE   Yes, evaluate the argument.
+       INCB
+       BSR    GPARG
+       DECB            Must be between 1 and 5.
+       CMPB   #&4
+       BHI    BADPLY
+       STB    OCTAVE
+       RTS
+
+NTMUSO CMPA   #'V      Select volume?
+       BNE    NTMUSV   No.
+       LDB    HIGHA    Yes, evaluate the specified volume.
+       LSRB
+       LSRB
+       SUBB   #&31
+       BSR    GPARG
+       CMPB   #&31     Check the range 0 to 31.
+       BHS    BADPLY
+       ASLB
+       ASLB
+       PSHS   B
