@@ -1387,3 +1387,61 @@ NTMUSO CMPA   #'V      Select volume?
        ASLB
        ASLB
        PSHS   B
+       LDD     #(&124!+&2)*&256+&124!+PIABIT
+       ADDA   ,S       Set high amplitude and low amplitude.
+       SUBB   ,S+
+       STD    HIGHA    Store high and low amplitudes.
+       RTS
+
+NTMUSV CMPA   #'L      Select length of note?
+       BNE    NTMUSL   No.
+       LDB    LNOTE
+       BSR    GPARG
+       TSTB            Must  be 1 to 255.
+       BEQ    BADPLY
+       STB    LNOTE
+       CLR    DOTFLG   Assume not dotted note.
+MORDOT BSR    LOOKDT   Scan any dots there are, incrementing
+       BCC    MORDOT   DOTFLG for each dot seen.
+       RTS
+
+LOOKDT TST    PSTLEN   Anything left?
+       BEQ    NOTDOT   No, there can't be a dot.
+       JSR    FETCHR   Yes, look ahead to see if dot.
+       CMPA   #'.
+       BEQ    ISDOT    It is a dot.
+       JSR    FETBAK   Not a dot, move pointer back.
+NOTDOT COMA            Set carry to indicate not a dot.
+       RTS
+
+ISDOT  INC    DOTFLG   Increment the count of dots and
+       RTS             return with carry clear from CMPAIM
+*    "." to indicate a dot was seen.
+
+NTMUSL CMPA   #'T      Select tempo?
+       BNE    NTMUST   No.
+       LDB    TEMPO
+       BSR    GPARG
+       TSTB            Must be 0 to 255.
+       BEQ    BADPLY
+       STB    TEMPO
+       RTS
+
+GPARG  JMP    PLYARG
+
+NTMUST CMPA   #'P      Pause?
+       BNE    NTMUSP   No.
+       JSR    FTCHVL   Yes, skip over the and evaluate
+*    the pause argument.
+       TSTB            Disallow 0.
+       BNE    OKPAWZ
+BADPLY JMP    FCERR
+OKPAWZ LDA    DOTFLG   Save the dotted note flag and
+       LDX    HIGHA    volume setting.
+       PSHS   X,A
+       LDA    #&124!+PIABIT Select zero volume.
+       STA    HIGHA
+       STA    LOWA
+       CLR    DOTFLG
+       BSR    GOPAWZ   Do pause and return to restore
+       PULS   A,X      the settings.

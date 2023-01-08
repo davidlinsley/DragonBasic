@@ -1462,3 +1462,64 @@ PAGE  024  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
 02101P 07FC 58                    ASLB
 02102P 07FD 34   04      A        PSHS   B
 
+PAGE  025  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
+
+02103P 07FF CC   7E7C    A        LDD     #(&124!+&2)*&256+&124!+PIABIT
+02104P 0802 AB   E4      A        ADDA   ,S       Set high amplitude and low amplitude.
+02105P 0804 E0   E0      A        SUBB   ,S+
+02106P 0806 DD   DF      A        STD    HIGHA    Store high and low amplitudes.
+02107P 0808 39                    RTS
+02108
+02109P 0809 81   4C      A NTMUSV CMPA   #'L      Select length of note?
+02110P 080B 26   23   0830        BNE    NTMUSL   No.
+02111P 080D D6   E1      A        LDB    LNOTE
+02112P 080F 8D   2D   083E        BSR    GPARG
+02113P 0811 5D                    TSTB            Must  be 1 to 255.
+02114P 0812 27   37   084B        BEQ    BADPLY
+02115P 0814 D7   E1      A        STB    LNOTE
+02116P 0816 0F   E5      A        CLR    DOTFLG   Assume not dotted note.
+02117P 0818 8D   03   081D MORDOT BSR    LOOKDT   Scan any dots there are, incrementing
+02116P 081A 24   FC   0818        BCC    MORDOT   DOTFLG for each dot seen.
+02119P 081C 39                    RTS
+02120
+02121P 081D 0D   D8      A LOOKDT TST    PSTLEN   Anything left?
+02122P 081F 27   0A   082B        BEQ    NOTDOT   No, there can't be a dot.
+02123P 0821 BD   0916    P        JSR    FETCHR   Yes, look ahead to see if dot.
+02124P 0824 81   2E      A        CMPA   #'.
+02125P 0826 27   05   082D        BEQ    ISDOT    It is a dot.
+02126P 0828 BD   0960    P        JSR    FETBAK   Not a dot, move pointer back.
+02127P 082B 43             NOTDOT COMA            Set carry to indicate not a dot.
+02128P 082C 39                    RTS
+02129
+02130P 082D 0C   E5      A ISDOT  INC    DOTFLG   Increment the count of dots and
+02131P 082F 39                    RTS             return with carry clear from CMPAIM
+02132                      *    "." to indicate a dot was seen.
+02133
+02134P 0830 81   54      A NTMUSL CMPA   #'T      Select tempo?
+02135P 0832 26   0D   0841        BNE    NTMUST   No.
+0213EP 0834 D6   E2      A        LDB    TEMPO
+02137P 0836 8D   06   083E        BSR    GPARG
+02138P 0838 5D                    TSTB            Must be 0 to 255.
+02139P 0839 27   10   084B        BEQ    BADPLY
+02140P 083B D7   E2      A        STB    TEMPO
+02141P 083D 39                    RTS
+02142
+02143P 083E 7E   092A    P GPARG  JMP    PLYARG
+02144
+02145P 0841 81   50      A NTMUST CMPA   #'P      Pause?
+02146P 0843 26   24   0869        BNE    NTMUSP   No.
+02147P 0845 BD   0A49    P        JSR    FTCHVL   Yes, skip over the and evaluate
+02148                      *    the pause argument.
+02149P 0848 5D                    TSTB            Disallow 0.
+02150P 0849 26   03   084E        BNE    OKPAWZ
+02151P 084B 7E   0000    A BADPLY JMP    FCERR
+02152P 084E 96   E5      A OKPAWZ LDA    DOTFLG   Save the dotted note flag and
+02153P 0850 9E   DF      A        LDX    HIGHA    volume setting.
+02154P 0852 34   12      A        PSHS   X,A
+02155P 0854 86   7C      A        LDA    #&124!+PIABIT Select zero volume.
+02156P 0856 97   DF      A        STA    HIGHA
+02157P 0858 97   E0      A        STA    LOWA
+02158P 085A 0F   E5      A        CLR    DOTFLG
+02159P 085C 8D   07   0865        BSR    GOPAWZ   Do pause and return to restore
+02160P 085E 35   12      A        PULS   A,X      the settings.
+
