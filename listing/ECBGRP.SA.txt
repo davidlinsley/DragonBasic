@@ -1523,3 +1523,64 @@ PAGE  025  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
 02159P 085C 8D   07   0865        BSR    GOPAWZ   Do pause and return to restore
 02160P 085E 35   12      A        PULS   A,X      the settings.
 
+PAGE  026  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
+
+02161P 0860 97   E5      A        STA    DOTFLG
+02162P 0862 9F   DF      A        STX    HIGHA
+02163P 0864 39                    RTS
+02164
+02165P 0865 6F   E2      A GOPAWZ CLR    ,-S      Put on a zero to play a C.  This
+02166P 0867 20   40   08A9        BRA    DOPAWZ   value is irrelevant since the volume
+02167                      *    is zero.
+02166
+02169
+02170P 0869 81   45      A NTMUSP CMPA   #'N      Note?
+02171P 086B 26   03   0870        BNE    IMPNOT   No, must be implied note.
+02172P 086D BD   0916    P        JSR    FETCHR   Yes, skip the N.
+02173P 0870 81   41      A IMPNOT CMPA   #'A      Is it a note letter?
+02174P 0872 25   04   0878        BLO    NOTNLT
+02175P 0874 81   47      A        CMPA   #'G
+02176P 0876 23   05   087D        BLS    LETNOT   Yes, go handle note letter.
+02177P 0878 BD   093C    P NOTNLT JSR    PLYVAL   No, must be a numeric note spec.
+02178P 087B 20   23   08A0        BRA    PLYB     Go play the note in B.
+02179
+02160P 087D 80   41      A LETNOT SUBA   #'A      Get number from 0 to 7.
+02181P 087F 8E   09D9    P        LDX    #NOTETB  Map it so C=1, B=7.
+02182P 0882 E6   86      A        LDB    A,X
+02183P 0884 0D   D8      A        TST    PSTLEN   Anything left in the play string?
+02184P 0886 27   18   08A0        BEQ    PLYB     No, so don't look for sharp or flat.
+02185P 0888 BD   0916    P        JSR    FETCHR   Look for sharp of flat.
+02186P 088B 81   23      A        CMPA   #'#
+02187P 088D 27   04   0893        BEQ    ISSHRP
+02188P 088F 81   2B      A        CMPA   #'+      Plus is same as sharp sign.
+02189P 0891 26   03   0896        BNE    NTSHRP
+02190P 0893 5C             ISSHRP INCB            Sharp so increment note.
+02191P 0894 20   0A   08A0        BRA    PLYB     Go play it.
+02192
+02193P 0896 81   2D      A NTSHRP CMPA   #'-      Flat?
+02194P 0898 26   03   089D        BNE    NTFLAT   No.
+02155P 089A 5A                    DECB            Yes, decrement the note.
+0298P  089B 20   03   08A0        BRA    PLYB
+02197
+02198P 089D BD   0960    P NTFLAT JSR    FETBAK   Not sharp or flat, back up pointer.
+02199P 08A0 5A             PLYB   DECB            Make note 0 through 11.
+02200P 08A1 C1   0B      A        CMPB   #&11
+02201P 08A3 22   A6   084B        BHI    BADPLY
+02202P 08A5 34   04      A        PSHS   B        Save the note.
+02203P 08A7 D6   E1      A        LDB    LNOTE    B:=note length.
+02204P 08A9 96   E2      A DOPAWZ LDA    TEMPO    A:=tempo.
+02205P 08AB 3D                    MUL             Calculate number to subtract to
+02206P 08AC DD   D5      A        STD    DURSUB   determine how long to hold the note.
+02207P 08AE 33   61      A        LEAU   &1,S     Make U point to the return address
+02208                      *    so the interrupt routine can clean
+02209                      *    up the stack.
+02210P 08B0 96   DE      A        LDA    OCTAVE   A:=octave.
+02211P 08B2 81   01      A        CMPA   #&1      In the first two octaves?
+02212P 08B4 22   2C   08E2        BHI    HIOCT    No, it's in one of the high 3.
+02213P 08B6 8E   09E0    P        LDX    #OCTL    Yes, point to the counts for this
+02214P 08B9 C6   18      A        LDB    #&24     note.  First point to correct octave.
+02215P 08BB 3D                    MUL
+02216P 08BC 3A                    ABX
+02217P 08BD 35   04      A        PULS   B        Now point to the entry for the note.
+02218P 08BF 58                    ASLB
+

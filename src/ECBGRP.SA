@@ -1445,3 +1445,61 @@ OKPAWZ LDA    DOTFLG   Save the dotted note flag and
        CLR    DOTFLG
        BSR    GOPAWZ   Do pause and return to restore
        PULS   A,X      the settings.
+       STA    DOTFLG
+       STX    HIGHA
+       RTS
+
+GOPAWZ CLR    ,-S      Put on a zero to play a C.  This
+       BRA    DOPAWZ   value is irrelevant since the volume
+*    is zero.
+
+
+NTMUSP CMPA   #'N      Note?
+       BNE    IMPNOT   No, must be implied note.
+       JSR    FETCHR   Yes, skip the N.
+IMPNOT CMPA   #'A      Is it a note letter?
+       BLO    NOTNLT
+       CMPA   #'G
+       BLS    LETNOT   Yes, go handle note letter.
+NOTNLT JSR    PLYVAL   No, must be a numeric note spec.
+       BRA    PLYB     Go play the note in B.
+
+LETNOT SUBA   #'A      Get number from 0 to 7.
+       LDX    #NOTETB  Map it so C=1, B=7.
+       LDB    A,X
+       TST    PSTLEN   Anything left in the play string?
+       BEQ    PLYB     No, so don't look for sharp or flat.
+       JSR    FETCHR   Look for sharp of flat.
+       CMPA   #'#
+       BEQ    ISSHRP
+       CMPA   #'+      Plus is same as sharp sign.
+       BNE    NTSHRP
+ISSHRP INCB            Sharp so increment note.
+       BRA    PLYB     Go play it.
+
+NTSHRP CMPA   #'-      Flat?
+       BNE    NTFLAT   No.
+       DECB            Yes, decrement the note.
+       BRA    PLYB
+
+NTFLAT JSR    FETBAK   Not sharp or flat, back up pointer.
+PLYB   DECB            Make note 0 through 11.
+       CMPB   #&11
+       BHI    BADPLY
+       PSHS   B        Save the note.
+       LDB    LNOTE    B:=note length.
+DOPAWZ LDA    TEMPO    A:=tempo.
+       MUL             Calculate number to subtract to
+       STD    DURSUB   determine how long to hold the note.
+       LEAU   &1,S     Make U point to the return address
+*    so the interrupt routine can clean
+*    up the stack.
+       LDA    OCTAVE   A:=octave.
+       CMPA   #&1      In the first two octaves?
+       BHI    HIOCT    No, it's in one of the high 3.
+       LDX    #OCTL    Yes, point to the counts for this
+       LDB    #&24     note.  First point to correct octave.
+       MUL
+       ABX
+       PULS   B        Now point to the entry for the note.
+       ASLB
