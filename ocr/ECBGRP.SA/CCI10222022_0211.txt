@@ -1,62 +1,60 @@
-                          PAGE    028   ECBGRP     .SA:1     TXRRRP   MUSIC COMMAND
+PAGE  028  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
 
-
-                          02274                               *  THIS ROUTINE READS       THE NEXT CHARACTER FROM THE MUSIC STRING
-                          02275P 0916 34         10         A FETCHR PSHS        X
-                 40       02276P 0918 OD         D8         A FETCH2 TST         PSTLEN      NO MORE LEFT
-                          02277P 09IA 27         4D    0969             BED      PLYBAD      MUST BE AN ERROR
-                          02278P 0910 9E         D9         A           LDX      PSTPTR      GO TO POSITION IN STRING 
-                 40       02279P 091c 06         80         A           LDA      ,X+         PICK UP CHARACTER
-                          02280P 0920 9F         D9         A           STX      PSTPTR      UPDATE POINTER
-                          02281P 0922 01A        D8         A           DEC      PSTLEN      AND LENGTH
-                 40       02282P 0924 81         20         A           CMPA     W           SKIP SPACES EVERYWHERE
-                      I   02283P 0926 27         FO    0918             BED      FETCH2
-                          02284P 0928 35         90         A           PULS     X,PC
-                 41       02285
-                          02286P 092A 80         EA    0916   PLYARG ESR         FETCHR      GET CHAR rITER VARIABLE NAME CHAR 
-                          02287P 0920 81         2B         A           CMPA     WA-         CHECK FOR INCREMENT CAE
-                 40       02288P 092c            3C    096C             BED      INCVAR
-                          02289P 0930 81         2D         A           CMPA     W-          CHECK FOR DECREMENT CASE 
-                          02290P 0932 27         31    0970             EED      DECVAR
-                 40       0229IP 0934 81         3E         A           CMPA     #&62        CHECK FOR GREATER
-                          02292P 0936 27         42    0970             BED      DELVAR
-                          02293P 0938 8I         30         A           CMPA     W&60        CHECK FOR LESS THAN
-                 40       02294P 0930 27         39    0975             BED      HLFVAR
-                          02295P 0930 81         3D         A PLYVAL CMPA        W=          USE VARIABLE NAME?
-                          02296P 093E 27         3F    097P             BED      VARGET
-                 41       02297P 0940 BD         0000       A           JSR      ISDIGC
-                          02298P 0943 25         24    0969             BCS      PLYBAD
-                          02299P 0945 SF                                CURB                 START CONSTANT VALUE AT 0 
-                 41       02300P 0946 80         30           PLYNLP SUBA        WO          OFFSET BY AsCII 0
-                   !It!   0230IP 0948 q          D7         csi         STA      PDIGIT
-                          02302P 094A 86         0A         A           LOA      #410
-                 40       02:03P 094C 3D                                MUL                  MULTIPLY OLD VALUE BY 10 
-                          02304P 094D 4D                                TSTA                 SHOULDNT FLOW INTO HIGH BYTE 
-                          02305P 094E 26         19    0969             ENE      PLYBAD      ERROR IF SO
-                 40       02306P 0950 DE         07         A           ADDE     PDIGIT      BRING IN NEW DIGIT
-                          02307P 0952 25         15    0969             BCS      PLYBAD      AGAIN SHOJLDNT OVERFLOW
-                          02308P 0954 OD         08         A           TST      PSTLEN      End of string?
-                          02309P 0956 27         17    096F             BED      PLYRTS      Yes,   quit scanning value.
-                          02310P 0958 3D         ogle                   JSR      FETCHR      READ NEXT CHARACTER
-                          02311P 09"iB BD        0000       A           JSR      ISDIGC      MAKE SURE NEXT CHAR IS DIGIT 
-                 41       02312P 0956 24.        E6    0946             BCC      PLYNLP      ITEARATE READING DIGITS
-                          02313P 0960 0C         DB         A FETBAK INC         PSTLEN      PUT BACK TERMINATOR
-                          02314P 0962 9          D9         A           LOX      PSTPTR      AND REREAD OLD CHARACTER
-                 4,       02315P 0964             F                     LEAX     -&1,X
-                          023162 0966 9 H-       D9         A           STX      PSTPTR
-                          02317P 0968 39                                RTS
-"Progression"    41       02318P 0969 7          0000         PLYBAD JMP         FCERR
-movement. Th       L1H             0960 50                    INCVAR INCR                    PLUS ONE FROM "+"
-family of pow:            C2320P          27     FA    0969             BED      PLYBAD
-lifetime spent   40       02:321P 096F 39                     PLYRTS RTS
-components tl             02322P 0970                         DECVAR TSTB                    SEE IF 0 ALREADY
-; Mays respect            02323P 0971 27         F6    0969             BED      PLYBAD
-  flivoy realism 4,       02324P 0973 50                                DECB
-II In most thun           02325P 0974 39                                RTS
-; 11( allowe              02326P 0975 5D                      HLFVAR TSTE
-                 40       02327P 0976 27         Fl    0969             BED.     PLYBAD
-                          02328P 097      54                            LSRB
-                          02329P 0979                                   RTS
-     abs •       4,       02330P 0970       D                 DBLVAR TSTB                    ALREADY GREATER THAN 127?
-             I            0233IP 097B            EC    0969                      PLYBAD
-
+02274                      * THIS ROUTINE READS THE NEXT CHARACTER FROM THE MUSIC STRING
+02275P 0916 34   10      A FETCHR PSHS   X
+02276P 0918 0D   D8      A FETCH2 TST    PSTLEN   NO MORE LEFT
+02277P 091A 27   4D   0969        BEQ    PLYBAD   MUST BE AN ERROR
+02278P 091C 9E   D9      A        LDX    PSTPTR   GO TO POSITION IN STRING
+02279P 091E A6   80      A        LDA    ,X+      PICK UP CHARACTER
+02280P 0920 9F   D9      A        STX    PSTPTR   UPDATE POINTER
+02281P 0922 0A   D8      A        DEC    PSTLEN   AND LENGTH
+02282P 0924 81   20      A        CMPA   #'       SKIP SPACES EVERYWHERE
+02283P 0926 27   F0   0918        BEQ    FETCH2
+02284P 0928 35   90      A        PULS   X,PC
+02285
+02286P 092A 80   EA   0916 PLYARG BSR    FETCHR   GET CHAR AFTER VARIABLE NAME CHAR
+02287P 092C 81   2B      A        CMPA   #'+      CHECK FOR INCREMENT CASE
+02288P 092E 27   3C   096C        BEQ    INCVAR
+02289P 0930 81   2D      A        CMPA   #'-      CHECK FOR DECREMENT CASE
+02290P 0932 27   3C   0970        BEQ    DECVAR
+02291P 0934 81   3E      A        CMPA   #&62     CHECK FOR GREATER
+02292P 0936 27   42   097A        BEQ    DBLVAR
+02293P 0938 81   3C      A        CMPA   #&60     CHECK FOR LESS THAN
+02294P 093A 27   39   0975        BEQ    HLFVAR
+02295P 093C 81   3D      A PLYVAL CMPA   #'=      USE VARIABLE NAME?
+02296P 093E 27   3F   097F        BEQ    VARGET
+02297P 0940 BD   0000    A        JSR    ISDIGC
+02298P 0943 25   24   0969        BCS    PLYBAD
+02299P 0945 5F                    CLRB            START CONSTANT VALUE AT 0
+02300P 0946 80   30      A PLYNLP SUBA   #'0      OFFSET BY ASCII 0
+02301P 0948 97   D7      A        STA    PDIGIT
+02302P 094A 86   0A      A        LDA    #&10
+02303P 094C 3D                    MUL             MULTIPLY OLD VALUE BY 10
+02304P 094D 4D                    TSTA            SHOULDNT FLOW INTO HIGH BYTE
+02305P 094E 26   19   0969        BNE    PLYBAD   ERROR IF SO
+02306P 0950 DB   D7      A        ADDE   PDIGIT   BRING IN NEW DIGIT
+02307P 0952 25   15   0969        BCS    PLYBAD   AGAIN SHOJLDNT OVERFLOW
+02308P 0954 0D   D8      A        TST    PSTLEN   End of string?
+02309P 0956 27   17   096F        BEQ    PLYRTS   Yes, quit scanning value.
+02310P 0958 BD   0916    P        JSR    FETCHR   READ NEXT CHARACTER
+02311P 095B BD   0000    A        JSR    ISDIGC   MAKE SURE NEXT CHAR IS DIGIT
+02312P 095E 24   E6   0946        BCC    PLYNLP   ITEARATE READING DIGITS
+02313P 0960 0C   DB      A FETBAK INC    PSTLEN   PUT BACK TERMINATOR
+02314P 0962 9E   D9      A        LDX    PSTPTR   AND REREAD OLD CHARACTER
+02315P 0964 30   1F      A        LEAX   -&1,X
+02316P 0966 9F   D9      A        STX    PSTPTR
+02317P 0968 39                    RTS
+02318P 0969 7E   0000      PLYBAD JMP    FCERR
+02319P 096C 5C             INCVAR INCB            PLUS ONE FROM "+"
+02320P 096D 27   FA   0969        BEQ    PLYBAD
+02321P 096F 39             PLYRTS RTS
+02322P 0970 5D             DECVAR TSTB            SEE IF 0 ALREADY
+02323P 0971 27   F6   0969        BEQ    PLYBAD
+02324P 0973 5A                    DECB
+02325P 0974 39                    RTS
+02326P 0975 5D             HLFVAR TSTB
+02327P 0976 27   F1   0969        BEQ    PLYBAD
+02328P 0978 54                    LSRB
+02329P 0979 39                    RTS
+02330P 097A 5D             DBLVAR TSTB            ALREADY GREATER THAN 127?
+02331P 097B 2B   EC   0969        BMI    PLYBAD
