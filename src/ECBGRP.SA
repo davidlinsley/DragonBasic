@@ -1503,3 +1503,57 @@ DOPAWZ LDA    TEMPO    A:=tempo.
        ABX
        PULS   B        Now point to the entry for the note.
        ASLB
+       ABX
+       LEAY   ,X       Transfer the table pointer to Y.
+       BSR    CNTSET   Set up the duration count.
+       STD    DURCNT
+MORLON BSR    LOWMID   Output the center amplitude.
+       LDA    HIGHA    Output the high amplitude.
+       BSR    LOWSND
+       BSR    LOWMID   Do the center again.
+       LDA    LOWA     Finish with the low amplitude.
+       BSR    LOWSND
+       BRA    MORLON   Continue until interrupt routine
+*    causes termination.
+
+LOWMID LDA    #&124!+PIABIT Output the center amplitude.
+       NOP             NOP is to equalize the timing.
+LOWSND STA    PIA1AD   Output the amplitude.
+       LDX    ,Y       Get the delay from the table.
+LOWSLP LEAX   -&1,X    Hold the amplitude.
+       BNE    LOWSLP
+       RTS
+
+HIOCT  LDX    #OCTH-&24 X:=pointer to table entry for
+       LDB    #&12     this note.
+       MUL
+       ABX
+       PULS   B
+       ABX
+       BSR    CNTSET   SET UP THE DURATION COUNT.
+       STD    DURCNT
+MORHIN BSR    HIMID    Center.
+       LDA    HIGHA    High.
+       BSR    HISND
+       BSR    HIMID    Center.
+       LDA    LOWA     Low.
+       BSR    HISND
+       BRA    MORHIN
+
+HIMID  LDA    #&124!+PIABIT Center amplitude.
+       NOP
+HISND  STA    PIA1AD
+       LDA    ,X
+HISLP  DECA
+       BNE    HISLP
+       RTS
+
+CNTSET LDB    #&255
+       LDA    DOTFLG   Dotted note?
+       BEQ    CNTSRT   No.
+       ADDA   #&2      Yes, map 1 to 3 to get 3/2 note value.
+       MUL
+       LSRA
+       RORB
+CNTSRT RTS
+

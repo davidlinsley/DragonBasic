@@ -1584,3 +1584,60 @@ PAGE  026  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
 02217P 08BD 35   04      A        PULS   B        Now point to the entry for the note.
 02218P 08BF 58                    ASLB
 
+PAGE  027  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
+
+02219P 08C0 3A                    ABX
+02220P 08C1 31   84      A        LEAY   ,X       Transfer the table pointer to Y.
+02221P 08C3 8D   45   090A        BSR    CNTSET   Set up the duration count.
+02222P 08C5 DD   E3      A        STD    DURCNT
+02221P 08C7 8D   0C   08D5 MORLON BSR    LOWMID   Output the center amplitude.
+02224P 08C9 96   DF      A        LDA    HIGHA    Output the high amplitude.
+02225P 08CB 8D   0B   08D8        BSR    LOWSND
+02226P 08CD 8D   06   08D5        BSR    LOWMID   Do the center again.
+02227P 08CF 96   E0      A        LDA    LOWA     Finish with the low amplitude.
+02228P 08D1 8D   05   08D8        BSR    LOWSND
+02229P 08D3 20   F2   08C7        BRA    MORLON   Continue until interrupt routine
+02230                      *    causes termination.
+02231
+02232P 08D5 86   7C      A LOWMID LDA    #&124!+PIABIT Output the center amplitude.
+02233P 08D7 12                    NOP             NOP is to equalize the timing.
+02234P 08D8 B7   0000    A LOWSND STA    PIA1AD   Output the amplitude.
+02235P 08D9 AE   A4      A        LDX    ,Y       Get the delay from the table.
+02236P 08DD 30   1F      A LOWSLP LEAX   -&1,X    Hold the amplitude.
+02237P 08DF 26   FC   08DD        BNE    LOWSLP
+02238P 08E1 39                    RTS
+02239
+02240P 08E2 8E   09F8    P HIOCT  LDX    #OCTH-&24 X:=pointer to table entry for
+02241P 08E5 C6   0C      A        LDB    #&12     this note.
+02242P 08E7 3D                    MUL
+02243P 08E8 3A                    ABX
+02244P 08E9 35   04      A        PULS   B
+02245P 08EB 3A                    ABX
+02246P 08EC 8D   1C   090A        BSR    CNTSET   SET UP THE DURATION COUNT.
+02247P 08EE DD   E3      A        STD    DURCNT
+02248P 08F0 8D   0C   08FE MORHIN BSR    HIMID    Center.
+02249P 08F2 96   DF      A        LDA    HIGHA    High.
+02250P 08F4 8D   0B   0901        BSR    HISND
+02251  08F6 8D   06   08FE        BSR    HIMID    Center.
+02252P 08F8 96   E0      A        LDA    LOWA     Low.
+02253P 08FA 8D   05   0901        BSR    HISND
+02254  08FC 20   F2   08F0        BRA    MORHIN
+02255
+02256P 08FE 86   7C      A HIMID  LDA    #&124!+PIABIT Center amplitude.
+02257P 0900 12                    NOP
+02258P 0901 B7   0000    A HISND  STA    PIA1AD
+02259P 0904 A6   84      A        LDA    ,X
+02260P 0906 4A             HISLP  DECA
+02261P 0907 26   FD   0906        BNE    HISLP
+02262P 0909 39                    RTS
+02263
+02264P 090A C6   FE      A CNTSET LDB    #&255
+02265P 090C 96   E5      A        LDA    DOTFLG   Dotted note?
+02266P 090E 27   05   0915        BEQ    CNTSRT   No.
+02267P 0910 8B   02      A        ADDA   #&2      Yes, map 1 to 3 to get 3/2 note value.
+02268P 0912 3D                    MUL
+02269P 0913 44                    LSRA
+02270P 0914 56                    RORB
+02271P 0915 39             CNTSRT RTS
+02272
+
