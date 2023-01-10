@@ -1668,3 +1668,10 @@ PLYCLK CLRA            Clear the direct page register.
        PSHS   A        CCs.
 PLYRTI RTI             Return from the interrupt.
 
+NOTETB FCB    &10      A
+       FCB    &12      B
+       FCB    &1       C
+       FCB    &3       D
+       FCB    &5       E
+       FCB    &6       F
+       FCB    &8       G
