@@ -1675,3 +1675,33 @@ NOTETB FCB    &10      A
        FCB    &5       E
        FCB    &6       F
        FCB    &8       G
+
+*
+* Low octave table.
+*
+
+OCTL   FDB    &424
+       FDB    &400
+       FDB    &378
+       FDB    &356
+       FDB    &336
+       FDB    &317
+       FDB    &299
+       FDB    &282
+       FDB    &266
+       FDB    &251
+       FDB    &237
+       FDB    &223
+
+       FDB    &211
+       FDB    &199
+       FDB    &187
+       FDB    &177
+       FDB    &166
+       FDB    &157
+       FDB    &148
+       FDB    &139
+       FDB    &131
+       FDB    &124
+       FDB    &117
+       FDB    &110
