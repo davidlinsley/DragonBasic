@@ -1646,3 +1646,25 @@ VARSLP JSR    FETCHR   SKIP TO NEXT CHARACTER
        PULS   X        GET BACK OLD TEXT POINTER
        STX    TXTPTR
        RTS
+
+*
+* The interrupt routine to handle note timing.
+*
+
+       XDEF   PLYCLK
+PLYCLK CLRA            Clear the direct page register.
+       TFR    A,DP
+       LDD    DURCNT   Are we PLAYing a note?
+       LBEQ   SNDCLK   No, go handle SOUND clocking.
+       SUBD   DURSUB   Yes, update the duration count.
+       STD    DURCNT
+       BHI    PLYRTI   Hold the note.
+       CLR    DURCNT   Clear the count to indicate that the
+       CLR    DURCNT+&1 note is finished.
+       PULS   A        Get stacked CC register into A.
+       LDS    &7,S     Clear all garbage from the stack.
+*    (The stacked U is marking the stack.)
+       ANDA   #@177    Clear the Entire bit and restack the
+       PSHS   A        CCs.
+PLYRTI RTI             Return from the interrupt.
+

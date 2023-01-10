@@ -1736,3 +1736,27 @@ PAGE  029  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
 02361P 09B9 9F   A6               STX    TXTPTR
 02362P 09BB 39                    RTS
 
+PAGE  030  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
+
+02364                      *
+02365                      * The interrupt routine to handle note timing.
+02366                      *
+02367
+02368                             XDEF   PLYCLK
+02369P 09BC 4F             PLYCLK CLRA            Clear the direct page register.
+02370P 09BD 1F   8B      A        TFR    A,DP
+02371P 09BF DC   E3      A        LDD    DURCNT   Are we PLAYing a note?
+02372P 09C1 1027 F63B    A        LBEQ   SNDCLK   No, go handle SOUND clocking.
+02373P 09C5 93   D5      A        SUBD   DURSUB   Yes, update the duration count.
+02374P 09C7 DD   E3      A        STD    DURCNT
+02375P 09C9 22   0D   09D8        BHI    PLYRTI   Hold the note.
+02376P 09CB 0F   E3      A        CLR    DURCNT   Clear the count to indicate that the
+02377P 09CD 0F   E4      A        CLR    DURCNT+&1 note is finished.
+02378P 09CF 35   02      A        PULS   A        Get stacked CC register into A.
+02379P 09D1 10EE 67               LDS    &7,S     Clear all garbage from the stack.
+02380                      *    (The stacked U is marking the stack.)
+02361P 09D4 84                    ANDA   #@177    Clear the Entire bit and restack the
+02382P 09D6 34   02      A        PSHS   A        CCs.
+02383P 09D8                PLYRTI RTI             Return from the interrupt.
+02384
+
