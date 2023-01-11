@@ -2108,3 +2108,64 @@ PAGE  037  ECBGRP  .SA:1  TXRGRP DRAW COMMAND
 02713P 0BE8 34   02      A SGNMIN PSHS   A        SAVE FLAG
 02714P 0BEA BD   0A49    P        JSR    FTCHVL   GO GET VALUE IN [B]
 
+PAGE  038  ECBGRP  .SA:1  TXRGRP DRAW COMMAND
+
+02715P 0BED 35   02      A        PULS   A        LOOK AT FLAG
+02716P 0BEF 4D                    TSTA            NOT NECESSARY???
+02717P 0BF0 27   04   0BF6        BEQ    SGNRTS   IF NO NEGATE DONE
+02718P 0BF2 4F                    CLRA
+02719P 0BF3 50                    NEGB
+02720P 0BF4 82   00      A        SBCA   #&0
+02721P 0BF6 39             SGNRTS RTS
+02722
+02723                             TTL    MONITOR COMMAND - SIMPLE M G R D
+02724
+02725            0000    A        IFNE   &0
+02904                       ENDC   IFN 0
+02905
+02906                             TTL    CIRCLE
+02907
+02908                      *
+02909                      * THIS IS THE CIRCLE GENERATE TABLE.
+02910                      * IT IS THE SINE AND COSINE OF 0 TO PI OVER 4
+02911                      * IN 8 INTERVALS TO 16 BITS
+02912                      * THE CONSTANTS ARE PLUS ONE SO 1.0 IS 0 AND 0 IS 65535
+02913                      *
+02914            0009    A NUMPNT EQU    &9
+02915P 0BF7      0000    A CIRCTB FDB    &0       SPECIAL CASE FOR 1
+02916P 0BF9      0001    A        FDB    &1       ZERO
+02917P 0BFB      FEC5    A        FDB    &65221
+02918P 0BFD      1919    A        FDB    &6425
+02919P 0BFF      FB16    A        FDB    &64278
+02920P 0C01      31F2    A        FDB    &12786
+02921P 0C03      F4FB    A        FDB    &62715
+02922P 0C05      4A51    A        FDB    &19025
+02923P 0C07      EC84    A        FDB    &60548
+02924P 0C09      61F9    A        FDB    &25081
+02925P 0C0B      E1C7    A        FDB    &57799
+02926P 0C0D      78AE    A        FDB    &30894
+02927P 0C0F      D4DC    A        FDB    &54492
+02928P 0C11      8E3B    A        FDB    &36411
+02929P 0C13      C5E5    A        FDB    &50661
+02930P 0C15      A269    A        FDB    &41577
+02931P 0C17      B506    A        FDB    &46342
+02932P 0C19      B506    A        FDB    &46342
+02933
+02934                      *
+02935                      * CIRCLE (X,Y),RADIUS [,ATTRIBUTE [,ASPECT RATIO [,F FOR FILL OR N FOR
+02936                      * NOT, [,START POS 0-1 [,END POS 0-1]]]]]
+02937                      *
+02938
+02939                             XDEF   CIRCLE
+02940P 0C1B 81   40      A CIRCLE CMPA   #'@      ALLOW @
+02941P 0C1D 26   02   0C21        BNE    CNATSK
+02942P 0C1F 9D   9F      A        JSR    CHRGET
+02943P 0C21 BD   0293    P CNATSK JSR    STMAXS   UP MAX X AND Y IN XMAX AND YMAX
+02944P 0C24 BD   0123    P        JSR    ONECRD   READ CENTER COORDINATE
+02945P 0C27 BD   008E    P        JSR    GSCALE   SCALE CENTER
+02946P 0C2A AE   C4      A        LDX    ,U       GET XSTORE
+02947P 0C2C 9F   CB      A        STX    CNTRX    SET UP THE CENTER
+02948P 0C2E AE   42      A        LDX    82,U     GET YSTORE
+02949P 0C30 9F   CD      A        STX    CNTRY
+02950P 0C32 BD   0000    A        JSR    CHKCOM
+

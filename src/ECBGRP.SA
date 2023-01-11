@@ -1996,3 +1996,61 @@ SGNVL2 CMPA   #'+      SEE IF SIGNED
 SGNPLS CLRA            INDICATE NO NEGATE
 SGNMIN PSHS   A        SAVE FLAG
        JSR    FTCHVL   GO GET VALUE IN [B]
+       PULS   A        LOOK AT FLAG
+       TSTA            NOT NECESSARY???
+       BEQ    SGNRTS   IF NO NEGATE DONE
+       CLRA
+       NEGB
+       SBCA   #&0
+SGNRTS RTS
+
+       TTL    MONITOR COMMAND - SIMPLE M G R D
+
+       IFNE   &0
+ ENDC   IFN 0
+
+       TTL    CIRCLE
+
+*
+* THIS IS THE CIRCLE GENERATE TABLE.
+* IT IS THE SINE AND COSINE OF 0 TO PI OVER 4
+* IN 8 INTERVALS TO 16 BITS
+* THE CONSTANTS ARE PLUS ONE SO 1.0 IS 0 AND 0 IS 65535
+*
+NUMPNT EQU    &9
+CIRCTB FDB    &0       SPECIAL CASE FOR 1
+       FDB    &1       ZERO
+       FDB    &65221
+       FDB    &6425
+       FDB    &64278
+       FDB    &12786
+       FDB    &62715
+       FDB    &19025
+       FDB    &60548
+       FDB    &25081
+       FDB    &57799
+       FDB    &30894
+       FDB    &54492
+       FDB    &36411
+       FDB    &50661
+       FDB    &41577
+       FDB    &46342
+       FDB    &46342
+
+*
+* CIRCLE (X,Y),RADIUS [,ATTRIBUTE [,ASPECT RATIO [,F FOR FILL OR N FOR
+* NOT, [,START POS 0-1 [,END POS 0-1]]]]]
+*
+
+       XDEF   CIRCLE
+CIRCLE CMPA   #'@      ALLOW @
+       BNE    CNATSK
+       JSR    CHRGET
+CNATSK JSR    STMAXS   UP MAX X AND Y IN XMAX AND YMAX
+       JSR    ONECRD   READ CENTER COORDINATE
+       JSR    GSCALE   SCALE CENTER
+       LDX    ,U       GET XSTORE
+       STX    CNTRX    SET UP THE CENTER
+       LDX    82,U     GET YSTORE
+       STX    CNTRY
+       JSR    CHKCOM
