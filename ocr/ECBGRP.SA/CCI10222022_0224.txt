@@ -1,121 +1,60 @@
-                                                                                                                                PAGE                        041                      ECBGRP                                 .SA:1                             TXRGRP CIRCLE
+PAGE  041  ECBGRP  .SA:1  TXRGRP CIRCLE
 
-
-
-                                                                                                                                03077P                           0009                                             02                      ODOD                                                       BNE                               COLOPI
-
-                                                                                                                                                                 000B                     BD                      50                      0050                                                       BSR                               CDRAW                                       GO DU THE CDRAW
-
-                                                                                                                                03079P                           0000                     35                      06                                      A        CDLOPI                            PULS                              D                                           GET QUADRANT AND POINT COUNT
-
-                                                                                                                                03060P                           ODOF                     04                      De                                      A                                          LSR                               CSTRFL                                      CLEAR AND TEST CIRCLE START FLAG
-
-                                                                                                                                03.081P                          0011                                             05                      0018                                                       BCS                               GCQUAI
-
-                                                                                                                                03082                            0013                     1093                    D9                                                                                 CMPD                              CENDPS                                      SEE IF AT END POSITION
-
-                                                                                                                                03083P                           0016                     27                      OC                      0024                                                       BED                               GCFINC
-
-                                                                                                                                03084P                           0018                     5C                                                                       GCQUAI                            INCB                                                                          UPDATE POINT COUNT
-
-                                                                                                                                03085P                           0019                     CI                      08                                      A                                          CMPB                              #NUMPNT-8,1 MORE IN THIS QUADRANT?
-
-                                                                                                                                03086P                           0018                     26                      04                      0021                                                       BNE                               GCQUAD
-
-                                                                                                                                03087P                           0010                     4C                                                                                                         INCA                                                                          NEXT QUADRANT
-
-                                                                                                                                03088P                           001E                     5'r.'                                                                                                      CLRB
-
-                                                                                                                                03089P                           001F                     84                      07                                      A                                          ANDA                              #&7                                         PASSING THROUGH TO QUADRANT 0 SET TO                                                                                                                                                0
-
-                                                                                                                                03090P                           0021                     7E                      0C7B                                    P        GCQUAD                            jMP                               CQUADL
-
-                                                                                                                                03091                                                                             0D24                                             G0FINC                            EQU                               *
-                                                                                                           I                    03092                                                                                                                              *** CLR                                CFLFLG                                  ;CLEAR SO LINGEN IS NORMALLY NOT FILLING
-
-                                                                                                                                03093P                           0024                     :(-?                                                                                                       R7S
-
-                                                                                                                                03094
-
-                                                                                                                                03095                                                                                                                              *         MULTIPLY RADIUS BY TABLE VALUE
-
-                                                                                                                                03096P                           OD25                     9E                      CF                                      A        RADMUL                            LDX                               RADIUS
-
-                                                                                                                                03097P                           0027                     EC                      C4                                      A                                          LDD                               ,U                                          GET TABLE FACTOR
-
-                                                                                                                                03098P                           0029                     27                      07                      0032                                                       BED                               RADUNT                                      IF 0 JUST RETURN RADIUS
-
-                                                                                                                                03099P                           002B                     83                      0001                                    A                                          SUBD                              #&1                                         SCALE BACK AHTER S:)ECIAL CASE
-
-                                                                                                                                03100P                           OD2E                     80                      03                      0033                                                       BSR                               ML1632
-
-                                                                                                                                03101P                           0030                     1F                      21                                      A                                          TFR                               Y,X                                         RETURN HIGH                                                16BITS IN X
-
-                                                                                                                                03102P                           0032                     'CS!                                                                     RADUNT                            RTS
-
-                                                                                                                                03103                                                                                                                              *
-
-                                                                                                                                03104                                                                                                                              *         MULTIPLY                                     [D]               BY              [X]               GIVING                             [Y,U]
-
-                                                                                                                                03105                                                                                                                              *
-
-                                                                                                                                03106                                                                                                                                                                XDEF                              ML1632
-
-                                                                                                                                03107P                           0D33                     34                      76                                               ML1632                            PSHS                              U,Y,D,X
-
-                                                                                                                                03108P                           0035                     6F                      64                                      A                                          CLR                               &4,S                                        CLEAR HIGH BYTE OF RESULT
-
-                                                                                                                                03109P                           0037                     A6                      63                                      A                                          LDA                               &3,S                                        GET LOW OF ARG2 [B] HAS LOW OF ARG1
-                                                                                                       |!/It   ,                03110P                           0039                                                                                                                                MUL
-
-                                                                                                                                03111P                           003A                     ED                      66                                                                                 STD                               &6,S                                        SET LOW 2 BYTES OF RESULT
-                                                                                              (,\                               03112P                           OD3C                     EC                      61                                      A                                          LDD                               &i,S                                        GET LOW OF ARG1 AND HIGH OF ARG2
-
-                                                                                                                                03113P                           0036                     3D                                                                                                         MUL
-
-                                                                                                                                03114P                           0D3F                     EB                      66                                                                                 ADDB                              &6,S                                        COMBINE WITH PREVIOUS
-                                                                                              •                                 03115P                           0041                     89                      00                                                                                 ADCA                              #&O
-
-                                                                                                                                03116P                           0043                     ED                      65                                                                                 STD                               &5,S                                        SAVE INTERMEDIATE
-
-                                                                                                                                03117P                           0045                     E6                      64                                      A                                          LDB                               ,S                                          GET HIGH OF ARG1
-
-                                                                                                                                03118P                           0D47                     A6                      63                                                                                 LDR                               &3,S                                        GET LOW OF ARG2
-
-                                                                                                                                03119P                           0D49                     3D                                                                                                         MUL
-
-                                                                                                                                03120P                           0D4A                     E3                      65                                      A                                          ADDD                              &5,S
-
-                                                                                                                                03121P                           004C                     ED                      65                                      A                                          STD                               &5,S
-ression" - its a word th. 
-ment. The latest in Dan D                                                                                                       03122P                           0046                     24                      02                      0052                                                       BCC                               MLCARY                                      SEE IF CARRY INTO HIGH BYTE
-    of power amplifiers is t                                                                                                    03123P                           0050                     6L)                     64                                      A                                          INC                               &4,S
-e spent in the research                                                                                                         03124P                           0052                     A6                      E4                                      A        MLCARY                            LDA                                    .zD                                    GET HIGHS
-onents that always rise t                                                                                                       03125P                           0054                     66                      62                                      A                                          LDB                               &2,S
-s respect the demands o                                                                                                         03126P                           0056                     3D                                                                                                         MUL
-y realism from the most                                                                                        1'               03127P                           0057                     63                      64                                      A                                          ADDD                              &4,S                                        COMBINE WITH PREVIOUS
-  ost thunderous of cres                                                                                                        03128P                           0059                     ED                      64                                      A                                          STD                               &4,S                                        SET HIGH 2 BYTES OF RESULT
-
-)1 allowed to affect the dyi                                                                                                    03129P                           005B                     35                      F6                                      A                                          PULS                              U,Y,X,D,PC PUP OFF ARGS AND RESULT AND RETURN
-
-                                                                                                                                03130
-
-                                                                                                                                03131
-
-                                                                                                                                03132P                           0050                     76                      0212                                    P        CDRAW                             JMP                               LINGEN
-
-                                                                                                                                03133                                                                             0000                                    A                                          IFNE                              &O
-        bsolute so
-                                                                                                                                03163                                                                                                                                    ENDO                             IFN 0
-                              ,111,,t                  n (.21 11 ■I :I           ,;
-
-
-
-
-
-
-
-
-
-                                                                                              tio
-
+03077P 0D09 26   02   0D0D        BNE    CQLOPI
+03078P 0D0B 8D   50   0D5D        BSR    CDRAW    GO DO THE CDRAW
+03079P 0D0D 35   06      A CQLOPI PULS   D        GET QUADRANT AND POINT COUNT
+03080P 0D0F 04   D8      A        LSR    CSTRFL   CLEAR AND TEST CIRCLE START FLAG
+03081P 0D11 25   05   0D18        BCS    GCQUAI
+03082P 0D13 1093 D9      A        CMPD   CENDPS   SEE IF AT END POSITION
+03083P 0D16 27   0C   0D24        BEQ    GCFINC
+03084P 0D18 5C             GCQUAI INCB            UPDATE POINT COUNT
+03085P 0D19 C1   08      A        CMPB   #NUMPNT-&1 MORE IN THIS QUADRANT?
+03086P 0D1B 26   04   0D21        BNE    GCQUAD
+03087P 0D1D 4C                    INCA            NEXT QUADRANT
+03088P 0D1E 5F                    CLRB
+03089P 0D1F 84   07      A        ANDA   #&7      PASSING THROUGH TO QUADRANT 0 SET TO 0
+03090P 0D21 7E   0C7B    P GCQUAD JMP    CQUADL
+03091            0D24    P GCFINC EQU    *
+03092                      *** CLR CFLFLG  ;CLEAR SO LINGEN IS NORMALLY NOT FILLING
+03093P 0D24 39                    RTS
+03094
+03095                      * MULTIPLY RADIUS BY TABLE VALUE
+03096P 0D25 9E   CF      A RADMUL LDX    RADIUS
+03097P 0D27 EC   C4      A        LDD    ,U       GET TABLE FACTOR
+03098P 0D29 27   07   0D32        BEQ    RADUNT   IF 0 JUST RETURN RADIUS
+03099P 0D2B 83   0001    A        SUBD   #&1      SCALE BACK AFTER SPECIAL CASE
+03100P 0D2E 8D   03   0D33        BSR    ML1632
+03101P 0D30 1F   21      A        TFR    Y,X      RETURN HIGH 16BITS IN X
+03102P 0D32 39             RADUNT RTS
+03103                      *
+03104                      * MULTIPLY [D] BY [X] GIVING [Y,U]
+03105                      *
+03106                             XDEF   ML1632
+03107P 0D33 34   76      A ML1632 PSHS   U,Y,D,X
+03108P 0D35 6F   64      A        CLR    &4,S     CLEAR HIGH BYTE OF RESULT
+03109P 0D37 A6   63      A        LDA    &3,S     GET LOW OF ARG2 [B] HAS LOW OF ARG1
+03110P 0D39 3D                    MUL
+03111P 0D3A ED   66      A        STD    &6,S     SET LOW 2 BYTES OF RESULT
+03112P 0D3C EC   61      A        LDD    &1,S     GET LOW OF ARG1 AND HIGH OF ARG2
+03113P 0D3E 3D                    MUL
+03114P 0D3F EB   66      A        ADDB   &6,S     COMBINE WITH PREVIOUS
+03115P 0D41 89   00      A        ADCA   #&0
+03116P 0D43 ED   65      A        STD    &5,S     SAVE INTERMEDIATE
+03117P 0D45 E6   E4      A        LDB    ,S       GET HIGH OF ARG1
+03118P 0D47 A6   63      A        LDA    &3,S     GET LOW OF ARG2
+03119P 0D49 3D                    MUL
+03120P 0D4A E3   65      A        ADDD   &5,S
+03121P 0D4C ED   65      A        STD    &5,S
+03122P 0D4E 24   02   0D52        BCC    MLCARY   SEE IF CARRY INTO HIGH BYTE
+03123P 0D50 6C   64      A        INC    &4,S
+03124P 0D52 A6   E4      A MLCARY LDA    ,S       GET HIGHS
+03125P 0D54 E6   62      A        LDB    &2,S
+03126P 0D56 3D                    MUL
+03127P 0D57 E3   64      A        ADDD   &4,S     COMBINE WITH PREVIOUS
+03128P 0D59 ED   64      A        STD    &4,S     SET HIGH 2 BYTES OF RESULT
+03129P 0D5B 35   F6      A        PULS   U,Y,X,D,PC POP OFF ARGS AND RESULT AND RETURN
+03130
+03131
+03132P 0D5D 7E   0212    P CDRAW  JMP    LINGEN
+03133            0000    A        IFNE   &0
+03163                       ENDC   IFN 0
