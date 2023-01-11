@@ -1705,3 +1705,62 @@ OCTL   FDB    &424
        FDB    &124
        FDB    &117
        FDB    &110
+
+*
+* The high octave table.
+*
+
+OCTH   FCB    &166
+       FCB    &156
+       FCB    &147
+       FCB    &139
+       FCB    &131
+       FCB    &123
+       FCB    &116
+       FCB    &109
+       FCB    &103
+       FCB    &97
+       FCB    &91
+       FCB    &86
+
+       FCB    &81
+       FCB    &76
+       FCB    &71
+       FCB    &67
+       FCB    &63
+       FCB    &59
+       FCB    &55
+       FCB    &52
+       FCB    &49
+       FCB    &46
+       FCB    &43
+       FCB    &40
+
+       FCB    &38
+       FCB    &35
+       FCB    &33
+       FCB    &31
+       FCB    &29
+       FCB    &27
+       FCB    &25
+       FCB    &24
+       FCB    &22
+       FCB    &20
+       FCB    &19
+       FCB    &18
+
+       TTL    DRAW COMMAND
+
+       XDEF   DRAW
+DRAW   LDX    DBLZER   MAKE DUMMY ENTRY
+       LDB    #&1
+       PSHS   B,X      SO EXECUTE WILL STOP ITERATION
+       STB    SETFLG   Set up to use foreground color.
+       STX    DRWFL1   DRWFL1:=DRWFL2:=0.
+       JSR    DEFCOL   DEFAULT BY SETTING UP ACTCLR AND ACTCLE
+       JSR    FRMEVL   EVALUATE THE STRING ARG
+DRWSC4 JSR    FRESTR   FREE UP THE STRING AND SET [B] & [X]
+       BRA    DRWSET
+
+FTCHVL JSR    FETCHR   Read next char into A.
+       JMP    PLYVAL   Go scan the value.

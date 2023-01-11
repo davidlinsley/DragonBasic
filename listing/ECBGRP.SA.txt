@@ -1803,3 +1803,64 @@ PAGE  032  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
 02422P 0A0C      0075    A        FDB    &117
 02423P 0A0E      006E    A        FDB    &110
 
+PAGE  033  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
+
+02425                      *
+02426                      * The high octave table.
+02427                      *
+02428
+02429P 0A10      A6      A OCTH   FCB    &166
+02430P 0A11      9C      A        FCB    &156
+02431P 0A12      93      A        FCB    &147
+02432P 0A13      8B      A        FCB    &139
+02433P 0A14      83      A        FCB    &131
+02434P 0A15      7B      A        FCB    &123
+02435P 0A16      74      A        FCB    &116
+02436P 0A17      6D      A        FCB    &109
+02437P 0A18      67      A        FCB    &103
+02438P 0A19      61      A        FCB    &97
+02439P 0A1A      5B      A        FCB    &91
+02440P 0A1B      56      A        FCB    &86
+02441
+02442P 0A1C      51      A        FCB    &81
+02443P 0A1D      4C      A        FCB    &76
+02444P 0A1E      47      A        FCB    &71
+02445P 0A1F      43      A        FCB    &67
+02446P 0A20      3F      A        FCB    &63
+02447P 0A21      3B      A        FCB    &59
+02448P 0A22      37      A        FCB    &55
+02449P 0A23      34      A        FCB    &52
+02450P 0A24      31      A        FCB    &49
+02451P 0A25      2E      A        FCB    &46
+02452P 0A26      2B      A        FCB    &43
+02453P 0A27      28      A        FCB    &40
+02454
+02455P 0A28      26      A        FCB    &38
+02456P 0A29      23      A        FCB    &35
+02457P 0A2A      21      A        FCB    &33
+02458P 0A2B      1F      A        FCB    &31
+02459P 0A2C      1D      A        FCB    &29
+02460P 0A2D      1B      A        FCB    &27
+02461P 0A2E      19      A        FCB    &25
+02462P 0A2F      18      A        FCB    &24
+02463P 0A30      16      A        FCB    &22
+02464P 0A31      14      A        FCB    &20
+02465P 0A32      13      A        FCB    &19
+02466P 0A33      12      A        FCB    &18
+02467
+02468                             TTL    DRAW COMMAND
+02469
+02470                             XDEF   DRAW
+02471P 0A34 9E   8A      A DRAW   LDX    DBLZER   MAKE DUMMY ENTRY
+02472P 0A36 C6   01      A        LDB    #&1
+02473P 0A38 34   14      A        PSHS   B,X      SO EXECUTE WILL STOP ITERATION
+02474P 0A3A D7   C2      A        STB    SETFLG   Set up to use foreground color.
+02475P 0A3C 9F   D5      A        STX    DRWFL1   DRWFL1:=DRWFL2:=0.
+02476P 0A3E BD   030B    P        JSR    DEFCOL   DEFAULT BY SETTING UP ACTCLR AND ACTCLE
+02477P 0A41 BD   0000    A        JSR    FRMEVL   EVALUATE THE STRING ARG
+02478P 0A44 BD   0000    A DRWSC4 JSR    FRESTR   FREE UP THE STRING AND SET [B] & [X]
+02479P 0A47 20   08   0A51        BRA    DRWSET
+02580
+02481P 0A49 BD   0916    P FTCHVL JSR    FETCHR   Read next char into A.
+02482P 0A4C 7E   093C    P        JMP    PLYVAL   Go scan the value.
+
