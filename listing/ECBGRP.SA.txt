@@ -2352,3 +2352,29 @@ PAGE  041  ECBGRP  .SA:1  TXRGRP CIRCLE
 03133            0000    A        IFNE   &0
 03163                       ENDC   IFN 0
 
+PAGE  042  ECBGRP  .SA:1  TXRGRP CIRCLE
+
+03164                      *
+03165                      * SCAN FOR SIZE OR STAT POSITION
+03166                      *
+03167P 0D60 5F             CPOSSB CLRB            ASSUME NO ARGUMENT
+03168P 0D61 9D   A5      A        JSR    CHRGOT
+03169P 0D63 27   11   0D76        BEQ    CPSEND
+03170P 0D65 BD   0000    A        JSR    CHKCOM
+03171P 0D68 BD   0000    A        JSR    FRMNUM   EVALUATE THE NUMBER
+03172P 0D6B 96   4F      A        LDA    FACEXP   SCALE BY 64
+03173P 0D6D 8B   06      A        ADDA   #&6
+03174P 0D6F 97   4F      A        STA    FACEXP
+03175P 0D71 BD   0000    A        JSR    CONINT
+03176P 0D74 C4   3F      A        ANDB   #&63     ORIGINAL HAD TO BE 0 TO 1
+03177P 0D76 1F   98      A CPSEND TFR    B,A      GET TWO COPIES FOR BIT SPLIT
+03176P 0D78 C4   07      A        ANDB   #&7      ASSUMES 8 POINTS
+03179                      *    SET NUMPNT PARAMETER
+03180P 0D7A 44                    LSRA            GET QUADRANT PARAMETER
+03181P 0D7B 44                    LSRA
+03182P 0D7C 44                    LSRA
+03183P 0D7D 39                    RTS
+03184
+03185                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00001--01128

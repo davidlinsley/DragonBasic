@@ -2228,3 +2228,26 @@ MLCARY LDA    ,S       GET HIGHS
 CDRAW  JMP    LINGEN
        IFNE   &0
  ENDC   IFN 0
+*
+* SCAN FOR SIZE OR STAT POSITION
+*
+CPOSSB CLRB            ASSUME NO ARGUMENT
+       JSR    CHRGOT
+       BEQ    CPSEND
+       JSR    CHKCOM
+       JSR    FRMNUM   EVALUATE THE NUMBER
+       LDA    FACEXP   SCALE BY 64
+       ADDA   #&6
+       STA    FACEXP
+       JSR    CONINT
+       ANDB   #&63     ORIGINAL HAD TO BE 0 TO 1
+CPSEND TFR    B,A      GET TWO COPIES FOR BIT SPLIT
+       ANDB   #&7      ASSUMES 8 POINTS
+*    SET NUMPNT PARAMETER
+       LSRA            GET QUADRANT PARAMETER
+       LSRA
+       LSRA
+       RTS
+
+       END
+
