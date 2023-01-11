@@ -1,105 +1,60 @@
-                                                      PAGE         040        Ei:CBC.--;       .SA :1          TXRGRP CIRCLE
+PAGE  040  ECBGRP  .SA:1  TXRGRP CIRCLE
 
-
-
-                                                      03019P          0r90       34        10                A                   PSHS                              SAVE Y VALUE
-
-                                                      03020P          0C9E       BD        0D25              P                   JSR            RADMUL             GET X VALUE IN [X]
-
-                                                      03021P          00A1       35        20                A                   PULS                              NOW Y IS            IN     EY3
-
-                                                      .03022P         0up3       06        E4                A                   LDA                               GET QUADRANT TO saE IF SWAP                                   X AND
-
-                                                      03023                                                                 DESIRED FOR                1,2,5       AND 6
-                                                      03024P          OCA5       84        03                A                   ANDA           Ite,3              MAP TO 0,1,2,3
-
-                                                      03025P          OCA7       27        06         OflAP                      BEQ            OPNXCH             NO SWAP FOR 0 AND 4
-
-                                                      03026P          OCA9       81        03                A                   CMPA           #&3
-                                       40             03027P          00AB       27        02         OCAF                       BED.           0PNX0H             NO SWAP FOR 3 AND 7
-
-                                           I I II     03028P          OCAD       16        12                A                   EXG            X,Y                SWAP X AND
-
-                                                      03029P          OCAF       9F        C3                A    CPNXCH STX                    X2STOR             STORE X OFFSET
-
-                                                      03030P          OCB1       IF        21                A                   TFR            Y,X                SETUP FOR MULTIPLY
-                                                      03031P          00E3       DC        01                A                   ODD            ASPECT             BY ASPECT RATIO
-
-                                                      03032P          OCB5       BD        0033                                  jSR            ML1632
-
-                                                      03033P          OCB8       IF        20                A                   TFR            Y,D                SEE WHAT HIGH ORDER RESULT                                  IS
-
-                                                      03034P          00BA       4D                                              TSTA                              SHOULD HAVE 0 IN HIGH ORDER
-
-                                                      03035P          OCBB       1026      F341                                  OBNE           FCERR
-                                                      03036P          OCBF       D7                          A                   STB            Y2STOR
-                                                      03037P          OCC1       1F                          A                   TFR            U,D                GET LOW 8 BITS OF RESULT
-
-                                                      03038P          0003       97        06                A                   STA            Y2STOR-I-&1
-
-                                                      03039                                                       *   NOW WE HAVE Y2STOR AND X2STOR EQUAL POINT OFFSET
-
-                                                      03040                                                       *   SO WE NEED TO CENTER                         ADJUST AND RANGE CHECK
-
-                                                      0304IP          0005       A6        E4                A                   LDA            ,S                 GET THE QUADRANT
-
-                                                      03042P          0007       81        02                A                   CMPA           #&2                FOR 2,3,4,5 WE USE NEGATIVE                                   X
-                                                      03043P          orr9                 OF         OCD9                       BCS            CADDX              ADD FOR 0 AND 1
-
-                                                      0304AP          OCCB       81        06                A                   CMPA           #&6
-
-                                                      03045P          OCCD       24        OA         OrD9                       BCC            CADDX              ADD FOR 6 AND 7 
-                                           ud         03046P          OCCF       DC        CB                A                   LDD            ONTRX              OFFSET FROm CENTER
-
-                                       4111:          03047P          OCD1       93        C3                A                   SUBD           X2STOR
-                                                      03048P          0003       24        11         00E6                       BCC            CXOK               MUST BE OK SINCE 0 IS LEGAL
-                                                      03049P          0005       4F                                              0LRA                              TRY 0
-
-                                                      03050P          OCD6       5F                                              CLRB
-
-                                                      03051P          OCD7       20        OD         OCE6                       BRA            CXOK
-                                                      03052P          OCD9       00        CB                A    CADDX          LDD            CNTRX
-
-                                                      03053P          OCDB       D3        C3                A                   ADM            X2STOR
-
-                                                      03054P          OCDD       25        05         00E4                       BCS            CNXOK              ALWAYS MAP TO BORDER
-                                                      03055P          00DF       1093      D3                A                   CAPD           XMAX
-
-                                                      03056P          00E2       25        02         00E6                       BCS            CXOK
-
-                                                      03057P          00E4       DC        D3                A    CNXOK          ODD            XMAX
-
-                                                      03058P          OCE6       DO        03                A    CXOK           STD            X2STOR             NOW HAVE OFFSET X IN RANGE
-
-                                                      03059P          00E8       A6        EA                A                   LDA            ,S                 GET THE QUADRANT
-                                                      03060P          ()DEA      81        04                A                   CMPA           #&4                WE ADD TC CNTRY                     IN 0,1,2,3
-                                                      03061P          ocEr       25        OA         OCFS                       nr,r,          CADDY              SO DO THE ADD
-
-                                                      03,062P         OCEE       DC        CD                A                   LOD            CNTRY
-
-"Progression" - it's a                                03063P          00F0       93        05                A                   SUBD          -Y2STOR
-                                             !„
-movement. The latest i                                03064P                     24        11         0005                       BCC            CYOK
-
-family of power amplifi                               03065P          OCF4       4F                                              CLRA                              MAP TO BORDER
-lifetime spent in the re                              03066P          00F,                                                       CLRB
-components that alwa                                  03067P          orFs       20        OD         ODO5                       BRA            CYOK
-
-always respect the del                                03068P          00F8       DC        CD                A    CADDY          LDD            CNTRY
-nor Ivey realism from th                              03069P          OCFA       D3        05                A                   ADDD           Y2STOR
-(/In most thunderous                                  03070P          00E0       2c-7,     05         opoa                       BCS            ONYOK
-       lot allowed to affec                           0307IP          OCFE       1093      D5                A                   0MPD           YMAX
-                                                      03072P          0001       25        02         ODO5                       BCS            CYOK
-                                                      03073P          0D03       DC        D5                A    CNYOK          ODD            YMAX
-
-                                                      03074P          0005       DD        C5                A    CYOK           STD            Y2STOR
-
-         absolut                                      03075                                                       *   NOW WE HAVE THE NEXT                         CONNECTING POINT IN X2STOR                                  AND Y2STOR
-                                                      03076P          0007       OP'       08                A                   TST            OSTRFL
-
-
-
-
-
-                                "
-
+03019P 0C9C 34   10      A        PSHS   X        SAVE Y VALUE
+03020P 0C9E BD   0D25    P        JSR    RADMUL   GET X VALUE IN [X]
+03021P 0CA1 35   20      A        PULS   Y        NOW Y IS IN [Y]
+03022P 0CA3 A6   E4      A        LDA    ,S       GET QUADRANT TO SEE IF SWAP X AND Y
+03023                      *    DESIRED FOR 1,2,5 AND 6
+03024P 0CA5 84   03      A        ANDA   #&3      MAP TO 0,1,2,3
+03025P 0CA7 27   06   0CAF        BEQ    CPNXCH   NO SWAP FOR 0 AND 4
+03026P 0CA9 81   03      A        CMPA   #&3
+03027P 0CAB 27   02   0CAF        BEQ    CPNXCH   NO SWAP FOR 3 AND 7
+03028P 0CAD 1E   12      A        EXG    X,Y      SWAP X AND Y
+03029P 0CAF 9F   C3      A CPNXCH STX    X2STOR   STORE X OFFSET
+03030P 0CB1 1F   21      A        TFR    Y,X      SETUP FOR MULTIPLY
+03031P 0CB3 DC   D1      A        LDD    ASPECT   BY ASPECT RATIO
+03032P 0CB5 BD   0D33    P        JSR    ML1632
+03033P 0CB8 1F   20      A        TFR    Y,D      SEE WHAT HIGH ORDER RESULT IS
+03034P 0CBA 4D                    TSTA            SHOULD HAVE 0 IN HIGH ORDER
+03035P 0CBB 1026 F341    P        LBNE   FCERR
+03036P 0CBF D7   C5      A        STB    Y2STOR
+03037P 0CC1 1F   30      A        TFR    U,D      GET LOW 8 BITS OF RESULT
+03038P 0CC3 97   C6      A        STA    Y2STOR+&1
+03039                      * NOW WE HAVE Y2STOR AND X2STOR EQUAL POINT OFFSET
+03040                      * SO WE NEED TO CENTER ADJUST AND RANGE CHECK
+03041P 0CC5 A6   E4      A        LDA    ,S       GET THE QUADRANT
+03042P 0CC7 81   02      A        CMPA   #&2      FOR 2,3,4,5 WE USE NEGATIVE X
+03043P 0CC9 25   0E   0CD9        BCS    CADDX    ADD FOR 0 AND 1
+0304AP 0CCB 81   06      A        CMPA   #&6
+03045P 0CCD 24   0A   0CD9        BCC    CADDX    ADD FOR 6 AND 7
+03046P 0CCF DC   CB      A        LDD    CNTRX    OFFSET FROM CENTER
+03047P 0CD1 93   C3      A        SUBD   X2STOR
+03048P 0CD3 24   11   0CE6        BCC    CXOK     MUST BE OK SINCE 0 IS LEGAL
+03049P 0CD5 4F                    CLRA            TRY 0
+03050P 0CD6 5F                    CLRB
+03051P 0CD7 20   0D   0CE6        BRA    CXOK
+03052P 0CD9 DC   CB      A CADDX  LDD    CNTRX
+03053P 0CDB D3   C3      A        ADDD   X2STOR
+03054P 0CDD 25   05   0CE4        BCS    CNXOK    ALWAYS MAP TO BORDER
+03055P 0CDF 1093 D3      A        CMPD   XMAX
+03056P 0CE2 25   02   0CE6        BCS    CXOK
+03057P 0CE4 DC   D3      A CNXOK  LDD    XMAX
+03058P 0CE6 DD   C3      A CXOK   STD    X2STOR   NOW HAVE OFFSET X IN RANGE
+03059P 0CE8 A6   E4      A        LDA    ,S       GET THE QUADRANT
+03060P 0CEA 81   04      A        CMPA   #&4      WE ADD TO CNTRY IN 0,1,2,3
+03061P 0CEC 25   0A   0CF8        BCS    CADDY    GO DO THE ADD
+03062P 0CEE DC   CD      A        LDD    CNTRY
+03063P 0CF0 93   C5      A        SUBD   Y2STOR
+03064P 0CF2 24   11   0D05        BCC    CYOK
+03065P 0CF4 4F                    CLRA            MAP TO BORDER
+03066P 0CF5 5F                    CLRB
+03067P 0CF6 20   0D   0D05        BRA    CYOK
+03068P 0CF8 DC   CD      A CADDY  LDD    CNTRY
+03069P 0CFA D3   C5      A        ADDD   Y2STOR
+03070P 0CFC 25   05   0D03        BCS    CNYOK
+03071P 0CFE 1093 D5      A        CMPD   YMAX
+03072P 0D01 25   02   0D05        BCS    CYOK
+03073P 0D03 DC   D5      A CNYOK  LDD    YMAX
+03074P 0D05 DD   C5      A CYOK   STD    Y2STOR
+03075                      * NOW WE HAVE THE NEXT CONNECTING POINT IN X2STOR AND Y2STOR
+03076P 0D07 0D   D8      A        TST    CSTRFL

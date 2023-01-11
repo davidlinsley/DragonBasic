@@ -2112,3 +2112,61 @@ CPNXC3 LSLB            EACH ENTRY IS 2 2BYTE NUMBERS
 *    TO GET VALUE IN [X]
        PULS   U        GET BACK THE POINTER
        LEAU   -&2,U    POINT AT X FACTOR
+       PSHS   X        SAVE Y VALUE
+       JSR    RADMUL   GET X VALUE IN [X]
+       PULS   Y        NOW Y IS IN [Y]
+       LDA    ,S       GET QUADRANT TO SEE IF SWAP X AND Y
+*    DESIRED FOR 1,2,5 AND 6
+       ANDA   #&3      MAP TO 0,1,2,3
+       BEQ    CPNXCH   NO SWAP FOR 0 AND 4
+       CMPA   #&3
+       BEQ    CPNXCH   NO SWAP FOR 3 AND 7
+       EXG    X,Y      SWAP X AND Y
+CPNXCH STX    X2STOR   STORE X OFFSET
+       TFR    Y,X      SETUP FOR MULTIPLY
+       LDD    ASPECT   BY ASPECT RATIO
+       JSR    ML1632
+       TFR    Y,D      SEE WHAT HIGH ORDER RESULT IS
+       TSTA            SHOULD HAVE 0 IN HIGH ORDER
+       LBNE   FCERR
+       STB    Y2STOR
+       TFR    U,D      GET LOW 8 BITS OF RESULT
+       STA    Y2STOR+&1
+* NOW WE HAVE Y2STOR AND X2STOR EQUAL POINT OFFSET
+* SO WE NEED TO CENTER ADJUST AND RANGE CHECK
+       LDA    ,S       GET THE QUADRANT
+       CMPA   #&2      FOR 2,3,4,5 WE USE NEGATIVE X
+       BCS    CADDX    ADD FOR 0 AND 1
+       CMPA   #&6
+       BCC    CADDX    ADD FOR 6 AND 7
+       LDD    CNTRX    OFFSET FROM CENTER
+       SUBD   X2STOR
+       BCC    CXOK     MUST BE OK SINCE 0 IS LEGAL
+       CLRA            TRY 0
+       CLRB
+       BRA    CXOK
+CADDX  LDD    CNTRX
+       ADDD   X2STOR
+       BCS    CNXOK    ALWAYS MAP TO BORDER
+       CMPD   XMAX
+       BCS    CXOK
+CNXOK  LDD    XMAX
+CXOK   STD    X2STOR   NOW HAVE OFFSET X IN RANGE
+       LDA    ,S       GET THE QUADRANT
+       CMPA   #&4      WE ADD TO CNTRY IN 0,1,2,3
+       BCS    CADDY    GO DO THE ADD
+       LDD    CNTRY
+       SUBD   Y2STOR
+       BCC    CYOK
+       CLRA            MAP TO BORDER
+       CLRB
+       BRA    CYOK
+CADDY  LDD    CNTRY
+       ADDD   Y2STOR
+       BCS    CNYOK
+       CMPD   YMAX
+       BCS    CYOK
+CNYOK  LDD    YMAX
+CYOK   STD    Y2STOR
+* NOW WE HAVE THE NEXT CONNECTING POINT IN X2STOR AND Y2STOR
+       TST    CSTRFL
