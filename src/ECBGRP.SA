@@ -1764,3 +1764,61 @@ DRWSC4 JSR    FRESTR   FREE UP THE STRING AND SET [B] & [X]
 
 FTCHVL JSR    FETCHR   Read next char into A.
        JMP    PLYVAL   Go scan the value.
+
+DRWCON PULS   B,X      GO BACK UP ONE LEVEL OF EXECUTE
+DRWSET STB    PSTLEN   STORE THE LENGTH
+       BEQ    DRWCON   Don't check for zero pointer if
+*    string is null since pointer is
+*    meaningless.
+       STX    PSTPTR   STORE THE LOCATION
+       LBEQ   DRWRTS
+DRWSCN TST    PSTLEN   AT THE END OF THIS STRING?
+       BEQ    DRWCON   SEE IF NESTED IN EXECUTE
+       JSR    FETCHR   GET THE NEXT CHARACTER
+       CMPA   #SEMCOL  IGNORE SEMICOLONS
+       BEQ    DRWSCN
+       CMPA   #''      IGNORE SINGLE QUOTE
+       BEQ    DRWSCN
+       CMPA   #'N      IS IT NO MOVE DRAW?
+       BNE    DRWSC1
+       COM    DRWFL1
+       BRA    DRWSCN
+DRWSC1 CMPA   #'B
+       BNE    DRWSC2
+       COM    DRWFL2
+       BRA    DRWSCN
+DRWSC2 CMPA   #'X      IS IT EXECUTE?
+       LBEQ   DXCUTR   GO SCAN NAME AND START SUBSTRING
+       CMPA   #'M      CHECK FOR MOVE COMMAND
+       LBEQ   DDRWMV
+       PSHS   A
+       LDB    #&1      All arguments default to 1.
+       TST    PSTLEN   End of the string?
+       BEQ    DEFONE   Yes, use the default arg.
+       JSR    FETCHR   No, look ahead at the char following
+*    the command letter.
+       JSR    ISLETC   Clear the carry if it is a letter.
+       PSHS   CC       Remember if it's a letter.
+       JSR    FETBAK   Put the pointer back.
+       PULS   CC       Is the next thing a letter?
+       BCC    DEFONE   Yes, it must be another command rather
+*    than an argument for the current
+*    command so use the default arg.
+       BSR    FTCHVL   No, READ ARGUMENT INTO [B]
+DEFONE PULS   A        SEE WHAT THE COmMAND WAS
+       CMPA   #'C
+       BEQ    DDRWCL
+       CMPA   #'A
+       BEQ    DDRWAN
+       CMPA   #'S
+       BEQ    DDRWSC
+       CMPA   #'U
+       BEQ    DDRWUP
+       CMPA   #'D
+       BEQ    DDRWDN
+       CMPA   #'L
+       BEQ    DDRWLF
+       CMPA   #'R
+       BEQ    DDRWRG
+       SUBA   #'E      Right and up.
+       BEQ    DDRWRU

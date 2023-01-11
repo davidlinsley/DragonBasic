@@ -1864,3 +1864,64 @@ PAGE  033  ECBGRP  .SA:1  TXRGRP MUSIC COMMAND
 02481P 0A49 BD   0916    P FTCHVL JSR    FETCHR   Read next char into A.
 02482P 0A4C 7E   093C    P        JMP    PLYVAL   Go scan the value.
 
+PAGE  034  ECBGRP  .SA:1  TXRGRP DRAW COMMAND
+
+02483
+02484P 0A4F 35   14      A DRWCON PULS   B,X      GO BACK UP ONE LEVEL OF EXECUTE
+02485P 0A51 D7   D8      A DRWSET STB    PSTLEN   STORE THE LENGTH
+02486P 0A53 27   FA   0A4F        BEQ    DRWCON   Don't check for zero pointer if
+02487                      *    string is null since pointer is
+02488                      *    meaningless.
+02489P 0A55 9F   D9      A        STX    PSTPTR   STORE THE LOCATION
+02450P 0A57 1027 00EA 0B45        LBEQ   DRWRTS
+02491P 0A5B 0D   D8      A DRWSCN TST    PSTLEN   AT THE END OF THIS STRING?
+02492P 0A5D 27   F0   0A4F        BEQ    DRWCON   SEE IF NESTED IN EXECUTE
+02493P 0A5F BD   0916    P        JSR    FETCHR   GET THE NEXT CHARACTER
+02454P 0A62 81   3B      A        CMPA   #SEMCOL  IGNORE SEMICOLONS
+02495P 0A64 27   F5   0A5B        BEQ    DRWSCN
+02496P 0A66 81   27      A        CMPA   #''      IGNORE SINGLE QUOTE
+02497P 0A68 27   F1   0A5B        BEQ    DRWSCN
+02458P 0A6A 81   4E      A        CMPA   #'N      IS IT NO MOVE DRAW?
+02495P 0A6C 26   04   0A72        BNE    DRWSC1
+02500P 0A6E 03   D5      A        COM    DRWFL1
+02501P 0A70 20   E9   0A5B        BRA    DRWSCN
+02502P 0A72 81   42      A DRWSC1 CMPA   #'B
+02503P 0A74 26   04   0A7A        BNE    DRWSC2
+02504P 0A76 03   D6      A        COM    DRWFL2
+02505P 0A78 20   E1   0A5B        BRA    DRWSCN
+02506P 0A7A 81   58      A DRWSC2 CMPA   #'X      IS IT EXECUTE?
+02507P 0A7C 1027 0096 0B16        LBEQ   DXCUTR   GO SCAN NAME AND START SUBSTRING
+02506P 0A80 81   4D      A        CMPA   #'M      CHECK FOR MOVE COMMAND
+02505P 0A82 1027 012A 0BB0        LBEQ   DDRWMV
+02510P 0A86 34   02      A        PSHS   A
+02511P 0A88 C6   01      A        LDB    #&1      All arguments default to 1.
+02512P 0A8A 0D   D8      A        TST    PSTLEN   End of the string?
+02513P 0A8C 27   11   0A9F        BEQ    DEFONE   Yes, use the default arg.
+02514P 0A8E BD   0916    P        JSR    FETCHR   No, look ahead at the char following
+02515                      *    the command letter.
+02516P 0A91 BD   0000    A        JSR    ISLETC   Clear the carry if it is a letter.
+02517P 0A94 34   01      A        PSHS   CC       Remember if it's a letter.
+02516P 0A96 BD   0960    P        JSR    FETBAK   Put the pointer back.
+02519P 0A99 35   01      A        PULS   CC       Is the next thing a letter?
+02520P 0A9B 24   02   0A9F        BCC    DEFONE   Yes, it must be another command rather
+02521                      *    than an argument for the current
+02522                      *    command so use the default arg.
+02523P 0A9D 8D   AA   0A49        BSR    FTCHVL   No, READ ARGUMENT INTO [B]
+02524P 0A9F 35   02      A DEFONE PULS   A        SEE WHAT THE COmMAND WAS
+02525P 0AA1 81   43      A        CMPA   #'C
+02526P 0AA3 27   28   0ACD        BEQ    DDRWCL
+02527P 0AA5 81   41      A        CMPA   #'A
+02528P 0AA7 27   2E   0AD7        BEQ    DDRWAN
+02529P 0AA9 81   53      A        CMPA   #'S
+02530P 0AAB 27   32   0ADF        BEQ    DDRWSC
+02531P 0AAD 81   55      A        CMPA   #'U
+02532P 0AAF 27   5C   0B0D        BEQ    DDRWUP
+02533P 0AB1 81   44      A        CMPA   #'D
+02534P 0AB3 27   55   0B0A        BEQ    DDRWDN
+02535P 0AB5 81   4C      A        CMPA   #'L
+02536P 0AB7 27   4C   0B05        BEQ    DDRWLF
+02537P 0AB9 81   52      A        CMPA   #'R
+02536P 0ABB 27   43   0B00        BEQ    DDRWRG
+02539P 0ABD 80   45      A        SUBA   #'E      Right and up.
+02540P 0ABF 27   2F   0AF0        BEQ    DDRWRU
+
