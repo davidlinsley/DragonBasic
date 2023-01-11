@@ -1822,3 +1822,61 @@ DEFONE PULS   A        SEE WHAT THE COmMAND WAS
        BEQ    DDRWRG
        SUBA   #'E      Right and up.
        BEQ    DDRWRU
+       DECA            Right and down.
+       BEQ    DDRWRD
+       DECA            Left and down.
+       BEQ    DDRWLD
+       DECA            Left and up.
+       BEQ    DDRWLU
+G3FCER JMP    FCERR    SAVE SOME LONG BRANCHES
+DDRWCL JSR    GETCLX   SCAN COLOR NUMBER
+       STB    FORCLR   SET UP AS FOREGROUND
+       JSR    DEFCOL   SET UP ACTCLR AND ACTCLE
+GODSCN BRA    DRWSCN   CONTINUE SCANNING
+DDRWAN CMPB   #&4      ONLY ALLOW 4 ANGLES
+       BCC    G3FCER
+       STB    DRWANG
+       BRA    GODSCN
+DDRWSC CMPB   #&63    ONLY ALLOW SCALE UP TO 63
+       BCC    G3FCER
+       STB    DRWSCL
+       BRA    GODSCN
+
+DDRWLU CLRA            Make X and Y both negative
+       BSR    NEGDB    to go left and up.
+       FCB    @41      (BRN over CLRA.)
+DDRWRD CLRA            Make both X and Y positive to
+       TFR    D,X      go right and down.
+       BRA    DODRAW
+
+DDRWRU CLRA            Make X positive, Y negative to
+       TFR    D,X      go right and up.
+       BSR    NEGDB
+       EXG    D,X
+       BRA    DODRAW
+
+DDRWLD CLRA            Make X negative, Y positive to
+       TFR    D,X      go left and down.
+       BSR    NEGDB
+       BRA    DODRAW
+
+DDRWRG CLRA            SET UP [D] AS X
+DDRWXG LDX    DBLZER   AND [X] AND Y
+       BRA    DODRAW
+DDRWLF CLRA
+       BSR    NEGDB
+       BRA    DDRWXG   SET Y TO ZERO
+DDRWDN CLRA
+       BRA    DDRWYG
+DDRWUP CLRA
+       BSR    NEGDB
+DDRWYG LDX    DBLZER
+       EXG    X,D
+       BRA    DODRAW
+DXCUTR JSR    VARSUB   READ NAME AND LOOK UP
+       LDB    #&2      MAKE SURE ROOM ON STACK
+       JSR    GETSTK
+       LDB    PSTLEN   SAVE CURRENT SCAN POSITION AND LENGTH
+       LDX    PSTPTR
+       PSHS   B,X      SAVE FOR RESTORING
+       JMP    DRWSC4   CALL FRESTR WITH NEW STRING

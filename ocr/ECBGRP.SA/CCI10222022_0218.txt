@@ -1,98 +1,60 @@
-                      40                                                                                                                                                                                                                                                                                             •
+PAGE  035  ECBGRP  .SA:1  TXRGRP DRAW COMMAND
 
-
-
-                                    PAGE                  ECBGRA           . SA11        TX RGRP       DRAW       COMMAND
-
-
-
-                                    02541P,       OAC1      4A                                           DECA                             Right and down.
-
-                                    02514.'2P     OAC2      27         27        OAEB                    BED            DDRWRD
-
-                                    02543P        OAC4      4A                                           DECA                             Left and down.
-                                    025.;(4.4P    OAC5      27         32        OAFS                    BED            DDRWLD
-
-                                    02545P        OAO7      4A                                           DECA                             Left      and      IAD.
-
-                                    02546P        OAC8      27         1D        OAF7                    BED            DDRWLU
-
-                                    02t54712,     OACA      7E         0000            A   G3FCER        JMP            FCERR             SAVE SOME LONG BRANCHES
-
-                                    02548P        OACD      BD         02CE                DDRWCL        JSR            GETCLX            SCAN COLOR NUMBER
-                                                  OADO      D7         B2              A                 STB            FORCLR            SET UP AS FOREGROUND
-                                    02550P        OAD2      BD         030B                              JSR            DEFCOL            SET UP ACTCLR AND ACTCLE
-
-                                    02551P        OAD5      20         84        0A5B      GODSCN        BRA            DRWSCN            CONTINUE SCANNING
-
-                                                  OAD7      Cl         04              A   DDRWAN        CMPB           #&4               ONLY A-LOW 4 ANGLES
-                                    02553P,       OAD9      24         EF        OACA                    BCC            G3FCER
-
-                                    02554         OADB      D7         ES              A                 STB            DRWANG
-
-                                    0255:5P       OADD      20         F6        OAD5                    BRA            GODSON
-
-                                    02556p        OADF      Cl         3F              A   DDRWSC        CMPB           #8,63             ONLY ALLOW SCALE UP TO 63
-
-                                    035,57P       OAE1      24         E7        OACA                    BCC            G3FCER
-
-                                    02558P        OAE3      D7         ES              A                 SIB            DRWSCL
-                                    0:2559i2'     OAE5      20         EE        OAD5                    BRA            GODSON
-
-                                    02560
-                                    02!'5i 61. (2'OAF7      4F                             DDRWLU        CLRA                             Make X and Y both negative                                                                                                                                                 •
-
-                                                  OAES      8D         58        OB42                    BSR            NEGDB             to go        left and          UD.
-
-                                    02563p        OAEA                 2i              A                 FCB            @41                (BRN over CLRA.)
-
-                                    02564P        OAEB      4F                             DDRWRD        CLRA                             Make both X and Y positive                             to
-
-                                    025652        OAE.      1F         01              A                 TFR            D, X              go     right and down.
-
-                                    02566P        OAFE      20         59        0849                    BRA            DODRAW
-                      •             02567
-                                    02568P        OAFO                                     DDRWRU        CLRA                             Make X positive,                   Y negative            to
-
-                                    02569P        OAF1                 01              A                 TFR            D, X              go     right       and up.
-
-                                    02570P        OAF3      SD         40        0842                    BSR            NEGDB
-
-                                    02571P        OAFS      la         01              A                 EXG            D. X
-
-                                    025722'       OAF7      20         50        0B49                    BMA            DODRAW
-                      •             c.)2573
-                                    025'74P       OAFS      4F                             DDRWLD        CLRA                             Make X negative,                   Y. ;positive          to
-
-                                    0:2575P       OAFA      IF         01              A                 TFR            D, X              go     left and down.
-
-                                    02576P        OAFC      6D         44        0B42                    BSR            NEGDB
-                                    0:257712,     OAFE      20         49        0B49                    BRA            DOD RAW
-                                    0 2 5 7 8
-
-                                    02579P        OBOO      4F                             DDRWRG        CLRA                             SET UP [D]             AS X
-
-                                    02580P        0B01      9E         SA              A   DDRWXG        LDX            DBLZER            AND [X] AND
-                                    02581P        0B03      20         44        OB49                    BRA            DODRAW
-                      411           02582P        OB05      4F                             DDRWLF        CLRA
-                                    02583p        OB06      8D         3A        0542                    BSR            NEGDB 
-
-                                    02584P        OB03      20         F7        0B01                    BRA            DDRW XS           SET Y TO ZERO
-"Progression"         •             02t535P       OBOA      4F                             DDRWDN        CLRA
-movement. T                           2 5 IA 6P   OBOB      20         03        OBIO                    BRA            DDRWYG
-family of po                        02f.3872      OBOE)                                    DDRWUP        CLRA
-lifetime spent                      02586P        OBOE      8D         32        OB42                    BSR            NEGDB
-(;oinponents                        02589P        °RIO                 RA              A   DDRWYG        LDX            DBLZER
-          respe4                    02590P        OB12                 10              A                 EXG            X, D
-  )iivoy realisi      •                       P   0B14      20                   OB49                    BRA            DODRAW
-
-111(‘ most thu                      02592P        0B16      BD         0999                DXCUTR        JSR            VARSUB            READ NAME AND LOOK UP
-
-; Hlow.                             C:2f.593P     0B1q      C          02              A                 LDB            #&2               MAKE SURE ROOM ON STACK
-                      •                           ()BIB     BD         0000            A                 JSR            BETSTK
-                                    0:259512'     OB1E      D          D8              A                 LDB            PSTLEN            SAVE CURRENT SCAN POSITION                             AND      LENGTH
-
-                                    0:2596p       OB20      9E         D9              A                 LDX            PSTPTR
-                      •                                     34         14              A                 PSHS           B. X              SAVE FOR RESTORING
-       abs                          02598P        OR24      7E         0A44                              JMP            DRWSC4            CALL FRESTR WITH NEW STRING
-
+02541P 0AC1 4A                    DECA            Right and down.
+02542P 0AC2 27   27   0AEB        BEQ    DDRWRD
+02543P 0AC4 4A                    DECA            Left and down.
+02544P 0AC5 27   32   0AF9        BEQ    DDRWLD
+02545P 0AC7 4A                    DECA            Left and up.
+02546P 0AC8 27   1D   0AE7        BEQ    DDRWLU
+02547P 0ACA 7E   0000    A G3FCER JMP    FCERR    SAVE SOME LONG BRANCHES
+02548P 0ACD BD   02CE    P DDRWCL JSR    GETCLX   SCAN COLOR NUMBER
+02549P 0AD0 D7   B2      A        STB    FORCLR   SET UP AS FOREGROUND
+02550P 0AD2 BD   030B    P        JSR    DEFCOL   SET UP ACTCLR AND ACTCLE
+02551P 0AD5 20   84   0A5B GODSCN BRA    DRWSCN   CONTINUE SCANNING
+02552P 0AD7 C1   04      A DDRWAN CMPB   #&4      ONLY ALLOW 4 ANGLES
+02553P 0AD9 24   EF   0ACA        BCC    G3FCER
+02554P 0ADB D7   E8      A        STB    DRWANG
+02555P 0ADD 20   F6   0AD5        BRA    GODSCN
+02556P 0ADF C1   3F      A DDRWSC CMPB   #&63    ONLY ALLOW SCALE UP TO 63
+02557P 0AE1 24   E7   0ACA        BCC    G3FCER
+02558P 0AE3 D7   E9      A        STB    DRWSCL
+02559P 0AE5 20   EE   0AD5        BRA    GODSCN
+02560
+02561P 0AE7 4F             DDRWLU CLRA            Make X and Y both negative
+02562P 0AE8 8D   58   0B42        BSR    NEGDB    to go left and up.
+02563P 0AEA      21      A        FCB    @41      (BRN over CLRA.)
+02564P 0AEB 4F             DDRWRD CLRA            Make both X and Y positive to
+02565P 0AEC 1F   01      A        TFR    D,X      go right and down.
+02566P 0AEE 20   59   0B49        BRA    DODRAW
+02567
+02568P 0AF0 4F             DDRWRU CLRA            Make X positive, Y negative to
+02569P 0AF1 1F   01      A        TFR    D,X      go right and up.
+02570P 0AF3 8D   4D   0B42        BSR    NEGDB
+02571P 0AF5 lE   01      A        EXG    D,X
+02572P 0AF7 20   50   0B49        BRA    DODRAW
+02573
+02574P 0AF9 4F             DDRWLD CLRA            Make X negative, Y positive to
+02575P 0AFA 1F   01      A        TFR    D,X      go left and down.
+02576P 0AFC 8D   44   0B42        BSR    NEGDB
+02577P 0AFE 20   49   0B49        BRA    DODRAW
+02578
+02579P 0B00 4F             DDRWRG CLRA            SET UP [D] AS X
+02580P 0B01 9E   8A      A DDRWXG LDX    DBLZER   AND [X] AND Y
+02581P 0B03 20   44   0B49        BRA    DODRAW
+02582P 0B05 4F             DDRWLF CLRA
+02583P 0B06 8D   3A   0B42        BSR    NEGDB
+02584P 0B08 20   F7   0B01        BRA    DDRWXG   SET Y TO ZERO
+02585P 0B0A 4F             DDRWDN CLRA
+02586P 0B0B 20   03   0B10        BRA    DDRWYG
+02587P 0B0D 4F             DDRWUP CLRA
+02586P 0B0E 8D   32   0B42        BSR    NEGDB
+02589P 0B10 9E   8A      A DDRWYG LDX    DBLZER
+02590P 0B12 1E   10      A        EXG    X,D
+02591P 0B14 20   33   0B49        BRA    DODRAW
+02592P 0B16 BD   0999    P DXCUTR JSR    VARSUB   READ NAME AND LOOK UP
+02593P 0B19 C6   02      A        LDB    #&2      MAKE SURE ROOM ON STACK
+02594P 0B1B BD   0000    A        JSR    GETSTK
+02595P 0B1E D6   D8      A        LDB    PSTLEN   SAVE CURRENT SCAN POSITION AND LENGTH
+02596P 0B20 9E   D9      A        LDX    PSTPTR
+02597P 0B22 34   14      A        PSHS   B,X      SAVE FOR RESTORING
+02598P 0B24 7E   0A44    P        JMP    DRWSC4   CALL FRESTR WITH NEW STRING
