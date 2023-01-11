@@ -1,103 +1,60 @@
-                                                                                                                                                                                                                                                                                                                                                                          •
+PAGE  036  ECBGRP  .SA:1  TXRGRP DRAW COMMAND
 
-
-
-                 PAGE           036          ECBGRP               .SA11             TXRGRP DRAW COMMAND
-
-
-                 02599                                                                 *
-
-                 02600                                                                 *    THIS ROUTINE MULTIPLIES [X] BY DRWSCL AND RETURNS IN [D]
-                 02601                                                                 *    WHEN DRWSCL IS ZERO NOTHING IS DONE.                                                           OTHERWISE WE DIVIDE BY                                                                                                                                                         •
-          I      02602                                                                 *    FOUR AFTER THE MULTIPLY.                                                                                                                                                                                                                                                   "
-                 02603                                                                 *
-                 02604P            OB27         D6           ES                   A    DMULSB LOB                          DRWSCL                 GET THE SCALE                                                                                                                                                                                                           •
-                 02605P            0B29         27           IB           0B46                           BEQ               DRWSC9                 MOVE RESULT TO ED:J AND EXIT
-
-                 02606P            082B                                                                  OLRA                                     SET UP TO MULTIPLY [D]                                     BY [X]
-                 02607P            0B2C         16           01                   A                      EXG               D,X                    Find out and remember if X                                            is
-
-                 02608P            OB2F         A7           62                   A                      STA               ,-S                    negative.
-
-                 02609P            0830         2A           02           0B34                           BPL               POSMUL                 It      isn't.
-
-                 02610P            0B32         80           0D           0B41                           BSR               NEGD                   It      is,       negate            it.
-
-                 02611P            01334        BD           0033                 P    POSMUL jSR                          ML1632                 GET 32 BIT RESULT IN EY,UD
-
-                 02612P            iya37        1F           30                   A                      TFR               U,D                    MOVE RESULT INTO [D]
-
-                 02613P            oB:39        44                                                       LSRA                                     AND DIVIDE BY 4                           (Unsigned)
-
-                 02614P            of-33A       56                                                       RORB
-
-                 02615P            ori3B        44                                                       LSRA
-
-                 026160            0B3C         56                                                       RORB
-                 026170            0B3D         6D           60                   A                      TST               ,S+                    Negate if it was originally negative.
-
-                 02618P            0B3F         2A           04           0B45                           BPL               DRWRTS
-•                02619P            0B41         /4.0                                   NEGD              NEGA
-
-      I 1 '      02620P            OB42         50                                     NEGDB             NEGB
-                 02621P            0B43         82           00                   A                      SECA              #&0
-
-                 02622P            OB45         39                                     DRWRTS RTS
-
-                 02623P            0B46         IF           10                   A    DRWSC9 TFR                          X,D
-
-                 02624P            OB46         39                                                       RTS
-                 02625                                                                 *
-
-                 02626                                                                 *    DODRAW ACTUALLY DOES THE DRAWING WORK
-
-                 02627                                                                 *    X OFFSET IS IN                         [D] AND Y OFFSET IS IN                                      CXD
-
-                 02628                                                                 *    FIRST WE SCALE,                          THEN WE DO ANGLE,                              THEN WE
-                 02629                                                                 *    COMPUTE TARGET POINT AND RANGE CHECK, THEN
-
-                 02630                                                                 *    WE STORE THE NEW END POINT
-                 02631                                                                 *
-
-                 026320            OB49         34           06                   A    DODRAW PSHS                                                SAVE X OFFSET
-
-                 02633P            0B4B         8D           DA           0827                           BSR               DMULSB                 SCALE Y VALUE IN [X]
-
-                 02634P            0B4D         35           10                   A                      PULS              X                      GET BACK X OFFSET IN [X]
-                 026352            OB4F         34           06                   A                      PSHS              D                      SAVE Y SCALED VALUE
-
-                 02636P            0B51         8D           D4           OB27                           BSR               DMULSB                 COMPUTE SCALED X INTO ED:I
-41               02637P            0B53         35           10                   A                      PULS              X                      GET BACK SCALED Y IN [X]
-    hl           02638P            0B55         109E         ES                   A                      LDY               DRWANG                 Put angle count on top of stack.
-
-                 02639P            OB58         34           20                   A                      PSHS              Y                       (Don't care about                             low order byte.)
-40               02640P            OB5A         6D           64                        DRWANL Tc;T                         ,S                     HAVE 90 DEGREE ROTATE COUNT RUN OUT?
-                 02641P            OB5C         27           08           0B66                           BEG!              DRWAFN                 DONE WITH ANGLE EXCEPT ASPECT RATIO
-
-                 02642P            OB5E         lE           10                   A                      EXG               X,D                    FOR EVERY 90 DEGREES WE EXCHANGE X AND                                                               Y
-40               02643P            OB60         8D           DF           0B 4 1                         BSR               NEGD                   AND NEGATE THE NEW X
-
-                 02644P            OB62         6A           E4                   A                      DEC               ,S                     UPDATE ANGLE 90 DEGREE COUNT
-
-                 02645P            OB64         20           F4           OB5A                           BRA               DRWANL                 AND LOOP DOING ROTATE
-40               02646
-                 02647P            0B66                                           A    DRWAFN PULS                                                Get        rid of the angle count.
-
-                 0648P             0B68         DE           BA                   A                      LDU               DBLZER                 In case beyond right margin.
-                 02649P            OB6A         D3           07                   A                      ADDD              LSAVEX                 Add        in the current                         position.
-
-                 02650P               1360      2B           02           OB70                           BMI               MINX                   Force to                right margin.
-
-                 02651P            0136E        1F           03                   A                      TFR               D,U                    Put target                   X position into U.
-40               02652P            0B 7O           F         10                   A    MINX              TFR               X,D                    Put Y offset                      into D.
-
-                 02653P            0 B 7 2      96           8A                   A                      LOX               DBLZER                 In case beyond top of screen.
-
-                 02654P            0B74         D3           09                   A                      ADDD              LSAVEY                 Pod in the current position.
-40               026552            0B76         26           02           OB7A                           BMI               DRWABS                 Force to top of screen.
-
-    HI           02656P            0 13 7 8     IF           01                                          TFR               D,X                    Put target                   Y position                  into X.
-
-
-                                                                                                                                                                                                                                                                                                                                                                          ir)
-
+02599                      *
+02600                      * THIS ROUTINE MULTIPLIES [X] BY DRWSCL AND RETURNS IN [D]
+02601                      * WHEN DRWSCL IS ZERO NOTHING IS DONE. OTHERWISE WE DIVIDE BY
+02602                      * FOUR AFTER THE MULTIPLY.
+02603                      *
+02604P 0B27 D6   E9      A DMULSB LDB    DRWSCL   GET THE SCALE
+02605P 0B29 27   1B   0B46        BEQ    DRWSC9   MOVE RESULT TO [D] AND EXIT
+02606P 0B2B 4F                    CLRA            SET UP TO MULTIPLY [D] BY [X]
+02607P 0B2C 1E   01      A        EXG    D,X      Find out and remember if X is
+02608P 0B2E A7   E2      A        STA    ,-S      negative.
+02609P 0B30 2A   02   0B34        BPL    POSMUL   It isn't.
+02610P 0B32 8D   0D   0B41        BSR    NEGD     It is, negate it.
+02611P 0B34 BD   0D33    P POSMUL JSR    ML1632   GET 32 BIT RESULT IN [Y,U]
+02612P 0B37 1F   30      A        TFR    U,D      MOVE RESULT INTO [D]
+02613P 0B39 44                    LSRA            AND DIVIDE BY 4 (Unsigned)
+02614P 0B3A 56                    RORB
+02615P 0B3B 44                    LSRA
+02616P 0B3C 56                    RORB
+02617P 0B3D 6D   E0      A        TST    ,S+      Negate if it was originally negative.
+02618P 0B3F 2A   04   0B45        BPL    DRWRTS
+02619P 0B41 40             NEGD   NEGA
+02620P 0B42 50             NEGDB  NEGB
+02621P 0B43 82   00      A        SBCA   #&0
+02622P 0B45 39             DRWRTS RTS
+02623P 0B46 1F   10      A DRWSC9 TFR    X,D
+02624P 0B46 39                    RTS
+02625                      *
+02626                      * DODRAW ACTUALLY DOES THE DRAWING WORK
+02627                      * X OFFSET IS IN [D] AND Y OFFSET IS IN [X]
+02628                      * FIRST WE SCALE, THEN WE DO ANGLE, THEN WE
+02629                      * COMPUTE TARGET POINT AND RANGE CHECK, THEN
+02630                      * WE STORE THE NEW END POINT
+02631                      *
+02632P 0B49 34   06      A DODRAW PSHS   D        SAVE X OFFSET
+02633P 0B4B 8D   DA   0B27        BSR    DMULSB   SCALE Y VALUE IN [X]
+02634P 0B4D 35   10      A        PULS   X        GET BACK X OFFSET IN [X]
+02635P 0B4F 34   06      A        PSHS   D        SAVE Y SCALED VALUE
+02636P 0B51 8D   D4   0B27        BSR    DMULSB   COMPUTE SCALED X INTO [D]
+02637P 0B53 35   10      A        PULS   X        GET BACK SCALED Y IN [X]
+02638P 0B55 109E E8      A        LDY    DRWANG   Put angle count on top of stack.
+02639P 0B58 34   20      A        PSHS   Y        (Don't care about low order byte.)
+02640P 0B5A 6D   E4      A DRWANL TST    ,S       HAVE 90 DEGREE ROTATE COUNT RUN OUT?
+02641P 0B5C 27   08   0B66        BEQ    DRWAFN   DONE WITH ANGLE EXCEPT ASPECT RATIO
+02642P 0B5E 1E   10      A        EXG    X,D      FOR EVERY 90 DEGREES WE EXCHANGE X AND Y
+02643P 0B60 8D   DF   0B41        BSR    NEGD     AND NEGATE THE NEW X
+02644P 0B62 6A   E4      A        DEC    ,S       UPDATE ANGLE 90 DEGREE COUNT
+02645P 0B64 20   F4   0B5A        BRA    DRWANL   AND LOOP DOING ROTATE
+02646
+02647P 0B66 35   20      A DRWAFN PULS   Y        Get rid of the angle count.
+0648P  0B68 DE   8A      A        LDU    DBLZER   In case beyond right margin.
+02649P 0B6A D3   C7      A        ADDD   LSAVEX   Add in the current position.
+02650P 0B6C 2B   02   0B70        BMI    MINX     Force to right margin.
+02651P 0B6E 1F   03      A        TFR    D,U      Put target X position into U.
+02652P 0B70 1F   10      A MINX   TFR    X,D      Put Y offset into D.
+02653P 0B72 9E   8A      A        LDX    DBLZER   In case beyond top of screen.
+02654P 0B74 D3   C9      A        ADDD   LSAVEY   Add in the current position.
+02655P 0B76 2B   02   0B7A        BMI    DRWABS   Force to top of screen.
+02656P 0B78 1F   01      A        TFR    D,X      Put target Y position into X.

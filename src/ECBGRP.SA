@@ -1880,3 +1880,61 @@ DXCUTR JSR    VARSUB   READ NAME AND LOOK UP
        LDX    PSTPTR
        PSHS   B,X      SAVE FOR RESTORING
        JMP    DRWSC4   CALL FRESTR WITH NEW STRING
+*
+* THIS ROUTINE MULTIPLIES [X] BY DRWSCL AND RETURNS IN [D]
+* WHEN DRWSCL IS ZERO NOTHING IS DONE. OTHERWISE WE DIVIDE BY
+* FOUR AFTER THE MULTIPLY.
+*
+DMULSB LDB    DRWSCL   GET THE SCALE
+       BEQ    DRWSC9   MOVE RESULT TO [D] AND EXIT
+       CLRA            SET UP TO MULTIPLY [D] BY [X]
+       EXG    D,X      Find out and remember if X is
+       STA    ,-S      negative.
+       BPL    POSMUL   It isn't.
+       BSR    NEGD     It is, negate it.
+POSMUL JSR    ML1632   GET 32 BIT RESULT IN [Y,U]
+       TFR    U,D      MOVE RESULT INTO [D]
+       LSRA            AND DIVIDE BY 4 (Unsigned)
+       RORB
+       LSRA
+       RORB
+       TST    ,S+      Negate if it was originally negative.
+       BPL    DRWRTS
+NEGD   NEGA
+NEGDB  NEGB
+       SBCA   #&0
+DRWRTS RTS
+DRWSC9 TFR    X,D
+       RTS
+*
+* DODRAW ACTUALLY DOES THE DRAWING WORK
+* X OFFSET IS IN [D] AND Y OFFSET IS IN [X]
+* FIRST WE SCALE, THEN WE DO ANGLE, THEN WE
+* COMPUTE TARGET POINT AND RANGE CHECK, THEN
+* WE STORE THE NEW END POINT
+*
+DODRAW PSHS   D        SAVE X OFFSET
+       BSR    DMULSB   SCALE Y VALUE IN [X]
+       PULS   X        GET BACK X OFFSET IN [X]
+       PSHS   D        SAVE Y SCALED VALUE
+       BSR    DMULSB   COMPUTE SCALED X INTO [D]
+       PULS   X        GET BACK SCALED Y IN [X]
+       LDY    DRWANG   Put angle count on top of stack.
+       PSHS   Y        (Don't care about low order byte.)
+DRWANL TST    ,S       HAVE 90 DEGREE ROTATE COUNT RUN OUT?
+       BEQ    DRWAFN   DONE WITH ANGLE EXCEPT ASPECT RATIO
+       EXG    X,D      FOR EVERY 90 DEGREES WE EXCHANGE X AND Y
+       BSR    NEGD     AND NEGATE THE NEW X
+       DEC    ,S       UPDATE ANGLE 90 DEGREE COUNT
+       BRA    DRWANL   AND LOOP DOING ROTATE
+
+DRWAFN PULS   Y        Get rid of the angle count.
+       LDU    DBLZER   In case beyond right margin.
+       ADDD   LSAVEX   Add in the current position.
+       BMI    MINX     Force to right margin.
+       TFR    D,U      Put target X position into U.
+MINX   TFR    X,D      Put Y offset into D.
+       LDX    DBLZER   In case beyond top of screen.
+       ADDD   LSAVEY   Add in the current position.
+       BMI    DRWABS   Force to top of screen.
+       TFR    D,X      Put target Y position into X.
