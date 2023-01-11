@@ -1,70 +1,60 @@
-                     PAGE 008 ECBGRP .SA41 TXRGRP GRAPHICS CODE PSET,PRESET,LINE,PUT,GET,PPOINT
+PAGE  008  ECBGRP  .SA:1  TXRGRP GRAPHICS CODE PSET,PRESET,LINE,PUT,GET,PPOINT
 
-
-                     01106                            *  TABLE OF ROUTINES TO INCREMENT X AND V FOR EACH MODE
-
-                     01107                            *
-             '' a    01108P 01FB          005E      P XINCS FDB        GINXB
-                     01109P O1FD          0065      P          FDB     GINXC
-                     01110P 01F--         005E      P          FOB     GINXB
-             +       01111P 0201          ric.i     P          Fu"     GINXC
-                     01112P 0203          005E      P          FOB     GINX3
-                     01113P 0205 CE       01FB      P XADRI LDU        #XINCS
-                     01114P 0208 D6       B6        A          LDB     SCMODE
-                     01115P 020A 58                            ASLB
-                     01116P 020B EE       C5        A IMDFET LDU       B,U
-             (       01117P 020D 39                            RTS
-                     01116P 020E CE       005A      P YADRI LDU        #GINCY     Y INCREMENT ROUTINE
-                     011I9P 0211 39                            RTS
-                     01120                            *
-                     01121                            *  THIS IS THE GENERAL PURPOSE LINE DRAWING ROUTINE
-
-                     01122                            *  IT DRAWS FROM XSTORE,YSTORE TO X2STCR,Y2STOR
-                     01123                            *
-                     01124P 0212 108E 027E          P LINGEN LDY       #YINC      ASSSUME INCREMENTING Y
-                     01125P 0216 BD       046E      P          JSR     YDELTS
-                     01126                            *** BNE LINNTX
-                     01127                            *** TST CFLFLG ;CANT USE XLINE FOR FILLING
-                     ****WARNING 001-00000
-                     01128P 0219 1027 FF98 0155                LBEQ    XLINE      SPECIAL CASE IS FASTER
-                     01129P 021D 24       04    0223 LINNTX BCC        LY1BIG
-                     01130P 021F 108E 026C          P          LDY     #YDEC
-             'AO     01131P 0223 34       06        A LY1BIG PSHS      D          SAVE DELTA Y UN THE STACK
-                     01132P 0225 CE       0277      P          LOU     #XINC      ASSUME INCREMENT
-                     01133P 0228 BD       049B      P          jSR     XDELTS
-
-                     01134                            *** BNE LINNTY
-                     01135                            *** TST CFLFLG ;CANT USE YLIN FOR CIRCLE FILL CASE
-                     01136P 022B 27       BO    01DD           BED     DYLINE
-             C       01137P 0220 24       03    0232 LINNTY BCC        LX1BIG
-               im 01136P 022F CE          0285      P          LDU     #XOEC
-
-                     01139P 0232 10A3 E4            A LX1BIG CMPD      ,S         SEE WHICH DELTA IS BIGGER
-                     01140P 0235 35       10        A          PULS    X          GET DELTA Y INTO X
-                     0114IP 0237 24       04    023D           BCC     XMLDLT     IF CC THEN XDELTA IS BIGGER
-                     01142P 0239 lE       32        A          EXG     U,Y        MAKE U MAJOR AXIS AND V MINOR AXIS
-                     01143                            *     INCREMENT OR DECREMENT ROUTINE
-                     01144P 023B IE       01        A          EXG     D,X        MAKE D MAJOR DELTA AND X MINOR DELTA
-                     01145P 023D 34       46        A XMLDLT PSHS      U,D        SAVE COUNT OF POINTS IN LINE
-                     01146P 023F 34 06              A          PSHS D             SAVE MAJOR DELTA TO KNOW WHEN TO
-                     01147                            *     INCREMENT ON MINOR AXIS
-                     01148P 0241 44                            LSRA               START THE COUNT AT MAJOR DELTA/2
-                     01149P 0242 56                            RORB               SO MIDPOINT IS ALWAYS CORRECT
-                     01150P 0243 25       09    024E           BCS     HLFNTO     IF NOT ODD NO PROBLEM
-                     01151                            *     WE ROUND IF WE ARE DECREMENTING
-                     01i52                            *     SO WE END UP WITH THE SAME POINTS
-                     01153                            *     IN BOTH DIRECTIONS
-                     01154P 0245 1183 027F          P          CMPU    #YIN0-141
-                     01155P 0249 25       03    024E           BCS     HLFNTO     SINCE XINC AND YINC ARE BELOW YINC4.1 SKIP INCREMENT
-                     01156P 024B 83       0001      A          SUBD    #&1
-                     01157P 024E 34       16        A HLFNTO PSHS      X,D        THE COUNTER IN [D] IS INCREMENTED BY
-                     01158                            *     THE mINOR DELTA EVERYTIME AND THE MINOR
-                     01159                            *     AXIS IS UPDATED WHEN IT REACHES THE MAJOR
-                     01160                            *     DE' TA
-                     01161                            *     SAVE MINOR DELTA IN EXj FOR ADDING TO
-                     01162                                  COUNTER
-+44 (0]2C
-
-
-     For Yc
-
+01106                      * TABLE OF ROUTINES TO INCREMENT X AND Y FOR EACH MODE
+01107                      *
+01108P 01FB      005E    P XINCS  FDB    GINXB
+01109P 01FD      0065    P        FDB    GINXC
+01110P 01FF      005E    P        FDB    GINXB
+01111P 0201      0065    P        FDB    GINXC
+01112P 0203      005E    P        FDB    GINXB
+01113P 0205 CE   01FB    P XADRI  LDU    #XINCS
+01114P 0208 D6   B6      A        LDB    SCMODE
+01115P 020A 58                    ASLB
+01116P 020B EE   C5      A IMDFET LDU    B,U
+01117P 020D 39                    RTS
+01116P 020E CE   005A    P YADRI  LDU    #GINCY   Y INCREMENT ROUTINE
+011I9P 0211 39                    RTS
+01120                      *
+01121                      * THIS IS THE GENERAL PURPOSE LINE DRAWING ROUTINE
+01122                      * IT DRAWS FROM XSTORE,YSTORE TO X2STOR,Y2STOR
+01123                      *
+01124P 0212 108E 027E    P LINGEN LDY    #YINC    ASSSUME INCREMENTING Y
+01125P 0216 BD   048E    P        JSR    YDELTS
+01126                      *** BNE LINNTX
+01127                      *** TST CFLFLG  ;CANT USE XLINE FOR FILLING
+****WARNING   001--00000
+01128P 0219 1027 FF98 01B5        LBEQ   XLINE    SPECIAL CASE IS FASTER
+01129P 021D 24   04   0223 LINNTX BCC    LY1BIG
+01130P 021F 108E 028C    P        LDY    #YDEC
+01131P 0223 34   06      A LY1BIG PSHS   D        SAVE DELTA Y ON THE STACK
+01132P 0225 CE   0277    P        LDU    #XINC    ASSUME INCREMENT
+01133P 0228 BD   049B    P        JSR    XDELTS
+01134                      *** BNE LINNTY
+01135                      *** TST CFLFLG  ;CANT USE YLIN FOR CIRCLE FILL CASE
+01136P 022B 27   B0   01DD        BEQ    DYLINE
+01137P 022D 24   03   0232 LINNTY BCC    LX1BIG
+01136P 022F CE   0285    P        LDU    #XDEC
+01139P 0232 10A3 E4      A LX1BIG CMPD   ,S       SEE WHICH DELTA IS BIGGER
+01140P 0235 35   10      A        PULS   X        GET DELTA Y INTO X
+01141P 0237 24   04   023D        BCC    XMLDLT   IF CC THEN XDELTA IS BIGGER
+01142P 0239 1E   32      A        EXG    U,Y      MAKE U MAJOR AXIS AND Y MINOR AXIS
+01143                      *    INCREMENT OR DECREMENT ROUTINE
+01144P 023B 1E   01      A        EXG    D,X      MAKE D MAJOR DELTA AND X MINOR DELTA
+01145P 023D 34   46      A XMLDLT PSHS   U,D      SAVE COUNT OF POINTS IN LINE
+01146P 023F 34   06      A        PSHS   D        SAVE MAJOR DELTA TO KNOW WHEN TO
+01147                      *    INCREMENT ON MINOR AXIS
+01148P 0241 44                    LSRA            START THE COUNT AT MAJOR DELTA/2
+01149P 0242 56                    RORB            SO MIDPOINT IS ALWAYS CORRECT
+01150P 0243 25   09   024E        BCS    HLFNTO   IF NOT ODD NO PROBLEM
+01151                      *    WE ROUND IF WE ARE DECREMENTING
+01i52                      *    SO WE END UP WITH THE SAME POINTS
+01153                      *    IN BOTH DIRECTIONS
+01154P 0245 1183 027F    P        CMPU   #YINC+&1
+01155P 0249 25   03   024E        BCS    HLFNTO   SINCE XINC AND YINC ARE BELOW YINC+1 SKIP INCREMENT
+01156P 024B 83   0001    A        SUBD   #&1
+01157P 024E 34   16      A HLFNTO PSHS   X,D      THE COUNTER IN [D] IS INCREMENTED BY
+01158                      *    THE MINOR DELTA EVERYTIME AND THE MINOR
+01159                      *    AXIS IS UPDATED WHEN IT REACHES THE MAJOR
+01160                      *    DELTA
+01161                      *    SAVE MINOR DELTA IN [X] FOR ADDING TO
+01162                      *    COUNTER

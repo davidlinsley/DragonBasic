@@ -1,118 +1,60 @@
-PAGE    021    En...46RP  .SA:1     TXRGRP PAINT CODE
+PAGE  021  ECBGRP  .SA:1  TXRGRP PAINT CODE
 
-
-
-0187IP    06AF  IODF    DC         A  PNTLP2 STS         PNTSTK       Store stack pointer in case PNTCHF
-
-01872                                 •      equals zero since we don't initialize
-
-01873                                 •      PNTCHF.
-
-01874P    0682  OD      88         A  PNTLOP TST         PNTCHF       Anything changed?
-
-01875P    0684  26      03     0689            BNE       PNTPUL       Yes, use the next stack entry.
-
-01876P    0686  108E    DC         A           LDS       PNTSTK       No, prune the stack.
-
-01877P    06E19 35      56         A  PNTPUL PULS        D,X,U        PULL SCAN ENTRY OFF THE STACK
-
-01878P    068B  OF      DB         A           CLR       PNTCHF       Say nothing changed yet.
-
-01879P    0628  10DP    DC         A           STS       PNTSTK       Remember stack pointer for possible
-
-01880                                 •      pruning.
-
-01881                                 *
-
-01882                                 * THIS IS THE RECURSIVE SCAN ENTRY POINT. THE IDEA IS THAT
-
-01883                                 * ANY NON-BORDERPOINTS ARE CONNECTED STARTING TO THE RIGHT
-
-01884                                 * OF X,Y AND EXTENDING FOR COUNT POINTS. WE COLOR THE NON-BORDER
-
-01885                                 * POINTS AND MAKE NEW STACK ENTRIES FOR EACH NEW CONTIGUOUS GROUP
-
-01886                                 * OF CONNECTED POINTS. THIS WILL ALWAYS BE IN THE CURRENT SCAN DIRECTION
-
-01887                                 * UNLESS THERE IS OVERHANG ON THE LEFT OR RIGHT
-
-olea8                                 * [A] HAS DIRECTION
-
-01889                                 * [B] HAS Y VALUE
-
-01890                                 * [X] HAS X VALUE
-
-01891                                 * CUD HAS POINT COUNT
-
-01892                                 * THE X AND Y ARE TO THE LEFT OF THE
-
-01893                                 * PLACE TO SCAN
-01894P    0600  30      01         A           LEAX      &i,X         MOVE TO THE RIGHT TO GET INTO THE SCAN AREA
-01895P    06C2  9F      BD         A           STX       XSTORE
-
-01896P    06C4  DF      81         A           STU       PCOUNT
-
-o'.(Els7p)0606  97      D7         A           STA       PDIRCT       SAVE THE DIRECTION
-
-01898P    0608  27      9F     0669            BEQ       PNTRTS       IF DUMMY ENTRY, QUIT
-
-          06CA  28      06     0602            BMI       SCANDN       IF NEGATIVE DECREMENT Y VALUE
-
-01900P    06CC  50                             INCB
-
-01901P    06CD  DI      86         A           CMPB      YMAX+41      SEE IF OFF THE BOTTOM
-
-01902P    06CF  23      05     0686            BLS       SCNCN1       IF NOT KEEP SCANNING
-
-01903P    0601  5F                             CLRB                   MAKE 0 SO BRANCH TO PNTLOP
-
-01904P    0682  5D                    SCANDN TSTB
-
-01905P    0683  27      DD     0682            BEQ       PNTLOP       IF AT TOP, TRY NEXT ENTRY
-
-0.1908P   0605                                 DECB                   DECREMENT Y
-
-01907P    0606  D7      CO         A  SCNCN1 STB         YLOW         SAVE Y VALUE
-
-01908P    06D8  BD      0758                   JSR       SCANL        SCAN LEFT TO EXTEND
-
-01909P    0608  27      OF     06E0            BE@       SCNCN4
-
-01910P    0688  1083    0003       A           CMPD      44e,3        ENOUGH TO OVERHANG ON LEFT SIDE SO NEED TO LOOK
-
-01911                                 •      IN OPPOSITE DIRECTION
-
-01912P    06E1  25      04     06E7            805       NLSENT       IF NOT NO NEW SCAN ENTRY
-
-01913P    06E3  30      1E         A           LEAX      -&2,X        SUBTRACT TWO TO GET SCAN SIZE
-
-01914P    06E5  8D      38     071F            BSR       ENTERL       MAKE THE ENTRY
-
-01915P    06E7  8D      0749          NLSENT JSR         SCNCON       CONTINUE SCAN TO RIGHT
-
-01916P    06EA  88      40     0738   SCNLC1 BSR         ENTERS       MAKE ENTRY
-
-01917P    06Er  43                    SCNON4 COMA
-
-01918P    06F.8 53                             COMB                   SUBTRACT ED34.1 FROM TOTAL
-
-01919P    06EE  D3      Di         A  SCNLCN ADDD PCOUNT ADD ONTO PCOUNT 
-
-01920P    06F0  8D      Di         A           STD       PCOUNT AND UPDATE
-
-01921P    06F2  2F      16     070A            BLE       SCNFIN       IF 0 OR LESS NO MORE SCANNING
-
-01922P    06F4  BD      0277                   JSR       XINC         MOVE RIGHT IF MORE POINTS
-
-01923P    06F7  28      0790                   JSR       TSTBRD       SEE IF BORDER OR NOT
-
-01924P    06FA  26      On     0701            BNE       SCNLC2       IF NOT, CALL SCANR
-
-01925P    06FC  CC      FFFF       A           LDD       4*-&1        SUBTRACT ONE FROM POINT COUNT
-
-01926P    06FF  20      ED     06E6            BRA       SONLON
-
-01927P    0701  BD      0285          SCNLC2 JSR         XDEC
-
-01928P    0704  8D      3E     0744            BSR       SAVLOC       SAVE LEFT POSIION
-
+01871P 06AF 10DF DC      A PNTLP2 STS    PNTSTK   Store stack pointer in case PNTCHF
+01872                      *    equals zero since we don't initialize
+01873                      *    PNTCHF.
+01874P 06B2 0D   DB      A PNTLOP TST    PNTCHF   Anything changed?
+01875P 06B4 26   03   06B9        BNE    PNTPUL   Yes, use the next stack entry.
+01876P 06B6 10DE DC      A        LDS    PNTSTK   No, prune the stack.
+01877P 06B9 35   56      A PNTPUL PULS   D,X,U    PULL SCAN ENTRY OFF THE STACK
+01878P 06BB 0F   DB      A        CLR    PNTCHF   Say nothing changed yet.
+01879P 06BD 10DF DC      A        STS    PNTSTK   Remember stack pointer for possible
+01880                      *    pruning.
+01881                      *
+01882                      * THIS IS THE RECURSIVE SCAN ENTRY POINT. THE IDEA IS THAT
+01883                      * ANY NON-BORDERPOINTS ARE CONNECTED STARTING TO THE RIGHT
+01884                      * OF X,Y AND EXTENDING FOR COUNT POINTS. WE COLOR THE NON-BORDER
+01885                      * POINTS AND MAKE NEW STACK ENTRIES FOR EACH NEW CONTIGUOUS GROUP
+01886                      * OF CONNECTED POINTS. THIS WILL ALWAYS BE IN THE CURRENT SCAN DIRECTION
+01887                      * UNLESS THERE IS OVERHANG ON THE LEFT OR RIGHT
+01888                      * [A] HAS DIRECTION
+01889                      * [B] HAS Y VALUE
+01890                      * [X] HAS X VALUE
+01891                      * [U] HAS POINT COUNT
+01892                      * THE X AND Y ARE TO THE LEFT OF THE
+01893                      * PLACE TO SCAN
+01894P 06C0 30   01      A        LEAX   &1,X     MOVE TO THE RIGHT TO GET INTO THE SCAN AREA
+01895P 06C2 9F   BD      A        STX    XSTORE
+01896P 06C4 DF   D1      A        STU    PCOUNT
+01897P 06C6 97   D7      A        STA    PDIRCT   SAVE THE DIRECTION
+01898P 06C8 27   9F   0669        BEQ    PNTRTS   IF DUMMY ENTRY, QUIT
+01899P 06CA 2B   06   06D2        BMI    SCANDN   IF NEGATIVE DECREMENT Y VALUE
+01900P 06CC 5C                    INCB
+01901P 06CD D1   D6      A        CMPB   YMAX+&1  SEE IF OFF THE BOTTOM
+01902P 06CF 23   05   06D6        BLS    SCNCN1   IF NOT KEEP SCANNING
+01903P 06D1 5F                    CLRB            MAKE 0 SO BRANCH TO PNTLOP
+01904P 06D2 5D             SCANDN TSTB
+01905P 06D3 27   DD   06B2        BEQ    PNTLOP   IF AT TOP, TRY NEXT ENTRY
+01908P 06D5 5A                    DECB            DECREMENT Y
+01907P 06D6 D7   C0      A SCNCN1 STB    YLOW     SAVE Y VALUE
+01908P 06D8 BD   075D    P        JSR    SCANL    SCAN LEFT TO EXTEND
+01909P 06DB 27   0F   06EC        BEQ    SCNCN4
+01910P 06DD 1083 0003    A        CMPD   #&3     ENOUGH TO OVERHANG ON LEFT SIDE SO NEED TO LOOK
+01911                      *    IN OPPOSITE DIRECTION
+01912P 06E1 25   04   06E7        BCS    NLSENT   IF NOT NO NEW SCAN ENTRY
+01913P 06E3 30   1E      A        LEAX   -&2,X    SUBTRACT TWO TO GET SCAN SIZE
+01914P 06E5 8D   38   071F        BSR    ENTERL   MAKE THE ENTRY
+01915P 06E7 BD   0749    P NLSENT JSR    SCNCON   CONTINUE SCAN TO RIGHT
+01916P 06EA 8D   4C   0738 SCNLC1 BSR    ENTERS   MAKE ENTRY
+01917P 06EC 43             SCNCN4 COMA
+01918P 06ED 53                    COMB            SUBTRACT [D]+1 FROM TOTAL
+01919P 06EE D3   D1      A SCNLCN ADDD   PCOUNT   ADD ONTO PCOUNT
+01920P 06F0 DD   D1      A        STD    PCOUNT   AND UPDATE
+01921P 06F2 2F   16   070A        BLE    SCNFIN   IF 0 OR LESS NO MORE SCANNING
+01922P 06F4 BD   0277    P        JSR    XINC     MOVE RIGHT IF MORE POINTS
+01923P 06F7 BD   0790    P        JSR    TSTBRD   SEE IF BORDER OR NOT
+01924P 06FA 26   05   0701        BNE    SCNLC2   IF NOT, CALL SCANR
+01925P 06FC CC   FFFF    A        LDD    #-&1     SUBTRACT ONE FROM POINT COUNT
+01926P 06FF 20   ED   06EE        BRA    SCNLCN
+01927P 0701 BD   0285    P SCNLC2 JSR    XDEC
+01928P 0704 8D   3E   0744        BSR    SAVLOC   SAVE LEFT POSIION

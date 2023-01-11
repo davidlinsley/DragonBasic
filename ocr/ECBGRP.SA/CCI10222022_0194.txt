@@ -1,80 +1,60 @@
-                                                                                                                                                                                                                                                                                                                                                               •
+PAGE  011  ECBGRP  .SA:1  TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
 
-                                                                                                                                                                                                                                                                                                                                                         vuxo
-                                             PAGE          011         ECBGRP                            TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
-                                                                                                                                                                                                                                                                                                                                                               •
-
-                                             01291P          02EA        35         82                A    GETCFN          PULS            A,PC                 GET CSS BACK AND RETURN
-                                             01292P          02EC        56                                CLBWST          RORB                                 LOOK AT LOW BIT C:: COLOR
-                                             01293P          02ED                   F8          02E7                       BCS             CLBW3                                                                                                                                                                                                               •
-                                             01294P          02EF                                                          CLRB                                 OTHERWISE RETURN ZERO
-                                             01295P          02F0        20         F8          02EA                       BRA             GETCFN
-                                             01296                                                         *                                                                                                                                                                                                                                                   •
-
-                                             01297                                                         *    COLOR        FETCH         ROUTINE
-                                             01298                                                         *
-                                             01299P          02F2        BD         030B              P    CMCOLR          JSR             DEFCOL               SETUP DEFAULT                                                                                                                                                                                  •
-                                             01300P          02F5        9D         A5                A                    JSR             CHRGOT               SEE IF DEFAULT IS CORRECT
-
-                                             01301P          02F7        27         10          0309                       DEC!            CO2RTS               IF END,           IT MUST BE
-                                             01302P          02F9        81         29                A                    CMPA            #CLSPAR                                                                                                                                                                                                             •
-                                             01303P          02FB        27         OC          0309                       BEQ             CO2RTS
-                                             01304P          02FD        BD         0000              A                    JSR             CHKCOM
-                                             01305P          0300        81         2C                A                    CMPA            #COMMA               IF COMMA IF MUST BE                                                                                                                                                                            •
-                                  H          01306P          0302        27         05          0309                       BEQ             CO2RTS                                                                                                                                                                                                        1 W.
-                                             01307P          0304        BD         0208                                   JSR             GETCLR               GET COLOR IN
-                                             01308P          0307        8D         OA          0313                       BSR             DEFFOR                                                                                                                                                                                                              •
-                                             01309P          0309        0E         A5                A    CO2RTS          jMP             CHRGOT
-                                             01310P          0308        D6         B2                A    DEFCOL          LDB             FORCLR               ASSUME FOREGROUND IS CORRECT
-                                             01311P          030D        OD         C2                A                    TST             SETFLG               SEE IF PSET OR PRESET                                                                                                                                                                          •
-                                             01312P          030F        26         02          0313                       BNE             DEFFOR
-                                             01313P          0311        D6         B3                A                    LDB             BAKCLR
-                                             01314P          0313        D7         B4                A    DEFFOR          STB             ACTCLR                                                                                                                                                                                                              •
-                                             01315P          0315        86         55                A                    LDA             #@125
-                                             01316P          0317        3D                                                MUL
-                                             01317P          0318        D7         35                                     STB             ACTCLE                                                                                                                                                                                                              •
-                                             01318P          031A        39                                                RTS
-                                             01319                                                         *
-                                             01320                                                         *    BANAL? IS CALLED TO                          SWITCH BACK TO ALPHA MODE FROM GRAPHICS                                                                                                                                                           •
-                                             0121                                                          *
-                                             01322P          0318        26                     0340       SAMMOD          BNE             SAMGRP               CALLED BY SCREEN TO SELECT MODE
-                                             01323                                                                         XDEF            SAMALP                                                                                                                                                                                                              •
-                                    11       01324P          031D        34         16                A    SAMALP          PSHS            D,X
-
-                                             01325P          031F        BE         FFC8                                   LDX             #SAM4-&8
-                                             01326P          0322        A7         OA                A                    STA             &10,X                SPEED LESSENS FLICKER IN MODE SWITCH                                                                                                                                                           •
-                                             01327P          0324        A7         08                                     STA             &B,,X                CHANGE LEAST IMPORTANT FIRST
-                                             01328P          0326        A7         06                                     STA             &6,X
-                                             01329P          0328        A7         04                                     STA                                                                                                                                                                                                                                 •
-
-                                             01330P          032A        A7         02                A                    STA             &2,X
-                                             01331P          032C        A7         01                A                    STA             &1,X
-                                             01332P          032E        A7         1E                                     STA                                                                                                                                                                                                                                 •
-
-                                             01333P          0330        A7         IC                A                    STA             —6,4, X
-                                             01334P          0332        A7         1A                A                    STA             —&6,X
-                                             01335P          0334        A7         18                A                    STA                                                                                                                                                                                                                           -
-
-                                             01336P          0336        B6         0000              A                    LDA             PIA1BD               GET PIA VALUE FOR VIDEO CONTROL
-                                             01337P          0339        84         07                                     ANDA            #&7                  PRESERVE NON—VIDEO BITS
-                                             01338P          033B        37         0000                                   STA             PIA1BD               SETTING ALL VIDEO BIT TO 0
-                                             01339P          033E        35         96                                     PULS            D,X,PC               RETURN PRESERVING ALL REGISTERS
-
-                                             01340P          0340        34         16                A    SAMGRP          PSHS            D,X
-                                             0134IP          0342        96         86                                     LDA             SCMODE               GET GRAPHICS MODE TO SET                                                                                                                                                                       0
-                                  1 I I      01342P          0344        8B         03                A.                   ADDA            #&3
-                                             01343P          0346        C6         10                                     LDB             #&16                 MOVE OVER 4 BITS
-                                             01344P          0348        3D                                                MUL                                  AND PUT RESULT IN (B3
-                                             01345P          0349        CA         80                                     ORB             #&128                ALWAYS TURN HIGH BIT ON
-                                             01346P          034R        DA         Cl                                     ORB             SCCSS
-                                             01347?          034D        B6         0000                                   LDA             PIAIBD               GET OLD STATE OF PIA
-+44 (0)20 8                                  01348P          0350        84         07                                     ANDA            #&7                  PRESERVE LOW 3 BITS
-
-          For Your
-                                                                                                                                                                                                                                                                                                                                                               0
-
-
-
-
-                              (                                                                                                                                                                                                                                                                                                                                0
-
+01291P 02EA 35   82      A GETCFN PULS   A,PC     GET CSS BACK AND RETURN
+01292P 02EC 56             CLBWST RORB            LOOK AT LOW BIT OF COLOR
+01293P 02ED 25   F8   02E7        BCS    CLBW3
+01294P 02EF 5F                    CLRB            OTHERWISE RETURN ZERO
+01295P 02F0 20   F8   02EA        BRA    GETCFN
+01296                      *
+01297                      * COLOR FETCH ROUTINE
+01298                      *
+01299P 02F2 BD   030B    P CMCOLR JSR    DEFCOL   SETUP DEFAULT
+01300P 02F5 9D   A5      A        JSR    CHRGOT   SEE IF DEFAULT IS CORRECT
+01301P 02F7 27   10   0309        BEQ    CO2RTS   IF END, IT MUST BE
+01302P 02F9 81   29      A        CMPA   #CLSPAR
+01303P 02FB 27   0C   0309        BEQ    CO2RTS
+01304P 02FD BD   0000    A        JSR    CHKCOM
+01305P 0300 81   2C      A        CMPA   #COMMA   IF COMMA IF MUST BE
+01306P 0302 27   05   0309        BEQ    CO2RTS
+01307P 0304 BD   02CB    P        JSR    GETCLR   GET COLOR IN
+01308P 0307 8D   0A   0313        BSR    DEFFOR
+01309P 0309 0E   A5      A CO2RTS JMP    CHRGOT
+01310P 030B D6   B2      A DEFCOL LDB    FORCLR   ASSUME FOREGROUND IS CORRECT
+01311P 030D 0D   C2      A        TST    SETFLG   SEE IF PSET OR PRESET
+01312P 030F 26   02   0313        BNE    DEFFOR
+01313P 0311 D6   B3      A        LDB    BAKCLR
+01314P 0313 D7   B4      A DEFFOR STB    ACTCLR
+01315P 0315 86   55      A        LDA    #@125
+01316P 0317 3D                    MUL
+01317P 0318 D7   B5      A        STB    ACTCLE
+01318P 031A 39                    RTS
+01319                      *
+01320                      * SAMALP IS CALLED TO SWITCH BACK TO ALPHA MODE FROM GRAPHICS
+01321                      *
+01322P 031B 26   23   0340 SAMMOD BNE    SAMGRP   CALLED BY SCREEN TO SELECT MODE
+01323                             XDEF   SAMALP
+01324P 031D 34   16      A SAMALP PSHS   D,X
+01325P 031F 8E   FFC8    A        LDX    #SAM+&8
+01326P 0322 A7   0A      A        STA    &10,X    SPEED LESSENS FLICKER IN MODE SWITCH
+01327P 0324 A7   08      A        STA    &8,X     CHANGE LEAST IMPORTANT FIRST
+01328P 0326 A7   06      A        STA    &6,X
+01329P 0328 A7   04      A        STA    &4,X
+01330P 032A A7   02      A        STA    &2,X
+01331P 032C A7   01      A        STA    &1,X
+01332P 032E A7   1E      A        STA    -&2,X
+01333P 0330 A7   1C      A        STA    —&4,X
+01334P 0332 A7   1A      A        STA    —&6,X
+01335P 0334 A7   18      A        STA    -&8,X
+01336P 0336 B6   0000    A        LDA    PIA1BD   GET PIA VALUE FOR VIDEO CONTROL
+01337P 0339 84   07      A        ANDA   #&7      PRESERVE NON—VIDEO BITS
+01338P 033B B7   0000    A        STA    PIA1BD   SETTING ALL VIDEO BIT TO 0
+01339P 033E 35   96      A        PULS   D,X,PC   RETURN PRESERVING ALL REGISTERS
+01340P 0340 34   16      A SAMGRP PSHS   D,X
+01341P 0342 96   B6      A        LDA    SCMODE   GET GRAPHICS MODE TO SET
+01342P 0344 8B   03      A        ADDA   #&3
+01343P 0346 C6   10      A        LDB    #&16     MOVE OVER 4 BITS
+01344P 0348 3D                    MUL             AND PUT RESULT IN [B]
+01345P 0349 CA   80      A        ORB    #&128    ALWAYS TURN HIGH BIT ON
+01346P 034B DA   C1      A        ORB    SCCSS
+01347P 034D B6   0000    A        LDA    PIA1BD   GET OLD STATE OF PIA
+01348P 0350 84   07      A        ANDA   #&7      PRESERVE LOW 3 BITS

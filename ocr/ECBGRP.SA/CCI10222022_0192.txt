@@ -1,171 +1,60 @@
-                               PAGE          009         ECBGRP            .SA%1           TXRGRP GAPHICS                      CODE PSET,PRESET,LINE,PUT,GET,PPOINT
-
-
-
-
-
-
-                               01163P          0250        BD         0000                                   JSR             PTADRS               GET INTO EU: ADDRESS OF INDEX ROUTINE
-
-
-                               01164                                  0000              A                    IFNE            &O
-
-
-                               01177                                                           ENDC            IFN 0
-
-
-                               01178P          0253        AD         CA                A LNGLOP             JSR                                  GET LOCATION                  IN    CX3      AND B.i:T          IN     [A]
-
-
-                               01179P          0255        BD         00E8                                   JSR             GRPACT               ACTUALLY PERFORM THE ACTION
-
-
-                               01180P          0258        AE         66                     LNGLA2          LDX             &6,S                 CHECK COUNT OF POINTS
-
-
-                               01181P          025A        27         17          0273                       BEQ             LNGFIN
-
-
-                               01182P          025C        30         1F                A                    LEAX            -&1,X                DECREMENT
-
-                               01183P          025E        AF         66                                     STX             &6,S                                                                                                                                                                                                                40
-
-
-                               01184P          0260        AD         F8 08             A                    JSR             C&B,SJ               UPDATE MAJOR AXIS
-
-
-                               01165P          0263        EC         E4                                     LDD             ,S                   GET COUNT TO ADD MINOR DELTA
-
-                               01186P          0265        E3         62                                     ADOD            &2,S                                                                                                                                                                                                                40
-
-
-                               01187P          0267        ED         E4                                     STD               S                  UPDATE COUNT
-
-
-                               01188P          0269        A3         64                                     SUSI')          &4,S                 SEE IF REACHED MAJOR DELTA
-
-                               01189P          026B        25         E6          0253                       5CS             LNGLOP               IF NOT JUST CONTINUE DRAWING                                                                                                                                                                   40
-
-
-                               01190P          026D        ED         EA                                     STD             ,S                   UPDATE TEMP COUNT
-
-
-                               01191P          026F        AD         AA                                     JSR                                  UPDATE MINOR AXIS
-
-
-                               01192P          0271        20         FO          0253                       BRA             LNOLOP                                                                                                                                                                                                              40
-
-
-                               01193P          0273        35         10                     LNGFIN          PULS            X                    GET RID OF FIFTH TEMP ON STACK
-
-
-                               01194P          0275        35         F6                                     PULS            XDYUPC GET RlD OF 4 TEMPS AND RETURN
-                                                                                                                               7    7    7   7
-                               01195                                                         *** JSR           SPCROT             ;SPECIAL JSR FOR CIRCLE FILL                                                                                                                                                                                   40
-
-
-                               01196                                                         ***               THIS IS CALLED                     WHEN MINOR AXIS UPDATE
-                                                                                                                                                                                                                                                                                                                                           1111
-
-                               01197                                                         ***               is DECREMENTED                     BY 3 FOR FILLED CIRCLE
-
-                               01198P          0277        9E         BD                     XINC            LOX             XSTORE                                                                                                                                                                                                              40
-
-
-                               01199P          0279        30         01                A                    LEAX            &1,X
-
-
-                               01200P          0275        9F         5D                                     STX             XSTORE
-
-
-                               01201P          027D        39                                                RTS                                                                                                                                                                                                                                 40
-
-
-                               01202                                                         *** JSR           SPCROT
-
-
-                               01203                                                         *    NOTE       THIS ORDER IS IMPORTANT SINCE WE COMPARE ADDRESS OF MAJOR
-
-                               01204                                                         *    AXIS       UPDATE          ROUTINE TO YINC+1 70 SEE IF WE ARE +INS OR -ING                                                                                                                                                                     40
-
-
-                               01205P          027E        9F         BF                     YINC            LDX             YSTORE
-
-
-                               01206P          0280        30         01                A                    LEAX            &1,X
-
-                               01207P          0282        9F         BF                A                    STX             YSTORE                                                                                                                                                                                                              40
-
-
-                               01208P          0284        39                                                RTS
-
-
-                               01209                                                         *** JSR           SPCROT
-
-                               01210P          0285        9E         BD                     XDEC            LDX             XSTORE                                                                                                                                                                                                              40
-
-
-                               01211P          0287        30         1F                A                    LEAX            -&1,X
-
-
-                               01212P          0289        9F         Si)               A                    STX             XSTORE
-
-                               01213P          028B        39                                                RTS                                                                                                                                                                                                                                 40
-
-
-                               01214                                                         * *  *   JSR      SPCROT
-
-
-                               01215P          028C        9E         BF                A YDEC               LDX             YSTORE
-
-
-                               0;.216P         026E        30         iF                                     LEAX            -&1,X
-
-
-                               01217P          0290        9F         BF                                     SIX             YSTORE
-
-
-                               01218P          0292        39                                                RTS
-
-
-                               01219P          0293        CE         00D3              A STMAXS             LDU             #XMAX                POINT AT MAX STORAGE AREA
-
-
-                               01220P          0296        SE         (DOFF             A                    LDX             #CXMAX-&1              MAX LOGICAL VALUE TO SCALE
-
-
-                               01221P          0299        AF         CA                A                    STX               U
-
-
-                               01222P          0295        BE         00BF              A                    LDX             #CYMAX-&1              MAX Y LUSI:.;AL VALUE
-
-
-                               01223P          029E        AF         42                A                    STX             &2,U
-
-
-                               01224P          02A0        7E         0091                                   jMP             GSCALC
-
-
-                               01225
-
-
-                               01226                                                                         TTL             NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
-
-
-                               01227
-
-
-                               01228                                                         *
-
-
-                               01229                                                         *    PCLS       CLEAR A           GRAPHICS             SCREEN
-
-
-                               01230                                                         *
-
-
-                               01231                                                                         XDEF            PCLS
-
-
-+44 (I                         01232P          02A3        27         OE          0253 PCLS                  *OECD                                IF NO ARGUMENT,                     DEFAULT CLEAR
-
+PAGE  009  ECBGRP  .SA:1  TXRGRP GRAPHICS CODE PSET,PRESET,LINE,PUT,GET,PPOINT
+
+01163P 0250 BD   0000    P        JSR    PTADRS   GET INTO [U] ADDRESS OF INDEX ROUTINE
+01164            0000    A        IFNE   &0
+01177                       ENDC   IFN 0
+01178P 0253 AD   C4      A LNGLOP JSR    ,U       GET LOCATION IN [X] AND BIT IN [A]
+01179P 0255 BD   00E8    P        JSR    GRPACT   ACTUALLY PERFORM THE ACTION
+01180P 0258 AE   66      A LNGLP2 LDX    &6,S     CHECK COUNT OF POINTS
+01181P 025A 27   17   0273        BEQ    LNGFIN
+01182P 025C 30   1F      A        LEAX   -&1,X    DECREMENT
+01183P 025E AF   66      A        STX    &6,S
+01184P 0260 AD   F8 08   A        JSR    [&8,S]   UPDATE MAJOR AXIS
+01165P 0263 EC   E4      A        LDD    ,S       GET COUNT TO ADD MINOR DELTA
+01186P 0265 E3   62      A        ADDD   &2,S
+01187P 0267 ED   E4      A        STD    ,S       UPDATE COUNT
+01188P 0269 A3   64      A        SUBD   &4,S     SEE IF REACHED MAJOR DELTA
+01189P 026B 25   E6   0253        BCS    LNGLOP   IF NOT JUST CONTINUE DRAWING
+01190P 026D ED   E4      A        STD    ,S       UPDATE TEMP COUNT
+01191P 026F AD   AA      A        JSR    ,Y       UPDATE MINOR AXIS
+01192P 0271 20   E0   0253        BRA    LNGLOP
+01193P 0273 35   10      A LNGFIN PULS   X        GET RID OF FIFTH TEMP ON STACK
+01194P 0275 35   F6      A        PULS   X,D,Y,U,PC GET RlD OF 4 TEMPS AND RETURN
+01195                      *** JSR SPCROT  ;SPECIAL JSR FOR CIRCLE FILL
+01196                      ***    ;THIS IS CALLED WHEN MINOR AXIS UPDATE
+01197                      ***    ;IS DECREMENTED BY 3 FOR FILLED CIRCLE
+01198P 0277 9E   BD      A XINC   LDX    XSTORE
+01199P 0279 30   01      A        LEAX   &1,X
+01200P 027B 9F   BD      A        STX    XSTORE
+01201P 027D 39                    RTS
+01202                      *** JSR SPCROT
+01203                      * NOTE THIS ORDER IS IMPORTANT SINCE WE COMPARE ADDRESS OF MAJOR
+01204                      * AXIS UPDATE ROUTINE TO YINC+1 TO SEE IF WE ARE +ING OR -ING
+01205P 027E 9E   BF      A YINC   LDX    YSTORE
+01206P 0280 30   01      A        LEAX   &1,X
+01207P 0282 9F   BF      A        STX    YSTORE
+01208P 0284 39                    RTS
+01209                      *** JSR SPCROT
+01210P 0285 9E   BD      A XDEC   LDX    XSTORE
+01211P 0287 30   1F      A        LEAX   -&1,X
+01212P 0289 9F   BD      A        STX    XSTORE
+01213P 028B 39                    RTS
+01214                      *** JSR SPCROT
+01215P 028C 9E   BF      A YDEC   LDX    YSTORE
+01216P 028E 30   1F      A        LEAX   -&1,X
+01217P 0290 9F   BF      A        STX    YSTORE
+01218P 0292 39                    RTS
+01219P 0293 CE   00D3    A STMAXS LDU    #XMAX    POINT AT MAX STORAGE AREA
+01220P 0296 8E   00FF    A        LDX    #CXMAX-&1 MAX LOGICAL VALUE TO SCALE
+01221P 0299 AF   C4      A        STX    ,U
+01222P 029B 8E   00BF    A        LDX    #CYMAX-&1 MAX Y LOGICAL VALUE
+01223P 029E AF   42      A        STX    &2,U
+01224P 02A0 7E   0091    P        JMP    GSCALC
+01225
+01226                             TTL    NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
+01227
+01228                      *
+01229                      * PCLS CLEAR A GRAPHICS SCREEN
+01230                      *
+01231                             XDEF   PCLS
+01232P 02A3 27   0E   02B3 PCLS   BEQ    DEFCLS   IF NO ARGUMENT, DEFAULT CLEAR

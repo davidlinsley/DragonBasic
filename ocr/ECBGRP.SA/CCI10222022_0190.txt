@@ -1,64 +1,60 @@
-                    PAGE  007   ECBGRP   .82;1  TXRGR2 GRAPHICS   CODE PSET,PRESET,LINE,POT,SET,PPOINT
+PAGE  007  ECBGRP  .SA:1  TXRGRP GRAPHICS CODE PSET,PRESET,LINE,PUT,GET,PPOINT
 
-                    01048P 01A1  30   `C.::    A LINBXD  LEAX    -&1,X     DECREMENT Y COORDINATE
-                    010492 01A3  9F   BF       A LINBXL  STX     YSTORE    UPDATE Y COORDINATE
-                    01050P 0125  BD   0185     P LINBXS  JSR     XLINE     DRAW THE XLINE
-                    010512 0128  98   BF       A         LDX     YSTORE    SEE HOW WE COMPARE WITH Y2STOR
-                    01022  OIAA  90   C5       A         CMPX    Y2STOR
-                    010532 01AC  27   06    0184         B80     LINRTS    ALL DONE WHEN MATCH
-                    01054P 01AE  24   Fl    0121         BCC     LINBXD    YSTORE IS BIGGER SO DECREMENT IT
-                    01055P 0180  30   01       A         LEAX    8,1,X     YSTORE IS SmALLER SO INCREMENT IT
-                    010562 0182  20   EF    01A3         BRA     LINBXL
-                    01057
-                    010582 0184  39              LINRTS  RTS
-                    01059
-                    01060
-                    01061                        *
-                    01062                        *  DRAW ,A LINE FROM XSTORE,YSTORE TO X2STOR,YSTORE
-                    01063                        *
-                    010642 0185  98   BD       A XLINE   LDX     XSTORE    GET X1 COORDINATE
-                    010652 0187  34   10       A         PSHS    X         SAVE IT FOR CALLER
-                    010662 0189  BD   0498     P         JSR     XDELTS
-                    01067P 0180  24   04    0102         BCC     XLNXFR    [D] HAS COUNT IF NO CARRY SO GO
-                    010682 0188  98   C3       A         LDX     X2STOR    ALWAYS INCREMENT SO MAKE XSTORE SMALLER
-                    010692 0100  9F   BD       A         STX     XSTORE
-                    01070P 0102  IF   02       A XLNXFR  TER     D,Y       PUT COUNT  IN 1:.Y3
-                    01071P 0104  31   21       A         LEAY    &1,Y      OFFSET BY ONE
-                    010722 0106  BD   0009     P         JSR     GENAOR    GET ADDRESS AND BIT MASK FOR START
-                    01073P 0109  35   40       A         PULS    U         GET BACK XSTORE
-                    010742 0108  DF   BD       A         STU     XSTORE
-                    010752 01CD  8D   36    0205         BSR     XADRI     MAKE U ADDRESS OF INCREMENT ROUTINE
-                    010762 010F  97   D7       A XLNLOP  STA     GTM2B1    SAVE THE BIT MASK
-                    010772 01D1  BD   00E8     P         JSR     9RPACT    ACTUALLY PERFORM ACTION   (SET RESET OR PUT   CHR)
-                    010782 01D4  96   D7       A         LDA     GTM281    GET BACK THE BIT MASK
-                    010792 01D6  AD   C4       A         JSR     ,U        GO OFF TO INCREMENT ROUTINE
-                    010802 01D8  31            A         LEAY    -41,Y     DECREMENT THE COUNT 
-                    01081P 01DA  26   f-t!' 010F         BNE     XLNLOP    ITERATE WITH ACTION
-                    01082P 01D0  39                      RTS
-                    01083
-                    01084                        *
-                    01085                        *  VEINS DRAWS  FROM XSTORE,YSTORE TO XSTORE,Y2STOR
-                    01086                        *
-                    010872 01DD       06       A DYLINE  PULS    D         ENTRY FROM GENERAL LINE DRAW ROUTINE
-                    01086                              CLEAN OFF  THE STACK
-                    01089
-                    01090                                XDEF    YLINE
-                    01091P OlDF  DC   BF       A YLINE   LOD     YSTORE    GET Y COORDINATE
-                    010922 01E1  34   06       A         PSHS              SAVE TO RESTORE
-                    01093P 01E3  BD   048E     P         JSR     YDELTS
-                    010942 01E6  24   04    0180         BCC     YLNXFR
-                    010952 01E8  9E   C5       A         LOX     Y2STOR
-                    010962 01FA  9F   BF       A         STX     YSTORE
-                    01097P 0180  IF   02       A YLNXFR  TER     D,Y
-                    010982 OlEE  31   21       A         LEAY    8,1,Y
-                    01099P 01F0  BO   0009     P         JSR     GENADR
-                    011002 01F3       40                 PULS    H
-                    011012 01F5  DF   BF       A         STU     YSTORE
-                    011022 01F7  8D   15    020E         8FR     YADRI     MAKE U A ROUTINE TO INCREmENT
-                    01103P 01F9  20   D4    01CF         BRA     XLNLOP
-                    01104
-                    01105                        *
-+44 (0)2C
-
-     For Yc
-
+01048P 01A1 30   1F      A LINBXD LEAX   -&1,X    DECREMENT Y COORDINATE
+01049P 01A3 9F   BF      A LINBXL STX    YSTORE   UPDATE Y COORDINATE
+01050P 01A5 BD   01B5    P LINBXS JSR    XLINE    DRAW THE XLINE
+01051P 01A8 9E   BF      A        LDX    YSTORE   SEE HOW WE COMPARE WITH Y2STOR
+01022P 01AA 9C   C5      A        CMPX   Y2STOR
+01053P 01AC 27   06   01B4        BEQ    LINRTS   ALL DONE WHEN MATCH
+01054P 01AE 24   F1   01A1        BCC    LINBXD   YSTORE IS BIGGER SO DECREMENT IT
+01055P 01B0 30   01      A        LEAX   &1,X     YSTORE IS SMALLER SO INCREMENT IT
+01056P 01B2 20   EF   01A3        BRA    LINBXL
+01057
+01058P 01B4 39             LINRTS RTS
+01059
+01060
+01061                      *
+01062                      * DRAW A LINE FROM XSTORE,YSTORE TO X2STOR,YSTORE
+01063                      *
+01064P 01B5 9E   BD      A XLINE  LDX    XSTORE   GET X1 COORDINATE
+01065P 01B7 34   10      A        PSHS   X        SAVE IT FOR CALLER
+01066P 01B9 BD   049B    P        JSR    XDELTS
+01067P 01BC 24   04   01C2        BCC    XLNXFR   [D] HAS COUNT IF NO CARRY SO GO
+01068P 01BE 9E   C3      A        LDX    X2STOR   ALWAYS INCREMENT SO MAKE XSTORE SMALLER
+01069P 01C0 9F   BD      A        STX    XSTORE
+01070P 01C2 1F   02      A XLNXFR TFR    D,Y      PUT COUNT IN [Y]
+01071P 01C4 31   21      A        LEAY   &1,Y     OFFSET BY ONE
+01072P 01C6 BD   0009    P        JSR    GENADR   GET ADDRESS AND BIT MASK FOR START
+01073P 01C9 35   40      A        PULS   U        GET BACK XSTORE
+01074P 01CB DF   BD      A        STU    XSTORE
+01075P 01CD 8D   36   0205        BSR    XADRI    MAKE U ADDRESS OF INCREMENT ROUTINE
+01076P 01CF 97   D7      A XLNLOP STA    GTMPB1   SAVE THE BIT MASK
+01077P 01D1 BD   00E8    P        JSR    GRPACT   ACTUALLY PERFORM ACTION (SET RESET OR PUT CHR)
+01078P 01D4 96   D7      A        LDA    GTMPB1   GET BACK THE BIT MASK
+01079P 01D6 AD   C4      A        JSR    ,U       GO OFF TO INCREMENT ROUTINE
+01080P 01D8 31   3F      A        LEAY   -&1,Y    DECREMENT THE COUNT
+01081P 01DA 26   F3   01CF        BNE    XLNLOP   ITERATE WITH ACTION
+01082P 01DC 39                    RTS
+01083
+01084                      *
+01085                      * YLINE DRAWS FROM XSTORE,YSTORE TO XSTORE,Y2STOR
+01086                      *
+01087P 01DD 35   06      A DYLINE PULS   D        ENTRY FROM GENERAL LINE DRAW ROUTINE
+01086                      *    CLEAN OFF THE STACK
+01089
+01090                             XDEF   YLINE
+01091P 01DF DC   BF      A YLINE  LDD    YSTORE   GET Y COORDINATE
+01092P 01E1 34   06      A        PSHS   D        SAVE TO RESTORE
+01093P 01E3 BD   048E    P        JSR    YDELTS
+01094P 01E6 24   04   01EC        BCC    YLNXFR
+01095P 01E8 9E   C5      A        LDX    Y2STOR
+01096P 01EA 9F   BF      A        STX    YSTORE
+01097P 01EC 1F   02      A YLNXFR TFR    D,Y
+01098P 01EE 31   21      A        LEAY   &1,Y
+01099P 01F0 BD   0009    P        JSR    GENADR
+01100P 01F3 35   40      A        PULS   U
+01101P 01F5 DF   BF      A        STU    YSTORE
+01102P 01F7 8D   15   020E        BSR    YADRI    MAKE U A ROUTINE TO INCREMENT Y
+01103P 01F9 20   D4   01CF        BRA    XLNLOP
+01104
+01105                      *

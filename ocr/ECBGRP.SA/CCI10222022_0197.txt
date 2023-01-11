@@ -1,66 +1,60 @@
-                                              PAGE 014 ECBGRP .SA:1 TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
-                                  wo)
-                                              01465P 041E 03                 0006           A               ADDD         #&200            ALLOW 200 BYTES EXTRA
-                                              014662 0421 93                 21             A               SUBD         STKTOP           ROOM AFTER END OF PROGRAM? 
-                                  40          01467P 0423 24                 89       03DE                  BCC          FCGRP1           SHOULD BE WELL BELOW STKTOP 
-                                              014682 0425 96                 68             A               LDA          CURLIN           Executing a direct statement?
-                                              01469P 0427 40                                                INCA 
-                                  40          014702 0428 27                 08       0432                  BED          DIRSTA           Yes, leave TXTPTR as is                                                                                                                                  •
-                                              014712 042A IF                 20             A               TFR          Y,D              No, TXT2TR:=TXTPTR-1-(new TXTTAB- 
-                                              014722 0420 93                 19             A               SUBD         TXTTAB           old TXTTAB) so it points to the 
-                                              014732 042E D3                 A6             A               ADDD         TXTPTR           same place in the program after                                                                                                                          •
-                                              014742 0430 DD                 A6             A               STD          TXTPTR           the program is moved.
-                                              01475P 0432 DE                 1B                DIRSTA LDU                VARTAB           FETCH OLD VARTAB FOR BLOCK TRANSFER 
-                                              014762 0434 9F                 IB             A               STX          VARTAB           SAVE NEW VARTAB
-                                              014772 0436 1193               1B             A               CMPU         VARTAB           MOVING UP OR DOWN?
-                                              01478P 0439 24                 17       0452                  BCC          PRGMVD           BLOCK TRANSFER DOWN
-                                  40          01479P 043B A6                 C2             A  PRGMVU LDA                ,-0              FETCH FROM OLD VARTAB GOING LOWER 
-                                     11       014802 043D A7                 82             A               STA          ,-X              STORE INTO NEW VARTAB
-                                              01481P 043F 1193               19             A               CMPU         TXTTAG           REACHED OLD TXTTAB?
-                                  40          014622 0442 26                 F7       0438                  BNE          PROMVO           IF NOT, KEEP TRANSFERING
-                                              014832 0444 109F               19             A               STY          TXTTAB           SET UP NEW TXTTAB
-                                              014842 0447 6F                 3F             A               CLR          -&1,Y            AND ZERO BYTE BEFORE IT
-                                              01485                                                         XDEF         PRGSET 
-                                              014862 0449 BD                 0000           A  PRGSET JSR                CHEADA           FIX UP THE LINKS
-                                              014872 0440 BD                 0000           A               JSR          CLEARC           PERFORM A CLEAR TO SET NEW ARYTAB.
-                                              01488P 044F 7E                 0000           A               „IMP         NEWSTT           AND CONTINUE WITH PROGRAM
-                                              01489P 0452 DE                 19                PRGMVD LDU                TXTTAB           GET OLD TXTTAB TO MOVE DOWN FROM
-                                              014902 0454 109F               19                             STY          TXTTAB           SET UP NEW TXTTAB
-                                              01491P 0457 6F                 3F             A               CUR          -&1,Y            AND FORCE ZERO BEt-ORE IT
-                                              014922 0459 A6                 CO             A  PRGMVL LDA                ,U+              FETCH FROM TXTTAB UP
-                                              014932 0458 A7                 AO             A               STA          ,Y+              AND STORE INTO NEW TXTTAB GOING Lip 
-                                              014942 045D 1090               IB             A               CMPY         VARTAB           COMPARE AGAINST NEW VARTAB
-                                              01495P 0460 26                 F7       0459                  BNE          PRGMVL           ITERATE MOVING TO LOWER ADDRESSES 
-                                              014962 0462 20                 E5       0449                  BRA          PRGSET           FINISH UP POLEAR
-                                     r I (    01497                                                         XDEF         PINIT 
-                                              014982 0464 06                 lE                PINIT LOB                 #&30             ALLOW FOR MAXIMUM GRAPHICS
-                                              01499                          0001                           IFNE         REALIO 
-                                              015002 0466 D7                 19             A               STB          TXTTAB           SAME AS 2CLEAR 4 
-                                              01501                                                         ENDC         IFN              REALIn
-                                              015022 0468 86                 06             A               LDA          #&6 
-                                  40          01503                                                         XDEF         REPINT 
-                                              015042 046A 97                 BC             A  REPINT STA                SCRBAS           SAVE FOR FUTURE USE
-                                              01505P 0460 97                 BA                             STA          SCBASE
-                                              015062 046E 4F                                                CLRA 
-                                              015072 046F 97                 B6             A               STA          SCMODE
-                                              015082 0471 86                 10             A               LDA          #&16 
-                                              01509P 0473 97                 B9             A               STA          SCWID
- sion" - it's a word that                     015102 0475 86                 03             A               LOA          #8,3 
- nt. The latest in Dan D'                     015112 0477 97                 B2             A               STA          FORCLR
-f power amplifiers is th                      015122 0479 86                 OC             A               LDA          #&12                                                                                                                                                                      •
-spent in the research at                      01513P 047B 97                 97             A               STA          SOTO2 
- ents that always rise to                     015142 047D 9E                 1c4            A               LDX          TXTTAB 
-espect the demands of                         015152 047F 6F                 IF             A               CUR          -&1,X 
-realism from the most s                       01516P 0481 7E                 0000           A               jMP          SCRTCH 
-st thunderous of cresc                        015172 0484                    10             A  SCRTAB FOB                &16              MODE 0 HAS SCWID 16
-allowed to affect the dyn                     015182 0485                    06             A               FCB          E(-6             AND REQUIRE 6 256 BYTE PAGES OF MEMORY 
-                                              01519P 0486                    20             A               FCB          &32              MOVE TO 32 BYTE SCWID FOR COLOR
-                                              015202 0487                    OC             A               FCB          &12              AND DOUBLE THE MEMORY
-                                              015212 0488                    10             A               FCB          &IS 
- bsolute so                                   015222 0489                    OC             A               FCB          8,12
+PAGE  014  ECBGRP  .SA:1  TXRGRP NEW GRAPHICS CODE FOR 6847 COLOR COMPUTER
 
-         I, r I.!, II I.   LI \                                                                                                                                                                                                                                                                    40
-              .
-                      VV,i1
-                                  to                                                                                                                                                                                                                                                               •
-
+01465P 041E C3   00C8    A        ADDD   #&200    ALLOW 200 BYTES EXTRA
+01466P 0421 93   21      A        SUBD   STKTOP   ROOM AFTER END OF PROGRAM?
+01467P 0423 24   B9   03DE        BCC    FCGRP1   SHOULD BE WELL BELOW STKTOP
+01468P 0425 96   68      A        LDA    CURLIN   Executing a direct statement?
+01469P 0427 4C                    INCA
+01470P 0428 27   08   0432        BEQ    DIRSTA   Yes, leave TXTPTR as is.
+01471P 042A 1F   20      A        TFR    Y,D      No, TXTPTR:=TXTPTR+(new TXTTAB-
+01472P 042C 93   19      A        SUBD   TXTTAB   old TXTTAB) so it points to the
+01473P 042E D3   A6      A        ADDD   TXTPTR   same place in the program after
+01474P 0430 DD   A6      A        STD    TXTPTR   the program is moved.
+01475P 0432 DE   1B      A DIRSTA LDU    VARTAB   FETCH OLD VARTAB FOR BLOCK TRANSFER
+01476P 0434 9F   1B      A        STX    VARTAB   SAVE NEW VARTAB
+01477P 0436 1193 1B      A        CMPU   VARTAB   MOVING UP OR DOWN?
+01478P 0439 24   17   0452        BCC    PRGMVD   BLOCK TRANSFER DOWN
+01479P 043B A6   C2      A PRGMVU LDA    ,-U      FETCH FROM OLD VARTAB GOING LOWER
+01480P 043D A7   82      A        STA    ,-X      STORE INTO NEW VARTAB
+01481P 043F 1193 19      A        CMPU   TXTTAB   REACHED OLD TXTTAB?
+01462P 0442 26   F7   043B        BNE    PRGMVU   IF NOT, KEEP TRANSFERING
+01483P 0444 109F 19      A        STY    TXTTAB   SET UP NEW TXTTAB
+01484P 0447 6F   3F      A        CLR    -&1,Y    AND ZERO BYTE BEFORE IT
+01485                             XDEF   PRGSET
+01486P 0449 BD   0000    A PRGSET JSR    CHEADA   FIX UP THE LINKS
+01487P 044C BD   0000    A        JSR    CLEARC   PERFORM A CLEAR TO SET NEW ARYTAB...
+01488P 044F 7E   0000    A        JMP    NEWSTT   AND CONTINUE WITH PROGRAM
+01489P 0452 DE   19      A PRGMVD LDU    TXTTAB   GET OLD TXTTAB TO MOVE DOWN FROM
+01490P 0454 109F 19      A        STY    TXTTAB   SET UP NEW TXTTAB
+01491P 0457 6F   3F      A        CLR    -&1,Y    AND FORCE ZERO BEFORE IT
+01492P 0459 A6   C0      A PRGMVL LDA    ,U+      FETCH FROM TXTTAB UP
+01493P 045B A7   A0      A        STA    ,Y+      AND STORE INTO NEW TXTTAB GOING UP
+01494P 045D 109C 1B      A        CMPY   VARTAB   COMPARE AGAINST NEW VARTAB
+01495P 0460 26   F7   0459        BNE    PRGMVL   ITERATE MOVING TO LOWER ADDRESSES
+01496P 0462 20   E5   0449        BRA    PRGSET   FINISH UP PCLEAR
+01497                             XDEF   PINIT
+01498P 0464 C6   1E      A PINIT  LDB    #&30     ALLOW FOR MAXIMUM GRAPHICS
+01499            0001    A        IFNE   REALIO
+01500P 0466 D7   19      A        STB    TXTTAB   SAME AS PCLEAR 4
+01501                             ENDC   IFN      REALIO
+01502P 0468 86   06      A        LDA    #&6
+01503                             XDEF   REPINT
+01504P 046A 97   BC      A REPINT STA    SCRBAS   SAVE FOR FUTURE USE
+01505P 046C 97   BA      A        STA    SCBASE
+01506P 046E 4F                    CLRA
+01507P 046F 97   B6      A        STA    SCMODE
+01508P 0471 86   10      A        LDA    #&16
+01509P 0473 97   B9      A        STA    SCWID
+01510P 0475 86   03      A        LOA    #&3
+01511P 0477 97   B2      A        STA    FORCLR
+01512P 0479 86   0C      A        LDA    #&12
+01513P 047B 97   B7      A        STA    SCTOP
+01514P 047D 9E   19      A        LDX    TXTTAB
+01515P 047F 6F   1F      A        CLR    -&1,X
+01516P 0481 7E   0000    A        JMP    SCRTCH
+01517P 0484      10      A SCRTAB FCB    &16      MODE 0 HAS SCWID 16
+01518P 0485      06      A        FCB    &6       AND REQUIRE 6 256 BYTE PAGES OF MEMORY
+01519P 0486      20      A        FCB    &32      MOVE TO 32 BYTE SCWID FOR COLOR
+01520P 0487      0C      A        FCB    &12      AND DOUBLE THE MEMORY
+01521P 0488      10      A        FCB    &16
+01522P 0489      0C      A        FCB    &12
