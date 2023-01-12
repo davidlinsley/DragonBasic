@@ -55,3 +55,22 @@ SMSTRF LDA    #&1      Single char string field.
        STA    FLDWID
 ISSTRF DECB            Decrement using string char count.
        JSR    PLSPRT   Print possible preceding plus.
+       JSR    CHRGOT   End of value list reached?
+       LBEQ   FLDFIN   Yes, PRINT USING is finished.
+       STB    USSCNT   No, save using string char count.
+       JSR    FRMEVL   Evaluate next value in the value list.
+       JSR    CHKSTR   It must be a string to go into this
+*    string field.
+       LDX    FACMO    X:=pointer to the string descriptor.
+       STX    DSCPNT   Set up DSCPNT for LEFT$ code.
+       LDB    FLDWID   B:=width of string field.
+       JSR    LEFTUS   Get leftmost B chars or whole string
+*    if it's shorter than the field.
+       JSR    STRPRT   Print the string.
+       LDX    FACMO    See if spaces are needed to fill out
+       LDS    FLDWID   the field.
+       SUBB   ,X
+UPRTSP DECB            More spaces to print?
+       LBMI   FNSTRF   No, string field is finished.
+       JSR    OUTSPC   Yes, print another one.
+       BRA    UPRTSP   See if more.

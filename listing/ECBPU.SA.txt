@@ -58,3 +58,26 @@ PAGE  001  ECBCOM  .SA:0  TXRPU Extension ROM Direct Page RAM
 00755P 0002 97   D9      A        STA    FLDWID
 00756P 0004 5A             ISSTRF DECB            Decrement using string char count.
 00757P 0005 BD   019A    P        JSR    PLSPRT   Print possible preceding plus.
+
+PAGE  002  ECBPU  .SA:1  TXRPU The PRINT USING driver.
+
+00758P 0008 9D   A5      A        JSR    CHRGOT   End of value list reached?
+00759P 000A 1027 008C 009A        LBEQ   FLDFIN   Yes, PRINT USING is finished.
+00760P 000E D7   D3      A        STB    USSCNT   No, save using string char count.
+00761P 0010 BD   0000    A        JSR    FRMEVL   Evaluate next value in the value list.
+00762P 0013 BD   0000    A        JSR    CHKSTR   It must be a string to go into this
+00763                      *    string field.
+00764P 0016 9E   52      A        LDX    FACMO    X:=pointer to the string descriptor.
+00765P 0018 9F   4D      A        STX    DSCPNT   Set up DSCPNT for LEFT$ code.
+00766P 001A D6   D9      A        LDB    FLDWID   B:=width of string field.
+00767P 001C BD   0000    A        JSR    LEFTUS   Get leftmost B chars or whole string
+00768                      *    if it's shorter than the field.
+00769P 001F BD   0000    A        JSR    STRPRT   Print the string.
+00770P 0022 9E   52      A        LDX    FACMO    See if spaces are needed to fill out
+00771P 0024 D6   D9      A        LDS    FLDWID   the field.
+00772P 0026 E0   84      A        SUBB   ,X
+00773P 0028 5A             UPRTSP DECB            More spaces to print?
+00774P 0029 102B 0148 0175        LBMI   FNSTRF   No, string field is finished.
+00775P 002D BD   0000    A        JSR    OUTSPC   Yes, print another one.
+00776P 0030 20   F6   0028        BRA    UPRTSP   See if more.
+
