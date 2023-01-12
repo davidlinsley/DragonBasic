@@ -107,3 +107,58 @@ NEWUCH JSR    PLSPRT   Print possible preceding plus since
        JSR    CHROUT   Now print the current char since it
 *    isn't part of a field.
        BRA    PRCCHR   Go look at the next using string char.
+
+*
+* The entry point of the PRINT USING driver.
+*
+
+       XDEF   PUDRVR
+PUDRVR JSR    FRMCHK   Evaluate the using string.  FRMCHK
+*    is called instead of FRMEVL because
+*    TXTPTR is pointing to the USINTK
+*    rather than the first char of the
+*    string formula.
+       JSR    CHKSTR   Make sure it is a string.
+       LDB    #SEMCOL  It must be delimited by a semi-colon.
+       JSR    SYNCHR
+       LDX    FACMO    A pointer to the descriptor of the
+       STX    USDPTR   using string is saved because calls
+*    to FRMEVL might cause garbage
+*    collection to occur.
+       BRA    INIUS    Don't look at USLFG.
+
+REUSST LDA    USFLG    Was a value from the value list
+*    printed on the last scan of the using
+*    string?
+       BEQ    PUFCER   If not give Function Call error.
+       LDX    USDPTR   X:=pointer to using string descriptor.
+INIUS  CLR    USFLG    Say no values printed this scan.
+       LDB    ,X       B:=length of using string.
+       BNE    NTNLUS   If the using string is null give a
+PUFCER JMP    FCERR    Function Call error.
+
+NTNLUS LDX    &2,X     X:=pointer to using string characters.
+PRCCHR CLR    PUMASK   Turn off all print using flag bits.
+PLSFIN CLR    FLDWID   Field width for strings:=0.  Number
+*    of digits before decimal point for
+*    numbers:=0.
+       LDA    ,X+      A:=char from using string.
+       CMPA   #'!      A single char string field?
+       LBEQ   SMSTRF   Yes, go handle it.
+       CMPA   #'#      Start of a numeric field?
+       BEQ    NUMNUM   Yes.
+       DECB            No, all other possibilities require
+*    at least two chars.
+       BNE    TWOLFT   There are two chars.
+       JSR    PLSPRT   This isn't a field so print preceding
+*    plus if there was one.
+       JSR    CHROUT   Print the current char.
+FINUSI JSR    CHRGOT   We have reached the end of the using
+*    string.  Are there more values?
+       BNE    REUSST   Yes, go reuse the using string.
+       LDA    USFLG    No, did the value list end with a
+*    semicolon or comma?
+FLDFIN BNE    FREUST   Yes, don't do CRLF.
+       JSR    CRDO     No, finish up with a CRLF.
+FREUST LDX    USDPTR   Free up the using string's temporary.
+       JMP    FRETMP   and return.
