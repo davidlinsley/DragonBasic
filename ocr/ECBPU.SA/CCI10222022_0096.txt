@@ -1,115 +1,34 @@
-                                                                       PAGE 003 ECBPU                                     .SA:1 TXRPU                          The PRINT USING driver.
+PAGE  003  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 
-
-
-                                                                       00778                                                                   *
-
-                                                                       00779                                                                   *     Here when MLCSTR is seen which indicates the start of a multi-char
-
-                                                                       00780                                                                   *     string field if it is followed by a variable number of spaces and
-
-                                                                       00781                                                                   *     another MLCSTR.
-                                                                       00782                                                                   *
-
-                                                                       00783
-
-                                                                       00784P 0032 D7                               D3                    A BOSTRF STB                               USSCNT                  Save the using string char count.
-
-                                                    •                  00785P 0034 9F                               OF                    A                       STX                TEMPX1                  Save the using string pointer.                                                                                                                                                                                                     40 
-                                                                       00786P 0036 86                                                     A                       LDA                                        The field width is 2 for the MLCSTRs
-
-                                                                       00787P 0038 97                               D9                    A                       STA                FLDWID                  plus the number of enclosed spaces.
-
-                                                                       00788P 003A A6                               84                    A LPSTRF LDA                               ,X                      Get next using string char.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40 
-                                                                       00789P 003C 81                               25                    A CMPA                                     #MLCSTR End of the string field?
-
-                                                                       00790P 003E 27                               C4            0004                            BEU                ISSTRF                  Yes, go print the string.
-
-                                                                       00791P 0040 81                               20                    A                       CMPA               #'                      No, an enclosed space?
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40 
-                                                                       00792P 0042 26                               07            004B                            BNE                NOSTRF                  No, it isn't really a string field.
-
-                                                                       00793P 0044 OC                               D9                    A                       INC                FLDWID                  Yes, increment the field width.
-
-                                                                       00794P 0046 30                               01                    A                       LEAX               &1,X                    Point to the next using string char.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40 
-                                                                       00795P 0048 5A                                                                             DECB                                       Decrement using string char count.
-
-                                                                       00796P 0049 26                               EF            003A                            BNE                LPSTRF                  Is there are more chars in the using
-
-                                                                       00797                                                                   *             string then go scan them. Otherwise 
-                                                                       00798                                                                   *             the closing MLCSTR wasn't found and                                                                                                                                                                                                                                                40 
-
-                                                                       00799                                                                   *             therefore we aren't really looking
-
-                                                                       00800                                                                   •             at a string field.                                                                                                                                                                                                                                                                 40 
-                                                                       00801P 004B 9E                               OF                    A NOSTRF LDX                               TEMPX1                  It isn't a string field so restore the
-                                          ...
-                                                                       00802P 004D D6                               D3                    A                       LDB                USSCNT                  using string pointer and char count.
-
-                                                                       00803P 004F 86                               25                    A                       LDA                #MLCSTR Just print the MLCSTR since it doesn't
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40 
-                                                                       00804                                                                   •             belong to a field.
-
-                                                                       00805P 0051 BD                               019A                  P NEWUCH JSR                               PLSPRT                  Print possible preceding plus since
-
-                                                                       00806                                                                   •             it didn't start a numeric field.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40 
-                                                                       00807P 0054 BD                               0000                  A                       JSR                CHROUT                  Now print the current char since it
-
-                                                                       00808                                                                                 isn't part of a field.
-
-                                                                       00809P 0057 20                               22 007B                                       BRA                PRCCHR                  Go look at the next using string char.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40
-
-
-
-
-
-                                                    410                                                                                                                                                                                                                                                                                                                                                                                         40
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40
-
-
-
-
- ion" - it's a word that s                                                                                                                                                                                                                                                                                                                                                                                                                      40
- t. The latest in Dan D'Ag 
-
-power amplifiers is the 
-
- ent in the research and                            •                                                                                                                                                                                                                                                                                                                                                                                           41
-nts that always rise to th 
-
- pect the demands of the 
-alism from the most subtl 
- thunderous of crescend                                                                                                                                                                                                                                                                                                                                                                                                                         41
-
-owed to affect the dynami
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                41 
-
-
-
-
- solute soun                                                                                                                                                                                                                                                                                                                                                                                                                                    40 
-              ,t,r Jr • , Cur    ,ult.; Jr1t; r
-                   Jr              CJ7 \A/
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40
-                           vHil 1-hr:                                                                                                                                                                                                                                                                                                                                                                                                    |[
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40 
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                40
-
+00778                      *
+00779                      * Here when MLCSTR is seen which indicates the start of a multi-char
+00780                      * string field if it is followed by a variable number of spaces and
+00781                      * another MLCSTR.
+00782                      *
+00783
+00784P 0032 D7   D3      A BGSTRF STB    USSCNT   Save the using string char count.
+00785P 0034 9F   0F      A        STX    TEMPX1   Save the using string pointer.
+00786P 0036 86   02      A        LDA    #&2      The field width is 2 for the MLCSTRs
+00787P 0038 97   D9      A        STA    FLDWID   plus the number of enclosed spaces.
+00788P 003A A6   84      A LPSTRF LDA    ,X       Get next using string char.
+00789P 003C 81   25      A        CMPA   #MLCSTR  End of the string field?
+00790P 003E 27   C4   0004        BEQ    ISSTRF   Yes, go print the string.
+00791P 0040 81   20      A        CMPA   #'       No, an enclosed space?
+00792P 0042 26   07   004B        BNE    NOSTRF   No, it isn't really a string field.
+00793P 0044 0C   D9      A        INC    FLDWID   Yes, increment the field width.
+00794P 0046 30   01      A        LEAX   &1,X     Point to the next using string char.
+00795P 0048 5A                    DECB            Decrement using string char count.
+00796P 0049 26   EF   003A        BNE    LPSTRF   Is there are more chars in the using
+00797                      *    string then go scan them. Otherwise
+00798                      *    the closing MLCSTR wasn't found and
+00799                      *    therefore we aren't really looking
+00800                      •    at a string field.
+00801P 004B 9E   0F      A NOSTRF LDX    TEMPX1   It isn't a string field so restore the
+00802P 004D D6   D3      A        LDB    USSCNT   using string pointer and char count.
+00803P 004F 86   25      A        LDA    #MLCSTR  Just print the MLCSTR since it doesn't
+00804                      *    belong to a field.
+00805P 0051 BD   019A    P NEWUCH JSR    PLSPRT   Print possible preceding plus since
+00806                      *    it didn't start a numeric field.
+00807P 0054 BD   0000    A        JSR    CHROUT   Now print the current char since it
+00808                      *    isn't part of a field.
+00809P 0057 20   22   007B        BRA    PRCCHR   Go look at the next using string char.

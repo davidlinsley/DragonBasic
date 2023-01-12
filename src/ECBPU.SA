@@ -74,3 +74,36 @@ UPRTSP DECB            More spaces to print?
        LBMI   FNSTRF   No, string field is finished.
        JSR    OUTSPC   Yes, print another one.
        BRA    UPRTSP   See if more.
+
+*
+* Here when MLCSTR is seen which indicates the start of a multi-char
+* string field if it is followed by a variable number of spaces and
+* another MLCSTR.
+*
+
+BGSTRF STB    USSCNT   Save the using string char count.
+       STX    TEMPX1   Save the using string pointer.
+       LDA    #&2      The field width is 2 for the MLCSTRs
+       STA    FLDWID   plus the number of enclosed spaces.
+LPSTRF LDA    ,X       Get next using string char.
+       CMPA   #MLCSTR  End of the string field?
+       BEQ    ISSTRF   Yes, go print the string.
+       CMPA   #'       No, an enclosed space?
+       BNE    NOSTRF   No, it isn't really a string field.
+       INC    FLDWID   Yes, increment the field width.
+       LEAX   &1,X     Point to the next using string char.
+       DECB            Decrement using string char count.
+       BNE    LPSTRF   Is there are more chars in the using
+*    string then go scan them. Otherwise
+*    the closing MLCSTR wasn't found and
+*    therefore we aren't really looking
+•    at a string field.
+NOSTRF LDX    TEMPX1   It isn't a string field so restore the
+       LDB    USSCNT   using string pointer and char count.
+       LDA    #MLCSTR  Just print the MLCSTR since it doesn't
+*    belong to a field.
+NEWUCH JSR    PLSPRT   Print possible preceding plus since
+*    it didn't start a numeric field.
+       JSR    CHROUT   Now print the current char since it
+*    isn't part of a field.
+       BRA    PRCCHR   Go look at the next using string char.

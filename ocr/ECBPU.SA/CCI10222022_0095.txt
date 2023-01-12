@@ -1,4 +1,4 @@
-PAGE  002  ECBPU  .SA:1  TXRPU The PRINT USING driver.
+PAGE  002  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 
 00758P 0008 9D   A5      A        JSR    CHRGOT   End of value list reached?
 00759P 000A 1027 008C 009A        LBEQ   FLDFIN   Yes, PRINT USING is finished.
