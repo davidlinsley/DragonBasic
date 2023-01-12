@@ -1,0 +1,57 @@
+       NAM    TXRPU    - PRINT USING for TCC Extension ROM.
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   CHKCOM,CHKSTR,CHROUT,CRDO
+       XREF   DIV10
+       XREF   FADDH,FBUFFR,FCERR,FDCEND,FMULT,FOUT,FOUTBL,FOUTCP,FRETMP
+       XREF   FRMCHK,FRMEVL,FRMNUM
+       XREF   LEFTUS
+       XREF   MUL10
+       XREF   N.0999,N.9999,N.MIL
+       XREF   OUTSPC
+       XREF   QINT
+       XREF   STROUT,STRPRT,SYNCHR
+       XREF   USINTK
+
+       TTL    Equates
+
+*
+* The PRINT USING mask (PUMASK) bit definitions.
+*
+
+SCIFLG EQU    &1       Bit 0 - Scientific notation.
+TRLFLG EQU    &4       Bit 2 - Trailing sign.
+PLSFLG EQU    @10      Bit 3 - Print "+" instead of space
+*      for positive numbers.
+DOLFLG EQU    @20      Bit 4 - Floating dollar sign.
+ASTFLG EQU    @40      Bit 5 - Asterisk fill.
+COMFLG EQU    @100     Bit 6 - Insert commas.
+
+FLTMON EQU    '$       Character to use for floating money
+*    sign. Can be changed to a yen sign
+*    for example.
+MLCSTR EQU    '%       Character indicating a multi-char
+*    string field. (For compatibility
+*    with TRS-80 Model I Level II BASIC.
+
+       TTL    The PRINT USING driver.
+
+*
+* Entered at PUTEST.
+*
+
+*
+* Here to handle a string field.
+*
+
+SMSTRF LDA    #&1      Single char string field.
+       STA    FLDWID
+ISSTRF DECB            Decrement using string char count.
+       JSR    PLSPRT   Print possible preceding plus.
