@@ -365,3 +365,34 @@ UPNUM  LDA    ,-X      Move the number up a byte to make
        LDA    #'%      Put in the per cent sign to indicate
        STA    ,X       field overflow and return.
        RTS
+
+*
+* Here to print a number in fixed point notation.
+*
+
+FIXNOT LDA    FACEXP   Is the number zero?
+       STA    TENEXP   (Set decimal exponent to 0 if so.)
+       BEQ    FFXV03   Yes, don't try to normalize.
+       JSR    FOUTN    No, normalize it so all the digits
+*    to be printed are in the integer part.
+FFXV03 LDA    TENEXP   Are there fractional digits?
+       LBMI   FFXV04   Yes because the decimal exponent is
+*    Negative.
+
+*
+* Print number with no fractional digits.
+*
+       NEGA            Leading zeroes must be printed if the
+       ADDA   FLDWID   field has more chars than there are
+       SUBA   #&6+&3*ADDPRC digits in the number.  Calculate
+       JSR    FOTZER   the number of zeroes to print by
+*    effectively taking
+*    FLDWID-TENEXP-# of digits.
+       JSR    FOUTCD   Set up decimal point and comma counts.
+       JSR    CNVASC   Convert to ASCII digits.
+       LDA    TENEXP   Put in some zeroes if the decimal
+       JSR    FOTZEC   exponent is non-zero.  Commas may
+*    be needed also.
+       LDA    TENEXP   Make sure a decimal point is printed
+       JSR    FOUTED   for FOUTTS.
+*    Fall into FOUTTD to finish up.
