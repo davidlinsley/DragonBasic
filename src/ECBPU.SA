@@ -261,3 +261,37 @@ FINNUM CMPA   #'^      ^^^ indicates scientific notation.
 *    count and pointer.
        INC    PUMASK   Set the scientific notation flag.
 *    (Bit 0 of PUMASK.)
+
+ENDNUS LEAX   -&1,X    Back up using string pointer so
+*    we can check for trailing sign spec.
+       INC    FLDWID   Increment the leading digit count
+*    in case there was a leading sign spec.
+       LDA    PUMASK   Was there a leading sign spec?
+       BITA   #PLSFLG
+       BNE    ENDNUM   Yes, so there can't be a trailing sign.
+       DEC    FLDWID   No, adjust the field width back.
+       TSTB            At the end of the using string?
+       BEQ    ENDNUM   Yes, so can't have trailing sign.
+       LDA    ,X       No, check for trailing sign.
+       SUBA   #'-      If there is one it is a "+" or "-".
+       BEQ    SGNTRL   Have trailing minus.
+       CMPA   #'+-'-
+       BNE    ENDNUM   Don't have trailing sign.
+       LDA    #PLSFLG  Have trailing plus, set the plus flag.
+SGNTRL ORA    #TRLFLG  Set the trailing sign flag.
+       ORA    PUMASK
+       STA    PUMASK
+       DECB            Decrement length of using string for
+*  trailing sign.
+ENDNUM JSR    CHRGOT   Any more values?
+       LBEQ   FLDFIN   No, print using check out time.
+       STB    USSCNT   Yes, save using string char count.
+       JSR    FRMNUM   Evaluate a numeric formula.
+       LDA    FLDWID   If the total field width is too big
+       ADDA   DPWID    then give a Function Call error.
+       CMPA   #&14+&3*ADDPRC
+       LBHI   FCERR
+       JSR    PUFOUT   Convert the number into ASCII in
+*    FBUFFR.
+       LEAX   -&1,X
+       JSR    STROUT   Actually print the number.
