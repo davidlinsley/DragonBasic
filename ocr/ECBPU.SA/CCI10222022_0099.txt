@@ -1,59 +1,23 @@
-                         PAGE 006 6CBPU     .SA:1 TXRPU The PRINT USING driver.
+PAGE  006  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 
-                         00906                      *
-                         00907                      *Scan the  leading digits (before decimal point) of a numeric field.
-                         00908                      *
-                         00909
-                         00910P 00E6 OF   D8      A NUMNUM CLR    DPWID    Number of trailing (after decimal
-                         00911                      *    point) :=0.
-                         00912P 0068 OC   D9      A NUMLOP INC    FLDWID   Increment the leading (before decimal
-                         00913                      *    point) digit count.
-                         00914P 00EA 5A                    DECB            More chars in the using string?
-                         00915P 00EB 27   49   0136        BEG!   ENDNUS   No end of numeric field.
-                         00916P 00ED AS   80      A        LDA    ,X+      Yes, get the next char.
-                         00917P 00EF 81   2E      A        CMPA   #'.      Is it the decimal point?
-                         00918P 00F1 27   16   0111        BEO    AFTDOT   Yes, go scan the trailing digit specs.
-                         00919P 00E3 81   23      A        CMPA   #'#      No, is it another leading digit?
-                         00920P 00F5 27   Fl   0068        BEO    NUMLOP   Yes, scan the next char.
-                         00921P 00F7 81   2C      A        CMPA   #COMMA   Do they want a comma every 3 digits?
-                         00922P 00F9 26   21   011C        BNE    FINNUM   No, no more leading digit soecs.
-                         00923P 00FB 96   DA      A        LDA    PUMASK   Yes, set the comma flag.
-                         00924P 00FD 8A   40      A        ORA    #COMFLG
-                         00925P 00FF 97   DA      A        STA    PUMASK
-                         00926P 0101 20   E5   00E8        BRA    NUMLOP   Scan for more leading digits.
-
-                  •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  Ht PHU
-
-"Progression" - it's a w 
-movement. The latest in 
-family of power amplifi 
-lifetime spent in the res 
-components that alway 
-always respect the dem 
-convey realism from the
- lo most thunderous o
-  I lot allowed to affect
-
-
-
-    absolut
-
+00906                      *
+00907                      * Scan the leading digits (before decimal point) of a numeric field.
+00908                      *
+00909
+00910P 00E6 0F   D8      A NUMNUM CLR    DPWID    Number of trailing (after decimal
+00911                      *    point) :=0.
+00912P 00E8 0C   D9      A NUMLOP INC    FLDWID   Increment the leading (before decimal
+00913                      *    point) digit count.
+00914P 00EA 5A                    DECB            More chars in the using string?
+00915P 00EB 27   49   0136        BEQ    ENDNUS   No, end of numeric field.
+00916P 00ED A6   80      A        LDA    ,X+      Yes, get the next char.
+00917P 00EF 81   2E      A        CMPA   #'.      Is it the decimal point?
+00918P 00F1 27   1E   0111        BEQ    AFTDOT   Yes, go scan the trailing digit specs.
+00919P 00F3 81   23      A        CMPA   #'#      No, is it another leading digit?
+00920P 00F5 27   F1   00E8        BEQ    NUMLOP   Yes, scan the next char.
+00921P 00F7 81   2C      A        CMPA   #COMMA   Do they want a comma every 3 digits?
+00922P 00F9 26   21   011C        BNE    FINNUM   No, no more leading digit specs.
+00923P 00FB 96   DA      A        LDA    PUMASK   Yes, set the comma flag.
+00924P 00FD 8A   40      A        ORA    #COMFLG
+00925P 00FF 97   DA      A        STA    PUMASK
+00926P 0101 20   E5   00E8        BRA    NUMLOP   Scan for more leading digits.

@@ -202,3 +202,25 @@ DOLRNM LDA    PUMASK   Set the floating dollar sign flag.
 NTBOTH LEAX   &1,X     Point beyond the second char (or
 *    third for "**$").
        INC   FLDWID    Increment the digit count.
+
+*
+* Scan the leading digits (before decimal point) of a numeric field.
+*
+
+NUMNUM CLR    DPWID    Number of trailing (after decimal
+*    point) :=0.
+NUMLOP INC    FLDWID   Increment the leading (before decimal
+*    point) digit count.
+       DECB            More chars in the using string?
+       BEQ    ENDNUS   No, end of numeric field.
+       LDA    ,X+      Yes, get the next char.
+       CMPA   #'.      Is it the decimal point?
+       BEQ    AFTDOT   Yes, go scan the trailing digit specs.
+       CMPA   #'#      No, is it another leading digit?
+       BEQ    NUMLOP   Yes, scan the next char.
+       CMPA   #COMMA   Do they want a comma every 3 digits?
+       BNE    FINNUM   No, no more leading digit specs.
+       LDA    PUMASK   Yes, set the comma flag.
+       ORA    #COMFLG
+       STA    PUMASK
+       BRA    NUMLOP   Scan for more leading digits.
