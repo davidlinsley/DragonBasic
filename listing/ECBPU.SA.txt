@@ -314,3 +314,63 @@ PAGE  008  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 00996P 0170 30   1F      A        LEAX   -&1,X
 00997P 0172 BD   0000    A        JSR    STROUT   Actually print the number.
 
+PAGE  009  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00999P 0175 0F   D7      A FNSTRF CLR    USFLG    Assume end of statement terminated
+01000                      *    the value
+01001P 0177 9D   A5      A        JSR    CHRGOT   See what the terminator of the value
+01002                      *    was.
+01003P 0179 27   0D   0188        BEQ    CRDNUS   It was an EOS.
+01004P 017B 97   D7      A        STA    USFLG    Not EOS, set flag to say so.
+01005P 017D 81   3B      A        CMPA   #SEMCOL  The other valid terminators are semi-
+01006P 017F 27   05   0186        BEQ    SEMUSN   colon and comma.
+01007P 0181 BD   0000    A        JSR    CHKCOM
+01008P 0184 20   02   0188        BRA    CRDNUS
+01009
+01010P 0186 9D   9F      A SEMUSN JSR    CHRGET   skip the semicolon.
+01011P 0188 9E   D5      A CRDNUS LDX    USDPTR   Calculate a pointer into tne using
+01012P 018A E6   84      A        LDB    ,X       string using the descriptor pointer
+01013P 018C D0   D3      A        SUBB   USSCNT   and the character count.
+01014P 018E AE   02      A        LDX    &2,X
+01015P 0190 3A                    ABX
+01016P 0191 D6   D3      A        LDB    USSCNT   Set up B with the char count.
+01017P 0193 1026 FEE4 007B        LBNE   PRCCHR   Go look at the next using string char.
+01018P 0197 7E   0094    P        JMP    FINUSI   End of using string, go reuse it.
+01019
+01020                      *
+01021                      * Print a "+" if the plus flag is set since the "+" didn't start
+01022                      * a numeric field.
+01023                      *
+01024P 019A 34   02      A PLSPRT PSHS   A        Save the current char.
+01025P 019C 86   2B      A        LDA    #'+      Get ready.
+01026P 019E 0D   DA      A        TST    PUMASK   Plus flag set? (It is the only flag
+01027                      *    that could be set.)
+01028P 01A0 27   03   01A5        BEQ    NOPLUS   No, don't print "+".
+01029P 01A2 BD   0000    A        JSR    CHROUT   Yes, print the "+".
+01030P 01A5 35   82      A NOPLUS PULS   A,PC     Restore the current char.
+01031
+01032                             TTL    The PRINT USING Floating Point Output Routine.
+01033
+01034P 01A7 CE   0001    A PUFOUT LDU    #FBUFFR+&1 Init the buffer pointer.  Use
+01035                      *    FBUFFR+1 to leave room for a per
+01036                      *    cent sign if field overflow occurs.
+01037P 01AA C6   20      A        LDB    #SPACE   Assume the number is positive and
+01038                      *    that the plus flag is not set.
+01039P 01AC 96   DA      A        LDA    PUMASK   Is the plus flag set?
+01040P 01AE 85   08      A        BITA   #PLSFLG
+01041P 01B0 27   02   01B4        BEQ    NPLUS    No.
+01042P 01B2 C6   2B      A        LDB    #'+      Yes, change the space to a plus sign.
+01043P 01B4 0D   54      A NPLUS  TST    FACSGN   Is the number negative?
+01044P 01B6 2A   04   01BC        BPL    NMINUS   No.
+01045P 01B8 0F   54      A        CLR    FACSGN   Yes, make it look positive for QINT
+01046P 01BA C6   2D      A        LDB    #'-      and use a minus sign.
+01047P 01BC E7   C0      A NMINUS STB    ,U+      Put in the sign.
+01048P 01BE C6   30      A        LDB    #'0      Put in a leading zero to guarantee
+01049P 01C0 E7   C0      A        STB    ,U+      a place for a floating dollar sign.
+01050P 01C2 84   01      A        ANDA   #SCIFLG  Scientific notation specified?
+01051P 01C4 1026 0107 02CF        LBNE   SCINOT   Yes.
+01052P 01C8 8E   0000    A        LDX    #N.MIL   No, is the number too big to be
+01053P 01CB BD   0000    A        JSR    FOUTCP   printed in fixed point format?
+01054                      *    (Comparing to one million (10^6)
+01055                      *    for ADDPRC=0, one billion (10^9)
+01056                      *    for ADDPRC=1.)

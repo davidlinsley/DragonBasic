@@ -295,3 +295,62 @@ ENDNUM JSR    CHRGOT   Any more values?
 *    FBUFFR.
        LEAX   -&1,X
        JSR    STROUT   Actually print the number.
+
+FNSTRF CLR    USFLG    Assume end of statement terminated
+*    the value
+       JSR    CHRGOT   See what the terminator of the value
+*    was.
+       BEQ    CRDNUS   It was an EOS.
+       STA    USFLG    Not EOS, set flag to say so.
+       CMPA   #SEMCOL  The other valid terminators are semi-
+       BEQ    SEMUSN   colon and comma.
+       JSR    CHKCOM
+       BRA    CRDNUS
+
+SEMUSN JSR    CHRGET   skip the semicolon.
+CRDNUS LDX    USDPTR   Calculate a pointer into tne using
+       LDB    ,X       string using the descriptor pointer
+       SUBB   USSCNT   and the character count.
+       LDX    &2,X
+       ABX
+       LDB    USSCNT   Set up B with the char count.
+       LBNE   PRCCHR   Go look at the next using string char.
+       JMP    FINUSI   End of using string, go reuse it.
+
+*
+* Print a "+" if the plus flag is set since the "+" didn't start
+* a numeric field.
+*
+PLSPRT PSHS   A        Save the current char.
+       LDA    #'+      Get ready.
+       TST    PUMASK   Plus flag set? (It is the only flag
+*    that could be set.)
+       BEQ    NOPLUS   No, don't print "+".
+       JSR    CHROUT   Yes, print the "+".
+NOPLUS PULS   A,PC     Restore the current char.
+
+       TTL    The PRINT USING Floating Point Output Routine.
+
+PUFOUT LDU    #FBUFFR+&1 Init the buffer pointer.  Use
+*    FBUFFR+1 to leave room for a per
+*    cent sign if field overflow occurs.
+       LDB    #SPACE   Assume the number is positive and
+*    that the plus flag is not set.
+       LDA    PUMASK   Is the plus flag set?
+       BITA   #PLSFLG
+       BEQ    NPLUS    No.
+       LDB    #'+      Yes, change the space to a plus sign.
+NPLUS  TST    FACSGN   Is the number negative?
+       BPL    NMINUS   No.
+       CLR    FACSGN   Yes, make it look positive for QINT
+       LDB    #'-      and use a minus sign.
+NMINUS STB    ,U+      Put in the sign.
+       LDB    #'0      Put in a leading zero to guarantee
+       STB    ,U+      a place for a floating dollar sign.
+       ANDA   #SCIFLG  Scientific notation specified?
+       LBNE   SCINOT   Yes.
+       LDX    #N.MIL   No, is the number too big to be
+       JSR    FOUTCP   printed in fixed point format?
+*    (Comparing to one million (10^6)
+*    for ADDPRC=0, one billion (10^9)
+*    for ADDPRC=1.)
