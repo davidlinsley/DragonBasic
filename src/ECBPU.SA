@@ -354,3 +354,14 @@ NMINUS STB    ,U+      Put in the sign.
 *    (Comparing to one million (10^6)
 *    for ADDPRC=0, one billion (10^9)
 *    for ADDPRC=1.)
+       BMI    FIXNOT   No, it can be printed.
+       JSR    FOUT     Yes, print it in free format.
+FENDNM LDA    ,X+      Find the end of the number.
+       BNE    FENDNM
+UPNUM  LDA    ,-X      Move the number up a byte to make
+       STA    &1,X     room for the per cent sign.  This
+       CMPX   #FBUFFR  must be done because FOUT puts the
+       BNE    UPNUM    number in starting at FBUFFR.
+       LDA    #'%      Put in the per cent sign to indicate
+       STA    ,X       field overflow and return.
+       RTS

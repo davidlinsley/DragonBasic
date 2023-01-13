@@ -374,3 +374,18 @@ PAGE  009  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 01054                      *    (Comparing to one million (10^6)
 01055                      *    for ADDPRC=0, one billion (10^9)
 01056                      *    for ADDPRC=1.)
+
+PAGE  010  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01057P 01CE 2B   15   01E5        BMI    FIXNOT   No, it can be printed.
+01058P 01D0 BD   0000    A        JSR    FOUT     Yes, print it in free format.
+01059P 01D3 A6   80      A FENDNM LDA    ,X+      Find the end of the number.
+01060P 01D5 26   FC   01D3        BNE    FENDNM
+01061P 01D7 A6   82      A UPNUM  LDA    ,-X      Move the number up a byte to make
+01062P 01D9 A7   01      A        STA    &1,X     room for the per cent sign.  This
+01063P 01DB 8C   0000    A        CMPX   #FBUFFR  must be done because FOUT puts the
+01064P 01DF 26   F7   01D7        BNE    UPNUM    number in starting at FBUFFR.
+01065P 01E0 86   25      A        LDA    #'%      Put in the per cent sign to indicate
+01066P 01E2 A7   84      A        STA    ,X       field overflow and return.
+01067P 01E4 39                    RTS
+
