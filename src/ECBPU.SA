@@ -162,3 +162,43 @@ FLDFIN BNE    FREUST   Yes, don't do CRLF.
        JSR    CRDO     No, finish up with a CRLF.
 FREUST LDX    USDPTR   Free up the using string's temporary.
        JMP    FRETMP   and return.
+
+TWOLFT CMPA   #'+      If plus then force out possible pre-
+       BNE    NTPLUS   ceding plus and set the plus flag.
+       JSR    PLSPRT
+       LDA    #PLSFLG
+       STA    PUMASK
+       BRA    PLSFIN   Go look at next char.
+
+NTPLUS CMPA   #'.      Numeric field with no digits before
+       BEQ    DOTNUM   the decimal point?
+       CMPA   #MLCSTR  A multi-char string field?
+       LBEQ   BGSTRF   Go scan it.
+       CMPA   ,X       Is the current char the same as the
+*    next char?
+GONWUC BNE    NEWUCH   No, so it isn't "$$", "**", or "**$".
+*    all other possiblilities have been
+*    checked so the current char isn't
+*    part of a field.
+       CMPA   #FLTMON  Yes, is the floating dollar sign?
+       BEQ    DOLRNM   Yes.
+       CMPA   #'*      No, how about asterisk fill or aster-
+*    isk fill with floating dollar sign?
+       BNE    GONWUC   No, it isn't a field.
+       LDA    PUMASK   Set the asterisk fill flag.
+       ORA    #ASTFLG
+       STA    PUMASK
+       CMPB   #&2      Are there enough chars for "**$"?
+       BCS    NTBOTH   No.
+       LDA    &1,X     Yes, check for the "$".
+       CMPA   #FLTMON
+       BNE    NTBOTH   It is some oher char.
+       DECB            It is "**$" so decrement using string
+       LEAX   &1,X     char count and advance the pointer.
+       INC    FLDWID   Tne "$" makes room for another digit.
+DOLRNM LDA    PUMASK   Set the floating dollar sign flag.
+       ORA    #DOLFLG
+       STA    PUMASK
+NTBOTH LEAX   &1,X     Point beyond the second char (or
+*    third for "**$").
+       INC   FLDWID    Increment the digit count.

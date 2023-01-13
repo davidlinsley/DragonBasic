@@ -173,3 +173,44 @@ PAGE  004  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 00863P 009F 9E   D5      A FREUST LDX    USDPTR   Free up the using string's temporary.
 00864P 00A1 7E   0000    A        JMP    FRETMP   and return.
 
+PAGE  005  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00866P 00A4 81   2B      A TWOLFT CMPA   #'+      If plus then force out possible pre-
+00867P 00A6 26   09   00B1        BNE    NTPLUS   ceding plus and set the plus flag.
+00868P 00A8 BD   019A    P        JSR    PLSPRT
+00869P 00AB 86   08      A        LDA    #PLSFLG
+00870P 00AD 97   DA      A        STA    PUMASK
+00871P 00AF 20   CC   007D        BRA    PLSFIN   Go look at next char.
+00872
+00873P 00B1 81   2E      A NTPLUS CMPA   #'.      Numeric field with no digits before
+00874P 00B3 27   4E   0103        BEQ    DOTNUM   the decimal point?
+00875P 00B5 81   25      A        CMPA   #MLCSTR  A multi-char string field?
+00876P 00B7 1027 FF77 0032        LBEQ   BGSTRF   Go scan it.
+00877P 00BB A1   84      A        CMPA   ,X       Is the current char the same as the
+00878                      *    next char?
+00879P 00BD 26   92   0051 GONWUC BNE    NEWUCH   No, so it isn't "$$", "**", or "**$".
+00880                      *    all other possiblilities have been
+00881                      *    checked so the current char isn't
+00882                      *    part of a field.
+00883P 00BF 81   24      A        CMPA   #FLTMON  Yes, is the floating dollar sign?
+00884P 00C1 27   19   00DC        BEQ    DOLRNM   Yes.
+00885P 00C3 81   2A      A        CMPA   #'*      No, how about asterisk fill or aster-
+00886                      *    isk fill with floating dollar sign?
+00887P 00C5 26   F6   00BD        BNE    GONWUC   No, it isn't a field.
+00888P 00C7 96   DA      A        LDA    PUMASK   Set the asterisk fill flag.
+00889P 00C9 8A   20      A        ORA    #ASTFLG
+00890P 00CB 97   DA      A        STA    PUMASK
+00891P 00CD C1   02      A        CMPB   #&2      Are there enough chars for "**$"?
+00892P 00CF 25   11   00E2        BCS    NTBOTH   No.
+00893P 00D1 A6   01      A        LDA    &1,X     Yes, check for the "$".
+00894P 00D3 81   24      A        CMPA   #FLTMON
+00895P 00D5 26   0B   00E2        BNE    NTBOTH   It is some oher char.
+00896P 00D7 5A                    DECB            It is "**$" so decrement using string
+00897P 00D8 30   01      A        LEAX   &1,X     char count and advance the pointer.
+00898P 00DA 0C   D9      A        INC    FLDWID   Tne "$" makes room for another digit.
+00899P 00DC 96   DA      A DOLRNM LDA    PUMASK   Set the floating dollar sign flag.
+00900P 00DE 8A   10      A        ORA    #DOLFLG
+00901P 00E0 97   DA      A        STA    PUMASK
+00902P 00E2 30   01      A NTBOTH LEAX   &1,X     Point beyond the second char (or
+00903                      *    third for "**$").
+00904P 00E4 0C   D9      A        INC   FLDWID    Increment the digit count.
