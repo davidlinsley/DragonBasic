@@ -396,3 +396,62 @@ FFXV03 LDA    TENEXP   Are there fractional digits?
        LDA    TENEXP   Make sure a decimal point is printed
        JSR    FOUTED   for FOUTTS.
 *    Fall into FOUTTD to finish up.
+
+*
+* See if the decimal point should be retained.
+*
+
+FOUTTD LDA    DPWID    Is a decimal point needed?
+       BNE    KEEPDP   Yes, keep the decimal point.
+       LEAU   -&1,U    No, back up to get rid of it.
+KEEPDP DECA            Print zeroes to fill the field to
+       JSR    FOTZER   right of the decimal point.
+FOUTTS JSR    FOUTZS   Suppress leading zeroes.
+       TSTA            Is there a trailing sign?
+       BEQ    NOTRL    No.
+       CMPB   #'*      Yes, is the sign char an asterisk?
+*    (This case occurs when a positive
+*    number is printed with asterisk fill
+*    and trailing minus sign specified.)
+       BEQ    NOTRL    Yes, don't put in trailing sign.
+       STB    ,U+      Put in the trailing sign.
+NOTRL  CLR    ,U       Mark the end of the number.
+
+*
+* Check the field size.
+*
+
+       LDX    #FBUFFR  Init the buffer pointer.
+FOUBE1 LEAX   &1,X     Is the right amount of space being
+       STX    TEMPX1   used?
+       LDA    FDECPT+&1
+       SUBA   TEMPX1+&1
+       SUBA   FLDWID
+       BEQ    PUFRTS   Yes, PUFOUT is finished.
+       LDA    ,X       No, see if we can shorten the field.
+       CMPA   #SPACE   We can throw away leadinf spaces or
+       BEQ    FOUBE1   asterisks.
+       CMPA   #"*
+       BEQ    FOUBE1
+*
+* We can also shorten the field by throwing away a zero if it is
+* followed by a decimal point and another digit.
+*Look for -  "+" or "-" [optional]
+*  "$"  [optional]
+*  "0"  [mandatory]
+*  "."  [mandatory]
+*  "0" THRU "9" [mandatory]
+*
+       CLRA            Used to flag the bottom of the stacked
+*    characters.
+FOUBE2 PSHS   A        Push the char.
+       LDA    ,X+      Get the next one.
+       CMPA   #'-      Stack it if it is "+", "-", or "$".
+       BEQ    FOUBE2
+       CMPA   #'+
+       BEQ    FOUBE2
+       CMPA   #FLTMON
+       BEQ    FOUBE2
+       CMPA   #'0      Is there a leading zero?
+       BNE    FOUBE4   No, the number exceeds the field.
+       LDA    &1,X     Yes, now see if a digit follows the
