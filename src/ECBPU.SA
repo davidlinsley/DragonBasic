@@ -224,3 +224,40 @@ NUMLOP INC    FLDWID   Increment the leading (before decimal
        ORA    #COMFLG
        STA    PUMASK
        BRA    NUMLOP   Scan for more leading digits.
+
+DOTNUM LDA    ,X       Is this dp (decimal point) the start
+       CMPA   #'#      of a numeric field?
+       LBNE   NEWUCH   No, go print the ".".
+       LDA    #&1      Yes, init count of trailing digits.
+       STA    DPWID    The decimal point is included in this
+*    COUNT.
+       LEAX   &1,X     Point past the decimal point.
+AFTDOT INC    DPWID    Increment trailing digit count.
+       DECB            More chars in using string?
+       BEQ    ENDNUS   No, it's the end of the numeric field.
+       LDA    ,X+      Yes, do we have another digit spec?
+       CMPA   #'#
+       BEQ    AFTDOT   Yes, look for more.
+*    NO, NOW LOOK FOR SCIENTIFIC NOTATION
+*    SPEC.
+FINNUM CMPA   #'^      ^^^ indicates scientific notation.
+       BNE    ENDNUS
+       CMPA   ,X
+       BNE    ENDNUS
+       CMPA   &1,X
+       BNE    ENDNUS
+       CMPA   &2,X
+       BNE    ENDNUS
+       CMPB   #&4      Make sure the four chars just checked
+*    actually belong to the using string
+*    by ensuring that the using string
+*    contains enough characters.
+       BCS    ENDNUS   It doesn't so we were looking at chars
+*    that don't belong to the using string.
+*    therefore we don't have scientific
+*    notation spec.
+       SUBB   #&4      It does, so we do have scientific
+       LEAX   &4,X     notation.  Fix up the using string
+*    count and pointer.
+       INC    PUMASK   Set the scientific notation flag.
+*    (Bit 0 of PUMASK.)
