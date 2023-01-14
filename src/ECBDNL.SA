@@ -77,3 +77,61 @@ OLDBR  JSR    OPNHST   Open the file on the host and load
 BADMOD JMP    FMERR    Give a file mode error.
 *    Eventually the host will figure out
 *    that we have given up.
+
+*
+* The CLOAD code comes here so we can grab CLOADM to handle
+* assembler object code files which have the same format as
+* DLOADM files.
+*
+
+       XDEF   CLOADM
+CLOADM CLR    CASOPN   Yes, force the cassette closed.
+*    (Don't force out buffer to be
+*    consistent with 8K ROM.  See comments
+*    regarding this in 8K CLOAD code.)
+       JSR    CHRGET   Skip over the "M".
+       JSR    GETFLN   Scan the filename.
+       JSR    OPNCSI   Open the cassette for input.
+       TST    GAPFLG   Is it a gapped file?
+       LBEQ   MLDUNG   No, let 8K ROM handle.
+       LDU    FILTYP   Yes, save the FILTYP and ASCFLG in
+*    in U since LODBUF will overwrite
+*    them.  (LODBUF doesn't affect U.)
+       DEC    DEVNUM   Set DEVNUM to -1 for cassette.  (It
+*    is OK to assume that DEVNUM is zero
+*    since it is guaranteed to be zero
+*    at the start of each statement.)
+       JSR    LODBUF   Load the cassette buffer.
+       TFR    U,D      A:=FILTYP, B:=ASCFLG.
+DLOADM SUBD   #&2*&256 Must be a binary machine language
+*    file.
+       BNE    BADMOD   Give file mode error if not.
+       LDX    DBLZER   Assume no load offset given.
+       JSR    CHRGOT   Is there one?
+       BEQ    OFFNO    No.
+       JSR    CHKCOM   Yes, skip the comma and evaluate
+       JSR    EVLADR   the load offset into X.
+OFFNO  STX    LODOFF   Save the load offset.
+       JSR    TRMCHK   The statement must end now.
+LODMRC BSR    NXTCHR   Get and save the record type byte.
+       PSHS   A
+       BSR    LOD2M    Read the record length into D.
+       TFR    D,Y      Move byte count to Y.
+       BSR    LOD2M    D:=load or execution address,
+       ADDD   LODOFF   Add in the offset.
+       STD    EXECAD   Store it for the EXEC statement.
+       TFR    D,X      Put load address into X.
+       LDA    ,S+      Is this a data record?
+       LBNE   CLOSIT   No, close the file and return.
+LODMLP BSR    NXTCHR   Get a byte of the program.
+       STA    ,X       Store it.
+       CMPA   ,X+      Did it store OK?
+       BNE    GOIOER   No, give I/O error.
+       LEAY   -&1,Y    Yes, more to read?
+       BNE    LODMLP   Yes, read the next byte.
+       BRA    LODMRC   No, go handle the next record.
+
+LOD2M BSR     LOD1M    D:=next two bytes from tape.
+LOD1M BSR     NXTCHR
+       EXG    A,B
+LODRTS RTS

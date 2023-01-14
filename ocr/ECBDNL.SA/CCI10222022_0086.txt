@@ -1,101 +1,61 @@
-                                                                                                                                                                                                                                                                                                                                                                      •
+PAGE  003  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
 
+00780                      *
+00781                      * The CLOAD code comes here so we can grab CLOADM to handle
+00782                      * assembler object code files which have the same format as
+00783                      * DLOADM files.
+00784                      *
+00785
+00786                             XDEF   CLOADM
+00787P 0045 0F   78      A CLOADM CLR    CASOPN   Yes, force the cassette closed.
+00788                      *    (Don't force out buffer to be
+00789                      *    consistent with 8K ROM.  See comments
+00790                      *    regarding this in 8K CLOAD code.)
+00791P 0047 9D   9F      A        JSR    CHRGET   Skip over the "M".
+00792P 0049 BD   0000    A        JSR    GETFLN   Scan the filename.
+00793P 004C BD   0000    A        JSR    OPNCSI   Open the cassette for input.
+00794P 004F 7D   0000    A        TST    GAPFLG   Is it a gapped file?
+00795P 0052 1027 FFAA    A        LBEQ   MLDUNG   No, let 8K ROM handle.
+00796P 0056 FE   0000    A        LDU    FILTYP   Yes, save the FILTYP and ASCFLG in
+00797                      *    in U since LODBUF will overwrite
+00798                      *    them.  (LODBUF doesn't affect U.)
+00799P 0059 0A  6F       A        DEC    DEVNUM   Set DEVNUM to -1 for cassette.  (It
+00800                      *    is OK to assume that DEVNUM is zero
+00801                      *    since it is guaranteed to be zero
+00802                      *    at the start of each statement.)
+00803P 005B BD   0000    A        JSR    LODBUF   Load the cassette buffer.
+00804P 005E 1F   30      A        TFR    U,D      A:=FILTYP, B:=ASCFLG.
+00805P 0060 83   0200    A DLOADM SUBD   #&2*&256 Must be a binary machine language
+00806                      *    file.
+00807P 0063 26   DD   0042        BNE    BADMOD   Give file mode error if not.
+00808P 0065 9E   8A      A        LDX    DBLZER   Assume no load offset given.
+00809P 0067 9D   A5      A        JSR    CHRGOT   Is there one?
+00810P 0069 27   06   0071        BEQ    OFFNO    No.
+00811P 006B BD   0000    A        JSR    CHKCOM   Yes, skip the comma and evaluate
+00812P 006E BD   0000    A        JSR    EVLADR   the load offset into X.
+00813P 0071 9F   D3      A OFFNO  STX    LODOFF   Save the load offset.
+00814P 0073 BD   0000    A        JSR    TRMCHK   The statement must end now.
+00845P 0076 8D   29   00A1 LODMRC BSR    NXTCHR   Get and save the record type byte.
+00816P 0078 34   02      A        PSHS   A
+00817P 007A 8D   1E   009A        BSR    LOD2M    Read the record length into D.
+00818P 007C 1F   02      A        TFR    D,Y      Move byte count to Y.
+00819P 007E 8D   1A   009A        BSR    LOD2M    D:=load or execution address,
+00820P 0080 D3   D3      A        ADDD   LODOFF   Add in the offset.
+00821P 0082 DD   9D      A        STD    EXECAD   Store it for the EXEC statement.
+00622P 0084 1F   01      A        TFR    D,X      Put load address into X.
+00823P 0086 A6   E0      A        LDA    ,S+      Is this a data record?
+00824P 0088 1026 FF74    A        LBNE   CLOSIT   No, close the file and return.
+00825P 008C 8D   13   00A1 LODMLP BSR    NXTCHR   Get a byte of the program.
+00826P 008E A7   84      A        STA    ,X       Store it.
+00827P 0090 A1   80      A        CMPA   ,X+      Did it store OK?
+00828P 0092 26   14   00A8        BNE    GOIOER   No, give I/O error.
+00829P 0094 31   3F      A        LEAY   -&1,Y    Yes, more to read?
+00830P 0096 26   F4   008C        BNE    LODMLP   Yes, read the next byte.
+00831P 0098 20   DC   0076        BRA    LODMRC   No, go handle the next record.
+00832
+00833P 009A 8D   00   009C LOD2M BSR     LOD1M    D:=next two bytes from tape.
+00834P 009C 8D   03   00A1 LOD1M BSR     NXTCHR
+00835P 009E 1E   89      A        EXG    A,B
+00836P 00A0 39             LODRTS RTS
+00837
 
-
-
-                                                     PAGE 003 ECBDNL .SA:1 Downio DLOAD - Load program from host computer.                                                                                                                                                                                                                                            •
-
-
-                                                     00780                                                        *
-
-                                                     00781                                                        *    The CLOAD code comes here so we can grab CLOADM to handle                                                                                                                                                                                      •
-                                                     00782                                                        *    assembler object code files which have the same format as
-
-                                                     00783                                                        *    DLOADM files.
-
-                                                     00784                                                                                                                                                                                                                                                                                                            •
-                                                     00785
-
-                                                     00786                                                                         XDEF            OLOADM
-
-                                                     00787P 0045 OF 78                                        A CLOADM             CLR             CASOPN              Yes, force the cassette closet.
-                                     •               00788                                                                    (Don't force out buffer to be
-
-                                                     00789                                                                    consistent with 8K ROM. See comments
-
-                                                     00790                                                                    regarding this in 8K CLOAD code.)
-                                                     00791P 0047 9D 9F                                        A                    JSR             CHRGET               Skip over the "M".
-                                                     00792P 0049 BD 0000                                      A                    JSR             GETFLN               Scan the filename.
-
-                                                     00793P 004C ED 0000                                      A                    JSR             OPNCSI               Open the cassette for input.                                                                                                                                                                  •
-                                                      00794P 004F 7D 0000                                     A                    TST             GAPFLG               Is it a gapped file?
-
-                                                      00795P 0052 1027 FFAA                                   A                    LBEGI           MLDUNC;              No, let 8K ROM handle.
-                                                      00796P 0056 FE 0000                                     A                    LDU             FILTYP               Yes, save the FILTY2 and                                ASCFL.P1 in
-
-                                                      00797                                                                   in U since LODBUF will overwrite 
-                                                      00798                                                                   them.            (LODBUF doesn't affect U.)
-                                                      00799P 0059 OA 6F                                                            DEC             DEVNUM               Set DEVNUM to -1 for                           cassette.                 (It
-
-                                                      00800                                                                   is OK to assume that DEVNUM is zero 
-
-                                                      00801                                                                   since it is guaranteed to be zero
-
-                                                      00802                                                                   at the start of each statement.)
-                                                      00803P 005E ED 0000 A JSR                                                                    LODBUF               Load the cassette buffer.
-
-                                                      00804P 005E 1F                        30                A                    TFR             U,D                  A:=FILTYP, B:=ASCFLG.
-
-                                                      00805P 0060 83 0200                                     A DLOADM SUED                         #&2*&256 Must be a binary machine language
-                                                      00806                                                                   file.                                                                                                                                                                                                                                i I
-                                                      00807P 0063 26 DD                                 0042                       'ENE            BADMOD               Give file mode error if not.
-
-                                                      00808P 0065 9E BA                                       A                    LDX              DBLZER              Assume no load offset given.                                                                                                                                                                   •
-                                                      00809P 0067 9D A5                                       A                    JSR              CHRGOT              Is there one?
-
-                                                      00810P 0069 27                         06         0071                       EEO.             OFFNO               No.
-
-                                                      00811P 006E BD                         0000             A                    JSR              CHKCOM              Yes, skip the comma and evaluate                                                                                                                                                               •
-                                                      00812P 006E ED                         0000             A                    JSR              EVLADR              the load offset into X.
-
-                                                      00813P 0071 9F                         D3               A OFFNO STX                           LODOFF              Save the load offset.
-
-                                                      00814P 0073 ED                         0000             A                    JSR              TRMCHK              The statement must end now.                                                                                                                                                                    •
-                                                      00845P 0076 8D                         29         00A1 LODMRC BSR                             NXTCHR              Get and save the record type byte.
-                                                      00816P 0078 34 02                                        A                   PSHS             A
-
-                                                      00817P 007A 8D                         1E         009A                       BSR              LOD2M               Read the record length into D.                                                                                                                                                                 •
-                                                      00818P 0070 IF                         02               A                    TFR              D,Y                 Move byte count to Y.
-
-                                                      00819P 007E 8D                         lA         009A                       BSR              LOD2M               D3=load or execution address, 
-
-                                                      00820P 0080 D3 D3                                        A                   ADDD             LODOFF              Add in the offset.                                                                                                                                                                             •
-                                                      00821P 0082 DD 9D                                        A                   STD              EXECAD              Store it for the EXEC statement. 
- "Progression" - it's                                 00622P 0084 1F                         01                A                   TFR              D,X                 Put load address into X.
-movement. The late                                    00823P 0086 A6 E0                                        A                   LDA              ,S+                 Is this a data record?
-family of power am                                    00824P 0088 1026 FF74                                    A                   LBNE             OLOS1T              No, close the file and return. 
-lifetime spent in the                                 00825P 0080 8D                         13         00A1 LODMLP BSR                             NXTCHR              Get a byte of the program. 
-components that at                                    00826P 008E A7 84                                        A                   STA              ,X                  Store it.                                                                                                                                                                                      •
-always respect the d                                  00827P 0090 A1                         80                A                   CMPA             ,X+                 Did it store OK?
-convey realism from t                                 00828P 0092 26                         14 00A8                               ENE              GOIOER              No, give I/O error.
-IN-) most thunderou                                   00829P 0094 31                         3F                A                   LEAY                                 Yes, more to read?                                                                                                                                                                             •
-       lot allowed to aff                             00830P 0096 26 F4 008C                                                       BNE              LODMLP              Yes, read the next byte.
-                                                      00831P 0098 20 DC                                 0076                       BRA              LODMRC              No, go handle the next record.
-
-                                                      00832                                                                                                                                                                                                                                                                                                            •
-                                                      00833P 009A 8D 00 009C LOD2M BSR                                                              LOD1M               Dil=next two bytes from tape.
-                                                      00834P 0090 8D                         03         00A1 LOD1M BSR                              NXTCHR 
-
-                                                      00835P 009E 1E                         89                A                   EX3              A,B                                                                                                                                                                                                                •
-                                                      00836P 00A0 39                                                LODRTS RTS 
-
-                                                      00837
-
-                                                                                                                                                                                                                                                                                                                                                                       •
-
-
-
-
-
-                                      0                                                                                                                                                                                                                                                                                                                                •
-
