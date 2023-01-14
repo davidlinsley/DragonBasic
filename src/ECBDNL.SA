@@ -135,3 +135,13 @@ LOD2M BSR     LOD1M    D:=next two bytes from tape.
 LOD1M BSR     NXTCHR
        EXG    A,B
 LODRTS RTS
+
+*
+* Read char from file and give I/O error if end of file.
+*
+
+NXTCHR JSR    CHRINP   Try to read a char.
+       TST    EOFFLG   End of file?
+       BEQ    LODRTS   No, return with the char.
+GOIOER JMP    IOERR    yes, give an I/O error.
+
