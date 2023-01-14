@@ -515,3 +515,59 @@ PAGE  013  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 01185P 0272 80   C6      A        SUBA   #-'9-&1  Restore cnar and clear carry if digit.
 01186P 0274 39             ISDRTS RTS
 
+PAGE  014  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01188                      *
+01189                      * Print number with fractional digits in fixed point format.
+01190                      *
+01191
+01192P 0275 96   D8      A FFXV04 LDA    DPWID    If there are any decimal places
+01193P 0277 27   01   027A        BEQ    FFXV05   specified subtract one for the dp.
+01194P 0279 4A                    DECA
+01195P 027A 9B   47      A FFXV05 ADDA   TENEXP   How many digits to divide out.
+01196P 027C 2B   01   027F        BMI    FFXV06
+01197P 027E 4F                    CLRA            If no division then zero the count.
+01198P 027F 34   02      A FFXV06 PSHS   A        Save division count.
+01199P 0281 2A   0A   028D FFXV07 BPL    FFXV08   Done dividing.
+01200P 0283 34   02      A        PSHS   A        Divide out another digit.
+01201P 0285 BD   0000    A        JSR    DIV10
+01202P 0288 35   02      A        PULS   A
+01203P 028A 4C                    INCA
+01204P 028B 20   F4   0281        BRA    FFXV07
+01205
+01206P 028D 96   47      A FFXV08 LDA    TENEXP   Calculate the number of fractional
+01207P 028F A0   E0      A        SUBA   ,S+      digits in the FAC (negative) by
+01208P 0291 97   47      A        STA    TENEXP   subtracting the division count from
+01209                      *    the decimal exponent.
+01210P 0293 8B   09      A        ADDA   #&6+&3*ADDPRC A:=number of integer digits.
+01211P 0295 2B   19   02B0        BMI    FFXV09   There are no integer digits.
+01212P 0297 96   D9      A        LDA    FLDWID   Print leading zeroes.
+01213P 0299 80   09      A        SUBA   #&6+&3*ADDPRC
+01214P 029B 90   47      A        SUBA   TENEXP
+01215P 029D 8D   0D   02AC        BSR    FOTZER
+01216P 029F BD   0425    P        JSR    FOUTCD   Set up decimal point and comma counts.
+01217P 02A2 20   1D   02C1        BRA    FFXV10   Go print the number.
+01218
+01219P 02A4 34   02      A FOTZRL PSHS   A        Save the zero count and put in a
+01220P 02A6 86   30      A        LDA    #'0      zero.
+01221P 02A8 A7   C0      A        STA    ,U+
+01222P 02AA 35   02      A        PULS   A
+01223P 02AC 4A             FOTZER DECA            Any zeroes to print?
+01224P 02AD 2A   F5   02A4        BPL    FOTZRL   Yes, go print one.
+01225P 02AF 39                    RTS
+01226
+01227P 02B0 96   D9      A FFXV09 LDA    FLDWID   Fill the leading digits with zeroes.
+01228P 02B2 8D   F8   02AC        BSR    FOTZER
+01229P 02B4 BD   040F    P        JSR    FOUTDP   put in the decimal point.
+01230P 02B7 86   F7      A        LDA    #-(&6+&3*ADDPRC) A:=number of zeroes before the actual
+01231P 02B9 90   47      A        SUBA   TENEXP   number.
+01232P 02BB 8D   EF   02AC        BSR    FOTZER   Put in the zeroes.
+01233P 02BD 0F   45      A        CLR    DECCNT   Decimal count:=comma count:=0.
+01234P 02BF 0F   D7      A        CLR    COMCNT
+01235P 02C1 BD   03C4    P FFXV10 JSR    CNVASC   Convert the FAC.
+01236P 02C4 96   D8      A        LDA    DPWID    Any fractional digits?
+01237P 02C6 26   02   02CA        BNE    FFXV11   Yes.
+01238P 02C8 DE   39      A        LDU    FDECPT   No, end of number is at the dp.
+01239P 02CA 9B   47      A FFXV11 ADDA   TENEXP   Fill out the trailing digits.
+01240P 02CC 16   FF43 0212        LBRA   KEEPDP
+

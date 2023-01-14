@@ -484,3 +484,57 @@ ISDIGC CMPA   #'0      Is it a digit?
        SUBA   #'9+&1   Maybe.
        SUBA   #-'9-&1  Restore cnar and clear carry if digit.
 ISDRTS RTS
+
+*
+* Print number with fractional digits in fixed point format.
+*
+
+FFXV04 LDA    DPWID    If there are any decimal places
+       BEQ    FFXV05   specified subtract one for the dp.
+       DECA
+FFXV05 ADDA   TENEXP   How many digits to divide out.
+       BMI    FFXV06
+       CLRA            If no division then zero the count.
+FFXV06 PSHS   A        Save division count.
+FFXV07 BPL    FFXV08   Done dividing.
+       PSHS   A        Divide out another digit.
+       JSR    DIV10
+       PULS   A
+       INCA
+       BRA    FFXV07
+
+FFXV08 LDA    TENEXP   Calculate the number of fractional
+       SUBA   ,S+      digits in the FAC (negative) by
+       STA    TENEXP   subtracting the division count from
+*    the decimal exponent.
+       ADDA   #&6+&3*ADDPRC A:=number of integer digits.
+       BMI    FFXV09   There are no integer digits.
+       LDA    FLDWID   Print leading zeroes.
+       SUBA   #&6+&3*ADDPRC
+       SUBA   TENEXP
+       BSR    FOTZER
+       JSR    FOUTCD   Set up decimal point and comma counts.
+       BRA    FFXV10   Go print the number.
+
+FOTZRL PSHS   A        Save the zero count and put in a
+       LDA    #'0      zero.
+       STA    ,U+
+       PULS   A
+FOTZER DECA            Any zeroes to print?
+       BPL    FOTZRL   Yes, go print one.
+       RTS
+
+FFXV09 LDA    FLDWID   Fill the leading digits with zeroes.
+       BSR    FOTZER
+       JSR    FOUTDP   put in the decimal point.
+       LDA    #-(&6+&3*ADDPRC) A:=number of zeroes before the actual
+       SUBA   TENEXP   number.
+       BSR    FOTZER   Put in the zeroes.
+       CLR    DECCNT   Decimal count:=comma count:=0.
+       CLR    COMCNT
+FFXV10 JSR    CNVASC   Convert the FAC.
+       LDA    DPWID    Any fractional digits?
+       BNE    FFXV11   Yes.
+       LDU    FDECPT   No, end of number is at the dp.
+FFXV11 ADDA   TENEXP   Fill out the trailing digits.
+       LBRA   KEEPDP
