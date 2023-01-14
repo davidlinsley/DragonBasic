@@ -1,132 +1,22 @@
-                                                                                                                                                                                                                                                                                                                                                                                 40 
-
-
-                                                                                                                                                                                                                                                                                                                                                                                 r
-
-                                           PAGE          020         ECBPU               .SA:1            TXRPU            The PRINT USING Floating Point Output                                                        Routine
-                          •                                                                                                                                                                                                                                                                                                                                                      • 
-
-
-                                           01473                                                            *
-
-                                           01474                                                            *     Insert comma or decimal                                   point.
-                          4,                                                                                                                                                                                                                                                                                                                                                     40 
-                                           01475                                                            *
-
-                                           01476 
-
-                                           01477P           040B        OR          45                      FOUTED DEC                         DECCNT               Time for the decimal                                point?
-                          40                                                                                                                                                                                                                                                                                                                                                     40 
-                                           01 478P          040D        26          09          041                          BNE               FOUED1               No,       check for comma.
-
-                                           01479P           040F        DF          39                  A   FOUTDP STU                         FDECPT               Yes, save a pointer                              to the decimal
-
-                                           01480P           0411        86          2E                  A                    LDA               #'.                  point and put                      it     in
-                          40                                                                                                                                                                                                                                                                                                                                                     40 
-                                           01481P           0413        A7          CO                  A                    STA               ,U+
-
-                                           01482P           0415        OF          D7                  A                    CLR               COMCNT               Inhibit the printing                                of commas to                   the
-
-                                           01483P           0417        39                                                   RTS                                    right of the decimal                                point.
-                          41               01484                                                                                                                                                                                                                                                                                                                                 41
-
-                                           01485P           0418        OR          D7                  A   FOUED1 DEC                         COMCNT               Time for a comma?
-
-                                           01486P           04IA        26          08          0424                         BNE               FOUEDR               No,       just         return.
-                          40                                                                                                                                                                                                                                                                                                                                                     4 1 
-                                           01487P           041C        86          03                  A                    LDA               #&3                  Yes,         reset the comma                        count. 
-
-                               HP          01488P           041E        97          D7                  A                    STA               COMCNT                                                                                                                                                                                                                     1111
-
-                                           01489P           0420        86          2C                  A                    LDA               *COMMA               Put in the comma and                                return.
-                          41               01490P           0422        A7          CO                  A                    STA               ,U-1.-                                                                                                                                                                                                                            40
-
-                                           01491P           0424        39                                  FOUEDR RTS
-
-                                           01492
-                          41                                                                                                                                                                                                                                                                                                                                                     41
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                           ,0                                                                                                                                                                                                                                                                                                                                                    •
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                                                                                                 4{0
-
-
-
-
-
-
-                          •                                                                                                                                                                                                                                                                                                                                                      •
-
-                                                                                                                                                                                                                                                                                                                                                                          KKKy
-                               !   I I 
-
-
-                          40                                                                                                                                                                                                                                                                                                                                                     40
-
-
-
-
-
-                          40                                                                                                                                                                                                                                                                                                                                                     41
-
-
-
-
-
-
-                          •
-
-  1 H
-
-
-
-
-"Progression 
-
-movement. 
-
-family of po 
-lifetime spen             •                                                                                                                                                                                                                                                                                                                                                      •
-
-components 
-
-always resp 
-
-convey realis             4t                                                                                                                                                                                                                                                                                                                                                     4,
-
-II In most th                  I I I                                                                                                                                                                                                                                                                                                                                      II I I I
-     ; lot allow
-
-                          41                                                                                                                                                                                                                                                                                                                                                     41
-
-
-
-
-
-
-                          1)                                                                                                                                                                                                                                                                                                                                                     40
-          ab-
-
-
-
-       I
-                          •
-
+PAGE  020  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01473                      *
+01474                      * Insert comma or decimal point.
+01475                      *
+01476
+01477P 040B 0A   45      A FOUTED DEC    DECCNT   Time for the decimal point?
+01478P 040D 26   09   0418        BNE    FOUED1   No, check for comma.
+01479P 040F DF   39      A FOUTDP STU    FDECPT   Yes, save a pointer to the decimal
+01480P 0411 86   2E      A        LDA    #'.      point and put it in
+01481P 0413 A7   C0      A        STA    ,U+
+01482P 0415 0F   D7      A        CLR    COMCNT   Inhibit the printing of commas to the
+01483P 0417 39                    RTS             right of the decimal point.
+01484
+01485P 0418 0A   D7      A FOUED1 DEC    COMCNT   Time for a comma?
+01486P 041A 26   08   0424        BNE    FOUEDR   No, just return.
+01487P 041C 86   03      A        LDA    #&3      Yes, reset the comma count.
+01488P 041E 97   D7      A        STA    COMCNT
+01489P 0420 86   2C      A        LDA    #COMMA   Put in the comma and return.
+01490P 0422 A7   C0      A        STA    ,U+
+01491P 0424 39             FOUEDR RTS
+01492

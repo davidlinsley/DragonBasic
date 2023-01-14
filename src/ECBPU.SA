@@ -1,0 +1,824 @@
+       NAM    TXRPU    - PRINT USING for TCC Extension ROM.
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   CHKCOM,CHKSTR,CHROUT,CRDO
+       XREF   DIV10
+       XREF   FADDH,FBUFFR,FCERR,FDCEND,FMULT,FOUT,FOUTBL,FOUTCP,FRETMP
+       XREF   FRMCHK,FRMEVL,FRMNUM
+       XREF   LEFTUS
+       XREF   MUL10
+       XREF   N.0999,N.9999,N.MIL
+       XREF   OUTSPC
+       XREF   QINT
+       XREF   STROUT,STRPRT,SYNCHR
+       XREF   USINTK
+
+       TTL    Equates
+
+*
+* The PRINT USING mask (PUMASK) bit definitions.
+*
+
+SCIFLG EQU    &1       Bit 0 - Scientific notation.
+TRLFLG EQU    &4       Bit 2 - Trailing sign.
+PLSFLG EQU    @10      Bit 3 - Print "+" instead of space
+*      for positive numbers.
+DOLFLG EQU    @20      Bit 4 - Floating dollar sign.
+ASTFLG EQU    @40      Bit 5 - Asterisk fill.
+COMFLG EQU    @100     Bit 6 - Insert commas.
+
+FLTMON EQU    '$       Character to use for floating money
+*    sign. Can be changed to a yen sign
+*    for example.
+MLCSTR EQU    '%       Character indicating a multi-char
+*    string field. (For compatibility
+*    with TRS-80 Model I Level II BASIC.
+
+       TTL    The PRINT USING driver.
+
+*
+* Entered at PUTEST.
+*
+
+*
+* Here to handle a string field.
+*
+
+SMSTRF LDA    #&1      Single char string field.
+       STA    FLDWID
+ISSTRF DECB            Decrement using string char count.
+       JSR    PLSPRT   Print possible preceding plus.
+       JSR    CHRGOT   End of value list reached?
+       LBEQ   FLDFIN   Yes, PRINT USING is finished.
+       STB    USSCNT   No, save using string char count.
+       JSR    FRMEVL   Evaluate next value in the value list.
+       JSR    CHKSTR   It must be a string to go into this
+*    string field.
+       LDX    FACMO    X:=pointer to the string descriptor.
+       STX    DSCPNT   Set up DSCPNT for LEFT$ code.
+       LDB    FLDWID   B:=width of string field.
+       JSR    LEFTUS   Get leftmost B chars or whole string
+*    if it's shorter than the field.
+       JSR    STRPRT   Print the string.
+       LDX    FACMO    See if spaces are needed to fill out
+       LDS    FLDWID   the field.
+       SUBB   ,X
+UPRTSP DECB            More spaces to print?
+       LBMI   FNSTRF   No, string field is finished.
+       JSR    OUTSPC   Yes, print another one.
+       BRA    UPRTSP   See if more.
+
+*
+* Here when MLCSTR is seen which indicates the start of a multi-char
+* string field if it is followed by a variable number of spaces and
+* another MLCSTR.
+*
+
+BGSTRF STB    USSCNT   Save the using string char count.
+       STX    TEMPX1   Save the using string pointer.
+       LDA    #&2      The field width is 2 for the MLCSTRs
+       STA    FLDWID   plus the number of enclosed spaces.
+LPSTRF LDA    ,X       Get next using string char.
+       CMPA   #MLCSTR  End of the string field?
+       BEQ    ISSTRF   Yes, go print the string.
+       CMPA   #'       No, an enclosed space?
+       BNE    NOSTRF   No, it isn't really a string field.
+       INC    FLDWID   Yes, increment the field width.
+       LEAX   &1,X     Point to the next using string char.
+       DECB            Decrement using string char count.
+       BNE    LPSTRF   Is there are more chars in the using
+*    string then go scan them. Otherwise
+*    the closing MLCSTR wasn't found and
+*    therefore we aren't really looking
+•    at a string field.
+NOSTRF LDX    TEMPX1   It isn't a string field so restore the
+       LDB    USSCNT   using string pointer and char count.
+       LDA    #MLCSTR  Just print the MLCSTR since it doesn't
+*    belong to a field.
+NEWUCH JSR    PLSPRT   Print possible preceding plus since
+*    it didn't start a numeric field.
+       JSR    CHROUT   Now print the current char since it
+*    isn't part of a field.
+       BRA    PRCCHR   Go look at the next using string char.
+
+*
+* The entry point of the PRINT USING driver.
+*
+
+       XDEF   PUDRVR
+PUDRVR JSR    FRMCHK   Evaluate the using string.  FRMCHK
+*    is called instead of FRMEVL because
+*    TXTPTR is pointing to the USINTK
+*    rather than the first char of the
+*    string formula.
+       JSR    CHKSTR   Make sure it is a string.
+       LDB    #SEMCOL  It must be delimited by a semi-colon.
+       JSR    SYNCHR
+       LDX    FACMO    A pointer to the descriptor of the
+       STX    USDPTR   using string is saved because calls
+*    to FRMEVL might cause garbage
+*    collection to occur.
+       BRA    INIUS    Don't look at USLFG.
+
+REUSST LDA    USFLG    Was a value from the value list
+*    printed on the last scan of the using
+*    string?
+       BEQ    PUFCER   If not give Function Call error.
+       LDX    USDPTR   X:=pointer to using string descriptor.
+INIUS  CLR    USFLG    Say no values printed this scan.
+       LDB    ,X       B:=length of using string.
+       BNE    NTNLUS   If the using string is null give a
+PUFCER JMP    FCERR    Function Call error.
+
+NTNLUS LDX    &2,X     X:=pointer to using string characters.
+PRCCHR CLR    PUMASK   Turn off all print using flag bits.
+PLSFIN CLR    FLDWID   Field width for strings:=0.  Number
+*    of digits before decimal point for
+*    numbers:=0.
+       LDA    ,X+      A:=char from using string.
+       CMPA   #'!      A single char string field?
+       LBEQ   SMSTRF   Yes, go handle it.
+       CMPA   #'#      Start of a numeric field?
+       BEQ    NUMNUM   Yes.
+       DECB            No, all other possibilities require
+*    at least two chars.
+       BNE    TWOLFT   There are two chars.
+       JSR    PLSPRT   This isn't a field so print preceding
+*    plus if there was one.
+       JSR    CHROUT   Print the current char.
+FINUSI JSR    CHRGOT   We have reached the end of the using
+*    string.  Are there more values?
+       BNE    REUSST   Yes, go reuse the using string.
+       LDA    USFLG    No, did the value list end with a
+*    semicolon or comma?
+FLDFIN BNE    FREUST   Yes, don't do CRLF.
+       JSR    CRDO     No, finish up with a CRLF.
+FREUST LDX    USDPTR   Free up the using string's temporary.
+       JMP    FRETMP   and return.
+
+TWOLFT CMPA   #'+      If plus then force out possible pre-
+       BNE    NTPLUS   ceding plus and set the plus flag.
+       JSR    PLSPRT
+       LDA    #PLSFLG
+       STA    PUMASK
+       BRA    PLSFIN   Go look at next char.
+
+NTPLUS CMPA   #'.      Numeric field with no digits before
+       BEQ    DOTNUM   the decimal point?
+       CMPA   #MLCSTR  A multi-char string field?
+       LBEQ   BGSTRF   Go scan it.
+       CMPA   ,X       Is the current char the same as the
+*    next char?
+GONWUC BNE    NEWUCH   No, so it isn't "$$", "**", or "**$".
+*    all other possiblilities have been
+*    checked so the current char isn't
+*    part of a field.
+       CMPA   #FLTMON  Yes, is the floating dollar sign?
+       BEQ    DOLRNM   Yes.
+       CMPA   #'*      No, how about asterisk fill or aster-
+*    isk fill with floating dollar sign?
+       BNE    GONWUC   No, it isn't a field.
+       LDA    PUMASK   Set the asterisk fill flag.
+       ORA    #ASTFLG
+       STA    PUMASK
+       CMPB   #&2      Are there enough chars for "**$"?
+       BCS    NTBOTH   No.
+       LDA    &1,X     Yes, check for the "$".
+       CMPA   #FLTMON
+       BNE    NTBOTH   It is some oher char.
+       DECB            It is "**$" so decrement using string
+       LEAX   &1,X     char count and advance the pointer.
+       INC    FLDWID   Tne "$" makes room for another digit.
+DOLRNM LDA    PUMASK   Set the floating dollar sign flag.
+       ORA    #DOLFLG
+       STA    PUMASK
+NTBOTH LEAX   &1,X     Point beyond the second char (or
+*    third for "**$").
+       INC   FLDWID    Increment the digit count.
+
+*
+* Scan the leading digits (before decimal point) of a numeric field.
+*
+
+NUMNUM CLR    DPWID    Number of trailing (after decimal
+*    point) :=0.
+NUMLOP INC    FLDWID   Increment the leading (before decimal
+*    point) digit count.
+       DECB            More chars in the using string?
+       BEQ    ENDNUS   No, end of numeric field.
+       LDA    ,X+      Yes, get the next char.
+       CMPA   #'.      Is it the decimal point?
+       BEQ    AFTDOT   Yes, go scan the trailing digit specs.
+       CMPA   #'#      No, is it another leading digit?
+       BEQ    NUMLOP   Yes, scan the next char.
+       CMPA   #COMMA   Do they want a comma every 3 digits?
+       BNE    FINNUM   No, no more leading digit specs.
+       LDA    PUMASK   Yes, set the comma flag.
+       ORA    #COMFLG
+       STA    PUMASK
+       BRA    NUMLOP   Scan for more leading digits.
+
+DOTNUM LDA    ,X       Is this dp (decimal point) the start
+       CMPA   #'#      of a numeric field?
+       LBNE   NEWUCH   No, go print the ".".
+       LDA    #&1      Yes, init count of trailing digits.
+       STA    DPWID    The decimal point is included in this
+*    COUNT.
+       LEAX   &1,X     Point past the decimal point.
+AFTDOT INC    DPWID    Increment trailing digit count.
+       DECB            More chars in using string?
+       BEQ    ENDNUS   No, it's the end of the numeric field.
+       LDA    ,X+      Yes, do we have another digit spec?
+       CMPA   #'#
+       BEQ    AFTDOT   Yes, look for more.
+*    NO, NOW LOOK FOR SCIENTIFIC NOTATION
+*    SPEC.
+FINNUM CMPA   #'^      ^^^ indicates scientific notation.
+       BNE    ENDNUS
+       CMPA   ,X
+       BNE    ENDNUS
+       CMPA   &1,X
+       BNE    ENDNUS
+       CMPA   &2,X
+       BNE    ENDNUS
+       CMPB   #&4      Make sure the four chars just checked
+*    actually belong to the using string
+*    by ensuring that the using string
+*    contains enough characters.
+       BCS    ENDNUS   It doesn't so we were looking at chars
+*    that don't belong to the using string.
+*    therefore we don't have scientific
+*    notation spec.
+       SUBB   #&4      It does, so we do have scientific
+       LEAX   &4,X     notation.  Fix up the using string
+*    count and pointer.
+       INC    PUMASK   Set the scientific notation flag.
+*    (Bit 0 of PUMASK.)
+
+ENDNUS LEAX   -&1,X    Back up using string pointer so
+*    we can check for trailing sign spec.
+       INC    FLDWID   Increment the leading digit count
+*    in case there was a leading sign spec.
+       LDA    PUMASK   Was there a leading sign spec?
+       BITA   #PLSFLG
+       BNE    ENDNUM   Yes, so there can't be a trailing sign.
+       DEC    FLDWID   No, adjust the field width back.
+       TSTB            At the end of the using string?
+       BEQ    ENDNUM   Yes, so can't have trailing sign.
+       LDA    ,X       No, check for trailing sign.
+       SUBA   #'-      If there is one it is a "+" or "-".
+       BEQ    SGNTRL   Have trailing minus.
+       CMPA   #'+-'-
+       BNE    ENDNUM   Don't have trailing sign.
+       LDA    #PLSFLG  Have trailing plus, set the plus flag.
+SGNTRL ORA    #TRLFLG  Set the trailing sign flag.
+       ORA    PUMASK
+       STA    PUMASK
+       DECB            Decrement length of using string for
+*  trailing sign.
+ENDNUM JSR    CHRGOT   Any more values?
+       LBEQ   FLDFIN   No, print using check out time.
+       STB    USSCNT   Yes, save using string char count.
+       JSR    FRMNUM   Evaluate a numeric formula.
+       LDA    FLDWID   If the total field width is too big
+       ADDA   DPWID    then give a Function Call error.
+       CMPA   #&14+&3*ADDPRC
+       LBHI   FCERR
+       JSR    PUFOUT   Convert the number into ASCII in
+*    FBUFFR.
+       LEAX   -&1,X
+       JSR    STROUT   Actually print the number.
+
+FNSTRF CLR    USFLG    Assume end of statement terminated
+*    the value
+       JSR    CHRGOT   See what the terminator of the value
+*    was.
+       BEQ    CRDNUS   It was an EOS.
+       STA    USFLG    Not EOS, set flag to say so.
+       CMPA   #SEMCOL  The other valid terminators are semi-
+       BEQ    SEMUSN   colon and comma.
+       JSR    CHKCOM
+       BRA    CRDNUS
+
+SEMUSN JSR    CHRGET   skip the semicolon.
+CRDNUS LDX    USDPTR   Calculate a pointer into tne using
+       LDB    ,X       string using the descriptor pointer
+       SUBB   USSCNT   and the character count.
+       LDX    &2,X
+       ABX
+       LDB    USSCNT   Set up B with the char count.
+       LBNE   PRCCHR   Go look at the next using string char.
+       JMP    FINUSI   End of using string, go reuse it.
+
+*
+* Print a "+" if the plus flag is set since the "+" didn't start
+* a numeric field.
+*
+PLSPRT PSHS   A        Save the current char.
+       LDA    #'+      Get ready.
+       TST    PUMASK   Plus flag set? (It is the only flag
+*    that could be set.)
+       BEQ    NOPLUS   No, don't print "+".
+       JSR    CHROUT   Yes, print the "+".
+NOPLUS PULS   A,PC     Restore the current char.
+
+       TTL    The PRINT USING Floating Point Output Routine.
+
+PUFOUT LDU    #FBUFFR+&1 Init the buffer pointer.  Use
+*    FBUFFR+1 to leave room for a per
+*    cent sign if field overflow occurs.
+       LDB    #SPACE   Assume the number is positive and
+*    that the plus flag is not set.
+       LDA    PUMASK   Is the plus flag set?
+       BITA   #PLSFLG
+       BEQ    NPLUS    No.
+       LDB    #'+      Yes, change the space to a plus sign.
+NPLUS  TST    FACSGN   Is the number negative?
+       BPL    NMINUS   No.
+       CLR    FACSGN   Yes, make it look positive for QINT
+       LDB    #'-      and use a minus sign.
+NMINUS STB    ,U+      Put in the sign.
+       LDB    #'0      Put in a leading zero to guarantee
+       STB    ,U+      a place for a floating dollar sign.
+       ANDA   #SCIFLG  Scientific notation specified?
+       LBNE   SCINOT   Yes.
+       LDX    #N.MIL   No, is the number too big to be
+       JSR    FOUTCP   printed in fixed point format?
+*    (Comparing to one million (10^6)
+*    for ADDPRC=0, one billion (10^9)
+*    for ADDPRC=1.)
+       BMI    FIXNOT   No, it can be printed.
+       JSR    FOUT     Yes, print it in free format.
+FENDNM LDA    ,X+      Find the end of the number.
+       BNE    FENDNM
+UPNUM  LDA    ,-X      Move the number up a byte to make
+       STA    &1,X     room for the per cent sign.  This
+       CMPX   #FBUFFR  must be done because FOUT puts the
+       BNE    UPNUM    number in starting at FBUFFR.
+       LDA    #'%      Put in the per cent sign to indicate
+       STA    ,X       field overflow and return.
+       RTS
+
+*
+* Here to print a number in fixed point notation.
+*
+
+FIXNOT LDA    FACEXP   Is the number zero?
+       STA    TENEXP   (Set decimal exponent to 0 if so.)
+       BEQ    FFXV03   Yes, don't try to normalize.
+       JSR    FOUTN    No, normalize it so all the digits
+*    to be printed are in the integer part.
+FFXV03 LDA    TENEXP   Are there fractional digits?
+       LBMI   FFXV04   Yes because the decimal exponent is
+*    Negative.
+
+*
+* Print number with no fractional digits.
+*
+       NEGA            Leading zeroes must be printed if the
+       ADDA   FLDWID   field has more chars than there are
+       SUBA   #&6+&3*ADDPRC digits in the number.  Calculate
+       JSR    FOTZER   the number of zeroes to print by
+*    effectively taking
+*    FLDWID-TENEXP-# of digits.
+       JSR    FOUTCD   Set up decimal point and comma counts.
+       JSR    CNVASC   Convert to ASCII digits.
+       LDA    TENEXP   Put in some zeroes if the decimal
+       JSR    FOTZEC   exponent is non-zero.  Commas may
+*    be needed also.
+       LDA    TENEXP   Make sure a decimal point is printed
+       JSR    FOUTED   for FOUTTS.
+*    Fall into FOUTTD to finish up.
+
+*
+* See if the decimal point should be retained.
+*
+
+FOUTTD LDA    DPWID    Is a decimal point needed?
+       BNE    KEEPDP   Yes, keep the decimal point.
+       LEAU   -&1,U    No, back up to get rid of it.
+KEEPDP DECA            Print zeroes to fill the field to
+       JSR    FOTZER   right of the decimal point.
+FOUTTS JSR    FOUTZS   Suppress leading zeroes.
+       TSTA            Is there a trailing sign?
+       BEQ    NOTRL    No.
+       CMPB   #'*      Yes, is the sign char an asterisk?
+*    (This case occurs when a positive
+*    number is printed with asterisk fill
+*    and trailing minus sign specified.)
+       BEQ    NOTRL    Yes, don't put in trailing sign.
+       STB    ,U+      Put in the trailing sign.
+NOTRL  CLR    ,U       Mark the end of the number.
+
+*
+* Check the field size.
+*
+
+       LDX    #FBUFFR  Init the buffer pointer.
+FOUBE1 LEAX   &1,X     Is the right amount of space being
+       STX    TEMPX1   used?
+       LDA    FDECPT+&1
+       SUBA   TEMPX1+&1
+       SUBA   FLDWID
+       BEQ    PUFRTS   Yes, PUFOUT is finished.
+       LDA    ,X       No, see if we can shorten the field.
+       CMPA   #SPACE   We can throw away leadinf spaces or
+       BEQ    FOUBE1   asterisks.
+       CMPA   #"*
+       BEQ    FOUBE1
+*
+* We can also shorten the field by throwing away a zero if it is
+* followed by a decimal point and another digit.
+*Look for -  "+" or "-" [optional]
+*  "$"  [optional]
+*  "0"  [mandatory]
+*  "."  [mandatory]
+*  "0" THRU "9" [mandatory]
+*
+       CLRA            Used to flag the bottom of the stacked
+*    characters.
+FOUBE2 PSHS   A        Push the char.
+       LDA    ,X+      Get the next one.
+       CMPA   #'-      Stack it if it is "+", "-", or "$".
+       BEQ    FOUBE2
+       CMPA   #'+
+       BEQ    FOUBE2
+       CMPA   #FLTMON
+       BEQ    FOUBE2
+       CMPA   #'0      Is there a leading zero?
+       BNE    FOUBE4   No, the number exceeds the field.
+       LDA    &1,X     Yes, now see if a digit follows the
+       BSR    ISDIGC   decimal point.  We needn't check for
+*    the decimal point itself since FOUTZS
+*    would have removed the zero we just
+*    saw if it wasn't followed by a decimal
+*    point.
+       BCS    FOUBE4   Not a digit, we have field overflow.
+FOUBE3 PULS   A        Unstack the chars we saved and put
+       STA    ,-X      them back into the buffer one place
+       BNE    FOUBE3   beyond where they originally were.
+       BRA    FOUBE1   See if that makes the number fit.
+
+FOUBE4 PULS   A        We have field overflow, pop off the
+       TSTA            Garbage.
+       BNE    FOUBE4
+       LDX    TEMPX1   Put a "%" in to indicate field
+       LDA    #'%      overlfow.
+       STA    ,-X
+PUFRTS RTS
+
+*
+* Set carry if char in A  is not a digit.
+*
+
+       XDEF   ISDIGC
+ISDIGC CMPA   #'0      Is it a digit?
+       BCS    ISDRTS   No.
+       SUBA   #'9+&1   Maybe.
+       SUBA   #-'9-&1  Restore cnar and clear carry if digit.
+ISDRTS RTS
+
+*
+* Print number with fractional digits in fixed point format.
+*
+
+FFXV04 LDA    DPWID    If there are any decimal places
+       BEQ    FFXV05   specified subtract one for the dp.
+       DECA
+FFXV05 ADDA   TENEXP   How many digits to divide out.
+       BMI    FFXV06
+       CLRA            If no division then zero the count.
+FFXV06 PSHS   A        Save division count.
+FFXV07 BPL    FFXV08   Done dividing.
+       PSHS   A        Divide out another digit.
+       JSR    DIV10
+       PULS   A
+       INCA
+       BRA    FFXV07
+
+FFXV08 LDA    TENEXP   Calculate the number of fractional
+       SUBA   ,S+      digits in the FAC (negative) by
+       STA    TENEXP   subtracting the division count from
+*    the decimal exponent.
+       ADDA   #&6+&3*ADDPRC A:=number of integer digits.
+       BMI    FFXV09   There are no integer digits.
+       LDA    FLDWID   Print leading zeroes.
+       SUBA   #&6+&3*ADDPRC
+       SUBA   TENEXP
+       BSR    FOTZER
+       JSR    FOUTCD   Set up decimal point and comma counts.
+       BRA    FFXV10   Go print the number.
+
+FOTZRL PSHS   A        Save the zero count and put in a
+       LDA    #'0      zero.
+       STA    ,U+
+       PULS   A
+FOTZER DECA            Any zeroes to print?
+       BPL    FOTZRL   Yes, go print one.
+       RTS
+
+FFXV09 LDA    FLDWID   Fill the leading digits with zeroes.
+       BSR    FOTZER
+       JSR    FOUTDP   put in the decimal point.
+       LDA    #-(&6+&3*ADDPRC) A:=number of zeroes before the actual
+       SUBA   TENEXP   number.
+       BSR    FOTZER   Put in the zeroes.
+       CLR    DECCNT   Decimal count:=comma count:=0.
+       CLR    COMCNT
+FFXV10 JSR    CNVASC   Convert the FAC.
+       LDA    DPWID    Any fractional digits?
+       BNE    FFXV11   Yes.
+       LDU    FDECPT   No, end of number is at the dp.
+FFXV11 ADDA   TENEXP   Fill out the trailing digits.
+       LBRA   KEEPDP
+
+*
+* Print number in scientific notation.
+*
+
+SCINOT LDA    FACEXP   See if the FAC is zero.
+       PSHS   A        Save an indicator.
+       BEQ    FFXFL2   It is zero, don't atempt to normalize.
+       JSR    FOUTN    Get all significant digits into the
+*    integer part of the FAC.
+FFXFL2 LDA    DPWID    A:=number of fractional digits.
+       BEQ    FFXFL3   (Have to subtract one for the decimal
+       DECA            point if there are fractional digits.)
+FFXFL3 ADDA   FLDWID   A:=total number of digits specified.
+
+*
+* We must account for a leading sign by subtracting one from the
+* total digit count.  We will need to account for the position
+* of the sign in later calculations as well so we set FBUFFR
+* to -1 for a leading sign and 0 for a trailing sign.  It is OK
+* to use FBUFFR as a temporary since it is only used to hold
+* a percent sign if field overflow occurs and we will be done
+* with it before that can happen.
+*
+
+       CLR    FBUFFR   FBUFFR:=0 for trailing sign, -1
+       LDB    PUMASK   for leading sign.
+       ANDB   #TRLFLG
+       BNE    FFXFL4
+       COM    FBUFFR
+FFXFL4 ADDA   FBUFFR   Adjust the total digit count.
+       SUBA   #&6+&3*ADDPRC Subtract sig digits from total digits.
+       PSHS   A        Save the result.  If it is positive
+*    it is the number of trailing zeroes
+*    we must supply after FOUTCV returns.
+*    If it is negative we have more sig
+*    digits than places to print them in
+*    so we divide out some sig digits.
+FFXFL5 BPL    FFXFL6   Done dividing if positive.
+       PSHS   A        Save the count and get rid of a sig
+       JSR    DIV10    digit.
+       PULS   A
+       INCA
+       BRA    FFXFL5   See if more need to be destroyed.
+FFXFL6 LDA    ,S       Get division count.
+       BMI    FFXFL7   If division wasn't done then zero
+       CLRA            this count.
+FFXFL7 NEGA            Calculate the decimal point count.
+       ADDA   FLDWID   The formula is (# of leading digits
+       INCA            specified) + (digits divided out)
+       ADDA   FBUFFR   + (1 if trailing sign).
+       STA    DECCNT
+       CLR    COMCNT   No commas allowed.
+       JSR    CNVASC   Convert to ASCII digits.
+       PULS   A        Get trailing zero count.
+       JSR    FOTZEC   Decimal point could come out in these
+*    zeroes.
+       LDA    DPWID    If there were no decimal places
+       BNE    FFXFL8   specified the the decimal point just
+       LEAU   -&1,U    went in and we throw it out by backing
+*    up the pointer.
+FFXFL8 LDB    ,S+      Was the FAC zero to start with?
+       BEQ    FOTEXP   Yes, so the exponent to print is zero.
+       LDB    TENEXP   No, scale the exponent.
+       ADDB   #&6+&3*ADDPRC Add the sig digit count.
+       SUBB   FLDWID   Subtract the leading digit count.
+       SUBB   FBUFFR   Add one back if leading sign.
+
+*
+* Put in the exponent.
+*
+
+FOTEXP LDA    #'+      Assume it is positive.
+       TSTB            Is the exponent positive?
+       BPL    FEXPLS   Yes.
+       LDA    #'-      No, it's negative so use a minus sign,
+       NEGB            and negate the exponent.
+FEXPLS STA    &1,U     Store the sign of the exponent.
+       LDA    #'E      Put in the "E" and point past the
+       STA    ,U++     "E" and the sign.
+       LDA    #'0-&1   Convert exponent to two ASCII digits.
+FEXPHI INCA            Increment high order digit.
+       SUBS   #&10     Sub 10 until result does negative.
+       BCC    FEXPHI
+       ADDB   #'0+&10  B:=the low order digit.
+       STD    ,U++     Store the exponent.
+       CLR    ,U       Put in a terminator.
+       JMP    FOUTTS   Go finish up.
+
+*
+* Suppress leading zeroes and do asterisk fill if indicated.
+*
+
+FOUTZS LDX    #FBUFFR+&1 X:=pointer to start of number.
+       LDB    ,X       B:=sign of number.
+       PSHS   B        Save it.
+       LDA    #SPACE   Default fill char is space.
+       LDB    PUMASK   Is asterisk fill specified?
+       BITB   #ASTFLG
+       PULS   B        (B:=sign char.)
+       BEQ    FOTZS1   No asterisk fill, use space.
+       LDA    #'*      Fill char:=asterisk.
+       CMPB   #SPACE   If the sign is a space then it must
+       BNE    FOTZS1   be changed to an asterisk.
+       TFR    A,B
+FOTZS1 PSHS   B        Save the sign char.
+FOTZS2 STA    ,X+      Store the fill char.
+       LDB    ,X       B:=next char.
+       BEQ    FOTZS3   A zero marks the end of the number.
+       CMPB   #'E      An "E" indicates the start of
+       BEQ    FOTZS3   the exponent of a number in scientific
+*    Back up and insert a zero for the
+*    mantissa.
+       CMPB   #'0      Is it a leading zero?
+       BEQ    FOTZS2   Yes, suppress it.
+       CMPB   #COMMA   Also supress commas.
+       BEQ    FOTZS2
+       CMPB   #'.      No, is it the decimal point?
+       BNE    FOTZS4   No, but all zeroes have been sup-
+*    pressed.
+*    Yes, back up and insert a zero before
+*    the decimal point.
+FOTZS3 LDA    #'0      Insert a zero before the current char.
+       STA    ,-X
+FOTZS4 LDA    PUMASK   Is the floating dollar sign set?
+       BITA   #DOLFLG
+       BEQ    FOTZS5   No.
+       LDB    #FLTMON  Yes, back up and insert a dollar sign.
+       STB    ,-X
+FOTZS5 ANDA   #TRLFLG  Trailing sign specified?
+       PULS   B        (B:=original sign char.)
+       BNE    FOTZSR   Yes, return with A non zero.
+       STB    ,-X      No, put the leading sign back in.
+FOTZSR RTS
+
+*
+* Normalize the FAC so all significant digits are in the
+* integer part.
+*
+
+FOUTN  PSHS   U        Save the buffer pointer.  (It could
+*    be destroyed by calls to FMULT and
+*    MUL10 if they are ever optimized for
+*    6809.)
+       CLRA            Initialize decimal exponent to 0.
+FOUTN1 STA    TENEXP   Update the decimal exponent.
+       LDB    FACEXP   Is the FAC less than 1?
+       CMPB   #@200
+       BHI    FOUTN3   No.
+       LDX    #N.MIL   Yes, multiply by a large number.
+       JSR    FMULT    (One million for ADDPRC=0, one
+*    billion for ADDPRC=1.)
+       LDA    TENEXP   Adjust the decimal exponent.
+       SUBA   #&6+&3*ADDPRC
+       BRA    FOUTN1   Go back and see if still less than 1.
+
+FOUTN2 JSR    DIV10    Divide by 10 and increment the decimal
+       INC    TENEXP   exponent.
+FOUTN3 LDX    #N.9999  Is the FAC too big?
+       JSR    FOUTCP
+       BGT    FOUTN2   Yes, make it smaller.
+
+FOUTN4 LDX    #N.0999  Is the FAC too small?
+       JSR    FOUTCP
+       BGT    FOUTN5   No, it is normalized.
+       JSR    MUL10    Yes, multiply by ten and decrement
+       DEC    TENEXP   the decimal exponent.
+       BRA    FOUTN4   Go see if still too small.
+
+FOUTN5 PULS   U,PC     Restore the buffer pointer and return.
+
+*
+* Convert the number in the FAC to ASCII digits in the buffer pointed
+* to by U.
+*
+
+CNVASC PSHS   U        Save the buffer pointer.
+       JSR    FADDH    Round the number by adding one half.
+       JSR    QINT     Get the greatest integer.
+       PULS   U        Retrieve the buffer pointer.
+       LDX    #FOUTBL  Point to the powers of ten table.
+       LDB    #@200    Set MS8 of B to indicate power of
+*    ten is being subtracted first time
+*    through the loop.  Also, clear the
+*    digit.
+CNVA10 BSR    FOUTED   Insert decimal point or comma if time.
+CNVA20 LDA    FACLO    Add table entry to add or subtract
+       ADDA   &2+ADDPRC,X the current power of ten.
+       STA    FACLO
+       LDA    FACMO
+       ADCA   &1+ADDPRC,X
+       STA    FACMO
+       IFNE   ADDPRC
+       LDA    FACMOH
+       ADCA   &1,X
+       STA    FACMOH
+       ENDC   IFN      ADDPRC
+       LDA    FACHO
+       ADCA   ,X
+       STA    FACHO
+       INCB            Increment the digit.
+       RORB            Did the sign of the FAC change?
+       ROLB
+       BVC    CNVA20   No, continue with this power of ten.
+       BCC    CNVA30   Yes, use digit as is since power of
+*    ten was being subtracted.
+       SUBB   #&10+&1  Power of ten was being added to
+       NEGB            a negative number in the FAC so
+*    the digit must be adjusted by
+*    subtracting ten and negating the
+*    result.  (Subtract eleven instead
+*    of ten to account for "0"-1 at
+*    CNVA30.)
+CNVA30 ADDB   #'0-&1   Get the ASCII digit.  (Minus one is
+*    because digit was incremented one
+*    too many times in the loop.
+       LEAX   &3+ADDPRC,X Point to the next power of ten in
+*    the table.
+       TFR    B,A      Get rid of the MSB and store the
+       ANDA   #@177    digit in the buffer.
+       STA    ,U+
+       COMB            Complement the MSB of B and clear
+       ANDB   #@200    the digit.
+       CMPX   #FDCEND  Done all powers of ten?
+       BNE    CNVA10   No, go do the next digit.
+       CLR    ,U       Yes, mark the end of the number
+*    and fall into FOUTED to see if the
+*    DP follows the last digit.
+
+*
+* Insert comma or decimal point.
+*
+
+FOUTED DEC    DECCNT   Time for the decimal point?
+       BNE    FOUED1   No, check for comma.
+FOUTDP STU    FDECPT   Yes, save a pointer to the decimal
+       LDA    #'.      point and put it in
+       STA    ,U+
+       CLR    COMCNT   Inhibit the printing of commas to the
+       RTS             right of the decimal point.
+
+FOUED1 DEC    COMCNT   Time for a comma?
+       BNE    FOUEDR   No, just return.
+       LDA    #&3      Yes, reset the comma count.
+       STA    COMCNT
+       LDA    #COMMA   Put in the comma and return.
+       STA    ,U+
+FOUEDR RTS
+
+*
+* Set up decimal point and comma counts.
+*
+
+FOUTCD LDA    TENEXP   Decimal point count:=decimal exponent+
+       ADDA   #&7+&3*ADDPRC #of digits+1.
+       STA    DECCNT
+       INCA            Comma count:=(decimal point count +1
+FOUCD1 SUBA   #&3      MOD 2)+3.
+       BCC    FOUCD1
+       ADDA   #&5
+FOUTCC STA    COMCNT   Store possible comma count.
+FOUICC LDA    PUMASK   Are we using commas?
+       ANDA   #COMFLG
+       BNE    FOUCRT   Yes, leave the count as is.
+       STA    COMCNT   No, zero the count.
+FOUCRT RTS
+
+*
+* Put in zeroes.
+*
+
+FOTZCL PSHS   A        Save count of zeroes.
+       BSR    FOUTED   See if comma is required.
+       PULS   A
+FOTZEC DECA            More zeroes to print?
+       BMI    FOUZCR   No.
+       PSHS   A        Yes, print one.
+       LDA    #'0
+       STA    ,U+
+       LDA    ,S+      Any more?
+       BNE    FOTZCL   Yes, see if comma needed.
+FOUZCR RTS
+
+       END

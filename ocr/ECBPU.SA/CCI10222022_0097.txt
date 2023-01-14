@@ -1,109 +1,56 @@
-                                                PAGE      004 EC8P11              .SA:1 TXRPU The PRINT USING driver.
+PAGE  004  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 
-
-
-                                                00811                                            *
-
-                                                00812                                            *  The entry point of the PRINT USING driver.
-
-                                                00813                                            *
-
-                                                00814
-
-                                                00815                                                         XDEF         PUDRVR
-
-                                                00816P 0059 BD                0000           A PUDRVR JSR                  FRMCHK          Evaluate the using string.                         FRMCHK
-
-                                                00817                                            *        is called instead of FRMEVL because
-
-                                                00818                                            *        TXTPTR is pointing to the USINTK
-                                   •            00819                                            *        rather than the first char of the
-
-                                         I I,   00820                                            *        string formula.
-                                                00821P 0050 BD                0000           A                JSR          CHKSTR          Make sure it is a string.
-                                   •            00822P 005F 06                38             A                LOB          #SEMCOL it must be delimited by a semi-colon.
-
-                                                00823P 0061 BD                0000           A                JSR          SYNCHR
-
-                                                00824P 0064 9E                52             A                LDX          FACMO           A pointer to the descriptor of the
-
-                                                00825P 0066 9F                D5             A                STX          USDPTR          using string is saved because calls
-
-                                                00826                                            *        to FRMEVL might cause garbage
-
-                                                00827                                            *        collection to occur.
-
-                                                00828P 0068 20                06        0070                  BRA          INIUS           Don't look at USLFG.
-
-                                                00829
-
-                                                00830P 006A 96                D7             A REUSST LOA                  USFLG           Was a value from the value list
-
-                                                00831                                            •        printed on the last scan of the using
-
-                                                00832                                            •        string?
-
-                                                00833P 0060 27                08        0076                  BEG1         PUFCER          If not give Function Call error. 
-
-                                                00834P 006E 9E                D5             A                LDX          USDPTR          X:=pointer to using string descriptor. 
-
-                                                00835P 0070 OF                D7             A   INIUS CLR                 USFLG           Say no values printed this scan. 
-
-                                                00836P 0072 E6                84             A                LOB          ,X              8:=length of using string.
-                                   •            00837P 0074 26                03        0079                  BNE          NTNLUS          If the using string is null give a 
-                                      |i/.|     00838P 0076 7E                0000           A   PUFCER JMP                FCERR           Function Call error.
-
-                                                00839
-
-                                                00840P 0079 AE                02             A NTNLUS LOX                  &2,X            X:=pointer to using string characters. 
-
-                                                00841P 0078 OF                DA             A PRCCHR CLR                  PUMASK          Turn off all print using flag bits. 
-
-                                                008422 0070 OF                D9             A PLSFIN CLR                  FLDWID          Field width for strings:=0. Number
-
-                                                00843                                            •        of digits before decimal point for
-
-                                                00844                                            •        numbers:=0.
-
-                                                008452 007F A6 80                            A                LOA                          A:=char from using string.
-
-                                                00846P 0081 81                21             A                CMPA         44,'!           A single char string field?
-
-                                                00847P 0083 1027 FF79 0000                                    LBEQ         SMSTRF          Yes, 90 handie it.
-
-                                                00848P 0087 81                23             A                CMPA         #'44:           Start of a numeric field?
-
-                                                00849P 0089 27                58 00E6                         BEI)         NUMNUM          Yes.
-
-                                                00850P 0088 5A                                                DECB                         No, all other possibilities require
-
-                                                00851                                            *        at least two chars.
-
-                                                00852P 008C 26                16        00A4                  BNE          TWOLFT          There are two chars.
-'Progression" - it's a w                        00853P 008E BD                019A                            JSR          PLSPRT          This isn't a field so print preceding
-movement. The latest in                         00854                                                     plus if there was one.
-an-)ily of power amplifier 
-                                                00855P 0091 8D                0000           A                JSR          CHROUT          Print the current char.
-lifetime spent in the rose 
-                                                00856P 0094 9D                A5             A   FINUSI JSR                CHRGOT          We have reached the end of the using
-components that alway; 
-always respect the dome                         00857                                            *        string. Are there more values?
-convey realism from tl                          00858P 0096 26                D2        006A                  BNE          REUSST          Yes, go reuse the using string.
-the most thunderous of                          00859P 0098 96                D7             A                LDA          USFLG           No, did the value list end with a
-are not allowed to affect t                     00860                                            *        semicolon or comma?
-                                                00861P 009A 26                03        009F     FLDFIN BNE                FREUST          Yes, don't do CRLF.
-                                                00862P 009C BD                 ::()00        A                JSR          CRDO            No, finish up with a CRLF.
-
-                                                00863P 009F 9E                D5             A   FREUST LOX                USDPTR          Free up the using string's temporary.
-
-                                                00864P 00AI 7E                0000           A                JMP          FRETMP          and return.
-
-
-
-
-5E3 Lit             I ■,:1,1,-,;1,`,7-3V 
-
-
-
- For
-
+00811                      *
+00812                      * The entry point of the PRINT USING driver.
+00813                      *
+00814
+00815                             XDEF   PUDRVR
+00816P 0059 BD   0000    A PUDRVR JSR    FRMCHK   Evaluate the using string.  FRMCHK
+00817                      *    is called instead of FRMEVL because
+00818                      *    TXTPTR is pointing to the USINTK
+00819                      *    rather than the first char of the
+00820                      *    string formula.
+00821P 005C BD   0000    A        JSR    CHKSTR   Make sure it is a string.
+00822P 005F C6   3B      A        LDB    #SEMCOL  It must be delimited by a semi-colon.
+00823P 0061 BD   0000    A        JSR    SYNCHR
+00824P 0064 9E   52      A        LDX    FACMO    A pointer to the descriptor of the
+00825P 0066 9F   D5      A        STX    USDPTR   using string is saved because calls
+00826                      *    to FRMEVL might cause garbage
+00827                      *    collection to occur.
+00828P 0068 20   06   0070        BRA    INIUS    Don't look at USLFG.
+00829
+00830P 006A 96   D7      A REUSST LDA    USFLG    Was a value from the value list
+00831                      *    printed on the last scan of the using
+00832                      *    string?
+00833P 006C 27   08   0076        BEQ    PUFCER   If not give Function Call error.
+00834P 006E 9E   D5      A        LDX    USDPTR   X:=pointer to using string descriptor.
+00835P 0070 0F   D7      A INIUS  CLR    USFLG    Say no values printed this scan.
+00836P 0072 E6   84      A        LDB    ,X       B:=length of using string.
+00837P 0074 26   03   0079        BNE    NTNLUS   If the using string is null give a
+00838P 0076 7E   0000    A PUFCER JMP    FCERR    Function Call error.
+00839
+00840P 0079 AE   02      A NTNLUS LDX    &2,X     X:=pointer to using string characters.
+00841P 007B 0F   DA      A PRCCHR CLR    PUMASK   Turn off all print using flag bits.
+00842P 007D 0F   D9      A PLSFIN CLR    FLDWID   Field width for strings:=0.  Number
+00843                      *    of digits before decimal point for
+00844                      *    numbers:=0.
+00845P 007F A6   80      A        LDA    ,X+      A:=char from using string.
+00846P 0081 81   21      A        CMPA   #'!      A single char string field?
+00847P 0083 1027 FF79 0000        LBEQ   SMSTRF   Yes, go handle it.
+00848P 0087 81   23      A        CMPA   #'#      Start of a numeric field?
+00849P 0089 27   5B   00E6        BEQ    NUMNUM   Yes.
+00850P 008B 5A                    DECB            No, all other possibilities require
+00851                      *    at least two chars.
+00852P 008C 26   16   00A4        BNE    TWOLFT   There are two chars.
+00853P 008E BD   019A    P        JSR    PLSPRT   This isn't a field so print preceding
+00854                      *    plus if there was one.
+00855P 0091 BD   0000    A        JSR    CHROUT   Print the current char.
+00856P 0094 9D   A5      A FINUSI JSR    CHRGOT   We have reached the end of the using
+00857                      *    string.  Are there more values?
+00858P 0096 26   D2   006A        BNE    REUSST   Yes, go reuse the using string.
+00859P 0098 96   D7      A        LDA    USFLG    No, did the value list end with a
+00860                      *    semicolon or comma?
+00861P 009A 26   03   009F FLDFIN BNE    FREUST   Yes, don't do CRLF.
+00862P 009C BD   0000    A        JSR    CRDO     No, finish up with a CRLF.
+00863P 009F 9E   D5      A FREUST LDX    USDPTR   Free up the using string's temporary.
+00864P 00A1 7E   0000    A        JMP    FRETMP   and return.

@@ -1,91 +1,21 @@
-                                                        PAGE         002        ECEPU             .SA:1           TXRPU           The PRINT USING                     driver.
-                                        40 
+PAGE  002  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 
-                                                        00758P         0008        9D         A5                A                   JSR             CHRGOT              End of value list reached?
-                                                        00759P         000A        1027       008C       009A                       LBEGI           FLDFIN              Yes, PRINT USING is finished.
-                                                        00760P         000E        D7         D3                A                   ST'S            USSCNT              No, save using string char count. 
-                                                        00761P         0010        BD         0000              A                   JSR             FRMEVL              Evaluate next value in the value list. 
-                                                        00762P         0013        BD         0000              A                   JSR             CHKSTR              It must he a string to go into this
-                                        40              00763                                                                   string          field.
-                                                        00764P         0016        SE         52                A                   LDX             FACMO               X:=pointer to the string descriptor.
-                                                        00765P         0018        9F         4D                                    STX             DSCPNT              Set up DSCPNT for LEFTS code.
-                                        40              00766P         001A        D6         D9                A                   LDB             FLDWID              B:=width of string field.
-                                                        00767P         001C        BD         0000              A                   JSR             LEFTUS              Get leftmost B chars or whole string 
-                                                        00768                                                                   if     its        shorter           than the field.
-                                        40              00769P         001F        BD         0000                                  JSR             STRPRT              Print the string.
-                                                        00770P         0022        SE         52                                    LDX             FACMO               See if spaces are needed to fill out 
-                                                        00771P         0024        D6         D9                                    LDS             FLDWID              the field.
-                                        40              00772P         0026        EO         84                A                   SUBS            ,X
-                                                I       00773P         0028        5A                               UPRTSP DEES.                                        More spaces to print?
-                                                        00774P         0029        1028       0148       0175                       LBMI            FNSTRF              No, string field is finished. 
-                                        40              00775P         002D        BD         0000              A                   JSR             OUTSPC              Yes, print another one.
-                                                        00776P         0030        20         F6         0028                       BRA             UPRTSP              See if more.
-
-                                        •
-
-
-
-
-
-                                        411
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                        •
-
-
-
-
-
-
-
-
-"Progression" - it's a                  a
-movement. The latest i 
-family of power amplifi 
-lifetime spent in the re 
-components that alwa 
-always respect the der 
-convey realism from th 
-I hn r-nost thunderous
-     I rot allowed to affec
-
-
-                                        •
-
-
-
-        absolut
-                  Jr r              C
-
-
-
-                                        •
-
-
-
-
-                                        •
-
+00758P 0008 9D   A5      A        JSR    CHRGOT   End of value list reached?
+00759P 000A 1027 008C 009A        LBEQ   FLDFIN   Yes, PRINT USING is finished.
+00760P 000E D7   D3      A        STB    USSCNT   No, save using string char count.
+00761P 0010 BD   0000    A        JSR    FRMEVL   Evaluate next value in the value list.
+00762P 0013 BD   0000    A        JSR    CHKSTR   It must be a string to go into this
+00763                      *    string field.
+00764P 0016 9E   52      A        LDX    FACMO    X:=pointer to the string descriptor.
+00765P 0018 9F   4D      A        STX    DSCPNT   Set up DSCPNT for LEFT$ code.
+00766P 001A D6   D9      A        LDB    FLDWID   B:=width of string field.
+00767P 001C BD   0000    A        JSR    LEFTUS   Get leftmost B chars or whole string
+00768                      *    if it's shorter than the field.
+00769P 001F BD   0000    A        JSR    STRPRT   Print the string.
+00770P 0022 9E   52      A        LDX    FACMO    See if spaces are needed to fill out
+00771P 0024 D6   D9      A        LDS    FLDWID   the field.
+00772P 0026 E0   84      A        SUBB   ,X
+00773P 0028 5A             UPRTSP DECB            More spaces to print?
+00774P 0029 102B 0148 0175        LBMI   FNSTRF   No, string field is finished.
+00775P 002D BD   0000    A        JSR    OUTSPC   Yes, print another one.
+00776P 0030 20   F6   0028        BRA    UPRTSP   See if more.

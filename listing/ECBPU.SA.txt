@@ -1,0 +1,880 @@
+PAGE  001  ECBCOM  .SA:0  TXRPU  Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    TXRPU    - PRINT USING for TCC Extension ROM.
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   CHKCOM,CHKSTR,CHROUT,CRDO
+00712                             XREF   DIV10
+00713                             XREF   FADDH,FBUFFR,FCERR,FDCEND,FMULT,FOUT,FOUTBL,FOUTCP,FRETMP
+00714                             XREF   FRMCHK,FRMEVL,FRMNUM
+00715                             XREF   LEFTUS
+00716                             XREF   MUL10
+00717                             XREF   N.0999,N.9999,N.MIL
+00718                             XREF   OUTSPC
+00719                             XREF   QINT
+00720                             XREF   STROUT,STRPRT,SYNCHR
+00721                             XREF   USINTK
+00722
+00723                             TTL    Equates
+00724
+00725                      *
+00726                      * The PRINT USING mask (PUMASK) bit definitions.
+00727                      *
+00728
+00729            0001    A SCIFLG EQU    &1       Bit 0 - Scientific notation.
+00730            0004    A TRLFLG EQU    &4       Bit 2 - Trailing sign.
+00731            0008    A PLSFLG EQU    @10      Bit 3 - Print "+" instead of space
+00732                      *      for positive numbers.
+00733            0010    A DOLFLG EQU    @20      Bit 4 - Floating dollar sign.
+00734            0020    A ASTFLG EQU    @40      Bit 5 - Asterisk fill.
+00735            0040    A COMFLG EQU    @100     Bit 6 - Insert commas.
+00736
+00737            0024    A FLTMON EQU    '$       Character to use for floating money
+00738                      *    sign. Can be changed to a yen sign
+00739                      *    for example.
+00740            0025    A MLCSTR EQU    '%       Character indicating a multi-char
+00741                      *   string field. (For compatibility
+00742                      *   with TRS-80 Model I Level II BASIC.
+00743
+00744                             TTL    The PRINT USING driver.
+00745
+00746                      *
+00747                      * Entered at PUTEST.
+00748                      *
+00749
+00750                      *
+00751                      * Here to handle a string field.
+00752                      *
+00753
+00754P 0000 86   01      A SMSTRF LDA    #&1      Single char string field.
+00755P 0002 97   D9      A        STA    FLDWID
+00756P 0004 5A             ISSTRF DECB            Decrement using string char count.
+00757P 0005 BD   019A    P        JSR    PLSPRT   Print possible preceding plus.
+
+PAGE  002  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00758P 0008 9D   A5      A        JSR    CHRGOT   End of value list reached?
+00759P 000A 1027 008C 009A        LBEQ   FLDFIN   Yes, PRINT USING is finished.
+00760P 000E D7   D3      A        STB    USSCNT   No, save using string char count.
+00761P 0010 BD   0000    A        JSR    FRMEVL   Evaluate next value in the value list.
+00762P 0013 BD   0000    A        JSR    CHKSTR   It must be a string to go into this
+00763                      *    string field.
+00764P 0016 9E   52      A        LDX    FACMO    X:=pointer to the string descriptor.
+00765P 0018 9F   4D      A        STX    DSCPNT   Set up DSCPNT for LEFT$ code.
+00766P 001A D6   D9      A        LDB    FLDWID   B:=width of string field.
+00767P 001C BD   0000    A        JSR    LEFTUS   Get leftmost B chars or whole string
+00768                      *    if it's shorter than the field.
+00769P 001F BD   0000    A        JSR    STRPRT   Print the string.
+00770P 0022 9E   52      A        LDX    FACMO    See if spaces are needed to fill out
+00771P 0024 D6   D9      A        LDS    FLDWID   the field.
+00772P 0026 E0   84      A        SUBB   ,X
+00773P 0028 5A             UPRTSP DECB            More spaces to print?
+00774P 0029 102B 0148 0175        LBMI   FNSTRF   No, string field is finished.
+00775P 002D BD   0000    A        JSR    OUTSPC   Yes, print another one.
+00776P 0030 20   F6   0028        BRA    UPRTSP   See if more.
+
+PAGE  003  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00778                      *
+00779                      * Here when MLCSTR is seen which indicates the start of a multi-char
+00780                      * string field if it is followed by a variable number of spaces and
+00781                      * another MLCSTR.
+00782                      *
+00783
+00784P 0032 D7   D3      A BGSTRF STB    USSCNT   Save the using string char count.
+00785P 0034 9F   0F      A        STX    TEMPX1   Save the using string pointer.
+00786P 0036 86   02      A        LDA    #&2      The field width is 2 for the MLCSTRs
+00787P 0038 97   D9      A        STA    FLDWID   plus the number of enclosed spaces.
+00788P 003A A6   84      A LPSTRF LDA    ,X       Get next using string char.
+00789P 003C 81   25      A        CMPA   #MLCSTR  End of the string field?
+00790P 003E 27   C4   0004        BEQ    ISSTRF   Yes, go print the string.
+00791P 0040 81   20      A        CMPA   #'       No, an enclosed space?
+00792P 0042 26   07   004B        BNE    NOSTRF   No, it isn't really a string field.
+00793P 0044 0C   D9      A        INC    FLDWID   Yes, increment the field width.
+00794P 0046 30   01      A        LEAX   &1,X     Point to the next using string char.
+00795P 0048 5A                    DECB            Decrement using string char count.
+00796P 0049 26   EF   003A        BNE    LPSTRF   Is there are more chars in the using
+00797                      *    string then go scan them. Otherwise
+00798                      *    the closing MLCSTR wasn't found and
+00799                      *    therefore we aren't really looking
+00800                      •    at a string field.
+00801P 004B 9E   0F      A NOSTRF LDX    TEMPX1   It isn't a string field so restore the
+00802P 004D D6   D3      A        LDB    USSCNT   using string pointer and char count.
+00803P 004F 86   25      A        LDA    #MLCSTR  Just print the MLCSTR since it doesn't
+00804                      *    belong to a field.
+00805P 0051 BD   019A    P NEWUCH JSR    PLSPRT   Print possible preceding plus since
+00806                      *    it didn't start a numeric field.
+00807P 0054 BD   0000    A        JSR    CHROUT   Now print the current char since it
+00808                      *    isn't part of a field.
+00809P 0057 20   22   007B        BRA    PRCCHR   Go look at the next using string char.
+
+PAGE  004  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00811                      *
+00812                      * The entry point of the PRINT USING driver.
+00813                      *
+00814
+00815                             XDEF   PUDRVR
+00816P 0059 BD   0000    A PUDRVR JSR    FRMCHK   Evaluate the using string.  FRMCHK
+00817                      *    is called instead of FRMEVL because
+00818                      *    TXTPTR is pointing to the USINTK
+00819                      *    rather than the first char of the
+00820                      *    string formula.
+00821P 005C BD   0000    A        JSR    CHKSTR   Make sure it is a string.
+00822P 005F C6   3B      A        LDB    #SEMCOL  It must be delimited by a semi-colon.
+00823P 0061 BD   0000    A        JSR    SYNCHR
+00824P 0064 9E   52      A        LDX    FACMO    A pointer to the descriptor of the
+00825P 0066 9F   D5      A        STX    USDPTR   using string is saved because calls
+00826                      *    to FRMEVL might cause garbage
+00827                      *    collection to occur.
+00828P 0068 20   06   0070        BRA    INIUS    Don't look at USLFG.
+00829
+00830P 006A 96   D7      A REUSST LDA    USFLG    Was a value from the value list
+00831                      *    printed on the last scan of the using
+00832                      *    string?
+00833P 006C 27   08   0076        BEQ    PUFCER   If not give Function Call error.
+00834P 006E 9E   D5      A        LDX    USDPTR   X:=pointer to using string descriptor.
+00835P 0070 0F   D7      A INIUS  CLR    USFLG    Say no values printed this scan.
+00836P 0072 E6   84      A        LDB    ,X       B:=length of using string.
+00837P 0074 26   03   0079        BNE    NTNLUS   If the using string is null give a
+00838P 0076 7E   0000    A PUFCER JMP    FCERR    Function Call error.
+00839
+00840P 0079 AE   02      A NTNLUS LDX    &2,X     X:=pointer to using string characters.
+00841P 007B 0F   DA      A PRCCHR CLR    PUMASK   Turn off all print using flag bits.
+00842P 007D 0F   D9      A PLSFIN CLR    FLDWID   Field width for strings:=0.  Number
+00843                      *    of digits before decimal point for
+00844                      *    numbers:=0.
+00845P 007F A6   80      A        LDA    ,X+      A:=char from using string.
+00846P 0081 81   21      A        CMPA   #'!      A single char string field?
+00847P 0083 1027 FF79 0000        LBEQ   SMSTRF   Yes, go handle it.
+00848P 0087 81   23      A        CMPA   #'#      Start of a numeric field?
+00849P 0089 27   5B   00E6        BEQ    NUMNUM   Yes.
+00850P 008B 5A                    DECB            No, all other possibilities require
+00851                      *    at least two chars.
+00852P 008C 26   16   00A4        BNE    TWOLFT   There are two chars.
+00853P 008E BD   019A    P        JSR    PLSPRT   This isn't a field so print preceding
+00854                      *    plus if there was one.
+00855P 0091 BD   0000    A        JSR    CHROUT   Print the current char.
+00856P 0094 9D   A5      A FINUSI JSR    CHRGOT   We have reached the end of the using
+00857                      *    string.  Are there more values?
+00858P 0096 26   D2   006A        BNE    REUSST   Yes, go reuse the using string.
+00859P 0098 96   D7      A        LDA    USFLG    No, did the value list end with a
+00860                      *    semicolon or comma?
+00861P 009A 26   03   009F FLDFIN BNE    FREUST   Yes, don't do CRLF.
+00862P 009C BD   0000    A        JSR    CRDO     No, finish up with a CRLF.
+00863P 009F 9E   D5      A FREUST LDX    USDPTR   Free up the using string's temporary.
+00864P 00A1 7E   0000    A        JMP    FRETMP   and return.
+
+PAGE  005  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00866P 00A4 81   2B      A TWOLFT CMPA   #'+      If plus then force out possible pre-
+00867P 00A6 26   09   00B1        BNE    NTPLUS   ceding plus and set the plus flag.
+00868P 00A8 BD   019A    P        JSR    PLSPRT
+00869P 00AB 86   08      A        LDA    #PLSFLG
+00870P 00AD 97   DA      A        STA    PUMASK
+00871P 00AF 20   CC   007D        BRA    PLSFIN   Go look at next char.
+00872
+00873P 00B1 81   2E      A NTPLUS CMPA   #'.      Numeric field with no digits before
+00874P 00B3 27   4E   0103        BEQ    DOTNUM   the decimal point?
+00875P 00B5 81   25      A        CMPA   #MLCSTR  A multi-char string field?
+00876P 00B7 1027 FF77 0032        LBEQ   BGSTRF   Go scan it.
+00877P 00BB A1   84      A        CMPA   ,X       Is the current char the same as the
+00878                      *    next char?
+00879P 00BD 26   92   0051 GONWUC BNE    NEWUCH   No, so it isn't "$$", "**", or "**$".
+00880                      *    all other possiblilities have been
+00881                      *    checked so the current char isn't
+00882                      *    part of a field.
+00883P 00BF 81   24      A        CMPA   #FLTMON  Yes, is the floating dollar sign?
+00884P 00C1 27   19   00DC        BEQ    DOLRNM   Yes.
+00885P 00C3 81   2A      A        CMPA   #'*      No, how about asterisk fill or aster-
+00886                      *    isk fill with floating dollar sign?
+00887P 00C5 26   F6   00BD        BNE    GONWUC   No, it isn't a field.
+00888P 00C7 96   DA      A        LDA    PUMASK   Set the asterisk fill flag.
+00889P 00C9 8A   20      A        ORA    #ASTFLG
+00890P 00CB 97   DA      A        STA    PUMASK
+00891P 00CD C1   02      A        CMPB   #&2      Are there enough chars for "**$"?
+00892P 00CF 25   11   00E2        BCS    NTBOTH   No.
+00893P 00D1 A6   01      A        LDA    &1,X     Yes, check for the "$".
+00894P 00D3 81   24      A        CMPA   #FLTMON
+00895P 00D5 26   0B   00E2        BNE    NTBOTH   It is some oher char.
+00896P 00D7 5A                    DECB            It is "**$" so decrement using string
+00897P 00D8 30   01      A        LEAX   &1,X     char count and advance the pointer.
+00898P 00DA 0C   D9      A        INC    FLDWID   Tne "$" makes room for another digit.
+00899P 00DC 96   DA      A DOLRNM LDA    PUMASK   Set the floating dollar sign flag.
+00900P 00DE 8A   10      A        ORA    #DOLFLG
+00901P 00E0 97   DA      A        STA    PUMASK
+00902P 00E2 30   01      A NTBOTH LEAX   &1,X     Point beyond the second char (or
+00903                      *    third for "**$").
+00904P 00E4 0C   D9      A        INC   FLDWID    Increment the digit count.
+
+PAGE  006  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00906                      *
+00907                      * Scan the leading digits (before decimal point) of a numeric field.
+00908                      *
+00909
+00910P 00E6 0F   D8      A NUMNUM CLR    DPWID    Number of trailing (after decimal
+00911                      *    point) :=0.
+00912P 00E8 0C   D9      A NUMLOP INC    FLDWID   Increment the leading (before decimal
+00913                      *    point) digit count.
+00914P 00EA 5A                    DECB            More chars in the using string?
+00915P 00EB 27   49   0136        BEQ    ENDNUS   No, end of numeric field.
+00916P 00ED A6   80      A        LDA    ,X+      Yes, get the next char.
+00917P 00EF 81   2E      A        CMPA   #'.      Is it the decimal point?
+00918P 00F1 27   1E   0111        BEQ    AFTDOT   Yes, go scan the trailing digit specs.
+00919P 00F3 81   23      A        CMPA   #'#      No, is it another leading digit?
+00920P 00F5 27   F1   00E8        BEQ    NUMLOP   Yes, scan the next char.
+00921P 00F7 81   2C      A        CMPA   #COMMA   Do they want a comma every 3 digits?
+00922P 00F9 26   21   011C        BNE    FINNUM   No, no more leading digit specs.
+00923P 00FB 96   DA      A        LDA    PUMASK   Yes, set the comma flag.
+00924P 00FD 8A   40      A        ORA    #COMFLG
+00925P 00FF 97   DA      A        STA    PUMASK
+00926P 0101 20   E5   00E8        BRA    NUMLOP   Scan for more leading digits.
+
+PAGE  007  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00928P 0103 A6   84      A DOTNUM LDA    ,X       Is this dp (decimal point) the start
+00929P 0105 81   23      A        CMPA   #'#      of a numeric field?
+00930P 0107 1026 FF46 0051        LBNE   NEWUCH   No, go print the ".".
+00931P 010B 86   01      A        LDA    #&1      Yes, init count of trailing digits.
+00932P 010D 97   D8      A        STA    DPWID    The decimal point is included in this
+00933                      *    COUNT.
+00934P 010F 30   01      A        LEAX   &1,X     Point past the decimal point.
+00935P 0111 0C   D8      A AFTDOT INC    DPWID    Increment trailing digit count.
+00936P 0113 5A                    DECB            More chars in using string?
+00937P 0114 27   20   0136        BEQ    ENDNUS   No, it's the end of the numeric field.
+00938P 0116 A6   80      A        LDA    ,X+      Yes, do we have another digit spec?
+00939P 0118 81   23      A        CMPA   #'#
+00940P 011A 27   F5   0111        BEQ    AFTDOT   Yes, look for more.
+00941                      *    NO, NOW LOOK FOR SCIENTIFIC NOTATION
+00942                      *    SPEC.
+00943P 011C 81   5E      A FINNUM CMPA   #'^      ^^^ indicates scientific notation.
+00944P 011E 26   16   0136        BNE    ENDNUS
+00945P 0120 A1   84      A        CMPA   ,X
+00946P 0122 26   12   0136        BNE    ENDNUS
+00947P 0124 A1   01      A        CMPA   &1,X
+00948P 0126 26   0E   0136        BNE    ENDNUS
+00949P 0128 A1   02      A        CMPA   &2,X
+00950P 012A 26   0A   0136        BNE    ENDNUS
+00951P 012C C1   04      A        CMPB   #&4      Make sure the four chars just checked
+00952                      *    actually belong to the using string
+00953                      *    by ensuring that the using string
+00954                      *    contains enough characters.
+00955P 012E 25   06   0136        BCS    ENDNUS   It doesn't so we were looking at chars
+00956                      *    that don't belong to the using string.
+00957                      *    therefore we don't have scientific
+00958                      *    notation spec.
+00959P 0130 C0   04      A        SUBB   #&4      It does, so we do have scientific
+00960P 0132 30   04      A        LEAX   &4,X     notation.  Fix up the using string
+00961                      *    count and pointer.
+00962P 0134 0C   DA      A        INC    PUMASK   Set the scientific notation flag.
+00963                      *    (Bit 0 of PUMASK.)
+
+PAGE  008  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00965P 0136 30   1F      A ENDNUS LEAX   -&1,X    Back up using string pointer so
+00966                      *    we can check for trailing sign spec.
+00967P 0138 0C   D9      A        INC    FLDWID   Increment the leading digit count
+00968                      *    in case there was a leading sign spec.
+00969P 013A 96   DA      A        LDA    PUMASK   Was there a leading sign spec?
+00970P 013C 85   08      A        BITA   #PLSFLG
+00971P 013E 26   18   0158        BNE    ENDNUM   Yes, so there can't be a trailing sign.
+00972P 0140 0A   D9      A        DEC    FLDWID   No, adjust the field width back.
+00973P 0142 5D                    TSTB            At the end of the using string?
+00974P 0143 27   13   0158        BEQ    ENDNUM   Yes, so can't have trailing sign.
+00975P 0145 A6   84      A        LDA    ,X       No, check for trailing sign.
+00976P 0147 80   2D      A        SUBA   #'-      If there is one it is a "+" or "-".
+00977P 0149 27   06   0151        BEQ    SGNTRL   Have trailing minus.
+00978P 014B 81   FE      A        CMPA   #'+-'-
+00979P 014D 26   09   0158        BNE    ENDNUM   Don't have trailing sign.
+00980P 014F 86   08      A        LDA    #PLSFLG  Have trailing plus, set the plus flag.
+00981P 0151 8A   04      A SGNTRL ORA    #TRLFLG  Set the trailing sign flag.
+00982P 0153 9A   DA      A        ORA    PUMASK
+00983P 0155 97   DA      A        STA    PUMASK
+00984P 0157 5A                    DECB            Decrement length of using string for
+00985                      *  trailing sign.
+00986P 0158 9D   A5      A ENDNUM JSR    CHRGOT   Any more values?
+00987P 015A 1027 FF3C 009A        LBEQ   FLDFIN   No, print using check out time.
+00988P 015E D7   D3      A        STB    USSCNT   Yes, save using string char count.
+00989P 0160 BD   0000    A        JSR    FRMNUM   Evaluate a numeric formula.
+00990P 0163 96   D9      A        LDA    FLDWID   If the total field width is too big
+00991P 0165 9B   D8      A        ADDA   DPWID    then give a Function Call error.
+00992P 0167 81   11      A        CMPA   #&14+&3*ADDPRC
+00993P 0169 1022 FE93    A        LBHI   FCERR
+00994P 016D BD   01A7    P        JSR    PUFOUT   Convert the number into ASCII in
+00995                      *    FBUFFR.
+00996P 0170 30   1F      A        LEAX   -&1,X
+00997P 0172 BD   0000    A        JSR    STROUT   Actually print the number.
+
+PAGE  009  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
+
+00999P 0175 0F   D7      A FNSTRF CLR    USFLG    Assume end of statement terminated
+01000                      *    the value
+01001P 0177 9D   A5      A        JSR    CHRGOT   See what the terminator of the value
+01002                      *    was.
+01003P 0179 27   0D   0188        BEQ    CRDNUS   It was an EOS.
+01004P 017B 97   D7      A        STA    USFLG    Not EOS, set flag to say so.
+01005P 017D 81   3B      A        CMPA   #SEMCOL  The other valid terminators are semi-
+01006P 017F 27   05   0186        BEQ    SEMUSN   colon and comma.
+01007P 0181 BD   0000    A        JSR    CHKCOM
+01008P 0184 20   02   0188        BRA    CRDNUS
+01009
+01010P 0186 9D   9F      A SEMUSN JSR    CHRGET   skip the semicolon.
+01011P 0188 9E   D5      A CRDNUS LDX    USDPTR   Calculate a pointer into tne using
+01012P 018A E6   84      A        LDB    ,X       string using the descriptor pointer
+01013P 018C D0   D3      A        SUBB   USSCNT   and the character count.
+01014P 018E AE   02      A        LDX    &2,X
+01015P 0190 3A                    ABX
+01016P 0191 D6   D3      A        LDB    USSCNT   Set up B with the char count.
+01017P 0193 1026 FEE4 007B        LBNE   PRCCHR   Go look at the next using string char.
+01018P 0197 7E   0094    P        JMP    FINUSI   End of using string, go reuse it.
+01019
+01020                      *
+01021                      * Print a "+" if the plus flag is set since the "+" didn't start
+01022                      * a numeric field.
+01023                      *
+01024P 019A 34   02      A PLSPRT PSHS   A        Save the current char.
+01025P 019C 86   2B      A        LDA    #'+      Get ready.
+01026P 019E 0D   DA      A        TST    PUMASK   Plus flag set? (It is the only flag
+01027                      *    that could be set.)
+01028P 01A0 27   03   01A5        BEQ    NOPLUS   No, don't print "+".
+01029P 01A2 BD   0000    A        JSR    CHROUT   Yes, print the "+".
+01030P 01A5 35   82      A NOPLUS PULS   A,PC     Restore the current char.
+01031
+01032                             TTL    The PRINT USING Floating Point Output Routine.
+01033
+01034P 01A7 CE   0001    A PUFOUT LDU    #FBUFFR+&1 Init the buffer pointer.  Use
+01035                      *    FBUFFR+1 to leave room for a per
+01036                      *    cent sign if field overflow occurs.
+01037P 01AA C6   20      A        LDB    #SPACE   Assume the number is positive and
+01038                      *    that the plus flag is not set.
+01039P 01AC 96   DA      A        LDA    PUMASK   Is the plus flag set?
+01040P 01AE 85   08      A        BITA   #PLSFLG
+01041P 01B0 27   02   01B4        BEQ    NPLUS    No.
+01042P 01B2 C6   2B      A        LDB    #'+      Yes, change the space to a plus sign.
+01043P 01B4 0D   54      A NPLUS  TST    FACSGN   Is the number negative?
+01044P 01B6 2A   04   01BC        BPL    NMINUS   No.
+01045P 01B8 0F   54      A        CLR    FACSGN   Yes, make it look positive for QINT
+01046P 01BA C6   2D      A        LDB    #'-      and use a minus sign.
+01047P 01BC E7   C0      A NMINUS STB    ,U+      Put in the sign.
+01048P 01BE C6   30      A        LDB    #'0      Put in a leading zero to guarantee
+01049P 01C0 E7   C0      A        STB    ,U+      a place for a floating dollar sign.
+01050P 01C2 84   01      A        ANDA   #SCIFLG  Scientific notation specified?
+01051P 01C4 1026 0107 02CF        LBNE   SCINOT   Yes.
+01052P 01C8 8E   0000    A        LDX    #N.MIL   No, is the number too big to be
+01053P 01CB BD   0000    A        JSR    FOUTCP   printed in fixed point format?
+01054                      *    (Comparing to one million (10^6)
+01055                      *    for ADDPRC=0, one billion (10^9)
+01056                      *    for ADDPRC=1.)
+
+PAGE  010  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01057P 01CE 2B   15   01E5        BMI    FIXNOT   No, it can be printed.
+01058P 01D0 BD   0000    A        JSR    FOUT     Yes, print it in free format.
+01059P 01D3 A6   80      A FENDNM LDA    ,X+      Find the end of the number.
+01060P 01D5 26   FC   01D3        BNE    FENDNM
+01061P 01D7 A6   82      A UPNUM  LDA    ,-X      Move the number up a byte to make
+01062P 01D9 A7   01      A        STA    &1,X     room for the per cent sign.  This
+01063P 01DB 8C   0000    A        CMPX   #FBUFFR  must be done because FOUT puts the
+01064P 01DF 26   F7   01D7        BNE    UPNUM    number in starting at FBUFFR.
+01065P 01E0 86   25      A        LDA    #'%      Put in the per cent sign to indicate
+01066P 01E2 A7   84      A        STA    ,X       field overflow and return.
+01067P 01E4 39                    RTS
+
+PAGE  011  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01069                      *
+01070                      * Here to print a number in fixed point notation.
+01071                      *
+01072
+01073P 01E5 96   4F      A FIXNOT LDA    FACEXP   Is the number zero?
+01074P 01E7 97   47      A        STA    TENEXP   (Set decimal exponent to 0 if so.)
+01075P 01E9 27   03   01EE        BEQ    FFXV03   Yes, don't try to normalize.
+01076P 01EB BD   038F    P        JSR    FOUTN    No, normalize it so all the digits
+01077                      *    to be printed are in the integer part.
+01078P 01EE 96   47      A FFXV03 LDA    TENEXP   Are there fractional digits?
+01079P 01F0 102B 0081 0275        LBMI   FFXV04   Yes because the decimal exponent is
+01080                      *    Negative.
+01081
+01082                      *
+01083                      * Print number with no fractional digits.
+01084                      *
+01085P 01F4 40                    NEGA            Leading zeroes must be printed if the
+01086P 01F5 9B   D9      A        ADDA   FLDWID   field has more chars than there are
+01087P 01F7 80   09      A        SUBA   #&6+&3*ADDPRC digits in the number.  Calculate
+01088P 01F9 BD   02AC    P        JSR    FOTZER   the number of zeroes to print by
+01089                      *    effectively taking
+01090                      *    FLDWID-TENEXP-# of digits.
+01091P 01FC BD   0425    P        JSR    FOUTCD   Set up decimal point and comma counts.
+01092P 01FF BD   03C4    P        JSR    CNVASC   Convert to ASCII digits.
+01093P 0202 96   47      A        LDA    TENEXP   Put in some zeroes if the decimal
+01094P 0204 BD   0443    P        JSR    FOTZEC   exponent is non-zero.  Commas may
+01095                      *    be needed also.
+01096P 0207 96   47      A        LDA    TENEXP   Make sure a decimal point is printed
+01097P 0209 BD   040B    P        JSR    FOUTED   for FOUTTS.
+01098                      *    Fall into FOUTTD to finish up.
+
+PAGE  012  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01100                      *
+01101                      * See if the decimal point should be retained.
+01102                      *
+01103
+01104P 020C 96   D8      A FOUTTD LDA    DPWID    Is a decimal point needed?
+01105P 020E 26   02   0212        BNE    KEEPDP   Yes, keep the decimal point.
+01106P 0210 33   5F      A        LEAU   -&1,U    No, back up to get rid of it.
+01107P 0212 4A             KEEPDP DECA            Print zeroes to fill the field to
+01108P 0213 BD   02AC    P        JSR    FOTZER   right of the decimal point.
+01109P 0216 BD   0347    P FOUTTS JSR    FOUTZS   Suppress leading zeroes.
+01110P 0219 4D                    TSTA            Is there a trailing sign?
+01111P 021A 27   06   0222        BEQ    NOTRL    No.
+01112P 021C C1   2A      A        CMPB   #'*      Yes, is the sign char an asterisk?
+01113                      *    (This case occurs when a positive
+01114                      *    number is printed with asterisk fill
+01115                      *    and trailing minus sign specified.)
+01116P 021E 27   02   0222        BEQ    NOTRL    Yes, don't put in trailing sign.
+01117P 0220 E7   C0      A        STB    ,U+      Put in the trailing sign.
+01118P 0222 6F   C4      A NOTRL  CLR    ,U       Mark the end of the number.
+01119
+01120                      *
+01121                      * Check the field size.
+01122                      *
+01123
+01124P 0224 8E   0000    A        LDX    #FBUFFR  Init the buffer pointer.
+01125P 0227 30   01      A FOUBE1 LEAX   &1,X     Is the right amount of space being
+01126P 0229 9F   0F      A        STX    TEMPX1   used?
+01127P 022B 96   3A      A        LDA    FDECPT+&1
+01128P 022D 90   10      A        SUBA   TEMPX1+&1
+01129P 022F 90   D9      A        SUBA   FLDWID
+01130P 0231 27   38   026B        BEQ    PUFRTS   Yes, PUFOUT is finished.
+01131P 0233 A6   84      A        LDA    ,X       No, see if we can shorten the field.
+01132P 0235 81   20      A        CMPA   #SPACE   We can throw away leadinf spaces or
+01133P 0237 27   EE   0227        BEQ    FOUBE1   asterisks.
+01134P 0239 81   2A      A        CMPA   #"*
+01135P 023B 27   EA   0227        BEQ    FOUBE1
+01136                      *
+01137                      * We can also shorten the field by throwing away a zero if it is
+01138                      * followed by a decimal point and another digit.
+01139                      *Look for -  "+" or "-" [optional]
+01140                      *  "$"  [optional]
+01141                      *  "0"  [mandatory]
+01142                      *  "."  [mandatory]
+01143                      *  "0" THRU "9" [mandatory]
+01144                      *
+01145P 023D 4F                    CLRA            Used to flag the bottom of the stacked
+01146                      *    characters.
+01147P 023E 34   02      A FOUBE2 PSHS   A        Push the char.
+01148P 0240 A6   80      A        LDA    ,X+      Get the next one.
+01149P 0242 81   2D      A        CMPA   #'-      Stack it if it is "+", "-", or "$".
+01150P 0244 27   F8   023E        BEQ    FOUBE2
+01151P 0246 81   2B      A        CMPA   #'+
+01152P 0248 27   F4   023E        BEQ    FOUBE2
+01153P 024A 81   24      A        CMPA   #FLTMON
+01154P 024C 27   F0   023E        BEQ    FOUBE2
+01155P 024E 81   30      A        CMPA   #'0      Is there a leading zero?
+01156P 0250 26   0E   0260        BNE    FOUBE4   No, the number exceeds the field.
+01157P 0252 A6   01      A        LDA    &1,X     Yes, now see if a digit follows the
+
+PAGE  013  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01158P 0254 8D   16   026C        BSR    ISDIGC   decimal point.  We needn't check for
+01159                      *    the decimal point itself since FOUTZS
+01160                      *    would have removed the zero we just
+01161                      *    saw if it wasn't followed by a decimal
+01162                      *    point.
+01163P 0256 25   08   0260        BCS    FOUBE4   Not a digit, we have field overflow.
+01164P 0258 35   02      A FOUBE3 PULS   A        Unstack the chars we saved and put
+01165P 025A A7   82      A        STA    ,-X      them back into the buffer one place
+01166P 025C 26   FA   0258        BNE    FOUBE3   beyond where they originally were.
+01167P 025E 20   C7   0227        BRA    FOUBE1   See if that makes the number fit.
+01168
+01169P 0260 35   02      A FOUBE4 PULS   A        We have field overflow, pop off the
+01170P 0262 4D                    TSTA            Garbage.
+01171P 0263 26   FB   0260        BNE    FOUBE4
+01172P 0265 9E   0F      A        LDX    TEMPX1   Put a "%" in to indicate field
+01173P 0267 86   25      A        LDA    #'%      overlfow.
+01174P 0269 A7   82      A        STA    ,-X
+01175P 026B 39             PUFRTS RTS
+01176
+01177                      *
+01178                      * Set carry if char in A  is not a digit.
+01179                      *
+01180
+01181                             XDEF   ISDIGC
+01182P 026C 81   30      A ISDIGC CMPA   #'0      Is it a digit?
+01183P 026E 25   04   0274        BCS    ISDRTS   No.
+01184P 0270 80   3A      A        SUBA   #'9+&1   Maybe.
+01185P 0272 80   C6      A        SUBA   #-'9-&1  Restore cnar and clear carry if digit.
+01186P 0274 39             ISDRTS RTS
+
+PAGE  014  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01188                      *
+01189                      * Print number with fractional digits in fixed point format.
+01190                      *
+01191
+01192P 0275 96   D8      A FFXV04 LDA    DPWID    If there are any decimal places
+01193P 0277 27   01   027A        BEQ    FFXV05   specified subtract one for the dp.
+01194P 0279 4A                    DECA
+01195P 027A 9B   47      A FFXV05 ADDA   TENEXP   How many digits to divide out.
+01196P 027C 2B   01   027F        BMI    FFXV06
+01197P 027E 4F                    CLRA            If no division then zero the count.
+01198P 027F 34   02      A FFXV06 PSHS   A        Save division count.
+01199P 0281 2A   0A   028D FFXV07 BPL    FFXV08   Done dividing.
+01200P 0283 34   02      A        PSHS   A        Divide out another digit.
+01201P 0285 BD   0000    A        JSR    DIV10
+01202P 0288 35   02      A        PULS   A
+01203P 028A 4C                    INCA
+01204P 028B 20   F4   0281        BRA    FFXV07
+01205
+01206P 028D 96   47      A FFXV08 LDA    TENEXP   Calculate the number of fractional
+01207P 028F A0   E0      A        SUBA   ,S+      digits in the FAC (negative) by
+01208P 0291 97   47      A        STA    TENEXP   subtracting the division count from
+01209                      *    the decimal exponent.
+01210P 0293 8B   09      A        ADDA   #&6+&3*ADDPRC A:=number of integer digits.
+01211P 0295 2B   19   02B0        BMI    FFXV09   There are no integer digits.
+01212P 0297 96   D9      A        LDA    FLDWID   Print leading zeroes.
+01213P 0299 80   09      A        SUBA   #&6+&3*ADDPRC
+01214P 029B 90   47      A        SUBA   TENEXP
+01215P 029D 8D   0D   02AC        BSR    FOTZER
+01216P 029F BD   0425    P        JSR    FOUTCD   Set up decimal point and comma counts.
+01217P 02A2 20   1D   02C1        BRA    FFXV10   Go print the number.
+01218
+01219P 02A4 34   02      A FOTZRL PSHS   A        Save the zero count and put in a
+01220P 02A6 86   30      A        LDA    #'0      zero.
+01221P 02A8 A7   C0      A        STA    ,U+
+01222P 02AA 35   02      A        PULS   A
+01223P 02AC 4A             FOTZER DECA            Any zeroes to print?
+01224P 02AD 2A   F5   02A4        BPL    FOTZRL   Yes, go print one.
+01225P 02AF 39                    RTS
+01226
+01227P 02B0 96   D9      A FFXV09 LDA    FLDWID   Fill the leading digits with zeroes.
+01228P 02B2 8D   F8   02AC        BSR    FOTZER
+01229P 02B4 BD   040F    P        JSR    FOUTDP   put in the decimal point.
+01230P 02B7 86   F7      A        LDA    #-(&6+&3*ADDPRC) A:=number of zeroes before the actual
+01231P 02B9 90   47      A        SUBA   TENEXP   number.
+01232P 02BB 8D   EF   02AC        BSR    FOTZER   Put in the zeroes.
+01233P 02BD 0F   45      A        CLR    DECCNT   Decimal count:=comma count:=0.
+01234P 02BF 0F   D7      A        CLR    COMCNT
+01235P 02C1 BD   03C4    P FFXV10 JSR    CNVASC   Convert the FAC.
+01236P 02C4 96   D8      A        LDA    DPWID    Any fractional digits?
+01237P 02C6 26   02   02CA        BNE    FFXV11   Yes.
+01238P 02C8 DE   39      A        LDU    FDECPT   No, end of number is at the dp.
+01239P 02CA 9B   47      A FFXV11 ADDA   TENEXP   Fill out the trailing digits.
+01240P 02CC 16   FF43 0212        LBRA   KEEPDP
+
+PAGE  015  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01242                      *
+01243                      * Print number in scientific notation.
+01244                      *
+01245
+01246P 02CF 96   4F      A SCINOT LDA    FACEXP   See if the FAC is zero.
+01247P 02D1 34   02      A        PSHS   A        Save an indicator.
+01248P 02D3 27   03   02D8        BEQ    FFXFL2   It is zero, don't atempt to normalize.
+01249P 02D5 BD   038F    P        JSR    FOUTN    Get all significant digits into the
+01250                      *    integer part of the FAC.
+01251P 02D8 96   D8      A FFXFL2 LDA    DPWID    A:=number of fractional digits.
+01252P 02DA 27   01   02DD        BEQ    FFXFL3   (Have to subtract one for the decimal
+01253P 02DC 4A                    DECA            point if there are fractional digits.)
+01254P 02DD 9B   D9      A FFXFL3 ADDA   FLDWID   A:=total number of digits specified.
+01255
+01256                      *
+01257                      * We must account for a leading sign by subtracting one from the
+01258                      * total digit count.  We will need to account for the position
+01259                      * of the sign in later calculations as well so we set FBUFFR
+01260                      * to -1 for a leading sign and 0 for a trailing sign.  It is OK
+01261                      * to use FBUFFR as a temporary since it is only used to hold
+01262                      * a percent sign if field overflow occurs and we will be done
+01263                      * with it before that can happen.
+01264                      *
+01265
+01266P 02DF 7F   0000    A        CLR    FBUFFR   FBUFFR:=0 for trailing sign, -1
+01267P 02E2 D6   DA      A        LDB    PUMASK   for leading sign.
+01268P 02E4 C4   04      A        ANDB   #TRLFLG
+01269P 02E6 26   03   02EB        BNE    FFXFL4
+01270P 02E8 73   0000    A        COM    FBUFFR
+01271P 02EB BB   0000    A FFXFL4 ADDA   FBUFFR   Adjust the total digit count.
+01272P 02EE 80   09      A        SUBA   #&6+&3*ADDPRC Subtract sig digits from total digits.
+01273P 02F0 34   02      A        PSHS   A        Save the result.  If it is positive
+01274                      *    it is the number of trailing zeroes
+01275                      *    we must supply after FOUTCV returns.
+01276                      *    If it is negative we have more sig
+01277                      *    digits than places to print them in
+01278                      *    so we divide out some sig digits.
+01279P 02F2 2A   0A   02FE FFXFL5 BPL    FFXFL6   Done dividing if positive.
+01280P 02F4 34   02      A        PSHS   A        Save the count and get rid of a sig
+01281P 02F6 BD   0000    A        JSR    DIV10    digit.
+01282P 02F9 35   02      A        PULS   A
+01283P 02FB 4C                    INCA
+01284P 02FC 20   F4   02F2        BRA    FFXFL5   See if more need to be destroyed.
+01285P 02FE A6   E4      A FFXFL6 LDA    ,S       Get division count.
+01286P 0300 2B   01   0303        BMI    FFXFL7   If division wasn't done then zero
+01287P 0302 4F                    CLRA            this count.
+01288P 0303 40             FFXFL7 NEGA            Calculate the decimal point count.
+01289P 0304 9B   D9      A        ADDA   FLDWID   The formula is (# of leading digits
+01290P 0306 4C                    INCA            specified) + (digits divided out)
+01291P 0307 BB   0000    A        ADDA   FBUFFR   + (1 if trailing sign).
+01292P 030A 97   45      A        STA    DECCNT
+01293P 030C 0F   D7      A        CLR    COMCNT   No commas allowed.
+01294P 030E BD   03C4    P        JSR    CNVASC   Convert to ASCII digits.
+01295P 0311 35   02      A        PULS   A        Get trailing zero count.
+01296P 0313 BD   0443    P        JSR    FOTZEC   Decimal point could come out in these
+01297                      *    zeroes.
+01298P 0316 96   D8      A        LDA    DPWID    If there were no decimal places
+01299P 0318 26   02   031C        BNE    FFXFL8   specified the the decimal point just
+
+PAGE  016  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01300P 031A 33   5F      A        LEAU   -&1,U    went in and we throw it out by backing
+01301                      *    up the pointer.
+01302P 031C E6   E0      A FFXFL8 LDB    ,S+      Was the FAC zero to start with?
+01303P 031E 27   09   0329        BEQ    FOTEXP   Yes, so the exponent to print is zero.
+01304P 0320 D6   47      A        LDB    TENEXP   No, scale the exponent.
+01305P 0322 CB   09      A        ADDB   #&6+&3*ADDPRC Add the sig digit count.
+01306P 0324 D0   D9      A        SUBB   FLDWID   Subtract the leading digit count.
+01307P 0326 F0   0000    A        SUBB   FBUFFR   Add one back if leading sign.
+01308
+01309                      *
+01310                      * Put in the exponent.
+01311                      *
+01312
+01313P 0329 86   2B      A FOTEXP LDA    #'+      Assume it is positive.
+01314P 032B 5D                    TSTB            Is the exponent positive?
+01315P 032C 2A   03   0331        BPL    FEXPLS   Yes.
+01316P 032E 86   2D      A        LDA    #'-      No, it's negative so use a minus sign,
+01317P 0330 50                    NEGB            and negate the exponent.
+01318P 0331 A7   41      A FEXPLS STA    &1,U     Store the sign of the exponent.
+01319P 0333 86   45      A        LDA    #'E      Put in the "E" and point past the
+01320P 0335 A7   C1      A        STA    ,U++     "E" and the sign.
+01321P 0337 86   2F      A        LDA    #'0-&1   Convert exponent to two ASCII digits.
+01322P 0339 4C             FEXPHI INCA            Increment high order digit.
+01323P 033A C0   0A      A        SUBS   #&10     Sub 10 until result does negative.
+01324P 033C 24   FB   0339        BCC    FEXPHI
+01325P 033E CB   3A      A        ADDB   #'0+&10  B:=the low order digit.
+01326P 0340 ED   C1      A        STD    ,U++     Store the exponent.
+01327P 0342 6F   C4      A        CLR    ,U       Put in a terminator.
+01328P 0344 7E   0216    P        JMP    FOUTTS   Go finish up.
+
+PAGE  017  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01330
+01331                      *
+01332                      * Suppress leading zeroes and do asterisk fill if indicated.
+01333                      *
+01334
+01335P 0347 8E   0001    A FOUTZS LDX    #FBUFFR+&1 X:=pointer to start of number.
+01336P 034A E6   84      A        LDB    ,X       B:=sign of number.
+01337P 034C 34   04      A        PSHS   B        Save it.
+01338P 034E 86   20      A        LDA    #SPACE   Default fill char is space.
+01339P 0350 D6   DA      A        LDB    PUMASK   Is asterisk fill specified?
+01340P 0352 C5   20      A        BITB   #ASTFLG
+01341P 0354 35   04      A        PULS   B        (B:=sign char.)
+01342P 0356 27   08   0360        BEQ    FOTZS1   No asterisk fill, use space.
+01343P 0358 86   2A      A        LDA    #'*      Fill char:=asterisk.
+01344P 035A C1   20      A        CMPB   #SPACE   If the sign is a space then it must
+01345P 035C 26   02   0360        BNE    FOTZS1   be changed to an asterisk.
+01346P 035E 1F   89      A        TFR    A,B
+01347P 0360 34   04      A FOTZS1 PSHS   B        Save the sign char.
+01348P 0362 A7   80      A FOTZS2 STA    ,X+      Store the fill char.
+01349P 0364 E6   84      A        LDB    ,X       B:=next char.
+01350P 0366 27   10   0378        BEQ    FOTZS3   A zero marks the end of the number.
+01351P 0368 C1   45      A        CMPB   #'E      An "E" indicates the start of
+01352P 036A 27   0C   0378        BEQ    FOTZS3   the exponent of a number in scientific
+01353                      *    Back up and insert a zero for the
+01354                      *    mantissa.
+01355P 036C C1   30      A        CMPB   #'0      Is it a leading zero?
+01356P 036E 27   F2   0362        BEQ    FOTZS2   Yes, suppress it.
+01357P 0370 C1   2C      A        CMPB   #COMMA   Also supress commas.
+01358P 0372 27   EE   0362        BEQ    FOTZS2
+01359P 0374 C1   2E      A        CMPB   #'.      No, is it the decimal point?
+01360P 0376 26   04   037C        BNE    FOTZS4   No, but all zeroes have been sup-
+01361                      *    pressed.
+01362                      *    Yes, back up and insert a zero before
+01363                      *    the decimal point.
+01364P 0378 86   30      A FOTZS3 LDA    #'0      Insert a zero before the current char.
+01365P 037A A7   82      A        STA    ,-X
+01366P 037C 96   DA      A FOTZS4 LDA    PUMASK   Is the floating dollar sign set?
+01367P 037E 85   10      A        BITA   #DOLFLG
+01368P 0380 27   04   0386        BEQ    FOTZS5   No.
+01369P 0382 C6   24      A        LDB    #FLTMON  Yes, back up and insert a dollar sign.
+01370P 0384 E7   82      A        STB    ,-X
+01371P 0386 84   04      A FOTZS5 ANDA   #TRLFLG  Trailing sign specified?
+01372P 0388 35   04      A        PULS   B        (B:=original sign char.)
+01373P 038A 26   02   038E        BNE    FOTZSR   Yes, return with A non zero.
+01374P 038C E7   82      A        STB    ,-X      No, put the leading sign back in.
+01375P 038E 39             FOTZSR RTS
+01376
+
+PAGE  018  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01378                      *
+01379                      * Normalize the FAC so all significant digits are in the
+01380                      * integer part.
+01381                      *
+01382
+01383P 038F 34   40      A FOUTN  PSHS   U        Save the buffer pointer.  (It could
+01384                      *    be destroyed by calls to FMULT and
+01385                      *    MUL10 if they are ever optimized for
+01386                      *    6809.)
+01387P 0391 4F                    CLRA            Initialize decimal exponent to 0.
+01388P 0392 97   47      A FOUTN1 STA    TENEXP   Update the decimal exponent.
+01389P 0394 D6   4F      A        LDB    FACEXP   Is the FAC less than 1?
+01390P 0396 C1   80      A        CMPB   #@200
+01391P 0398 22   11   03AB        BHI    FOUTN3   No.
+01392P 039A 8E   0000    A        LDX    #N.MIL   Yes, multiply by a large number.
+01393P 039D BD   0000    A        JSR    FMULT    (One million for ADDPRC=0, one
+01394                      *    billion for ADDPRC=1.)
+01395P 03A0 96   47      A        LDA    TENEXP   Adjust the decimal exponent.
+01396P 03A2 80   09      A        SUBA   #&6+&3*ADDPRC
+01397P 03A4 20   EC   0392        BRA    FOUTN1   Go back and see if still less than 1.
+01398
+01399P 03A6 BD   0000    A FOUTN2 JSR    DIV10    Divide by 10 and increment the decimal
+01400P 03A9 0C   47      A        INC    TENEXP   exponent.
+01401P 03AB 8E   0000    A FOUTN3 LDX    #N.9999  Is the FAC too big?
+01402P 03AE BD   0000    A        JSR    FOUTCP
+01403P 03B1 2E   F3   03A6        BGT    FOUTN2   Yes, make it smaller.
+01404
+01405P 03B3 8E   0000    A FOUTN4 LDX    #N.0999  Is the FAC too small?
+01406P 03B6 BD   0000    A        JSR    FOUTCP
+01407P 03B9 2E   07   03C2        BGT    FOUTN5   No, it is normalized.
+01408P 03BB BD   0000    A        JSR    MUL10    Yes, multiply by ten and decrement
+01409P 03BE 0A   47      A        DEC    TENEXP   the decimal exponent.
+01410P 03C0 20   F1   03B3        BRA    FOUTN4   Go see if still too small.
+01411
+01412P 03C2 35   C0      A FOUTN5 PULS   U,PC     Restore the buffer pointer and return.
+01413
+
+PAGE  019  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01415                      *
+01416                      * Convert the number in the FAC to ASCII digits in the buffer pointed
+01417                      * to by U.
+01418                      *
+01419
+01420P 03C4 34   40      A CNVASC PSHS   U        Save the buffer pointer.
+01421P 03C6 BD   0000    A        JSR    FADDH    Round the number by adding one half.
+01422P 03C9 BD   0000    A        JSR    QINT     Get the greatest integer.
+01423P 03CC 35   40      A        PULS   U        Retrieve the buffer pointer.
+01424P 03CE 8E   0000    A        LDX    #FOUTBL  Point to the powers of ten table.
+01425P 03D1 C6   80      A        LDB    #@200    Set MS8 of B to indicate power of
+01426                      *    ten is being subtracted first time
+01427                      *    through the loop.  Also, clear the
+01428                      *    digit.
+01429P 03D3 8D   36   040B CNVA10 BSR    FOUTED   Insert decimal point or comma if time.
+01430P 03D5 96   53      A CNVA20 LDA    FACLO    Add table entry to add or subtract
+01431P 03D7 AB   03      A        ADDA   &2+ADDPRC,X the current power of ten.
+01432P 03D9 97   53      A        STA    FACLO
+01433P 03DB 96   52      A        LDA    FACMO
+01434P 03DD A9   02      A        ADCA   &1+ADDPRC,X
+01435P 03DF 97   52      A        STA    FACMO
+01436            0001    A        IFNE   ADDPRC
+01437P 03E1 96   51      A        LDA    FACMOH
+01438P 03E3 A9   01      A        ADCA   &1,X
+01439P 03E5 97   51      A        STA    FACMOH
+01440                             ENDC   IFN      ADDPRC
+01441P 03E7 96   50      A        LDA    FACHO
+01442P 03E9 A9   84      A        ADCA   ,X
+01443P 03EB 97   50      A        STA    FACHO
+01444P 03ED 5C                    INCB            Increment the digit.
+01445P 03EE 56                    RORB            Did the sign of the FAC change?
+01446P 03EF 59                    ROLB
+01447P 03F0 28   E3   03D5        BVC    CNVA20   No, continue with this power of ten.
+01448P 03F2 24   03   03F7        BCC    CNVA30   Yes, use digit as is since power of
+01449                      *    ten was being subtracted.
+01450P 03F4 C0   0B      A        SUBB   #&10+&1  Power of ten was being added to
+01451P 03F6 50                    NEGB            a negative number in the FAC so
+01452                      *    the digit must be adjusted by
+01453                      *    subtracting ten and negating the
+01454                      *    result.  (Subtract eleven instead
+01455                      *    of ten to account for "0"-1 at
+01456                      *    CNVA30.)
+01457P 03F7 CB   2F      A CNVA30 ADDB   #'0-&1   Get the ASCII digit.  (Minus one is
+01458                      *    because digit was incremented one
+01459                      *    too many times in the loop.
+01460P 03F9 30   04      A        LEAX   &3+ADDPRC,X Point to the next power of ten in
+01461                      *    the table.
+01462P 03FB 1F   98      A        TFR    B,A      Get rid of the MSB and store the
+01463P 03FD 84   7F      A        ANDA   #@177    digit in the buffer.
+01464P 03FF A7   C0      A        STA    ,U+
+01465P 0401 53                    COMB            Complement the MSB of B and clear
+01466P 0402 C4   80      A        ANDB   #@200    the digit.
+01467P 0404 8C   0000    A        CMPX   #FDCEND  Done all powers of ten?
+01468P 0407 26   CA   03D3        BNE    CNVA10   No, go do the next digit.
+01469P 0409 6F   C4      A        CLR    ,U       Yes, mark the end of the number
+01470                      *    and fall into FOUTED to see if the
+01471                      *    DP follows the last digit.
+
+PAGE  020  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01473                      *
+01474                      * Insert comma or decimal point.
+01475                      *
+01476
+01477P 040B 0A   45      A FOUTED DEC    DECCNT   Time for the decimal point?
+01478P 040D 26   09   0418        BNE    FOUED1   No, check for comma.
+01479P 040F DF   39      A FOUTDP STU    FDECPT   Yes, save a pointer to the decimal
+01480P 0411 86   2E      A        LDA    #'.      point and put it in
+01481P 0413 A7   C0      A        STA    ,U+
+01482P 0415 0F   D7      A        CLR    COMCNT   Inhibit the printing of commas to the
+01483P 0417 39                    RTS             right of the decimal point.
+01484
+01485P 0418 0A   D7      A FOUED1 DEC    COMCNT   Time for a comma?
+01486P 041A 26   08   0424        BNE    FOUEDR   No, just return.
+01487P 041C 86   03      A        LDA    #&3      Yes, reset the comma count.
+01488P 041E 97   D7      A        STA    COMCNT
+01489P 0420 86   2C      A        LDA    #COMMA   Put in the comma and return.
+01490P 0422 A7   C0      A        STA    ,U+
+01491P 0424 39             FOUEDR RTS
+01492
+
+PAGE  021  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01494                      *
+01495                      * Set up decimal point and comma counts.
+01496                      *
+01497
+01498P 0425 96   47      A FOUTCD LDA    TENEXP   Decimal point count:=decimal exponent+
+01499P 0427 8B   0A      A        ADDA   #&7+&3*ADDPRC #of digits+1.
+01500P 0429 97   45      A        STA    DECCNT
+01501P 042B 4C                    INCA            Comma count:=(decimal point count +1
+01502P 042C 80   03      A FOUCD1 SUBA   #&3      MOD 2)+3.
+01503P 042E 24   FC   042C        BCC    FOUCD1
+01504P 0430 8B   05      A        ADDA   #&5
+01505P 0432 97   D7      A FOUTCC STA    COMCNT   Store possible comma count.
+01506P 0434 96   DA      A FOUICC LDA    PUMASK   Are we using commas?
+01507P 0436 84   40      A        ANDA   #COMFLG
+01508P 0438 26   02   043C        BNE    FOUCRT   Yes, leave the count as is.
+01509P 043A 97   D7      A        STA    COMCNT   No, zero the count.
+01510P 043C 39             FOUCRT RTS
+01511
+
+PAGE  022  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01513                      *
+01514                      * Put in zeroes.
+01515                      *
+01516
+01517P 043D 34   02      A FOTZCL PSHS   A        Save count of zeroes.
+01518P 043F 8D   CA   040B        BSR    FOUTED   See if comma is required.
+01519P 0441 35   02      A        PULS   A
+01520P 0443 4A             FOTZEC DECA            More zeroes to print?
+01521P 0444 2B   0A   0450        BMI    FOUZCR   No.
+01522P 0446 34   02      A        PSHS   A        Yes, print one.
+01523P 0448 86   30      A        LDA    #'0
+01524P 044A A7   C0      A        STA    ,U+
+01525P 044C A6   E0      A        LDA    ,S+      Any more?
+01526P 044E 26   ED   043D        BNE    FOTZCL   Yes, see if comma needed.
+01527P 0450 39             FOUZCR RTS
+01528
+01529                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000

@@ -1,121 +1,59 @@
-                           e•
+PAGE  019  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 
-
-
-
-
-                                         PAGE 019 ECBPU                         .SA:1 TXRPU The PRINT USING Floating Point Output Routine
-
-
-
-
-                                         01415                                                 *
-
-                                         01416                                                 *   Convert the number in the FAC to ASCII digits in the buffer pointed
-
-                                         01417                                                 *   to by U.
-
-                                         01418                                                 *
-
-                                         01419
-                           •             01420P 03C4 34 40                                  A CNVASC PSHS U                                   Save the buffer pointer.
-
-                                         01421P 03C6 BD                    0000             A                 JSR           FADDH             Round the number by adding one half. 
-
-                                         01422P 03C9 BD 0000                                A                 JSR           CUNT              Get the greatest integer.
-
-                                         01423P 03CC 35 40                                  A                 PULS U                          Retrieve the buffer pointer.
-
-                                         01424P 03CE BE 0000                                A                 LDX           #FOUTBL Point to the powers of ten table.
-
-                                         01425P 03D1 C6                    80               A                 LDB           #@200             Set MS8 of B to indicate power of
-
-                                         01426                                                 •          ten is being subtracted first time
-
-                                         01427                                                 •          through the loop. Also, clear the
-
-                                         01428                                                 •          digit.
-                           •                                                                                                                                                                                                                                                                                          •
-                                         01429P 03D3 8D 36                           040B CNVA10 BSR                        FOUTED            Insert decimal point or comma if time.
-
-                                         01430P 03D5 96 53                                  A CNVA20 LDA                    FACLO             Add table entry to add or subtract
-
-                                         01431P 03D7 AB 03                                  A                 ADDA          &24.ADDPRC,X the current power of ten.
-                           •
-                                         01432P 03D9 97                                     A                 STA           FACLO
-
-                                         01433P 03DB 96                                     A                 LDA           FACMO
-
-                                         01434P 03DD A9 02                                  A                 ADCA          &1+ADDPRC,X
-                           •
-                                         01435P 03DF 97 52                                  A                 STA           FACMO
-
-                                         01436                             0001             A                 IFNE          ADDPRC
-
-                                         01437P 03E1 96                    51               A                 LDA           FACMOH
-                           410           01438P 03E3 A9 01                                  A                 ADCA          &1,X                                                                                                                                                                                      •
-
-                                         01439P 03E5 97 51                                  A                 STA           FACMOH
-
-                                         01440                                                                ENDC          IFN               ADDPRC
-
-                                         01441P 03E7 96                    50               A                 LDA           FACHO
-
-                                         01442P 03E9 A9                    84               A                 ADCA          ,X
-
-                                         01443P 03EB 97 50                                  A                 STA           FACHO
-                                         01444P 03ED 5C                                                       INC8                            Increment the digit.                                                                                                                                                    •
-
-                                         01445P 03EE 56                                                       RORB                            Did the sign of the FAO change?
-
-                                         01446P 03EF 59                                                       ROLB
-
-                           40            01447P 03F0 28 E3                           03D5                     BVC           CNVA20            No, continue with this power of ten.
-
-                                         01448P 03F2 24 03                           03F7                     BCC           CNVA30            Yes, use digit as is since power of
-
-                                         01449                                                 •          ten was being subtracted.
-
-                                         01450P 03F4 CO 08                                  A                 BUBB          #&10+&1 Power of ten was being added to
-
-                                         01451P 03F6 50                                                       NEGB                            a negative number in the FAC so
-
-                                         01452                                                 •          the digit must be adjusted by
-                           10            01453                                                 •          subtracting ten and negating the
-
-                                         01454                                                 •          result.           (Subtract eleven instead
-
-                                         01455                                                 •          of ten to account for "0"-1 at
-  I I IL H                               01456                                                            CNVA30.)                                                                                                                                                                                                    •
-                                         01457P 03F7 CB 2F                                  A CNVA30 ADDB                   #'0-&1            Get the ASCII digit.                         (Minus one is
-
-                                         01458                                                 *          because digit was incremented one
-"Progression" -                          01459                                                 *          too many times in the loop.                                                                                                                                                                                 •
-movement. The I 
-                                         01460P 03F9 30                    04                                 LEAX          8,3+ADDPRC,X Point to the next Dower of ten in
-family of power 
-lifetime spent in t        •             01461                                                 *          the table.
-components that                          01462P 03F8 IF                    98               Pt                TFR           B,A               Get rid of the MSB and store the
-always respect t                         01463P 03FD 84 7F                                  A                 ANDA          #@177             digit in the buffer.
-(;oitvey realism ft-4                    01464P 03FF A7 CO                                                    STA           ,U+
-
-  i() most thunde                        01465P 0401 53                                                       COMB                            Complement the MSB of B and clear
-
-; ( riot allowed t.                      01466P 0402 C4                    BO               A                 ANDB          #@200             the digit.
-
-                                         01467P 0404 BC                    0000             A                 CMPX          #FDCEND Done all powers of ten?
-
-                                         01468P 0407 26                    CA        031)3                    BNE           CNVA10            No, go do the next digit.
-
-                                         01469P 0409 6F                    C4               A                 CLR           ,U                Yes, mark the end of the number
-
-                                         01470                                                            and fail into FOUTED to see if the
-       absol               wr            01471                                                            DP follows the last digit.
-
-
-
-
-
-
-                           •
-
+01415                      *
+01416                      * Convert the number in the FAC to ASCII digits in the buffer pointed
+01417                      * to by U.
+01418                      *
+01419
+01420P 03C4 34   40      A CNVASC PSHS   U        Save the buffer pointer.
+01421P 03C6 BD   0000    A        JSR    FADDH    Round the number by adding one half.
+01422P 03C9 BD   0000    A        JSR    QINT     Get the greatest integer.
+01423P 03CC 35   40      A        PULS   U        Retrieve the buffer pointer.
+01424P 03CE 8E   0000    A        LDX    #FOUTBL  Point to the powers of ten table.
+01425P 03D1 C6   80      A        LDB    #@200    Set MS8 of B to indicate power of
+01426                      *    ten is being subtracted first time
+01427                      *    through the loop.  Also, clear the
+01428                      *    digit.
+01429P 03D3 8D   36   040B CNVA10 BSR    FOUTED   Insert decimal point or comma if time.
+01430P 03D5 96   53      A CNVA20 LDA    FACLO    Add table entry to add or subtract
+01431P 03D7 AB   03      A        ADDA   &2+ADDPRC,X the current power of ten.
+01432P 03D9 97   53      A        STA    FACLO
+01433P 03DB 96   52      A        LDA    FACMO
+01434P 03DD A9   02      A        ADCA   &1+ADDPRC,X
+01435P 03DF 97   52      A        STA    FACMO
+01436            0001    A        IFNE   ADDPRC
+01437P 03E1 96   51      A        LDA    FACMOH
+01438P 03E3 A9   01      A        ADCA   &1,X
+01439P 03E5 97   51      A        STA    FACMOH
+01440                             ENDC   IFN      ADDPRC
+01441P 03E7 96   50      A        LDA    FACHO
+01442P 03E9 A9   84      A        ADCA   ,X
+01443P 03EB 97   50      A        STA    FACHO
+01444P 03ED 5C                    INCB            Increment the digit.
+01445P 03EE 56                    RORB            Did the sign of the FAC change?
+01446P 03EF 59                    ROLB
+01447P 03F0 28   E3   03D5        BVC    CNVA20   No, continue with this power of ten.
+01448P 03F2 24   03   03F7        BCC    CNVA30   Yes, use digit as is since power of
+01449                      *    ten was being subtracted.
+01450P 03F4 C0   0B      A        SUBB   #&10+&1  Power of ten was being added to
+01451P 03F6 50                    NEGB            a negative number in the FAC so
+01452                      *    the digit must be adjusted by
+01453                      *    subtracting ten and negating the
+01454                      *    result.  (Subtract eleven instead
+01455                      *    of ten to account for "0"-1 at
+01456                      *    CNVA30.)
+01457P 03F7 CB   2F      A CNVA30 ADDB   #'0-&1   Get the ASCII digit.  (Minus one is
+01458                      *    because digit was incremented one
+01459                      *    too many times in the loop.
+01460P 03F9 30   04      A        LEAX   &3+ADDPRC,X Point to the next power of ten in
+01461                      *    the table.
+01462P 03FB 1F   98      A        TFR    B,A      Get rid of the MSB and store the
+01463P 03FD 84   7F      A        ANDA   #@177    digit in the buffer.
+01464P 03FF A7   C0      A        STA    ,U+
+01465P 0401 53                    COMB            Complement the MSB of B and clear
+01466P 0402 C4   80      A        ANDB   #@200    the digit.
+01467P 0404 8C   0000    A        CMPX   #FDCEND  Done all powers of ten?
+01468P 0407 26   CA   03D3        BNE    CNVA10   No, go do the next digit.
+01469P 0409 6F   C4      A        CLR    ,U       Yes, mark the end of the number
+01470                      *    and fall into FOUTED to see if the
+01471                      *    DP follows the last digit.

@@ -1,85 +1,35 @@
-                                                PAGE 008 ECBPU                             .SA:1 TXRPU The PRINT USING driver.
+PAGE  008  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 
-
-                                                00965P         0136        30          IF                A   ENDNUS LEAX                     -&1,X                Back up using string pointer so
-
-                                                00966                                                                   we can check for trailing sign spec.
-                                (72'            00967P          0138       OC          D9                A   *               INC             FLDWID               increment the leading digit count
-
-                                                00968                                                        *          in case there was a leading sign spec.
-                                                00969P          013A       96          DA                A                   LDA             PUMASK               Was there a leading sign spec?
-                                (7 00970P                       013C       85          08                A                   BITA            #PLSFLS
-                                                00971P          013E       26          18         0158                       BNE             ENDNUM               Yes, so there can't be a trailing sign.
-                                                00972P          0140       OA          D9                A                   DEC             FLDWID               No, adjust the field width back.
-                                ( .-            00973P          0142       5D                                                TSTB                                 At the end of the using string?
-                                                00974P          0143       27          13         0158                       BEQ             ENDNUM               Yes, so can't have trailing sign.
-                                                00975P          0145       A6          84                A                   LDA             ,X                   No, check for trailing sion.
-                                                00976P          0147       80          20                A                   SUBA            #'   --              If there is one it is a "4."                                    or
-
-                                                00977P          0149       27          06         0151                       BEGI            SGNTRL               Have trailing minus.
-                                                00978P          0148       81          FE                A                   CMPA            44,7 .1___. 7 ..._
-                                                00979P          014D       26          09         0158                       BNE             ENDNUM               Don't have trailing sign.
-
-                                     (1! (      00980P          014F       86          08                A                   LOA             *PLSFLG Have trailing plus, set the plus flag.
-                                                0098IP          0151       8A          04                A   SGNTRL ORA                      #TRLFLG Set the trailing sign flag.
-                                4)              0098'7'P        0153       on          DA                A                   ORA             PUMASK
-                                                00983P          0155       97          DA                A                   STA             PUMASK
-00111■01                                        00984P          0157       5A                                                DECO                                 Decrement length of using string for
-
-                                                00985                                                        *          trailing sign.
-                                                00986P          0158       9D          A5                A   ENDNUM JSR                      CHRGOT               Any more values?
-                                                00987P          015A        1027       FF3C       009A                       LBEQ            FLDFIN               No, print using check out time.
-                                rio             00988P          015E       D7          D3                A                   STB             USSCNT               Yes, save using string char count.
-                                                00989P          0160       BD          0000              A                   JSR             FRMNUM               Evaluate a numeric formula.
-                                                00990P          0163       96          D9                A                   LDA             FLDWID                If the total field width is too big
-                                (               00991P          0165       9B          D8                A                   ADDA            DPWID                then give a Function Call error.
-                                                00992P          0167        81         11                A                   CMPA            #&144.&3*ADDPRC
-                                                00993P          0169        1022       FE93              A                   LBHI            FCERR
-                                                00994P          016D        BD         01A7              P                   JSR             PUFOUT                Convert the number into ASCII in
-
-                                                00995                                                         *          FBUFFR.
-                                                00996P          0170        30         1F                A                   LEAX             -&1,X
-                                40              00997P          0172        BD         0000              A                   JSR              STROUT               Actually print the number.
-                                     I II.1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-               611
-
-
-
-
-
-       *7-
-
- FISKENS
-    PINE HISTORIC AUTOMOBILES
-
- 14 Queens Gate Place Mews 
- London SVV7 5BQ
- +44 (0)20 7684 3503 
- carsefiskens.com 
- www.flekens,com          Ili
-
+00965P 0136 30   1F      A ENDNUS LEAX   -&1,X    Back up using string pointer so
+00966                      *    we can check for trailing sign spec.
+00967P 0138 0C   D9      A        INC    FLDWID   Increment the leading digit count
+00968                      *    in case there was a leading sign spec.
+00969P 013A 96   DA      A        LDA    PUMASK   Was there a leading sign spec?
+00970P 013C 85   08      A        BITA   #PLSFLG
+00971P 013E 26   18   0158        BNE    ENDNUM   Yes, so there can't be a trailing sign.
+00972P 0140 0A   D9      A        DEC    FLDWID   No, adjust the field width back.
+00973P 0142 5D                    TSTB            At the end of the using string?
+00974P 0143 27   13   0158        BEQ    ENDNUM   Yes, so can't have trailing sign.
+00975P 0145 A6   84      A        LDA    ,X       No, check for trailing sign.
+00976P 0147 80   2D      A        SUBA   #'-      If there is one it is a "+" or "-".
+00977P 0149 27   06   0151        BEQ    SGNTRL   Have trailing minus.
+00978P 014B 81   FE      A        CMPA   #'+-'-
+00979P 014D 26   09   0158        BNE    ENDNUM   Don't have trailing sign.
+00980P 014F 86   08      A        LDA    #PLSFLG  Have trailing plus, set the plus flag.
+00981P 0151 8A   04      A SGNTRL ORA    #TRLFLG  Set the trailing sign flag.
+00982P 0153 9A   DA      A        ORA    PUMASK
+00983P 0155 97   DA      A        STA    PUMASK
+00984P 0157 5A                    DECB            Decrement length of using string for
+00985                      *  trailing sign.
+00986P 0158 9D   A5      A ENDNUM JSR    CHRGOT   Any more values?
+00987P 015A 1027 FF3C 009A        LBEQ   FLDFIN   No, print using check out time.
+00988P 015E D7   D3      A        STB    USSCNT   Yes, save using string char count.
+00989P 0160 BD   0000    A        JSR    FRMNUM   Evaluate a numeric formula.
+00990P 0163 96   D9      A        LDA    FLDWID   If the total field width is too big
+00991P 0165 9B   D8      A        ADDA   DPWID    then give a Function Call error.
+00992P 0167 81   11      A        CMPA   #&14+&3*ADDPRC
+00993P 0169 1022 FE93    A        LBHI   FCERR
+00994P 016D BD   01A7    P        JSR    PUFOUT   Convert the number into ASCII in
+00995                      *    FBUFFR.
+00996P 0170 30   1F      A        LEAX   -&1,X
+00997P 0172 BD   0000    A        JSR    STROUT   Actually print the number.

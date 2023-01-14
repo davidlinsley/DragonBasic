@@ -1,74 +1,60 @@
-                         •
+PAGE  001  ECBCOM  .SA:0  TXRPU  Extension ROM Direct Page RAM
 
-
-
-                         •         PAGE 001 ECBCOM .SA:0 TXRPU Extension ROM Direct Page RAM
-
-                                   00700                                            OPT       L,LLE=120
-
-                                   00701                                            NAM       TXRPU        -  PRINT USING for TCC Extension ROM.
-                                   00702
-                                   00703                                  **********************************************************************
-                                   00704                                  *                                                                                                   *
-                                   00705                                  *      Copyright 1982 by Microsoft Corporation, all rights reserved                                 *
-                                   00706                                  *                                                                                                   *
-                                   00707                                  **********************************************************************
-                         40        00708
-                           IIII 00709                                               TTL       External Declarations
-                                   00710
-                         40        00711                                            XREF      CHKCOM,CHKSTR,CHROUT,CRDO
-                                   00712                                            XREF      DIV10
-                                   00713                                            XREF      FADDH,FBUFFR,FCERR,FDCEND,FMULT,FOUT,FOUTBL,FOUTCP,FRETMP
-                         •         00714                                            XREF      FRMCHK,FRMEVL,FRMNUM
-                                   00715                                            XREF      LEFTUS
-
-                                   00716                                            XREF      MUL10
-                                   00717                                            XREF      N.0999,N.9999,N.MIL                                                                                                                    •
-                                   00718                                            XREF      OUTSPC
-                                   00719                                            XREF      QINT
-                                   00720                                            XREF      STROUT,STRPRT,SYNCHR                                                                                                                   •
-                                   00721                                            XREF      USINTK
-                                   00722
-                                   00723                                            TTL       Equates                                                                                                                                •
-                                   00724
-                                   00725                                  *
-                         40        00726                                  *  The PRINT USING mask (PUMASK) bit definitions.
-                           F I If  00727                                  *
-
-                                   00728
-                         0         00729                   0001        A SCIFLG EQU           &1           Bit 0 - Scientific notation.
-                                   00730                   0004        A TRLFLG EQU           &4           Bit 2 - Trailing sign.
-
-                                   00731                   0008        A PLSFLG EQU           @10          Bit 3 - Print "+" instead of space
-                                   00732                                  *         for positive numbers.
-                                   00733                   0010        A DOLFLG EQU           @20          Bit 4 - Floating dollar sign.
-                                   00734                   0020        A ASTFLG EQU           @40          Bit 5 - Asterisk fill.
-                                   00735                   0040        A COMFLG EQU           @100         Bit 6 - Insert commas.
-                                   00736
-                                   00737                   0024        A FLTMON EQU           7$           Character to use for floating money
-                                   00738                                  *      sign. Can be changed to a yen sign                                                                                                                  •
-                                   00739                                  *      for example.
-                                   00740                   0025        A MLCSTR EQU           7%           Character indicating a multi-char
-                                   00741                                  *      string field.         (For compatibility                                                                                                            •
-                                   00742                                  *      with TRS-80 Model I Level II BASIC.
-
-                                   00743
-"Progression" - it's a   40        00744                                            TTL       The PRINT USING driver.                                                                                                                •
-movement. The latest       IT 00745
-
-family of power ampli              00746                                  *
-lifetime spent in the r  40        00747                                  *  Entered at PUTEST.                                                                                                                                      •
-components that alw                00748                                  *
-always respect the del             00749
-(;ellvey realism from tl 40        00750                                  *                                                                                                                                                          •
-he most thunderous                 00751                                -* Here to handle a string field.
-; I In1 allowed to affe            00752                                  *
-                         40        00753
-                                   00754P 0000 86          01          A SMSTRF LDA           #&1          Single char string field.
-                                   00755P 0002 97 D9                   A            STA       FLDWID
-     absolut             40        00756P 0004 5A                         ISSTRF DECB                      Decrement using string char count.                                                                                        •
-                                   00757P 0005 BD          019A        P            JSR       PLSPRT       Print possible preceding plus.
-
-
-                         •                                                                                                                                                                                                           •
-
+00700                             OPT    L,LLE=120
+00701                             NAM    TXRPU    - PRINT USING for TCC Extension ROM.
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   CHKCOM,CHKSTR,CHROUT,CRDO
+00712                             XREF   DIV10
+00713                             XREF   FADDH,FBUFFR,FCERR,FDCEND,FMULT,FOUT,FOUTBL,FOUTCP,FRETMP
+00714                             XREF   FRMCHK,FRMEVL,FRMNUM
+00715                             XREF   LEFTUS
+00716                             XREF   MUL10
+00717                             XREF   N.0999,N.9999,N.MIL
+00718                             XREF   OUTSPC
+00719                             XREF   QINT
+00720                             XREF   STROUT,STRPRT,SYNCHR
+00721                             XREF   USINTK
+00722
+00723                             TTL    Equates
+00724
+00725                      *
+00726                      * The PRINT USING mask (PUMASK) bit definitions.
+00727                      *
+00728
+00729            0001    A SCIFLG EQU    &1       Bit 0 - Scientific notation.
+00730            0004    A TRLFLG EQU    &4       Bit 2 - Trailing sign.
+00731            0008    A PLSFLG EQU    @10      Bit 3 - Print "+" instead of space
+00732                      *      for positive numbers.
+00733            0010    A DOLFLG EQU    @20      Bit 4 - Floating dollar sign.
+00734            0020    A ASTFLG EQU    @40      Bit 5 - Asterisk fill.
+00735            0040    A COMFLG EQU    @100     Bit 6 - Insert commas.
+00736
+00737            0024    A FLTMON EQU    '$       Character to use for floating money
+00738                      *    sign. Can be changed to a yen sign
+00739                      *    for example.
+00740            0025    A MLCSTR EQU    '%       Character indicating a multi-char
+00741                      *   string field. (For compatibility
+00742                      *   with TRS-80 Model I Level II BASIC.
+00743
+00744                             TTL    The PRINT USING driver.
+00745
+00746                      *
+00747                      * Entered at PUTEST.
+00748                      *
+00749
+00750                      *
+00751                      * Here to handle a string field.
+00752                      *
+00753
+00754P 0000 86   01      A SMSTRF LDA    #&1      Single char string field.
+00755P 0002 97   D9      A        STA    FLDWID
+00756P 0004 5A             ISSTRF DECB            Decrement using string char count.
+00757P 0005 BD   019A    P        JSR    PLSPRT   Print possible preceding plus.

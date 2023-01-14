@@ -1,60 +1,38 @@
-                      PAGE 007 ECBPU   .SA:1 TXRPU The PRINT USING driver.
+PAGE  007  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 
-                      00928P 0103 A6 84     A DOTNUM LDA  ,X      is this dd (decimal point) the start
-                      00929P 0105 81 23     ACMPA         #'#     of a numeric field?
-                      00930P 0107 1026 FF46 0051    LBNE  NEWUCH  No, go print the '1.1'.
-                      00931P 010B 86 01     A       LDA   #0&I    Yes, init count of trailing digits.
-                      00932P 010D 97 D8     A       STA   DPWID   The decimal point is included in this
-                      00933                   *   COUNT.
-                      00934P 010F 30 01     A       LEAX  8,1,X   Point past the decimal point.
-                      00935P 0111 OC D8     A AFTDOT INC  DPWID   increment trailing digit count.
-                      00936P 0113 5A                DECB          More chars in using string?
-                      00937P 0114 27 20  0136       BEG2  ENDNUS  No, it  the end of the numeric field.
-                      00938P 0116 A6 80     A       LDA   ,X4.    Yes, do we have another digit spec?
-                      00939P 0118 81 23     A       CMPA  tr#
-                      00940P 011A 27 F5  0111       BEO   AFTDOT  Yes, look for more.
-                      00941                   *   NO, NOW LOOK FOR SCIENTIFIC NOTATION
-                      00942                   *   SPEC.
-                      00943P 011C 81 5E     A FINNUM CMPA #'"-    ''''`^ indicates scientific notation.
-                      00944P 011E 26 16  0136       BNE   ENDNUS
-                      00945P 0120 Al 84     A       CMPA  ,X
-                      00946P 0122 26 12  0136       BNE   ENDNUS
-                      00947P 0124 Al 01     ACMPA         &1,X
-                      00948P 0126 26 OE 0136        BNE   ENDNUS
-                      00949P 0128 Al 02     A       CMPA  &2,X
-                      00950P 012A 26 OA 0136        BNE   ENDNUS
-                      00951P 012C Cl 04     A       CMPB  #&4     Make sure the four chars just checked
-                      00952                   *   actually belong to the using string
-                      00953                   *   by ensuring that the using string
-                      00954                   *   contains enough characters.
-                      00955P 012E 25 06  0136       BCS   ENDNUS  It doesn't so we were looking at chars
-                      00956                   *   that don't belong to the using string.
-                      00957                   *   therefore we don't have scientific
-                      00958                   *   notation spec.
-                      00959P 0130 CO 04     A       SUBB  #&4     It does, so we do have scientific
-                      00960P 0132 30 04     A       LEAX  /(4,X   notation. Fix up the using string
-                      00961                   *   count and pointer.
-                      00962P 0134 00 DA     A       INC:  PUMASK  Set the scientific notation flag,.
-                      00963                   *    (Bit 0 of PUMASK.)
-
-
-
-
-
-
-
-
-"Progression" - it's a 
-movement. The latest 
-family of power ampli 
-lifetime spent in the r 
-components that alw 
-:ilways respect the dei 
-convey realism from t 
-I hc most thunderous
-   int allowed to affe
-
-
-
-    absolut
-
+00928P 0103 A6   84      A DOTNUM LDA    ,X       Is this dp (decimal point) the start
+00929P 0105 81   23      A        CMPA   #'#      of a numeric field?
+00930P 0107 1026 FF46 0051        LBNE   NEWUCH   No, go print the ".".
+00931P 010B 86   01      A        LDA    #&1      Yes, init count of trailing digits.
+00932P 010D 97   D8      A        STA    DPWID    The decimal point is included in this
+00933                      *    COUNT.
+00934P 010F 30   01      A        LEAX   &1,X     Point past the decimal point.
+00935P 0111 0C   D8      A AFTDOT INC    DPWID    Increment trailing digit count.
+00936P 0113 5A                    DECB            More chars in using string?
+00937P 0114 27   20   0136        BEQ    ENDNUS   No, it's the end of the numeric field.
+00938P 0116 A6   80      A        LDA    ,X+      Yes, do we have another digit spec?
+00939P 0118 81   23      A        CMPA   #'#
+00940P 011A 27   F5   0111        BEQ    AFTDOT   Yes, look for more.
+00941                      *    NO, NOW LOOK FOR SCIENTIFIC NOTATION
+00942                      *    SPEC.
+00943P 011C 81   5E      A FINNUM CMPA   #'^      ^^^ indicates scientific notation.
+00944P 011E 26   16   0136        BNE    ENDNUS
+00945P 0120 A1   84      A        CMPA   ,X
+00946P 0122 26   12   0136        BNE    ENDNUS
+00947P 0124 A1   01      A        CMPA   &1,X
+00948P 0126 26   0E   0136        BNE    ENDNUS
+00949P 0128 A1   02      A        CMPA   &2,X
+00950P 012A 26   0A   0136        BNE    ENDNUS
+00951P 012C C1   04      A        CMPB   #&4      Make sure the four chars just checked
+00952                      *    actually belong to the using string
+00953                      *    by ensuring that the using string
+00954                      *    contains enough characters.
+00955P 012E 25   06   0136        BCS    ENDNUS   It doesn't so we were looking at chars
+00956                      *    that don't belong to the using string.
+00957                      *    therefore we don't have scientific
+00958                      *    notation spec.
+00959P 0130 C0   04      A        SUBB   #&4      It does, so we do have scientific
+00960P 0132 30   04      A        LEAX   &4,X     notation.  Fix up the using string
+00961                      *    count and pointer.
+00962P 0134 0C   DA      A        INC    PUMASK   Set the scientific notation flag.
+00963                      *    (Bit 0 of PUMASK.)

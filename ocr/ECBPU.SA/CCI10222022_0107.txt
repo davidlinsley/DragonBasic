@@ -1,67 +1,60 @@
-                              PAGE 015 ECBPU                             .SA:1 TXRPU The PRINT USING Floating Point Output Routine
+PAGE  015  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 
-
-                              01242                                                         *
-
-                              01243                                                         *   Print number in scientific notation.
-                              01244                                                         *
-
-                      I 1     01245
-                              012462          02CF       96          4F                A    SCINOT LDA                      FACEXP              See if the FAC is zero.
-                              012472          02D1       34          02                A                    PSHS            A                   Save an indicator.
-                              012482          02D3       27          03         02D8                        BECA            FFXFL2              It is zero, don't atempt to normalize.
-                              01249P          02D5       BD          038F              P                    JSR             FOUTN               Get all significant digits into the
-                              01250                                                         *          integer part of the FAC.
-                              012512          02D8       96          D8                A    FFXFL2 LDA                      DPWID               A:=number of fractional digits.
-                              012522          02DA       27          01         02DD                        BEC!            FFXFL3              (Have to subtract one for the decimal
-                              012532          02DC       4A                                                 DECA                                point if there are fractional digits.)
-                              012542          02DD       98          D9                A    FFXFL3 ADDA                     FLDWID              A:=total number of digits specified.
-                              01255
-                              01256                                                         *
-
-                              01257                                                         *   We must account for a leading sign by subtracting one from the
-                              01258                                                         *   total digit count. We will need to account for the position
-                              01259                                                         *   of the sign in later calculations as well so we set FBUFFR
-                              01260                                                         *   to -1 for a leading sign and 0 for a trailing sign. It is OK
-                              01261                                                         *   to use FBUFFR as a temporary since it is only used to hold
-                              01262                                                         *   a percent sign if field overflow occurs and we will be done
-                   HY11       01263                                                         *   with it before that can happen.
-                              01264                                                         *
-              go              01265
-                              012662          02DF       7F          0000              A                    CLR             FBUFFR              FBUFFR:=0 for trailing sign, -1
-                              012672          02E2       D6          DA                                     LDB             PUMASK              for leading sign.
-                              012682          02E4       C4          04                A                    ANDB            #TRLFLG
-                              012692          02E6       26          03         02E8                        BNE             FFXFL4
-                              012702          02E8       73          0000              A                    COM             FBUFFR
-                              012712          02E8       BB          0000              A    FFXFL4 ADDA                     FBUFFR              AdAust the total digit count.
-                              012722          02EE       80          09                A                    SUBA            #&6+&3*ADDPRC Subtract sig digits from total digits.
-
-                              01273P          02F0       34          02                A                    PSHS            A                   Save the result. If it is positive
-                              01274                                                                    it is the number of trailing zeroes
-                              01275                                                         •          we must supply after FOUTCV returns. 
-                              01276                                                                    If it is negative we have more sig
-                              01277                                                         •          digits than places to print them in 
-                              01278                                                                    so we divide out some sig digits.
-                              012792          02F2       2A          OA         02FE        FFXFL5 BPL                      FFXFL6              Done dividing if positive.
-                              012802          02F4       34          02                A                    PSHS            A                   Save the count and get rid of a sig
-                              012812          02F6       BD          0000              A                    JSR             DIV10               digit.
-
-                              012822          02F9       35          02                A                    PULS A 
-                              01283P          02F8       4C                                                 INCA
-                              012842          02FC       20          F4         02F2                        BRA             FFXFL5              See if more need to be destroyed.
-     H                        012852          02FF       A6          E4                A    FFXFL6 LDA                      ,S                  Get division count.
-                              012862          0300       28          01         0303                        BMI             FFXFL7              If division wasn't done then zero
-"Progr                        012872          0302       4F                                                 CLRA                                this count.
-mover                         012882          0303       40                                 FFXFL7 NEGA                                         Calculate the decimal point count. 
-family                        012892          0304       98          D9                A                    ADDA            FLDWID              The formula is (# of leading digits
-lifetime                      012902          0306       40                                                 INCA                                specified) + (digits divided out) 
-comp                          01291P          0307       88          0000              A                    ADDA            FBUFFR              +     (1 if trailing sign).
-;Mays                         012922          030A       97          45                A                    STA             DE0CNT
-(;(-)iivo                     01293P          0300       OF          D7                A                    CLR             COMCNT              No commas allowed.
-111(                          012942          030E       8D          0304              P                    JSR             CNVASC              Convert to ASCII digits. 
-'x'`/v`\                      01295P          0311       35          02                A                    PULS            A                   Get trailing zero count. 
-                              012962          0313       BD          0443              P                    JSR             FOTZE0              Decimal point could come out in these
-                              01297                                                                    zeroes.
-                              012982          0316       96          D8                A                    LDA             DPWID               If there were no decimal places
-                   I          012992          0318       26          02         0310                        BNE             FFXFL8              specified the the decimal point just
-
+01242                      *
+01243                      * Print number in scientific notation.
+01244                      *
+01245
+01246P 02CF 96   4F      A SCINOT LDA    FACEXP   See if the FAC is zero.
+01247P 02D1 34   02      A        PSHS   A        Save an indicator.
+01248P 02D3 27   03   02D8        BEQ    FFXFL2   It is zero, don't atempt to normalize.
+01249P 02D5 BD   038F    P        JSR    FOUTN    Get all significant digits into the
+01250                      *    integer part of the FAC.
+01251P 02D8 96   D8      A FFXFL2 LDA    DPWID    A:=number of fractional digits.
+01252P 02DA 27   01   02DD        BEQ    FFXFL3   (Have to subtract one for the decimal
+01253P 02DC 4A                    DECA            point if there are fractional digits.)
+01254P 02DD 9B   D9      A FFXFL3 ADDA   FLDWID   A:=total number of digits specified.
+01255
+01256                      *
+01257                      * We must account for a leading sign by subtracting one from the
+01258                      * total digit count.  We will need to account for the position
+01259                      * of the sign in later calculations as well so we set FBUFFR
+01260                      * to -1 for a leading sign and 0 for a trailing sign.  It is OK
+01261                      * to use FBUFFR as a temporary since it is only used to hold
+01262                      * a percent sign if field overflow occurs and we will be done
+01263                      * with it before that can happen.
+01264                      *
+01265
+01266P 02DF 7F   0000    A        CLR    FBUFFR   FBUFFR:=0 for trailing sign, -1
+01267P 02E2 D6   DA      A        LDB    PUMASK   for leading sign.
+01268P 02E4 C4   04      A        ANDB   #TRLFLG
+01269P 02E6 26   03   02EB        BNE    FFXFL4
+01270P 02E8 73   0000    A        COM    FBUFFR
+01271P 02EB BB   0000    A FFXFL4 ADDA   FBUFFR   Adjust the total digit count.
+01272P 02EE 80   09      A        SUBA   #&6+&3*ADDPRC Subtract sig digits from total digits.
+01273P 02F0 34   02      A        PSHS   A        Save the result.  If it is positive
+01274                      *    it is the number of trailing zeroes
+01275                      *    we must supply after FOUTCV returns.
+01276                      *    If it is negative we have more sig
+01277                      *    digits than places to print them in
+01278                      *    so we divide out some sig digits.
+01279P 02F2 2A   0A   02FE FFXFL5 BPL    FFXFL6   Done dividing if positive.
+01280P 02F4 34   02      A        PSHS   A        Save the count and get rid of a sig
+01281P 02F6 BD   0000    A        JSR    DIV10    digit.
+01282P 02F9 35   02      A        PULS   A
+01283P 02FB 4C                    INCA
+01284P 02FC 20   F4   02F2        BRA    FFXFL5   See if more need to be destroyed.
+01285P 02FE A6   E4      A FFXFL6 LDA    ,S       Get division count.
+01286P 0300 2B   01   0303        BMI    FFXFL7   If division wasn't done then zero
+01287P 0302 4F                    CLRA            this count.
+01288P 0303 40             FFXFL7 NEGA            Calculate the decimal point count.
+01289P 0304 9B   D9      A        ADDA   FLDWID   The formula is (# of leading digits
+01290P 0306 4C                    INCA            specified) + (digits divided out)
+01291P 0307 BB   0000    A        ADDA   FBUFFR   + (1 if trailing sign).
+01292P 030A 97   45      A        STA    DECCNT
+01293P 030C 0F   D7      A        CLR    COMCNT   No commas allowed.
+01294P 030E BD   03C4    P        JSR    CNVASC   Convert to ASCII digits.
+01295P 0311 35   02      A        PULS   A        Get trailing zero count.
+01296P 0313 BD   0443    P        JSR    FOTZEC   Decimal point could come out in these
+01297                      *    zeroes.
+01298P 0316 96   D8      A        LDA    DPWID    If there were no decimal places
+01299P 0318 26   02   031C        BNE    FFXFL8   specified the the decimal point just
