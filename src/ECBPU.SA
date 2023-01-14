@@ -708,3 +708,61 @@ FOUTN4 LDX    #N.0999  Is the FAC too small?
        BRA    FOUTN4   Go see if still too small.
 
 FOUTN5 PULS   U,PC     Restore the buffer pointer and return.
+
+*
+* Convert the number in the FAC to ASCII digits in the buffer pointed
+* to by U.
+*
+
+CNVASC PSHS   U        Save the buffer pointer.
+       JSR    FADDH    Round the number by adding one half.
+       JSR    QINT     Get the greatest integer.
+       PULS   U        Retrieve the buffer pointer.
+       LDX    #FOUTBL  Point to the powers of ten table.
+       LDB    #@200    Set MS8 of B to indicate power of
+*    ten is being subtracted first time
+*    through the loop.  Also, clear the
+*    digit.
+CNVA10 BSR    FOUTED   Insert decimal point or comma if time.
+CNVA20 LDA    FACLO    Add table entry to add or subtract
+       ADDA   &2+ADDPRC,X the current power of ten.
+       STA    FACLO
+       LDA    FACMO
+       ADCA   &1+ADDPRC,X
+       STA    FACMO
+       IFNE   ADDPRC
+       LDA    FACMOH
+       ADCA   &1,X
+       STA    FACMOH
+       ENDC   IFN      ADDPRC
+       LDA    FACHO
+       ADCA   ,X
+       STA    FACHO
+       INCB            Increment the digit.
+       RORB            Did the sign of the FAC change?
+       ROLB
+       BVC    CNVA20   No, continue with this power of ten.
+       BCC    CNVA30   Yes, use digit as is since power of
+*    ten was being subtracted.
+       SUBB   #&10+&1  Power of ten was being added to
+       NEGB            a negative number in the FAC so
+*    the digit must be adjusted by
+*    subtracting ten and negating the
+*    result.  (Subtract eleven instead
+*    of ten to account for "0"-1 at
+*    CNVA30.)
+CNVA30 ADDB   #'0-&1   Get the ASCII digit.  (Minus one is
+*    because digit was incremented one
+*    too many times in the loop.
+       LEAX   &3+ADDPRC,X Point to the next power of ten in
+*    the table.
+       TFR    B,A      Get rid of the MSB and store the
+       ANDA   #@177    digit in the buffer.
+       STA    ,U+
+       COMB            Complement the MSB of B and clear
+       ANDB   #@200    the digit.
+       CMPX   #FDCEND  Done all powers of ten?
+       BNE    CNVA10   No, go do the next digit.
+       CLR    ,U       Yes, mark the end of the number
+*    and fall into FOUTED to see if the
+*    DP follows the last digit.
