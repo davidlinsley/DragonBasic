@@ -626,3 +626,50 @@ FEXPHI INCA            Increment high order digit.
        STD    ,U++     Store the exponent.
        CLR    ,U       Put in a terminator.
        JMP    FOUTTS   Go finish up.
+
+*
+* Suppress leading zeroes and do asterisk fill if indicated.
+*
+
+FOUTZS LDX    #FBUFFR+&1 X:=pointer to start of number.
+       LDB    ,X       B:=sign of number.
+       PSHS   B        Save it.
+       LDA    #SPACE   Default fill char is space.
+       LDB    PUMASK   Is asterisk fill specified?
+       BITB   #ASTFLG
+       PULS   B        (B:=sign char.)
+       BEQ    FOTZS1   No asterisk fill, use space.
+       LDA    #'*      Fill char:=asterisk.
+       CMPB   #SPACE   If the sign is a space then it must
+       BNE    FOTZS1   be changed to an asterisk.
+       TFR    A,B
+FOTZS1 PSHS   B        Save the sign char.
+FOTZS2 STA    ,X+      Store the fill char.
+       LDB    ,X       B:=next char.
+       BEQ    FOTZS3   A zero marks the end of the number.
+       CMPB   #'E      An "E" indicates the start of
+       BEQ    FOTZS3   the exponent of a number in scientific
+*    Back up and insert a zero for the
+*    mantissa.
+       CMPB   #'0      Is it a leading zero?
+       BEQ    FOTZS2   Yes, suppress it.
+       CMPB   #COMMA   Also supress commas.
+       BEQ    FOTZS2
+       CMPB   #'.      No, is it the decimal point?
+       BNE    FOTZS4   No, but all zeroes have been sup-
+*    pressed.
+*    Yes, back up and insert a zero before
+*    the decimal point.
+FOTZS3 LDA    #'0      Insert a zero before the current char.
+       STA    ,-X
+FOTZS4 LDA    PUMASK   Is the floating dollar sign set?
+       BITA   #DOLFLG
+       BEQ    FOTZS5   No.
+       LDB    #FLTMON  Yes, back up and insert a dollar sign.
+       STB    ,-X
+FOTZS5 ANDA   #TRLFLG  Trailing sign specified?
+       PULS   B        (B:=original sign char.)
+       BNE    FOTZSR   Yes, return with A non zero.
+       STB    ,-X      No, put the leading sign back in.
+FOTZSR RTS
+

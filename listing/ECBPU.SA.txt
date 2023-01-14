@@ -664,3 +664,53 @@ PAGE  016  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 01327P 0342 6F   C4      A        CLR    ,U       Put in a terminator.
 01328P 0344 7E   0216    P        JMP    FOUTTS   Go finish up.
 
+PAGE  017  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01330
+01331                      *
+01332                      * Suppress leading zeroes and do asterisk fill if indicated.
+01333                      *
+01334
+01335P 0347 8E   0001    A FOUTZS LDX    #FBUFFR+&1 X:=pointer to start of number.
+01336P 034A E6   84      A        LDB    ,X       B:=sign of number.
+01337P 034C 34   04      A        PSHS   B        Save it.
+01338P 034E 86   20      A        LDA    #SPACE   Default fill char is space.
+01339P 0350 D6   DA      A        LDB    PUMASK   Is asterisk fill specified?
+01340P 0352 C5   20      A        BITB   #ASTFLG
+01341P 0354 35   04      A        PULS   B        (B:=sign char.)
+01342P 0356 27   08   0360        BEQ    FOTZS1   No asterisk fill, use space.
+01343P 0358 86   2A      A        LDA    #'*      Fill char:=asterisk.
+01344P 035A C1   20      A        CMPB   #SPACE   If the sign is a space then it must
+01345P 035C 26   02   0360        BNE    FOTZS1   be changed to an asterisk.
+01346P 035E 1F   89      A        TFR    A,B
+01347P 0360 34   04      A FOTZS1 PSHS   B        Save the sign char.
+01348P 0362 A7   80      A FOTZS2 STA    ,X+      Store the fill char.
+01349P 0364 E6   84      A        LDB    ,X       B:=next char.
+01350P 0366 27   10   0378        BEQ    FOTZS3   A zero marks the end of the number.
+01351P 0368 C1   45      A        CMPB   #'E      An "E" indicates the start of
+01352P 036A 27   0C   0378        BEQ    FOTZS3   the exponent of a number in scientific
+01353                      *    Back up and insert a zero for the
+01354                      *    mantissa.
+01355P 036C C1   30      A        CMPB   #'0      Is it a leading zero?
+01356P 036E 27   F2   0362        BEQ    FOTZS2   Yes, suppress it.
+01357P 0370 C1   2C      A        CMPB   #COMMA   Also supress commas.
+01358P 0372 27   EE   0362        BEQ    FOTZS2
+01359P 0374 C1   2E      A        CMPB   #'.      No, is it the decimal point?
+01360P 0376 26   04   037C        BNE    FOTZS4   No, but all zeroes have been sup-
+01361                      *    pressed.
+01362                      *    Yes, back up and insert a zero before
+01363                      *    the decimal point.
+01364P 0378 86   30      A FOTZS3 LDA    #'0      Insert a zero before the current char.
+01365P 037A A7   82      A        STA    ,-X
+01366P 037C 96   DA      A FOTZS4 LDA    PUMASK   Is the floating dollar sign set?
+01367P 037E 85   10      A        BITA   #DOLFLG
+01368P 0380 27   04   0386        BEQ    FOTZS5   No.
+01369P 0382 C6   24      A        LDB    #FLTMON  Yes, back up and insert a dollar sign.
+01370P 0384 E7   82      A        STB    ,-X
+01371P 0386 84   04      A FOTZS5 ANDA   #TRLFLG  Trailing sign specified?
+01372P 0388 35   04      A        PULS   B        (B:=original sign char.)
+01373P 038A 26   02   038E        BNE    FOTZSR   Yes, return with A non zero.
+01374P 038C E7   82      A        STB    ,-X      No, put the leading sign back in.
+01375P 038E 39             FOTZSR RTS
+01376
+
