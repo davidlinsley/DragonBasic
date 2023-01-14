@@ -1,0 +1,58 @@
+
+       NAM    Downloader for TXR / MLC
+
+**********************************************************************
+*                                                                    *
+•    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   BLKIN,BLKOUT
+       XREF   CASBUF,CHKCOM,CHRINP,CHROUT,CLOAD,CLOSIT,CLSCAS,COMBYT,CSRDON
+       XREF   ERRNE,ERROR,EVLADR
+       XREF   FCERR,FILNAM,FILTYP,FINLDB,FMERR
+       XREF   GAPFLG,GETBYT,GETFLN
+       XREF   INHST,IOERR
+       XREF   JOYIN
+       XREF   LODBUF
+       XREF   MAIN,MLDUNG
+       XREF   OPNCSI,OUTHST
+       XREF   PIA1AD,PIA1BD,POLCAT
+       XREF   SCRTCH,STBAUD
+       XREF   TRMCHK
+       XREF   WRTLDR
+
+       TTL    Equates
+
+DNLTRY EQU    &5       Number of times to try before giving
+*    up when communicating with the host.
+
+P.ABRT EQU    @274     Abort control code.  (BC)
+P.ACK  EQU    @310     Acknowledge control code.  (C8)
+P.BLKR EQU    @227     Block request.  (97)
+P.FILR EQU    @212     File request.  (8A)
+P.NAK  EQU    @336     Bad transmission.  (DE)
+
+       TTL    DLOAD - Load program from host computer.
+
+*
+* DLOAD[<filename>[,<baud rate select>]]
+* DLOADM[<filename>[,[<baud rate select>][,<load offset>]]]
+*
+
+       XDEF   DLOAD
+DLOAD  JSR    CLSCAS   Close the cassette since DLOAD uses
+*    the cassette buffer and other temps.
+       CLR    ,-S      Say it isn't DLOADM.
+       JSR    CHRGOT   Refetch since CLSCAS destroyed A.
+       CMPA   #'M      Is it DLOADM?
+       BNE    NTDLDM   No.
+       STA    ,S       Yes, remeber that it is.
+       JSR    CHRGET   Skip over the "M".
+NTDLDM JSR    GETFLN   Scan the filename into FILNAM.
+       JSR    CHRGOT   End of the statement?
+       BEQ    OLDBR    Yes, use the old baud rate.
+       JSR    CHKCOM   No, skip a comma.
+       CMPA   #COMMA   Use the old baud rate?
