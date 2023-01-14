@@ -786,3 +786,21 @@ FOUED1 DEC    COMCNT   Time for a comma?
        LDA    #COMMA   Put in the comma and return.
        STA    ,U+
 FOUEDR RTS
+
+*
+* Set up decimal point and comma counts.
+*
+
+FOUTCD LDA    TENEXP   Decimal point count:=decimal exponent+
+       ADDA   #&7+&3*ADDPRC #of digits+1.
+       STA    DECCNT
+       INCA            Comma count:=(decimal point count +1
+FOUCD1 SUBA   #&3      MOD 2)+3.
+       BCC    FOUCD1
+       ADDA   #&5
+FOUTCC STA    COMCNT   Store possible comma count.
+FOUICC LDA    PUMASK   Are we using commas?
+       ANDA   #COMFLG
+       BNE    FOUCRT   Yes, leave the count as is.
+       STA    COMCNT   No, zero the count.
+FOUCRT RTS
