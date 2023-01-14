@@ -483,3 +483,35 @@ PAGE  012  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 01156P 0250 26   0E   0260        BNE    FOUBE4   No, the number exceeds the field.
 01157P 0252 A6   01      A        LDA    &1,X     Yes, now see if a digit follows the
 
+PAGE  013  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01158P 0254 8D   16   026C        BSR    ISDIGC   decimal point.  We needn't check for
+01159                      *    the decimal point itself since FOUTZS
+01160                      *    would have removed the zero we just
+01161                      *    saw if it wasn't followed by a decimal
+01162                      *    point.
+01163P 0256 25   08   0260        BCS    FOUBE4   Not a digit, we have field overflow.
+01164P 0258 35   02      A FOUBE3 PULS   A        Unstack the chars we saved and put
+01165P 025A A7   82      A        STA    ,-X      them back into the buffer one place
+01166P 025C 26   FA   0258        BNE    FOUBE3   beyond where they originally were.
+01167P 025E 20   C7   0227        BRA    FOUBE1   See if that makes the number fit.
+01168
+01169P 0260 35   02      A FOUBE4 PULS   A        We have field overflow, pop off the
+01170P 0262 4D                    TSTA            Garbage.
+01171P 0263 26   FB   0260        BNE    FOUBE4
+01172P 0265 9E   0F      A        LDX    TEMPX1   Put a "%" in to indicate field
+01173P 0267 86   25      A        LDA    #'%      overlfow.
+01174P 0269 A7   82      A        STA    ,-X
+01175P 026B 39             PUFRTS RTS
+01176
+01177                      *
+01178                      * Set carry if char in A  is not a digit.
+01179                      *
+01180
+01181                             XDEF   ISDIGC
+01182P 026C 81   30      A ISDIGC CMPA   #'0      Is it a digit?
+01183P 026E 25   04   0274        BCS    ISDRTS   No.
+01184P 0270 80   3A      A        SUBA   #'9+&1   Maybe.
+01185P 0272 80   C6      A        SUBA   #-'9-&1  Restore cnar and clear carry if digit.
+01186P 0274 39             ISDRTS RTS
+

@@ -455,3 +455,32 @@ FOUBE2 PSHS   A        Push the char.
        CMPA   #'0      Is there a leading zero?
        BNE    FOUBE4   No, the number exceeds the field.
        LDA    &1,X     Yes, now see if a digit follows the
+       BSR    ISDIGC   decimal point.  We needn't check for
+*    the decimal point itself since FOUTZS
+*    would have removed the zero we just
+*    saw if it wasn't followed by a decimal
+*    point.
+       BCS    FOUBE4   Not a digit, we have field overflow.
+FOUBE3 PULS   A        Unstack the chars we saved and put
+       STA    ,-X      them back into the buffer one place
+       BNE    FOUBE3   beyond where they originally were.
+       BRA    FOUBE1   See if that makes the number fit.
+
+FOUBE4 PULS   A        We have field overflow, pop off the
+       TSTA            Garbage.
+       BNE    FOUBE4
+       LDX    TEMPX1   Put a "%" in to indicate field
+       LDA    #'%      overlfow.
+       STA    ,-X
+PUFRTS RTS
+
+*
+* Set carry if char in A  is not a digit.
+*
+
+       XDEF   ISDIGC
+ISDIGC CMPA   #'0      Is it a digit?
+       BCS    ISDRTS   No.
+       SUBA   #'9+&1   Maybe.
+       SUBA   #-'9-&1  Restore cnar and clear carry if digit.
+ISDRTS RTS
