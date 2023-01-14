@@ -804,3 +804,21 @@ FOUICC LDA    PUMASK   Are we using commas?
        BNE    FOUCRT   Yes, leave the count as is.
        STA    COMCNT   No, zero the count.
 FOUCRT RTS
+
+*
+* Put in zeroes.
+*
+
+FOTZCL PSHS   A        Save count of zeroes.
+       BSR    FOUTED   See if comma is required.
+       PULS   A
+FOTZEC DECA            More zeroes to print?
+       BMI    FOUZCR   No.
+       PSHS   A        Yes, print one.
+       LDA    #'0
+       STA    ,U+
+       LDA    ,S+      Any more?
+       BNE    FOTZCL   Yes, see if comma needed.
+FOUZCR RTS
+
+       END
