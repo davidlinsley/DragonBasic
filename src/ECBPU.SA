@@ -538,3 +538,62 @@ FFXV10 JSR    CNVASC   Convert the FAC.
        LDU    FDECPT   No, end of number is at the dp.
 FFXV11 ADDA   TENEXP   Fill out the trailing digits.
        LBRA   KEEPDP
+
+*
+* Print number in scientific notation.
+*
+
+SCINOT LDA    FACEXP   See if the FAC is zero.
+       PSHS   A        Save an indicator.
+       BEQ    FFXFL2   It is zero, don't atempt to normalize.
+       JSR    FOUTN    Get all significant digits into the
+*    integer part of the FAC.
+FFXFL2 LDA    DPWID    A:=number of fractional digits.
+       BEQ    FFXFL3   (Have to subtract one for the decimal
+       DECA            point if there are fractional digits.)
+FFXFL3 ADDA   FLDWID   A:=total number of digits specified.
+
+*
+* We must account for a leading sign by subtracting one from the
+* total digit count.  We will need to account for the position
+* of the sign in later calculations as well so we set FBUFFR
+* to -1 for a leading sign and 0 for a trailing sign.  It is OK
+* to use FBUFFR as a temporary since it is only used to hold
+* a percent sign if field overflow occurs and we will be done
+* with it before that can happen.
+*
+
+       CLR    FBUFFR   FBUFFR:=0 for trailing sign, -1
+       LDB    PUMASK   for leading sign.
+       ANDB   #TRLFLG
+       BNE    FFXFL4
+       COM    FBUFFR
+FFXFL4 ADDA   FBUFFR   Adjust the total digit count.
+       SUBA   #&6+&3*ADDPRC Subtract sig digits from total digits.
+       PSHS   A        Save the result.  If it is positive
+*    it is the number of trailing zeroes
+*    we must supply after FOUTCV returns.
+*    If it is negative we have more sig
+*    digits than places to print them in
+*    so we divide out some sig digits.
+FFXFL5 BPL    FFXFL6   Done dividing if positive.
+       PSHS   A        Save the count and get rid of a sig
+       JSR    DIV10    digit.
+       PULS   A
+       INCA
+       BRA    FFXFL5   See if more need to be destroyed.
+FFXFL6 LDA    ,S       Get division count.
+       BMI    FFXFL7   If division wasn't done then zero
+       CLRA            this count.
+FFXFL7 NEGA            Calculate the decimal point count.
+       ADDA   FLDWID   The formula is (# of leading digits
+       INCA            specified) + (digits divided out)
+       ADDA   FBUFFR   + (1 if trailing sign).
+       STA    DECCNT
+       CLR    COMCNT   No commas allowed.
+       JSR    CNVASC   Convert to ASCII digits.
+       PULS   A        Get trailing zero count.
+       JSR    FOTZEC   Decimal point could come out in these
+*    zeroes.
+       LDA    DPWID    If there were no decimal places
+       BNE    FFXFL8   specified the the decimal point just
