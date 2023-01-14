@@ -56,3 +56,24 @@ NTDLDM JSR    GETFLN   Scan the filename into FILNAM.
        BEQ    OLDBR    Yes, use the old baud rate.
        JSR    CHKCOM   No, skip a comma.
        CMPA   #COMMA   Use the old baud rate?
+       BEQ    OLDBR    Yes.
+       JSR    GETBYT   No, evaluate the baud rate arg.
+       JSR    STBAUD   Call the baud rate select routine.
+       LBCS   FCERR    Bad argument, give FC error.
+OLDBR  JSR    OPNHST   Open the file on the host and load
+*    the cassette buffer.
+       PSHS   A        Save the file type byte.
+       LDA    #-&3     Set DEVNUM so chars come from the
+       STA    DEVNUM   host file.
+       PULS   A        Retrieve the file type.
+       TST    ,S+      Test and get rid of the DLOADM flag.
+       BNE    DLOADM   Go handle DLOADM.
+       JSR    TRMCHK   For DLOAD, the statement must end now.
+       TSTB            Is it an ASCII file?
+       BEQ    BADMOD   No, can't load it.
+       JSR    SCRTCH   Yes, get rid of the old program.
+       JMP    MAIN     Main does the rest.
+
+BADMOD JMP    FMERR    Give a file mode error.
+*    Eventually the host will figure out
+*    that we have given up.

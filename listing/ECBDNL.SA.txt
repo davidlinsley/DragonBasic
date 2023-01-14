@@ -58,3 +58,28 @@ PAGE  001  ECBCOM  .SA:0  Downlo Extension ROM Direct Page RAM
 00755P 0014 27   11   0027        BEQ    OLDBR    Yes, use the old baud rate.
 00756P 0016 BD   0000    A        JSR    CHKCOM   No, skip a comma.
 00757P 0019 81   2C      A        CMPA   #COMMA   Use the old baud rate?
+
+PAGE  002  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
+
+00758P 001B 27   0A   0027        BEQ    OLDBR    Yes.
+00759P 001D BD   0000    A        JSR    GETBYT   No, evaluate the baud rate arg.
+00760P 0020 BD   0000    A        JSR    STBAUD   Call the baud rate select routine.
+00761P 0023 1025 FFD9    A        LBCS   FCERR    Bad argument, give FC error.
+00762P 0027 BD   00AB    P OLDBR  JSR    OPNHST   Open the file on the host and load
+00763                      *    the cassette buffer.
+00764P 002A 34   02      A        PSHS   A        Save the file type byte.
+00765P 002C 86   FD      A        LDA    #-&3     Set DEVNUM so chars come from the
+00766P 002E 97   6F      A        STA    DEVNUM   host file.
+00767P 0030 35   02      A        PULS   A        Retrieve the file type.
+00768P 0032 6D   E0      A        TST    ,S+      Test and get rid of the DLOADM flag.
+00769P 0034 26   2A   0060        BNE    DLOADM   Go handle DLOADM.
+00770P 0036 BD   0000    A        JSR    TRMCHK   For DLOAD, the statement must end now.
+00771P 0039 5D                    TSTB            Is it an ASCII file?
+00772P 003A 27   06   0042        BEQ    BADMOD   No, can't load it.
+00773P 003C BD   0000    A        JSR    SCRTCH   Yes, get rid of the old program.
+00774P 003F 7E   0000    A        JMP    MAIN     Main does the rest.
+00775
+00776P 0042 7E   0000    A BADMOD JMP    FMERR    Give a file mode error.
+00777                      *    Eventually the host will figure out
+00778                      *    that we have given up.
+
