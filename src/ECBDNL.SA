@@ -145,3 +145,35 @@ NXTCHR JSR    CHRINP   Try to read a char.
        BEQ    LODRTS   No, return with the char.
 GOIOER JMP    IOERR    yes, give an I/O error.
 
+*
+* Open the file on the host and load the first block into the
+* cassette buffer.
+* On exit, A=file type, B:=ASCII flag.
+*
+
+OPNHST BSR    OPNDNL   Open the file.
+       PSHS   D        Save file type and ASCII flag.
+       INCA            Was the file found?
+       BEQ    NEERR    No, give NonExistent file error.
+       LDU    DBLZER   Yes, zero the block number.
+       BSR    LDBUFU   (Enter with U set up.)
+       PULS   D,PC     Retrieve file type and ASCII flag
+*    and return.
+
+NEERR  LDB    #ERRNE  NonExistent file error.
+       JMP    ERROR
+
+
+*
+* Load next block of host file into cassette buffer.
+*
+
+       XDEF   LDBUFR
+LDBUFR LDU    BLKNUM   U:=block number for DNLBLK.
+LDBUFU LEAX   &1,U     Increment it for next time.
+       STX    BLKNUM
+       LDX    #CASBUF  Set up buffer pointer for DNLBLK.
+       JSR    DNLBLK   Load the block from the host.
+       JMP    FINLDB   Finish up in the cassette load
+*    buffer code to set the character count
+*    and buffer pointer.
