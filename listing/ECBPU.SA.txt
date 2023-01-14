@@ -632,3 +632,35 @@ PAGE  015  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 01298P 0316 96   D8      A        LDA    DPWID    If there were no decimal places
 01299P 0318 26   02   031C        BNE    FFXFL8   specified the the decimal point just
 
+PAGE  016  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01300P 031A 33   5F      A        LEAU   -&1,U    went in and we throw it out by backing
+01301                      *    up the pointer.
+01302P 031C E6   E0      A FFXFL8 LDB    ,S+      Was the FAC zero to start with?
+01303P 031E 27   09   0329        BEQ    FOTEXP   Yes, so the exponent to print is zero.
+01304P 0320 D6   47      A        LDB    TENEXP   No, scale the exponent.
+01305P 0322 CB   09      A        ADDB   #&6+&3*ADDPRC Add the sig digit count.
+01306P 0324 D0   D9      A        SUBB   FLDWID   Subtract the leading digit count.
+01307P 0326 F0   0000    A        SUBB   FBUFFR   Add one back if leading sign.
+01308
+01309                      *
+01310                      * Put in the exponent.
+01311                      *
+01312
+01313P 0329 86   2B      A FOTEXP LDA    #'+      Assume it is positive.
+01314P 032B 5D                    TSTB            Is the exponent positive?
+01315P 032C 2A   03   0331        BPL    FEXPLS   Yes.
+01316P 032E 86   2D      A        LDA    #'-      No, it's negative so use a minus sign,
+01317P 0330 50                    NEGB            and negate the exponent.
+01318P 0331 A7   41      A FEXPLS STA    &1,U     Store the sign of the exponent.
+01319P 0333 86   45      A        LDA    #'E      Put in the "E" and point past the
+01320P 0335 A7   C1      A        STA    ,U++     "E" and the sign.
+01321P 0337 86   2F      A        LDA    #'0-&1   Convert exponent to two ASCII digits.
+01322P 0339 4C             FEXPHI INCA            Increment high order digit.
+01323P 033A C0   0A      A        SUBS   #&10     Sub 10 until result does negative.
+01324P 033C 24   FB   0339        BCC    FEXPHI
+01325P 033E CB   3A      A        ADDB   #'0+&10  B:=the low order digit.
+01326P 0340 ED   C1      A        STD    ,U++     Store the exponent.
+01327P 0342 6F   C4      A        CLR    ,U       Put in a terminator.
+01328P 0344 7E   0216    P        JMP    FOUTTS   Go finish up.
+
