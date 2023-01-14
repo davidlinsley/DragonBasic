@@ -766,3 +766,23 @@ CNVA30 ADDB   #'0-&1   Get the ASCII digit.  (Minus one is
        CLR    ,U       Yes, mark the end of the number
 *    and fall into FOUTED to see if the
 *    DP follows the last digit.
+
+*
+* Insert comma or decimal point.
+*
+
+FOUTED DEC    DECCNT   Time for the decimal point?
+       BNE    FOUED1   No, check for comma.
+FOUTDP STU    FDECPT   Yes, save a pointer to the decimal
+       LDA    #'.      point and put it in
+       STA    ,U+
+       CLR    COMCNT   Inhibit the printing of commas to the
+       RTS             right of the decimal point.
+
+FOUED1 DEC    COMCNT   Time for a comma?
+       BNE    FOUEDR   No, just return.
+       LDA    #&3      Yes, reset the comma count.
+       STA    COMCNT
+       LDA    #COMMA   Put in the comma and return.
+       STA    ,U+
+FOUEDR RTS
