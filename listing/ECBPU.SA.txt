@@ -714,3 +714,42 @@ PAGE  017  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 01375P 038E 39             FOTZSR RTS
 01376
 
+PAGE  018  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
+
+01378                      *
+01379                      * Normalize the FAC so all significant digits are in the
+01380                      * integer part.
+01381                      *
+01382
+01383P 038F 34   40      A FOUTN  PSHS   U        Save the buffer pointer.  (It could
+01384                      *    be destroyed by calls to FMULT and
+01385                      *    MUL10 if they are ever optimized for
+01386                      *    6809.)
+01387P 0391 4F                    CLRA            Initialize decimal exponent to 0.
+01388P 0392 97   47      A FOUTN1 STA    TENEXP   Update the decimal exponent.
+01389P 0394 D6   4F      A        LDB    FACEXP   Is the FAC less than 1?
+01390P 0396 C1   80      A        CMPB   #@200
+01391P 0398 22   11   03AB        BHI    FOUTN3   No.
+01392P 039A 8E   0000    A        LDX    #N.MIL   Yes, multiply by a large number.
+01393P 039D BD   0000    A        JSR    FMULT    (One million for ADDPRC=0, one
+01394                      *    billion for ADDPRC=1.)
+01395P 03A0 96   47      A        LDA    TENEXP   Adjust the decimal exponent.
+01396P 03A2 80   09      A        SUBA   #&6+&3*ADDPRC
+01397P 03A4 20   EC   0392        BRA    FOUTN1   Go back and see if still less than 1.
+01398
+01399P 03A6 BD   0000    A FOUTN2 JSR    DIV10    Divide by 10 and increment the decimal
+01400P 03A9 0C   47      A        INC    TENEXP   exponent.
+01401P 03AB 8E   0000    A FOUTN3 LDX    #N.9999  Is the FAC too big?
+01402P 03AE BD   0000    A        JSR    FOUTCP
+01403P 03B1 2E   F3   03A6        BGT    FOUTN2   Yes, make it smaller.
+01404
+01405P 03B3 8E   0000    A FOUTN4 LDX    #N.0999  Is the FAC too small?
+01406P 03B6 BD   0000    A        JSR    FOUTCP
+01407P 03B9 2E   07   03C2        BGT    FOUTN5   No, it is normalized.
+01408P 03BB BD   0000    A        JSR    MUL10    Yes, multiply by ten and decrement
+01409P 03BE 0A   47      A        DEC    TENEXP   the decimal exponent.
+01410P 03C0 20   F1   03B3        BRA    FOUTN4   Go see if still too small.
+01411
+01412P 03C2 35   C0      A FOUTN5 PULS   U,PC     Restore the buffer pointer and return.
+01413
+

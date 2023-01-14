@@ -673,3 +673,38 @@ FOTZS5 ANDA   #TRLFLG  Trailing sign specified?
        STB    ,-X      No, put the leading sign back in.
 FOTZSR RTS
 
+*
+* Normalize the FAC so all significant digits are in the
+* integer part.
+*
+
+FOUTN  PSHS   U        Save the buffer pointer.  (It could
+*    be destroyed by calls to FMULT and
+*    MUL10 if they are ever optimized for
+*    6809.)
+       CLRA            Initialize decimal exponent to 0.
+FOUTN1 STA    TENEXP   Update the decimal exponent.
+       LDB    FACEXP   Is the FAC less than 1?
+       CMPB   #@200
+       BHI    FOUTN3   No.
+       LDX    #N.MIL   Yes, multiply by a large number.
+       JSR    FMULT    (One million for ADDPRC=0, one
+*    billion for ADDPRC=1.)
+       LDA    TENEXP   Adjust the decimal exponent.
+       SUBA   #&6+&3*ADDPRC
+       BRA    FOUTN1   Go back and see if still less than 1.
+
+FOUTN2 JSR    DIV10    Divide by 10 and increment the decimal
+       INC    TENEXP   exponent.
+FOUTN3 LDX    #N.9999  Is the FAC too big?
+       JSR    FOUTCP
+       BGT    FOUTN2   Yes, make it smaller.
+
+FOUTN4 LDX    #N.0999  Is the FAC too small?
+       JSR    FOUTCP
+       BGT    FOUTN5   No, it is normalized.
+       JSR    MUL10    Yes, multiply by ten and decrement
+       DEC    TENEXP   the decimal exponent.
+       BRA    FOUTN4   Go see if still too small.
+
+FOUTN5 PULS   U,PC     Restore the buffer pointer and return.
