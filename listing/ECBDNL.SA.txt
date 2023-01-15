@@ -1,0 +1,399 @@
+PAGE  001  ECBCOM  .SA:0  Downlo Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    Downloader for TXR / MLC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      •    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   BLKIN,BLKOUT
+00712                             XREF   CASBUF,CHKCOM,CHRINP,CHROUT,CLOAD,CLOSIT,CLSCAS,COMBYT,CSRDON
+00713                             XREF   ERRNE,ERROR,EVLADR
+00714                             XREF   FCERR,FILNAM,FILTYP,FINLDB,FMERR
+00715                             XREF   GAPFLG,GETBYT,GETFLN
+00716                             XREF   INHST,IOERR
+00717                             XREF   JOYIN
+00718                             XREF   LODBUF
+00719                             XREF   MAIN,MLDUNG
+00720                             XREF   OPNCSI,OUTHST
+00721                             XREF   PIA1AD,PIA1BD,POLCAT
+00722                             XREF   SCRTCH,STBAUD
+00723                             XREF   TRMCHK
+00724                             XREF   WRTLDR
+00725
+00726                             TTL    Equates
+00727
+00728            0005    A DNLTRY EQU    &5       Number of times to try before giving
+00729                      *    up when communicating with the host.
+00730
+00731            00BC    A P.ABRT EQU    @274     Abort control code.  (BC)
+00732            00C8    A P.ACK  EQU    @310     Acknowledge control code.  (C8)
+00733            0097    A P.BLKR EQU    @227     Block request.  (97)
+00734            008A    A P.FILR EQU    @212     File request.  (8A)
+00735            00DE    A P.NAK  EQU    @336     Bad transmission.  (DE)
+00736
+00737                             TTL    DLOAD - Load program from host computer.
+00738
+00739                      *
+00740                      * DLOAD[<filename>[,<baud rate select>]]
+00741                      * DLOADM[<filename>[,[<baud rate select>][,<load offset>]]]
+00742                      *
+00743
+00744                             XDEF   DLOAD
+00745P 0000 BD   0000    A DLOAD  JSR    CLSCAS   Close the cassette since DLOAD uses
+00746                      *    the cassette buffer and other temps.
+00747P 0003 6F   E2      A        CLR    ,-S      Say it isn't DLOADM.
+00748P 0005 9D   A5      A        JSR    CHRGOT   Refetch since CLSCAS destroyed A.
+00749P 0007 81   4D      A        CMPA   #'M      Is it DLOADM?
+00750P 0009 26   04   000F        BNE    NTDLDM   No.
+00751P 000B A7   E4      A        STA    ,S       Yes, remeber that it is.
+00752P 000D 9D   9F      A        JSR    CHRGET   Skip over the "M".
+00753P 000F BD   0000    A NTDLDM JSR    GETFLN   Scan the filename into FILNAM.
+00754P 0012 9D   A5      A        JSR    CHRGOT   End of the statement?
+00755P 0014 27   11   0027        BEQ    OLDBR    Yes, use the old baud rate.
+00756P 0016 BD   0000    A        JSR    CHKCOM   No, skip a comma.
+00757P 0019 81   2C      A        CMPA   #COMMA   Use the old baud rate?
+
+PAGE  002  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
+
+00758P 001B 27   0A   0027        BEQ    OLDBR    Yes.
+00759P 001D BD   0000    A        JSR    GETBYT   No, evaluate the baud rate arg.
+00760P 0020 BD   0000    A        JSR    STBAUD   Call the baud rate select routine.
+00761P 0023 1025 FFD9    A        LBCS   FCERR    Bad argument, give FC error.
+00762P 0027 BD   00AB    P OLDBR  JSR    OPNHST   Open the file on the host and load
+00763                      *    the cassette buffer.
+00764P 002A 34   02      A        PSHS   A        Save the file type byte.
+00765P 002C 86   FD      A        LDA    #-&3     Set DEVNUM so chars come from the
+00766P 002E 97   6F      A        STA    DEVNUM   host file.
+00767P 0030 35   02      A        PULS   A        Retrieve the file type.
+00768P 0032 6D   E0      A        TST    ,S+      Test and get rid of the DLOADM flag.
+00769P 0034 26   2A   0060        BNE    DLOADM   Go handle DLOADM.
+00770P 0036 BD   0000    A        JSR    TRMCHK   For DLOAD, the statement must end now.
+00771P 0039 5D                    TSTB            Is it an ASCII file?
+00772P 003A 27   06   0042        BEQ    BADMOD   No, can't load it.
+00773P 003C BD   0000    A        JSR    SCRTCH   Yes, get rid of the old program.
+00774P 003F 7E   0000    A        JMP    MAIN     Main does the rest.
+00775
+00776P 0042 7E   0000    A BADMOD JMP    FMERR    Give a file mode error.
+00777                      *    Eventually the host will figure out
+00778                      *    that we have given up.
+
+PAGE  003  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
+
+00780                      *
+00781                      * The CLOAD code comes here so we can grab CLOADM to handle
+00782                      * assembler object code files which have the same format as
+00783                      * DLOADM files.
+00784                      *
+00785
+00786                             XDEF   CLOADM
+00787P 0045 0F   78      A CLOADM CLR    CASOPN   Yes, force the cassette closed.
+00788                      *    (Don't force out buffer to be
+00789                      *    consistent with 8K ROM.  See comments
+00790                      *    regarding this in 8K CLOAD code.)
+00791P 0047 9D   9F      A        JSR    CHRGET   Skip over the "M".
+00792P 0049 BD   0000    A        JSR    GETFLN   Scan the filename.
+00793P 004C BD   0000    A        JSR    OPNCSI   Open the cassette for input.
+00794P 004F 7D   0000    A        TST    GAPFLG   Is it a gapped file?
+00795P 0052 1027 FFAA    A        LBEQ   MLDUNG   No, let 8K ROM handle.
+00796P 0056 FE   0000    A        LDU    FILTYP   Yes, save the FILTYP and ASCFLG in
+00797                      *    in U since LODBUF will overwrite
+00798                      *    them.  (LODBUF doesn't affect U.)
+00799P 0059 0A  6F       A        DEC    DEVNUM   Set DEVNUM to -1 for cassette.  (It
+00800                      *    is OK to assume that DEVNUM is zero
+00801                      *    since it is guaranteed to be zero
+00802                      *    at the start of each statement.)
+00803P 005B BD   0000    A        JSR    LODBUF   Load the cassette buffer.
+00804P 005E 1F   30      A        TFR    U,D      A:=FILTYP, B:=ASCFLG.
+00805P 0060 83   0200    A DLOADM SUBD   #&2*&256 Must be a binary machine language
+00806                      *    file.
+00807P 0063 26   DD   0042        BNE    BADMOD   Give file mode error if not.
+00808P 0065 9E   8A      A        LDX    DBLZER   Assume no load offset given.
+00809P 0067 9D   A5      A        JSR    CHRGOT   Is there one?
+00810P 0069 27   06   0071        BEQ    OFFNO    No.
+00811P 006B BD   0000    A        JSR    CHKCOM   Yes, skip the comma and evaluate
+00812P 006E BD   0000    A        JSR    EVLADR   the load offset into X.
+00813P 0071 9F   D3      A OFFNO  STX    LODOFF   Save the load offset.
+00814P 0073 BD   0000    A        JSR    TRMCHK   The statement must end now.
+00845P 0076 8D   29   00A1 LODMRC BSR    NXTCHR   Get and save the record type byte.
+00816P 0078 34   02      A        PSHS   A
+00817P 007A 8D   1E   009A        BSR    LOD2M    Read the record length into D.
+00818P 007C 1F   02      A        TFR    D,Y      Move byte count to Y.
+00819P 007E 8D   1A   009A        BSR    LOD2M    D:=load or execution address,
+00820P 0080 D3   D3      A        ADDD   LODOFF   Add in the offset.
+00821P 0082 DD   9D      A        STD    EXECAD   Store it for the EXEC statement.
+00622P 0084 1F   01      A        TFR    D,X      Put load address into X.
+00823P 0086 A6   E0      A        LDA    ,S+      Is this a data record?
+00824P 0088 1026 FF74    A        LBNE   CLOSIT   No, close the file and return.
+00825P 008C 8D   13   00A1 LODMLP BSR    NXTCHR   Get a byte of the program.
+00826P 008E A7   84      A        STA    ,X       Store it.
+00827P 0090 A1   80      A        CMPA   ,X+      Did it store OK?
+00828P 0092 26   14   00A8        BNE    GOIOER   No, give I/O error.
+00829P 0094 31   3F      A        LEAY   -&1,Y    Yes, more to read?
+00830P 0096 26   F4   008C        BNE    LODMLP   Yes, read the next byte.
+00831P 0098 20   DC   0076        BRA    LODMRC   No, go handle the next record.
+00832
+00833P 009A 8D   00   009C LOD2M BSR     LOD1M    D:=next two bytes from tape.
+00834P 009C 8D   03   00A1 LOD1M BSR     NXTCHR
+00835P 009E 1E   89      A        EXG    A,B
+00836P 00A0 39             LODRTS RTS
+00837
+
+PAGE  004  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
+
+00838                      *
+00839                      * Read char from file and give I/O error if end of file.
+00840                      *
+00841
+00842P 00A1 BD   0000    A NXTCHR JSR    CHRINP   Try to read a char.
+00843P 00A4 0D   70      A        TST    EOFFLG   End of file?
+00844P 00A6 27   F8   00A0        BEQ    LODRTS   No, return with the char.
+00845P 00A8 7E   0000    A GOIOER JMP    IOERR    yes, give an I/O error.
+00846
+
+PAGE  005  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
+
+00848                      *
+00849                      * Open the file on the host and load the first block into the
+00850                      * cassette buffer.
+00851                      * On exit, A=file type, B:=ASCII flag.
+00852                      *
+00853
+00854P 00AB 8D   1F   00CC OPNHST BSR    OPNDNL   Open the file.
+00855P 00AD 34   06      A        PSHS   D        Save file type and ASCII flag.
+00856P 00AF 4C                    INCA            Was the file found?
+00857P 00B0 27   06   00B8        BEQ    NEERR    No, give NonExistent file error.
+00858P 00B2 DE   8A      A        LDU    DBLZER   Yes, zero the block number.
+00859P 00B4 8D   09   00BF        BSR    LDBUFU   (Enter with U set up.)
+00860P 00B6 35   86      A        PULS   D,PC     Retrieve file type and ASCII flag
+00861                      *    and return.
+00862
+00863P 00B8 C6   00      A NEERR  LDB    #ERRNE  NonExistent file error.
+00864P 00BA 7E   0000    A        JMP    ERROR
+00865
+00866
+00867                      *
+00868                      * Load next block of host file into cassette buffer.
+00869                      *
+00870
+00871                             XDEF   LDBUFR
+00872P 00BD DE   7E      A LDBUFR LDU    BLKNUM   U:=block number for DNLBLK.
+00873P 00BF 30   41      A LDBUFU LEAX   &1,U     Increment it for next time.
+00874P 00C1 9F   7E      A        STX    BLKNUM
+00875P 00C3 8E   0000    A        LDX    #CASBUF  Set up buffer pointer for DNLBLK.
+00876P 00C6 BD   0135    P        JSR    DNLBLK   Load the block from the host.
+00877P 00C9 7E   0000    A        JMP    FINLDB   Finish up in the cassette load
+00878                      *    buffer code to set the character count
+00879                      *    and buffer pointer.
+
+PAGE  006  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
+
+00881
+00882                             TTL    OPNDNL - Open file for downloading.
+00883
+00884                      *
+00885                      * In - FILNAM through FILNAM+7 contains the filename, left
+00886                      * justified, blank filled.
+00887                      *
+00888                      * Out - A=file type byte, FF means file not found.
+00889                      * B=ASCII flag, FF if ASCII file, 0 if binary file.
+00890                      *
+00891
+00892P 00CC 4F             OPNDNL CLRA            Clear the error count and reserve
+00893P 00CD 34   16      A        PSHS   X,D      storage r error count, LRC, file
+00894                      *    type, and ASCII flag.
+00895P 00CF 31   E4      A        LEAY   ,S       Mark the stack.
+00896P 00D1 20   02   00D5        BRA    FILREQ   Go send out the first file request.
+00897
+00898P 00D3 8D   2B   0100 FILERR BSR    INCERR   Increment the error count.
+00899P 00D5 86   8A      A FILREQ LDA    #P.FILR  Send fiie request control code and
+00900P 00D7 8D   37   0110        BSR    OUTREQ   look at the host's response.
+00901P 00D9 26   F8   00D3        BNE    FILERR   Timed out or wrong response.
+00902P 00DB 8E   0000    A        LDX    #FILNAM  Send out the filename while
+00903P 00DE A6   80      A SNDNLP LDA    ,X+      calculating the LRC.  (LRC was
+00904P 00E0 BD   0178    P        JSR    BOLRC    cleared by OUTREQ.)
+00905P 00E3 8C   0008    A        CMPX   #FILNAM+&8
+00906P 00E6 26   F6   00DE        BNE    SNDNLP
+00907P 00E8 8D   30   011A        BSR    OUTLRC   Send out the LRC and look for ACK.
+00908P 00EA 26   E7   00D3        BNE    FILERR   No ACK, try it all over.
+00909P 00EC 8D   3C   012A        BSR    BILRC    Read the file type.  (OUTLRC cleared
+00910                      *    the LRC.)
+00911P 00EE 26   E3   00D3        BNE    FILERR   Time out
+00912P 00F0 A7   22      A        STA    &2,Y     Save the file type.
+00913P 00F2 8D   36   012A        BSR    BILRC    Read the ASCII flag.
+00914P 00F4 26   DD   00D3        BNE    FILERR   Time out
+00915P 00F6 A7   23      A        STA    &3,Y     Save the ASCII flag.
+00916P 00F8 8D   29   0123        BSR    INLRC    Read and check the LRC.
+00917P 00FA 26   D7   00D3        BNE    FILERR   Error, start over.
+00918P 00FC 32   62      A        LEAS   &2,S     All OK, get rid of garbage.
+00919P 00FE 35   86      A        PULS   D,PC     A:=file type, B:=ASCII flag,
+00920                      *    and return.
+
+PAGE  007  ECBDNL  .SA:1  Downlo OPNDNL - Open file for downloading.
+
+00922                             TTL    Support Routines for OPNDNL and DNLBLK.
+00923
+00924                      *
+00925                      * Increment the error count.
+00926                      * Return if error count is less than DNLTRY.
+00927                      * Otherwise, send P.ABRT to host and jump to IOERR.
+00928                      *
+00929
+00930P 0100 6C   A4      A INCERR INC    ,Y       Increment the error count.
+00931P 0102 A6   A4      A        LDA    ,Y       Reached the maximum?
+00932P 0104 81   05      A        CMPA   #DNLTRY
+00933P 0106 25   1A   0122        BLO    LRCRTS   No, just return.
+00934P 0108 86   BC      A        LDA    #P.ABRT  Yes, send abort control code to the
+00935P 010A BD   0000    A        JSR    OUTHST   host and give an I/O error.
+00936P 010D 7E   0000    A        JMP    IOERR
+00937
+00938
+00939                      *
+00940                      * Send out request control code (passed in A) to the host and
+00941                      * read response.  Response should be the same control code as
+00942                      * send to the host.
+00943                      * Return with Z=1 if good response, Z=0 for time out or bad response.
+00944                      *
+00945                      * Clear the LRC for the convenience of callers.
+00946                      *
+00947
+00948P 0110 34   02      A OUTREQ PSHS   A        Save the control code.
+00949P 0112 8D   5D   0171        BSR    CLRCOI   Clear the LRC, output the byte, and
+00950                      *    read the response.
+00951P 0114 26   02   0118        BNE    REQTO    Time out, return with Z=0.
+00952P 0116 A1   E4      A        CMPA   ,S       Does response match?
+00953                      *    (Z=1 if yes, Z=0 if no.)
+00954P 0118 35   82      A REQTO  PULS   A,PC     Restore A and return.
+00955
+
+PAGE  008  ECBDNL  .SA:1  Downlo Support Routines for OPNDNL and DNLBLK.
+
+00957                      *
+00958                      * Send out the LRC, wait for response, and clear the LRC.
+00959                      * Return with Z=1 if response is P.ACK, Z=0 for bad or no response.
+00960                      *
+00961
+00962P 011A A6   21      A OUTLRC LDA    &1,Y     Get the LRC.
+00963P 011C 8D   53   0171        BSR    CLRCOI   Send it out, clear the LRC, and get
+00964                      *    response from host.
+00965P 011E 26   02   0122        BNE    LRCRTS   Time out, Z=0.
+00966P 0120 81   C8      A        CMPA   #P.ACK   Set Z=1 if good response.
+00967P 0122 39             LRCRTS RTS
+00968
+00969
+00970                      *
+00971                      * Read and check the LRC.
+00972                      * Return with Z=1 if good, Z=0 if bad.
+00973                      *
+00974
+00975P 0123 8D   05   012A INLRC  BSR    BILRC    Read the LRC and XOR it into the
+00976                      *    one that's been calculated.
+00977P 0125 26   FB   0122        BNE    LRCRTS   Timed out, return with Z=0.
+00978P 0127 A6   21      A        LDA    &1,Y     It is zero if they matched.
+00979P 0129 39                    RTS
+00980
+00981
+00982                      *
+00983                      * Send out byte and update the LRC.
+00984                      *
+00985
+00986P 012A BD   0000    A BILRC  JSR    INHST    Input the byte.
+00987P 012D 34   03      A        PSHS   A,CC     Save the byte and the timeout flag.
+00988                      *    (Timeout flag is the Z bit.)
+00989P 012F A8   21      A        EORA   &1,Y     Update the LRC.
+00990P 0131 A7   21      A        STA    &1,Y
+00991P 0133 35   83      A        PULS   CC,A,PC  Restore timeout flag, clean up and
+00992                      *    return.
+
+PAGE  009  ECBDNL  .SA:1  Downlo Support Routines for OPNDNL and DNLBLK.
+
+00994                             TTL    DNLBLK - Download a block of data.
+00995
+00996                      *
+00997                      * In - U=14 bit block number.
+00998                      * X=buffer pointer.  (Buffer must be 128 bytes long.)
+00999                      *
+01000                      * Out - A=block length, 0 to 128, 0 means end of file.
+01001                      * 128 bytes in the buffer (even if block length .LT. 128)
+01002                      *
+01003
+01004P 0135 4F             DNLBLK CLRA            Clear the error count, save the
+01005P 0136 34   76      A        PSHS   U,Y,X,D  block number and buffer pointer,
+01006                      *    and reserve storage for the LRC
+01007                      *    and block length.  (One extra byte
+01008                      *    is pushed in the process.)
+01009P 0138 68   67      A        LSL    &7,S     Put the low order 7 bits of the
+01010P 013A 69   66      A        ROL    &6,S     block number into the low order
+01011P 013C 64   67      A        LSR    &7,S     byte and the high order 7 bits into
+01012                      *    the high order byte. This is done
+01013                      *    so bit7 is never sent to the host
+01014                      *    as a 1, since only control codes
+01015                      *    can have the MSB set.  By the way,
+01016                      *    this is also why an LRC is used
+01017                      *    instead of a checksum since using
+01018                      *    the LRC guarantees the MSB to be
+01019                      *    0 if it isn't set in any of the
+01020                      *    bytes being XORed together.
+01021P 013E 31   E4      A        LEAY   ,S       Mark the stack.
+01022P 0140 20   02   0144        BRA    BLKREQ   Go send out the first block request.
+01023
+01024P 0142 8D   BC   0100 BLKERR BSR    INCERR   Increment the error count.
+01025P 0144 86   97      A BLKREQ LDA    #P.BLKR  Send out the block request and wait
+01026P 0146 8D   C8   0110        BSR    OUTREQ   for the response.
+01027P 0148 26   F8   0142        BNE    BLKERR   Try again.
+01028P 014A A6   26      A        LDA    &6,Y     Send out the high 7 bits of the
+01029P 014C 8D   2A   0178        BSR    BOLRC    block number.  (LRC was cleared by
+01030                      *    OUTREQ.)
+01031P 014E A6   27      A        LDA    &7,Y     Send out the low 7 bits.
+01032P 0150 8D   26   0178        BSR    BOLRC
+01033P 0152 8D   C6   011A        BSR    OUTLRC   Send out the LRC and listen for ACK.
+01034P 0154 26   EC   0142        BNE    BLKERR   Error, retry it.
+
+PAGE  010  ECBDNL  .SA:1  Downlo DNLBLK - Download a block of data.
+
+01036P 0156 8D   D2   012A        BSR    BILRC    Read the record length.  (LRC was
+01037                      *    cleared by OUTLRC.)
+01038P 0158 26   E8   0142        BNE    BLKERR   Timed out.
+01039P 015A A7   24      A        STA    &4,Y     Save the block length.
+01040P 015C AE   22      A        LDX    &2,Y     Point to the buffer.
+01041P 015E C6   80      A        LDB    #&128    Will read 128 bytes.
+01042P 0160 8D   C8   012A MORBLK BSR    BILRC    Read byte and update LRC.
+01043P 0162 26   DE   0142        BNE    BLKERR   Time out.
+01044P 0164 A7   80      A        STA    ,X+      Put it in the buffer.
+01045P 0166 5A                    DECB
+01046P 0167 26   F7   0160        BNE    MORBLK
+01047P 0169 8D   B8   0123        BSR    INLRC    Read and check the LRC.
+01048P 016B 26   D5   0142        BNE    BLKERR   No good, start all over.
+01049P 016D 32   64      A        LEAS   &4,S     Get rid of some garbage.
+01050P 016F 35   96      A        PULS   D,X,PC   A:=block length, get rid of the
+01051                      *    rest of the garbage and return.
+01052
+01053
+01054                      *
+01055                      * CLRCOI clears the LRC, outputs the byte in A, and jumps to
+01056                      * INHST to read the response.
+01057                      *
+01058
+01059P 0171 6F   21      A CLRCOI CLR    &1,Y     Clear the LRC.
+01060P 0173 8D   0B   0180        BSR    GOUTHS   Send out the byte.
+01061P 0175 7E   0000    A        JMP    INHST    Jump to INHST to read the response.
+01062
+01063
+01064                      *
+01065                      * BOLRC outputs the byte in A and updates the LRC.
+01066                      *
+01067
+01068P 0178 34   02      A BOLRC  PSHS   A        Save the byte.
+01069P 017A A8   21      A        EORA   &1,Y     Update the LRC.
+01070P 017C A7   21      A        STA    &1,Y
+01071P 017E 35   02      A        PULS   A        Retrieve the byte and jump to
+01072P 0180 7E   0000    A GOUTHS JMP    OUTHST   OUTHST to send it out.
+01073
+01074                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000

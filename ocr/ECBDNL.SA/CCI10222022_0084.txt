@@ -1,73 +1,60 @@
-                                                r r
+PAGE  001  ECBCOM  .SA:0  Downlo Extension ROM Direct Page RAM
 
-                                                            PAGE 001 ECBCOM .SA:0 Downio Extension ROM Direct Page RAM
-
-
-                                                            00700                                                                              OPT              L,LLE=120
-                                                            00701                                                                              NAM              Downloader for TXR / MLC
-                                                            00702
-                                                            00703                                                             *****************************************************************44.****
-                                                            00704                                                             *                                                                                                                                                                       *
-                                           •                00705                                                             •           Copyright 1982 by Microsoft Corporation, all rights reserved
-                                                            00706                                                             *                                                                                                                                                                       *
-                                                            00707                                                             **********************************************************************
-                                                            00708
-                                                            00709                                                                              TTL              External Declarations
-                                                            00710
-                                                            00711                                                                              XREF             BLKIN,BLKOUT 
-                                                            00712                                                                              XREF             0ASBUF,CHK00M,CHRINP,CHROUT,OLDAD,CLOSIT,CLSCAS,00MBYT,CSRDON 
-                                                            00713                                                                              XREF             ERRNE,ERROR,EVLADR
-                                                            00714                                                                              XREF             FDERR,FILNAM,FILTYP,FINLDB,FMERR
-                                                            00715                                                                              XREF             GAPFLG,GETBYT,SETFLN
-                                                            00716                                                                              XREF             INHST,I0ERR
-                                                            00717                                                                              XREF             JOYIN
-                                                            00718                                                                              XREF             LODBUF 
-                                                            00719                                                                              XREF             MAIN,MLDUNG
-                                                            00720                                                                              XREF             OPN0SI,OUTHST
-                                                            00721                                                                              XREF             PIA1AD,PIA1BD,POLCAT
-                                                            00'722                                                                             XREF             SCRT0H,STBAUD
-                                                            007:23                                                                             XREF             TRMCHK 
-                                                            00724                                                                              XREF             WRTLDR
-                                                            00725                                                                                                                                                                                                                                                                                                                                 •
-                                                            00726                                                                              TTL              Equates
-                                                            00727
-                                                            00728                                     0005               A    DNLTRY EQU                        &5                    Number of times to                            try before giving
-                                                            00729                                                                         up when             communicating with the host.
-                                                            00730
-                                                            00731                                     00B0               A    P.ABRT           EQU              @274                  Abort control code.                                 (BC)
-                                                            00732                                     0008               A    P.ACK            EQU              @310                  Acknowledge control                              code.          (08)
-                                                            00733                                     0097               A    P.BLKR           EQU              @227                  Block          request.                 (97)                                                                                                                                                              '
-                                                            00734                                     008A               A    P.FILR           EQU              @212                  File         request.              (8A)
-                                                            00735                                     OODE               A    P.NAK            EQU              @336                  Bad transmission.                              (DE)
-                                                            00736
-                                                            00737                                                                              TTL              DLOAD          -    Load program from host computer.
-                                                            00738
-                                                            00739                                                             *
-                                                            00740                                                             *    DLOADC<filename)E,tbaud rate select)]]
-                                                            00741                                                             *    DLOADMEffilename>E,Nbaud rate select>3C,(load offset= 
-                                                            00742                                                             *
-
-                                                            00743                                                                                                                                                                                                                                                                                                                                 •
- ssion" - it's a word th                                    00744                                                                              XDEF             DLOAD
--lent. The latest in Dan                                    00745P            0000        BD          0000               A    DLOAD JSR                         CLSCAS                Close the cassette since DLOAD uses
-of power amplifiers is                                      00746                                                             *           the cassette buffer and other temps.
-  spent in the research                                     00747P            0003        6F          E2                 A                     CLR              ,-S                   Say it isn't DLOADM.
- nents that always rise t                                   00748P            0005        9D          AS                 A                     JSR              CHRGOT                Refetch since CLSCAS destroyed A.
- respect the demands                                        00749P            0007        81          4D                 A                     CMPA             it'M                  Is it DLOADM?
-  realism from the most                                     00750P            0009        26          04          000F                         BNE              NTDLDM                No
-DSt thunderous of cres                                      00751P            000B        A7          E4                 A                     STA              ,S                    Yes, remeber that it is.                                                                                                                                                                              Pri
-  illowed to affect the d                                   00752P            000D        9D          SF                 A                     JSR              CHRGET                Skip over the "Mu.
-                                                            00753P            000F        BD          0000               A    NTDLDM JSR                        SETELN                Scan the filename into FILNAM„
-                                                            00754P            0012        9D          AS                 A                     JSR              CHRGOT                End of the statement?
-                                                            00755P            0014        27          11          0027                         BEO              OLDBR                 Yes, use the old baud rate.
-                                                            00756P            0016        BD          0000               A                     JSR              CHKCOM                No, skip a comma.
-             I         ' , .11,1 /1, l[t.;                  00757P            0019        81          20                 A                     0MPA             #COMMA                Use the old baud rate?
-
-
-
-
-
-
-
-                                           •
-
+00700                             OPT    L,LLE=120
+00701                             NAM    Downloader for TXR / MLC
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      •    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL    External Declarations
+00710
+00711                             XREF   BLKIN,BLKOUT
+00712                             XREF   CASBUF,CHKCOM,CHRINP,CHROUT,CLOAD,CLOSIT,CLSCAS,COMBYT,CSRDON
+00713                             XREF   ERRNE,ERROR,EVLADR
+00714                             XREF   FCERR,FILNAM,FILTYP,FINLDB,FMERR
+00715                             XREF   GAPFLG,GETBYT,GETFLN
+00716                             XREF   INHST,IOERR
+00717                             XREF   JOYIN
+00718                             XREF   LODBUF
+00719                             XREF   MAIN,MLDUNG
+00720                             XREF   OPNCSI,OUTHST
+00721                             XREF   PIA1AD,PIA1BD,POLCAT
+00722                             XREF   SCRTCH,STBAUD
+00723                             XREF   TRMCHK
+00724                             XREF   WRTLDR
+00725
+00726                             TTL    Equates
+00727
+00728            0005    A DNLTRY EQU    &5       Number of times to try before giving
+00729                      *    up when communicating with the host.
+00730
+00731            00BC    A P.ABRT EQU    @274     Abort control code.  (BC)
+00732            00C8    A P.ACK  EQU    @310     Acknowledge control code.  (C8)
+00733            0097    A P.BLKR EQU    @227     Block request.  (97)
+00734            008A    A P.FILR EQU    @212     File request.  (8A)
+00735            00DE    A P.NAK  EQU    @336     Bad transmission.  (DE)
+00736
+00737                             TTL    DLOAD - Load program from host computer.
+00738
+00739                      *
+00740                      * DLOAD[<filename>[,<baud rate select>]]
+00741                      * DLOADM[<filename>[,[<baud rate select>][,<load offset>]]]
+00742                      *
+00743
+00744                             XDEF   DLOAD
+00745P 0000 BD   0000    A DLOAD  JSR    CLSCAS   Close the cassette since DLOAD uses
+00746                      *    the cassette buffer and other temps.
+00747P 0003 6F   E2      A        CLR    ,-S      Say it isn't DLOADM.
+00748P 0005 9D   A5      A        JSR    CHRGOT   Refetch since CLSCAS destroyed A.
+00749P 0007 81   4D      A        CMPA   #'M      Is it DLOADM?
+00750P 0009 26   04   000F        BNE    NTDLDM   No.
+00751P 000B A7   E4      A        STA    ,S       Yes, remeber that it is.
+00752P 000D 9D   9F      A        JSR    CHRGET   Skip over the "M".
+00753P 000F BD   0000    A NTDLDM JSR    GETFLN   Scan the filename into FILNAM.
+00754P 0012 9D   A5      A        JSR    CHRGOT   End of the statement?
+00755P 0014 27   11   0027        BEQ    OLDBR    Yes, use the old baud rate.
+00756P 0016 BD   0000    A        JSR    CHKCOM   No, skip a comma.
+00757P 0019 81   2C      A        CMPA   #COMMA   Use the old baud rate?

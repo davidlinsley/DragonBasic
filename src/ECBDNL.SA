@@ -1,0 +1,372 @@
+
+       NAM    Downloader for TXR / MLC
+
+**********************************************************************
+*                                                                    *
+•    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   BLKIN,BLKOUT
+       XREF   CASBUF,CHKCOM,CHRINP,CHROUT,CLOAD,CLOSIT,CLSCAS,COMBYT,CSRDON
+       XREF   ERRNE,ERROR,EVLADR
+       XREF   FCERR,FILNAM,FILTYP,FINLDB,FMERR
+       XREF   GAPFLG,GETBYT,GETFLN
+       XREF   INHST,IOERR
+       XREF   JOYIN
+       XREF   LODBUF
+       XREF   MAIN,MLDUNG
+       XREF   OPNCSI,OUTHST
+       XREF   PIA1AD,PIA1BD,POLCAT
+       XREF   SCRTCH,STBAUD
+       XREF   TRMCHK
+       XREF   WRTLDR
+
+       TTL    Equates
+
+DNLTRY EQU    &5       Number of times to try before giving
+*    up when communicating with the host.
+
+P.ABRT EQU    @274     Abort control code.  (BC)
+P.ACK  EQU    @310     Acknowledge control code.  (C8)
+P.BLKR EQU    @227     Block request.  (97)
+P.FILR EQU    @212     File request.  (8A)
+P.NAK  EQU    @336     Bad transmission.  (DE)
+
+       TTL    DLOAD - Load program from host computer.
+
+*
+* DLOAD[<filename>[,<baud rate select>]]
+* DLOADM[<filename>[,[<baud rate select>][,<load offset>]]]
+*
+
+       XDEF   DLOAD
+DLOAD  JSR    CLSCAS   Close the cassette since DLOAD uses
+*    the cassette buffer and other temps.
+       CLR    ,-S      Say it isn't DLOADM.
+       JSR    CHRGOT   Refetch since CLSCAS destroyed A.
+       CMPA   #'M      Is it DLOADM?
+       BNE    NTDLDM   No.
+       STA    ,S       Yes, remeber that it is.
+       JSR    CHRGET   Skip over the "M".
+NTDLDM JSR    GETFLN   Scan the filename into FILNAM.
+       JSR    CHRGOT   End of the statement?
+       BEQ    OLDBR    Yes, use the old baud rate.
+       JSR    CHKCOM   No, skip a comma.
+       CMPA   #COMMA   Use the old baud rate?
+       BEQ    OLDBR    Yes.
+       JSR    GETBYT   No, evaluate the baud rate arg.
+       JSR    STBAUD   Call the baud rate select routine.
+       LBCS   FCERR    Bad argument, give FC error.
+OLDBR  JSR    OPNHST   Open the file on the host and load
+*    the cassette buffer.
+       PSHS   A        Save the file type byte.
+       LDA    #-&3     Set DEVNUM so chars come from the
+       STA    DEVNUM   host file.
+       PULS   A        Retrieve the file type.
+       TST    ,S+      Test and get rid of the DLOADM flag.
+       BNE    DLOADM   Go handle DLOADM.
+       JSR    TRMCHK   For DLOAD, the statement must end now.
+       TSTB            Is it an ASCII file?
+       BEQ    BADMOD   No, can't load it.
+       JSR    SCRTCH   Yes, get rid of the old program.
+       JMP    MAIN     Main does the rest.
+
+BADMOD JMP    FMERR    Give a file mode error.
+*    Eventually the host will figure out
+*    that we have given up.
+
+*
+* The CLOAD code comes here so we can grab CLOADM to handle
+* assembler object code files which have the same format as
+* DLOADM files.
+*
+
+       XDEF   CLOADM
+CLOADM CLR    CASOPN   Yes, force the cassette closed.
+*    (Don't force out buffer to be
+*    consistent with 8K ROM.  See comments
+*    regarding this in 8K CLOAD code.)
+       JSR    CHRGET   Skip over the "M".
+       JSR    GETFLN   Scan the filename.
+       JSR    OPNCSI   Open the cassette for input.
+       TST    GAPFLG   Is it a gapped file?
+       LBEQ   MLDUNG   No, let 8K ROM handle.
+       LDU    FILTYP   Yes, save the FILTYP and ASCFLG in
+*    in U since LODBUF will overwrite
+*    them.  (LODBUF doesn't affect U.)
+       DEC    DEVNUM   Set DEVNUM to -1 for cassette.  (It
+*    is OK to assume that DEVNUM is zero
+*    since it is guaranteed to be zero
+*    at the start of each statement.)
+       JSR    LODBUF   Load the cassette buffer.
+       TFR    U,D      A:=FILTYP, B:=ASCFLG.
+DLOADM SUBD   #&2*&256 Must be a binary machine language
+*    file.
+       BNE    BADMOD   Give file mode error if not.
+       LDX    DBLZER   Assume no load offset given.
+       JSR    CHRGOT   Is there one?
+       BEQ    OFFNO    No.
+       JSR    CHKCOM   Yes, skip the comma and evaluate
+       JSR    EVLADR   the load offset into X.
+OFFNO  STX    LODOFF   Save the load offset.
+       JSR    TRMCHK   The statement must end now.
+LODMRC BSR    NXTCHR   Get and save the record type byte.
+       PSHS   A
+       BSR    LOD2M    Read the record length into D.
+       TFR    D,Y      Move byte count to Y.
+       BSR    LOD2M    D:=load or execution address,
+       ADDD   LODOFF   Add in the offset.
+       STD    EXECAD   Store it for the EXEC statement.
+       TFR    D,X      Put load address into X.
+       LDA    ,S+      Is this a data record?
+       LBNE   CLOSIT   No, close the file and return.
+LODMLP BSR    NXTCHR   Get a byte of the program.
+       STA    ,X       Store it.
+       CMPA   ,X+      Did it store OK?
+       BNE    GOIOER   No, give I/O error.
+       LEAY   -&1,Y    Yes, more to read?
+       BNE    LODMLP   Yes, read the next byte.
+       BRA    LODMRC   No, go handle the next record.
+
+LOD2M BSR     LOD1M    D:=next two bytes from tape.
+LOD1M BSR     NXTCHR
+       EXG    A,B
+LODRTS RTS
+
+*
+* Read char from file and give I/O error if end of file.
+*
+
+NXTCHR JSR    CHRINP   Try to read a char.
+       TST    EOFFLG   End of file?
+       BEQ    LODRTS   No, return with the char.
+GOIOER JMP    IOERR    yes, give an I/O error.
+
+*
+* Open the file on the host and load the first block into the
+* cassette buffer.
+* On exit, A=file type, B:=ASCII flag.
+*
+
+OPNHST BSR    OPNDNL   Open the file.
+       PSHS   D        Save file type and ASCII flag.
+       INCA            Was the file found?
+       BEQ    NEERR    No, give NonExistent file error.
+       LDU    DBLZER   Yes, zero the block number.
+       BSR    LDBUFU   (Enter with U set up.)
+       PULS   D,PC     Retrieve file type and ASCII flag
+*    and return.
+
+NEERR  LDB    #ERRNE  NonExistent file error.
+       JMP    ERROR
+
+
+*
+* Load next block of host file into cassette buffer.
+*
+
+       XDEF   LDBUFR
+LDBUFR LDU    BLKNUM   U:=block number for DNLBLK.
+LDBUFU LEAX   &1,U     Increment it for next time.
+       STX    BLKNUM
+       LDX    #CASBUF  Set up buffer pointer for DNLBLK.
+       JSR    DNLBLK   Load the block from the host.
+       JMP    FINLDB   Finish up in the cassette load
+*    buffer code to set the character count
+*    and buffer pointer.
+
+
+       TTL    OPNDNL - Open file for downloading.
+
+*
+* In - FILNAM through FILNAM+7 contains the filename, left
+* justified, blank filled.
+*
+* Out - A=file type byte, FF means file not found.
+* B=ASCII flag, FF if ASCII file, 0 if binary file.
+*
+
+OPNDNL CLRA            Clear the error count and reserve
+       PSHS   X,D      storage r error count, LRC, file
+*    type, and ASCII flag.
+       LEAY   ,S       Mark the stack.
+       BRA    FILREQ   Go send out the first file request.
+
+FILERR BSR    INCERR   Increment the error count.
+FILREQ LDA    #P.FILR  Send fiie request control code and
+       BSR    OUTREQ   look at the host's response.
+       BNE    FILERR   Timed out or wrong response.
+       LDX    #FILNAM  Send out the filename while
+SNDNLP LDA    ,X+      calculating the LRC.  (LRC was
+       JSR    BOLRC    cleared by OUTREQ.)
+       CMPX   #FILNAM+&8
+       BNE    SNDNLP
+       BSR    OUTLRC   Send out the LRC and look for ACK.
+       BNE    FILERR   No ACK, try it all over.
+       BSR    BILRC    Read the file type.  (OUTLRC cleared
+*    the LRC.)
+       BNE    FILERR   Time out
+       STA    &2,Y     Save the file type.
+       BSR    BILRC    Read the ASCII flag.
+       BNE    FILERR   Time out
+       STA    &3,Y     Save the ASCII flag.
+       BSR    INLRC    Read and check the LRC.
+       BNE    FILERR   Error, start over.
+       LEAS   &2,S     All OK, get rid of garbage.
+       PULS   D,PC     A:=file type, B:=ASCII flag,
+*    and return.
+
+       TTL    Support Routines for OPNDNL and DNLBLK.
+
+*
+* Increment the error count.
+* Return if error count is less than DNLTRY.
+* Otherwise, send P.ABRT to host and jump to IOERR.
+*
+
+INCERR INC    ,Y       Increment the error count.
+       LDA    ,Y       Reached the maximum?
+       CMPA   #DNLTRY
+       BLO    LRCRTS   No, just return.
+       LDA    #P.ABRT  Yes, send abort control code to the
+       JSR    OUTHST   host and give an I/O error.
+       JMP    IOERR
+
+
+*
+* Send out request control code (passed in A) to the host and
+* read response.  Response should be the same control code as
+* send to the host.
+* Return with Z=1 if good response, Z=0 for time out or bad response.
+*
+* Clear the LRC for the convenience of callers.
+*
+
+OUTREQ PSHS   A        Save the control code.
+       BSR    CLRCOI   Clear the LRC, output the byte, and
+*    read the response.
+       BNE    REQTO    Time out, return with Z=0.
+       CMPA   ,S       Does response match?
+*    (Z=1 if yes, Z=0 if no.)
+REQTO  PULS   A,PC     Restore A and return.
+
+*
+* Send out the LRC, wait for response, and clear the LRC.
+* Return with Z=1 if response is P.ACK, Z=0 for bad or no response.
+*
+
+OUTLRC LDA    &1,Y     Get the LRC.
+       BSR    CLRCOI   Send it out, clear the LRC, and get
+*    response from host.
+       BNE    LRCRTS   Time out, Z=0.
+       CMPA   #P.ACK   Set Z=1 if good response.
+LRCRTS RTS
+
+
+*
+* Read and check the LRC.
+* Return with Z=1 if good, Z=0 if bad.
+*
+
+INLRC  BSR    BILRC    Read the LRC and XOR it into the
+*    one that's been calculated.
+       BNE    LRCRTS   Timed out, return with Z=0.
+       LDA    &1,Y     It is zero if they matched.
+       RTS
+
+
+*
+* Send out byte and update the LRC.
+*
+
+BILRC  JSR    INHST    Input the byte.
+       PSHS   A,CC     Save the byte and the timeout flag.
+*    (Timeout flag is the Z bit.)
+       EORA   &1,Y     Update the LRC.
+       STA    &1,Y
+       PULS   CC,A,PC  Restore timeout flag, clean up and
+*    return.
+
+       TTL    DNLBLK - Download a block of data.
+
+*
+* In - U=14 bit block number.
+* X=buffer pointer.  (Buffer must be 128 bytes long.)
+*
+* Out - A=block length, 0 to 128, 0 means end of file.
+* 128 bytes in the buffer (even if block length .LT. 128)
+*
+
+DNLBLK CLRA            Clear the error count, save the
+       PSHS   U,Y,X,D  block number and buffer pointer,
+*    and reserve storage for the LRC
+*    and block length.  (One extra byte
+*    is pushed in the process.)
+       LSL    &7,S     Put the low order 7 bits of the
+       ROL    &6,S     block number into the low order
+       LSR    &7,S     byte and the high order 7 bits into
+*    the high order byte. This is done
+*    so bit7 is never sent to the host
+*    as a 1, since only control codes
+*    can have the MSB set.  By the way,
+*    this is also why an LRC is used
+*    instead of a checksum since using
+*    the LRC guarantees the MSB to be
+*    0 if it isn't set in any of the
+*    bytes being XORed together.
+       LEAY   ,S       Mark the stack.
+       BRA    BLKREQ   Go send out the first block request.
+
+BLKERR BSR    INCERR   Increment the error count.
+BLKREQ LDA    #P.BLKR  Send out the block request and wait
+       BSR    OUTREQ   for the response.
+       BNE    BLKERR   Try again.
+       LDA    &6,Y     Send out the high 7 bits of the
+       BSR    BOLRC    block number.  (LRC was cleared by
+*    OUTREQ.)
+       LDA    &7,Y     Send out the low 7 bits.
+       BSR    BOLRC
+       BSR    OUTLRC   Send out the LRC and listen for ACK.
+       BNE    BLKERR   Error, retry it.
+       BSR    BILRC    Read the record length.  (LRC was
+*    cleared by OUTLRC.)
+       BNE    BLKERR   Timed out.
+       STA    &4,Y     Save the block length.
+       LDX    &2,Y     Point to the buffer.
+       LDB    #&128    Will read 128 bytes.
+MORBLK BSR    BILRC    Read byte and update LRC.
+       BNE    BLKERR   Time out.
+       STA    ,X+      Put it in the buffer.
+       DECB
+       BNE    MORBLK
+       BSR    INLRC    Read and check the LRC.
+       BNE    BLKERR   No good, start all over.
+       LEAS   &4,S     Get rid of some garbage.
+       PULS   D,X,PC   A:=block length, get rid of the
+*    rest of the garbage and return.
+
+
+*
+* CLRCOI clears the LRC, outputs the byte in A, and jumps to
+* INHST to read the response.
+*
+
+CLRCOI CLR    &1,Y     Clear the LRC.
+       BSR    GOUTHS   Send out the byte.
+       JMP    INHST    Jump to INHST to read the response.
+
+
+*
+* BOLRC outputs the byte in A and updates the LRC.
+*
+
+BOLRC  PSHS   A        Save the byte.
+       EORA   &1,Y     Update the LRC.
+       STA    &1,Y
+       PULS   A        Retrieve the byte and jump to
+GOUTHS JMP    OUTHST   OUTHST to send it out.
+
+       END

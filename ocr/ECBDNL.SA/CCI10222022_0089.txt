@@ -1,62 +1,42 @@
-                        PAGE 006 ECBDNL .SA:1 Downlo DLOAD - Load program from host computer.
+PAGE  006  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
 
-
-                        00881
-                        00882                                                         TTL         OPNDNL - Open file for downloading.
-                        00883
-                        00884                                            *
-                        00885                                            *  In - FILNAM through FILNAM4-7 contains the filename, left
-                        00886                                            *  Justified, blank filled.
-                        00887                                            *
-
-                        00888                                            *  Out - A=file type byte, FF means file not found.
-                        00889                                            *  B=ASCII flag, FF if ASCII file, 0 if binary file.
-                        00890                                            *
-
-                        00891
-                        00892P 00CC 4F                                   OPNDNL CLRA                               Clear the error count and reserve
-                        00893P 00CD 34                 16            A                PSHS        X,D              storage r error count, LRC, file
-                        00894                                            *        type, and ASCII flag.
-                        00895P 00CF 31                 E4            A                LEAY        's               Mark the stack.
-                        00896P 00D1 20                 02       00D5                  BRA         FILREQ           Go send out the first file request.
-                        00897
-                        00898P 00D3 8D                 2B       0100 FILERR BSR                   INCERR           Increment the error count.
-                        00899P 00D5 86                 BA            A FILREQ LDA                 #P.FILR Send fiie request control code and
-                        00900P 00D7 8D                 37       0110                  BSR         OUTREQ           look at the host's response.
-                        0090IP 00D9 26                 FS       00D3                  BNE         FILERR           Timed out or wrong response.
-                        00902P 00DB BE                 0000          A                LDX         W:ILNAM Send out the filename while 
-                        00903P ()ODE A6                BO            A SNDNLP LDA                                  calculating the LRC.                     (LRC was
-                        00904P 00E0 BD                 0178                           JSR         BOLRC            cleared by OUTREU.)
-                        00905P 00E3 BC                 0008          A                CMPX        #FILNAMA-48 
-                        00906P 00E6 26                 F6       ()ODE                 BNE         SNDNLP 
-                        00907P 0088 BD                 30       011A                  BSR         OUTLRC           Send out the LRC and look for ACK. 
-                        00908P 00EA 26                 E7       00D3                  BNE         FILERR           No ACK, try it all over.
-                        00909P 00EC BD                 3C       012A                  BSR         BILRC            Read the file type.                    (OUTLRC cleared
-                        00910                                            *        the LRC.)
-                        00911P 00EE 26                 E3       001)3                 BNE         FILERR           Time out
-                        00912P 00F0 A7                 22            A                STA         &2,Y             Save the file type.
-                        00913P 00F2 8D                 36       012A                  BSR         BILRC            Read the ASCII flag.
-                        00914P 00E4 26                 DD       00D3                  BNE         FILERR           Time out
-                        00915P 00F6 A7                 23            A                STA         4(3,Y            Save the ASCII flag.
-                        00916P 00F8 8D                 29       0123                  BSR         INLRC            Read and check the LRC.
-                        00917P 00FA 26                 D7       00D3                  BNE         FILERR           Error, start over.
-                        00918P 00FC 32                 62            A                LEAS        &2,S             All OK, get rid of garbage.
-                        00919P 00FE 35                 86            A                PULS        D,PC             A:=file type, B:=ASCII flag,
-                        009-)0                                                    and return.
-
-
-
-
- I H
-
-           •
-"Progr 
-Inova          ,11(
-ftmAy             •
-WnWn 
-(;()Inp
-;    iys
-((  IV(
-II     I I(
- x' /v`|
-
+00881
+00882                             TTL    OPNDNL - Open file for downloading.
+00883
+00884                      *
+00885                      * In - FILNAM through FILNAM+7 contains the filename, left
+00886                      * justified, blank filled.
+00887                      *
+00888                      * Out - A=file type byte, FF means file not found.
+00889                      * B=ASCII flag, FF if ASCII file, 0 if binary file.
+00890                      *
+00891
+00892P 00CC 4F             OPNDNL CLRA            Clear the error count and reserve
+00893P 00CD 34   16      A        PSHS   X,D      storage r error count, LRC, file
+00894                      *    type, and ASCII flag.
+00895P 00CF 31   E4      A        LEAY   ,S       Mark the stack.
+00896P 00D1 20   02   00D5        BRA    FILREQ   Go send out the first file request.
+00897
+00898P 00D3 8D   2B   0100 FILERR BSR    INCERR   Increment the error count.
+00899P 00D5 86   8A      A FILREQ LDA    #P.FILR  Send fiie request control code and
+00900P 00D7 8D   37   0110        BSR    OUTREQ   look at the host's response.
+00901P 00D9 26   F8   00D3        BNE    FILERR   Timed out or wrong response.
+00902P 00DB 8E   0000    A        LDX    #FILNAM  Send out the filename while
+00903P 00DE A6   80      A SNDNLP LDA    ,X+      calculating the LRC.  (LRC was
+00904P 00E0 BD   0178    P        JSR    BOLRC    cleared by OUTREQ.)
+00905P 00E3 8C   0008    A        CMPX   #FILNAM+&8
+00906P 00E6 26   F6   00DE        BNE    SNDNLP
+00907P 00E8 8D   30   011A        BSR    OUTLRC   Send out the LRC and look for ACK.
+00908P 00EA 26   E7   00D3        BNE    FILERR   No ACK, try it all over.
+00909P 00EC 8D   3C   012A        BSR    BILRC    Read the file type.  (OUTLRC cleared
+00910                      *    the LRC.)
+00911P 00EE 26   E3   00D3        BNE    FILERR   Time out
+00912P 00F0 A7   22      A        STA    &2,Y     Save the file type.
+00913P 00F2 8D   36   012A        BSR    BILRC    Read the ASCII flag.
+00914P 00F4 26   DD   00D3        BNE    FILERR   Time out
+00915P 00F6 A7   23      A        STA    &3,Y     Save the ASCII flag.
+00916P 00F8 8D   29   0123        BSR    INLRC    Read and check the LRC.
+00917P 00FA 26   D7   00D3        BNE    FILERR   Error, start over.
+00918P 00FC 32   62      A        LEAS   &2,S     All OK, get rid of garbage.
+00919P 00FE 35   86      A        PULS   D,PC     A:=file type, B:=ASCII flag,
+00920                      *    and return.

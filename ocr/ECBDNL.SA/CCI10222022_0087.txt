@@ -1,72 +1,11 @@
-                            PAGE   004  ECBDNL   .SA:1   Downlo DLOAD  - Load program from host computer.
+PAGE  004  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
 
-                            00838                         *
-                            00839                         * Read char  from file  and give I/O error if end   of  file.
-                            00840                         *
-                            00841
-                            00842P  00A1 BD    0000     A NXTCHR JSR     CHRINP    Try to read a char.
-                            00843P  00A4 OD    70       A        TST     EOFFLO    End of file?
-                            00844P  00A6 27    F8   00A0         BEQ     LODRTS    No, return with the char.
-                            00845P  00A8 7E    0000     A GOIOER „IMP    IOERR     yes, give an  I/O error.
-                            00846
-
-
-
-
-
-
-
-
-
-
-
-
-                    •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Progression" - it's a wo 
--iovement. The latest in 
-amily of power amplifier 
-itetime spent in the rese 
-;omponents that always 
-; 1\n/nys respect the dema
- )11voy realism from the 
-11 1( most thunderous of 
-; I 1( )1 illowed to affect
-
-
-
-
-    absolut,
-
-
-                    •
-
+00838                      *
+00839                      * Read char from file and give I/O error if end of file.
+00840                      *
+00841
+00842P 00A1 BD   0000    A NXTCHR JSR    CHRINP   Try to read a char.
+00843P 00A4 0D   70      A        TST    EOFFLG   End of file?
+00844P 00A6 27   F8   00A0        BEQ    LODRTS   No, return with the char.
+00845P 00A8 7E   0000    A GOIOER JMP    IOERR    yes, give an I/O error.
+00846
