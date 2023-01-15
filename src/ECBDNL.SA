@@ -289,3 +289,45 @@ BILRC  JSR    INHST    Input the byte.
        STA    &1,Y
        PULS   CC,A,PC  Restore timeout flag, clean up and
 *    return.
+
+       TTL    DNLBLK - Download a block of data.
+
+*
+* In - U=14 bit block number.
+* X=buffer pointer.  (Buffer must be 128 bytes long.)
+*
+* Out - A=block length, 0 to 128, 0 means end of file.
+* 128 bytes in the buffer (even if block length .LT. 128)
+*
+
+DNLBLK CLRA            Clear the error count, save the
+       PSHS   U,Y,X,D  block number and buffer pointer,
+*    and reserve storage for the LRC
+*    and block length.  (One extra byte
+*    is pushed in the process.)
+       LSL    &7,S     Put the low order 7 bits of the
+       ROL    &6,S     block number into the low order
+       LSR    &7,S     byte and the high order 7 bits into
+*    the high order byte. This is done
+*    so bit7 is never sent to the host
+*    as a 1, since only control codes
+*    can have the MSB set.  By the way,
+*    this is also why an LRC is used
+*    instead of a checksum since using
+*    the LRC guarantees the MSB to be
+*    0 if it isn't set in any of the
+*    bytes being XORed together.
+       LEAY   ,S       Mark the stack.
+       BRA    BLKREQ   Go send out the first block request.
+
+BLKERR BSR    INCERR   Increment the error count.
+BLKREQ LDA    #P.BLKR  Send out the block request and wait
+       BSR    OUTREQ   for the response.
+       BNE    BLKERR   Try again.
+       LDA    &6,Y     Send out the high 7 bits of the
+       BSR    BOLRC    block number.  (LRC was cleared by
+*    OUTREQ.)
+       LDA    &7,Y     Send out the low 7 bits.
+       BSR    BOLRC
+       BSR    OUTLRC   Send out the LRC and listen for ACK.
+       BNE    BLKERR   Error, retry it.
