@@ -234,3 +234,39 @@ PAGE  006  ECBDNL  .SA:1  Downlo DLOAD - Load program from host computer.
 00919P 00FE 35   86      A        PULS   D,PC     A:=file type, B:=ASCII flag,
 00920                      *    and return.
 
+PAGE  007  ECBDNL  .SA:1  Downlo OPNDNL - Open file for downloading.
+
+00922                             TTL    Support Routines for OPNDNL and DNLBLK.
+00923
+00924                      *
+00925                      * Increment the error count.
+00926                      * Return if error count is less than DNLTRY.
+00927                      * Otherwise, send P.ABRT to host and jump to IOERR.
+00928                      *
+00929
+00930P 0100 6C   A4      A INCERR INC    ,Y       Increment the error count.
+00931P 0102 A6   A4      A        LDA    ,Y       Reached the maximum?
+00932P 0104 81   05      A        CMPA   #DNLTRY
+00933P 0106 25   1A   0122        BLO    LRCRTS   No, just return.
+00934P 0108 86   BC      A        LDA    #P.ABRT  Yes, send abort control code to the
+00935P 010A BD   0000    A        JSR    OUTHST   host and give an I/O error.
+00936P 010D 7E   0000    A        JMP    IOERR
+00937
+00938
+00939                      *
+00940                      * Send out request control code (passed in A) to the host and
+00941                      * read response.  Response should be the same control code as
+00942                      * send to the host.
+00943                      * Return with Z=1 if good response, Z=0 for time out or bad response.
+00944                      *
+00945                      * Clear the LRC for the convenience of callers.
+00946                      *
+00947
+00948P 0110 34   02      A OUTREQ PSHS   A        Save the control code.
+00949P 0112 8D   5D   0171        BSR    CLRCOI   Clear the LRC, output the byte, and
+00950                      *    read the response.
+00951P 0114 26   02   0118        BNE    REQTO    Time out, return with Z=0.
+00952P 0116 A1   E4      A        CMPA   ,S       Does response match?
+00953                      *    (Z=1 if yes, Z=0 if no.)
+00954P 0118 35   82      A REQTO  PULS   A,PC     Restore A and return.
+00955

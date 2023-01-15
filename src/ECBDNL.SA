@@ -218,3 +218,38 @@ SNDNLP LDA    ,X+      calculating the LRC.  (LRC was
        LEAS   &2,S     All OK, get rid of garbage.
        PULS   D,PC     A:=file type, B:=ASCII flag,
 *    and return.
+
+       TTL    Support Routines for OPNDNL and DNLBLK.
+
+*
+* Increment the error count.
+* Return if error count is less than DNLTRY.
+* Otherwise, send P.ABRT to host and jump to IOERR.
+*
+
+INCERR INC    ,Y       Increment the error count.
+       LDA    ,Y       Reached the maximum?
+       CMPA   #DNLTRY
+       BLO    LRCRTS   No, just return.
+       LDA    #P.ABRT  Yes, send abort control code to the
+       JSR    OUTHST   host and give an I/O error.
+       JMP    IOERR
+
+
+*
+* Send out request control code (passed in A) to the host and
+* read response.  Response should be the same control code as
+* send to the host.
+* Return with Z=1 if good response, Z=0 for time out or bad response.
+*
+* Clear the LRC for the convenience of callers.
+*
+
+OUTREQ PSHS   A        Save the control code.
+       BSR    CLRCOI   Clear the LRC, output the byte, and
+*    read the response.
+       BNE    REQTO    Time out, return with Z=0.
+       CMPA   ,S       Does response match?
+*    (Z=1 if yes, Z=0 if no.)
+REQTO  PULS   A,PC     Restore A and return.
+
