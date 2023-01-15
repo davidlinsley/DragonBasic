@@ -1,0 +1,59 @@
+
+
+       NAM    ECBMOD
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL    External Declarations
+
+       XREF   ALPHLK,ASC2,ASCFLG
+       XREF   BOOT64,BITIN,BUF
+       XREF   CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
+       XREF   CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
+       XREF   DBNCNT
+       XREF   ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
+       XREF   FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
+       XREF   FUNDSP,FUNLST
+       XREF   GAPFLG,GETBYT,GIVABF,GOPTNW
+       XREF   HDRLEN,HKBRKC,HRCHRI,HRCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+       XREF   HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
+       XREF   HRDINI
+       XREF   INTCNV,INTIDX,ISCNTC,INTWDG
+       XREF   JOYIN
+       XREF   LDBUFR,LIST,LOADAD,LPTOUT
+       XREF   MAIN
+       XREF   NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
+       XREF   OFFTK,ONTK
+       XREF   PINIT,POLCAT,POTVAL
+       XREF   READY,REASON,REDDY,RESLST,ROLTBL
+       XREF   SAMALP,SCROUT,SCRTCH,SFTINI,SNERR,SNGFLT
+       XREF   STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+       XREF   TEMPST
+       XREF   USRTAB
+       XREF   VIRQ
+       XREF   WRTLDR
+       XREF   XRRUN,XRSLWC
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+
+       TTL    Equates
+
+       XDEF   SCRADR
+SCRADR EQU    @2000    Address of screen memory (400 hex).
+
+       IFNE   METTOY
+       XDEF   PIA0AD
+PIA0AD EQU    @177400  PIA0, side A, data reg.  (FF00)
+       ENDC   IFN      METTOY
+       IFNE   GRPTEK
+ ENDC   IFN GRPTEK
+       XDEF   PIA0AC
+PIA0AC EQU    PIA0AD+&1 PIA0, side A, control reg.
+       XDEF   PIA0BD
+PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
+       XDEF   PIA0BC
