@@ -177,3 +177,44 @@ LDBUFU LEAX   &1,U     Increment it for next time.
        JMP    FINLDB   Finish up in the cassette load
 *    buffer code to set the character count
 *    and buffer pointer.
+
+
+       TTL    OPNDNL - Open file for downloading.
+
+*
+* In - FILNAM through FILNAM+7 contains the filename, left
+* justified, blank filled.
+*
+* Out - A=file type byte, FF means file not found.
+* B=ASCII flag, FF if ASCII file, 0 if binary file.
+*
+
+OPNDNL CLRA            Clear the error count and reserve
+       PSHS   X,D      storage r error count, LRC, file
+*    type, and ASCII flag.
+       LEAY   ,S       Mark the stack.
+       BRA    FILREQ   Go send out the first file request.
+
+FILERR BSR    INCERR   Increment the error count.
+FILREQ LDA    #P.FILR  Send fiie request control code and
+       BSR    OUTREQ   look at the host's response.
+       BNE    FILERR   Timed out or wrong response.
+       LDX    #FILNAM  Send out the filename while
+SNDNLP LDA    ,X+      calculating the LRC.  (LRC was
+       JSR    BOLRC    cleared by OUTREQ.)
+       CMPX   #FILNAM+&8
+       BNE    SNDNLP
+       BSR    OUTLRC   Send out the LRC and look for ACK.
+       BNE    FILERR   No ACK, try it all over.
+       BSR    BILRC    Read the file type.  (OUTLRC cleared
+*    the LRC.)
+       BNE    FILERR   Time out
+       STA    &2,Y     Save the file type.
+       BSR    BILRC    Read the ASCII flag.
+       BNE    FILERR   Time out
+       STA    &3,Y     Save the ASCII flag.
+       BSR    INLRC    Read and check the LRC.
+       BNE    FILERR   Error, start over.
+       LEAS   &2,S     All OK, get rid of garbage.
+       PULS   D,PC     A:=file type, B:=ASCII flag,
+*    and return.
