@@ -58,3 +58,65 @@ PAGE  001  ECBCOM  .SA:0  ECBMOD Extension ROM Direct Page RAM
 00761                             XDEF   PIA0BD
 00762            FF02    A PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
 00763                             XDEF   PIA0BC
+
+PAGE  002  ECBMOD  .SA:1 ECBMOD Equates
+
+00764            FF03    A PIA0BC EQU    PIA0BD+&1 PIA0, side B, control reg.
+00765
+00766            0001    A        IFNE   METTOY
+00767                             XDEF   PIA1AD
+00768            FF20    A PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
+00769                             ENDC   IFN      METTOY
+00770            0000    A        IFNE   GRPTEK
+00773                       ENDC   IFN GRPTEK
+00774                             XDEF   PIA1AC
+00775            FF21    A PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
+00776                             XDEF   PIA1BD
+00777            FF22    A PIA1BD EQU    PIA1AC+&1 PIA1, side B, data reg.
+00778                             XDEF   PIA1BC
+00779            FF23    A PIA1BC EQU    PIA1BD+&1 PIA1, side B, conrtrol reg.
+00780
+00781            C000    A CARTRM EQU    @140000  Address of cartridge ROM.  (C000)
+00782            8000    A EXTROM EQU    @100000  Address of extension ROM.  (8000)
+00783
+00784                             XDEF   SAM
+00785            FFC0    A SAM    EQU    @177700  Address of SAM chip.  (FFC0)
+00786
+00787            C000    A DSKROM EQU    @140000  The address of the disk ROM.  (C000)
+00788
+00789                             TTL    Power up and Reset code.
+00790
+00791                      *
+00792                      * Here on RESET and power up after executing HRDINI routine.
+00793                      *
+00794
+00795P 0000 10CE 00FA    A HRDRT1 LDS    #BUF+BUFLEN Set up a temporary stack.
+00796            0001    A        IFNE   REALIO
+00797P 0004 86   37      A        LDA    #@67     Enable the cartridge interrupt
+00798P 0006 B7   FF23    A        STA    PIA1BC   at the PIA.
+00799                             ENDC   IFN      REALIO
+00800P 0009 96   71      A        LDA    RSTFLG   Is the restart flag set?
+00801P 000B 81   55      A        CMPA   #@125
+00802P 000D 26   10   001F        BNE    INIT     No, must go through initialization.
+00803P 000F 9E   72      A        LDX    RSTVEC   Yes, does the restart vector point
+00804P 0011 A6   84      A        LDA    ,X       to a NOP instruction?
+00805P 0013 81   12      A        CMPA   #@22
+00806P 0015 26   08   001F        BNE    INIT     No, must go through initialization.
+00807                      *    This check is made so that if the
+00808                      *    user pulls out a cartridge and hits
+00809                      *    reset we won't jump to the restart
+00810                      *    address where there is no longer
+00811                      *    any code.
+00812P 0017 6E   84      A        JMP    ,X       Restart the current program.
+00813
+00814                      *
+00815                      * Here on reset and power up.
+00816                      *
+00817
+00818                             XDEF   POWRUP
+00819P 0019 31   8C E4     POWRUP LEAY   HRDRT1,PCR Set up return address for HRDINI.
+00820P 001C 7E   0000    A        JMP    HRDINI   (Can't use stack since RAM is no
+00821                      •    good until the SAM is initialized.)
+00822                      *
+00823                      * Here to perform BASIC initialization.
+

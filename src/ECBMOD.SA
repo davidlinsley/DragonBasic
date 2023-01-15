@@ -57,3 +57,61 @@ PIA0AC EQU    PIA0AD+&1 PIA0, side A, control reg.
        XDEF   PIA0BD
 PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
        XDEF   PIA0BC
+PIA0BC EQU    PIA0BD+&1 PIA0, side B, control reg.
+
+       IFNE   METTOY
+       XDEF   PIA1AD
+PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
+       ENDC   IFN      METTOY
+       IFNE   GRPTEK
+ ENDC   IFN GRPTEK
+       XDEF   PIA1AC
+PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
+       XDEF   PIA1BD
+PIA1BD EQU    PIA1AC+&1 PIA1, side B, data reg.
+       XDEF   PIA1BC
+PIA1BC EQU    PIA1BD+&1 PIA1, side B, conrtrol reg.
+
+CARTRM EQU    @140000  Address of cartridge ROM.  (C000)
+EXTROM EQU    @100000  Address of extension ROM.  (8000)
+
+       XDEF   SAM
+SAM    EQU    @177700  Address of SAM chip.  (FFC0)
+
+DSKROM EQU    @140000  The address of the disk ROM.  (C000)
+
+       TTL    Power up and Reset code.
+
+*
+* Here on RESET and power up after executing HRDINI routine.
+*
+
+HRDRT1 LDS    #BUF+BUFLEN Set up a temporary stack.
+       IFNE   REALIO
+       LDA    #@67     Enable the cartridge interrupt
+       STA    PIA1BC   at the PIA.
+       ENDC   IFN      REALIO
+       LDA    RSTFLG   Is the restart flag set?
+       CMPA   #@125
+       BNE    INIT     No, must go through initialization.
+       LDX    RSTVEC   Yes, does the restart vector point
+       LDA    ,X       to a NOP instruction?
+       CMPA   #@22
+       BNE    INIT     No, must go through initialization.
+*    This check is made so that if the
+*    user pulls out a cartridge and hits
+*    reset we won't jump to the restart
+*    address where there is no longer
+*    any code.
+       JMP    ,X       Restart the current program.
+
+*
+* Here on reset and power up.
+*
+
+       XDEF   POWRUP
+POWRUP LEAY   HRDRT1,PCR Set up return address for HRDINI.
+       JMP    HRDINI   (Can't use stack since RAM is no
+•    good until the SAM is initialized.)
+*
+* Here to perform BASIC initialization.
