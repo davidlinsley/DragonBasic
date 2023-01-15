@@ -253,3 +253,39 @@ OUTREQ PSHS   A        Save the control code.
 *    (Z=1 if yes, Z=0 if no.)
 REQTO  PULS   A,PC     Restore A and return.
 
+*
+* Send out the LRC, wait for response, and clear the LRC.
+* Return with Z=1 if response is P.ACK, Z=0 for bad or no response.
+*
+
+OUTLRC LDA    &1,Y     Get the LRC.
+       BSR    CLRCOI   Send it out, clear the LRC, and get
+*    response from host.
+       BNE    LRCRTS   Time out, Z=0.
+       CMPA   #P.ACK   Set Z=1 if good response.
+LRCRTS RTS
+
+
+*
+* Read and check the LRC.
+* Return with Z=1 if good, Z=0 if bad.
+*
+
+INLRC  BSR    BILRC    Read the LRC and XOR it into the
+*    one that's been calculated.
+       BNE    LRCRTS   Timed out, return with Z=0.
+       LDA    &1,Y     It is zero if they matched.
+       RTS
+
+
+*
+* Send out byte and update the LRC.
+*
+
+BILRC  JSR    INHST    Input the byte.
+       PSHS   A,CC     Save the byte and the timeout flag.
+*    (Timeout flag is the Z bit.)
+       EORA   &1,Y     Update the LRC.
+       STA    &1,Y
+       PULS   CC,A,PC  Restore timeout flag, clean up and
+*    return.

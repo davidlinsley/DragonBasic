@@ -270,3 +270,42 @@ PAGE  007  ECBDNL  .SA:1  Downlo OPNDNL - Open file for downloading.
 00953                      *    (Z=1 if yes, Z=0 if no.)
 00954P 0118 35   82      A REQTO  PULS   A,PC     Restore A and return.
 00955
+
+PAGE  008  ECBDNL  .SA:1  Downlo Support Routines for OPNDNL and DNLBLK.
+
+00957                      *
+00958                      * Send out the LRC, wait for response, and clear the LRC.
+00959                      * Return with Z=1 if response is P.ACK, Z=0 for bad or no response.
+00960                      *
+00961
+00962P 011A A6   21      A OUTLRC LDA    &1,Y     Get the LRC.
+00963P 011C 8D   53   0171        BSR    CLRCOI   Send it out, clear the LRC, and get
+00964                      *    response from host.
+00965P 011E 26   02   0122        BNE    LRCRTS   Time out, Z=0.
+00966P 0120 81   C8      A        CMPA   #P.ACK   Set Z=1 if good response.
+00967P 0122 39             LRCRTS RTS
+00968
+00969
+00970                      *
+00971                      * Read and check the LRC.
+00972                      * Return with Z=1 if good, Z=0 if bad.
+00973                      *
+00974
+00975P 0123 8D   05   012A INLRC  BSR    BILRC    Read the LRC and XOR it into the
+00976                      *    one that's been calculated.
+00977P 0125 26   FB   0122        BNE    LRCRTS   Timed out, return with Z=0.
+00978P 0127 A6   21      A        LDA    &1,Y     It is zero if they matched.
+00979P 0129 39                    RTS
+00980
+00981
+00982                      *
+00983                      * Send out byte and update the LRC.
+00984                      *
+00985
+00986P 012A BD   0000    A BILRC  JSR    INHST    Input the byte.
+00987P 012D 34   03      A        PSHS   A,CC     Save the byte and the timeout flag.
+00988                      *    (Timeout flag is the Z bit.)
+00989P 012F A8   21      A        EORA   &1,Y     Update the LRC.
+00990P 0131 A7   21      A        STA    &1,Y
+00991P 0133 35   83      A        PULS   CC,A,PC  Restore timeout flag, clean up and
+00992                      *    return.
