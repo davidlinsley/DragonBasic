@@ -1,76 +1,43 @@
-                          PAGE 010 E0BDNL .SA:1 Downlo DNLBLK - Download a block of data
+PAGE  010  ECBDNL  .SA:1  Downlo DNLBLK - Download a block of data.
 
-
-                          01036P  0156  80    D2    012A           BSR     BILRC      Read the record 1E.?1,1citil.  (LRC was
-                          01037                           *     cleared by OUTLR    C.)
-                          0103BP  0158  26    E8    0142           BNE     BLKERR     Timed out
-                          01039P  0150  07    24        A          STA     &4,Y       Save the block length. 
-                          01040P  0150  AE    22        A          LDX     &2,Y       Point to the buffer. 
-                 40       01041P  015E  06    80        A          LDB     #&128      Will read 128 bytes.
-                          01042P  0160  8D    08    012A  MORBLK BSR       BILRC      Read byte and update LRC.
-                          01043P  0162  26    DE    0142           BNE     BLKERR     Time out
-                          01044P  0164  A7    80        A          STA                Put it in the buffer.
-                          01045P  0166  50                         DECB
-                          01046P  0167  26    F7    0160           BNE     MORBLK
-                  p       01047P  0169  80    88    0123           BSR     INLRC      Read and check the LRC. 
-                          01048P  0168  26    05    0142           BNE     BLKERR     No good, start all over. 
-                          01049P  0160  32    64        A          LEAS    &4,S       Get rid of some garbage.
-                 op       01050P  016F  35    96                   PULS    D,X,PC     A:=block length, get rid of the 
-                          01051                                  rest of the   garbage and return.
-                          01052 
-                          01053 
-                          01054                           *
-                          01055                           *  CLRCOI clears    the LRC, outputs the byte in A,        and  Jumps to
-                 •        01056                           *  INHST to read    the response.
-                          01057                           *
-
-                          01058 
-                 •        01059P  0171  6F:   21        A CLRCOI CLR       &1,Y       Clear the LRC.
-                          01060P  0173  80    08    0180           85R     GOUTHS     Send out the byte.
-                          01061P  0175  7E    0000      A          JMP      INHST     Jump to INHST to read the response.
-                          01062 
-                          01063 
-                          01064                           *
-                          01065                           *  BOLRC outputs the byte in A and updates the LRC.
-                          01066                           *
-                          01067 
-                          01068P  0178  34    02        A BOLRC PSHS       A          Save the byte. 
-                          01069P  017A  AB    21        A          EORA               Update the LRC.
-                          01070P  0170  07              A          STA      &1,Y
-                          01071P  017E  35    02        A          PULS    A           Retrieve the byte and jump to 
-                          01072P  0180  7E    0000      A GOUTHS JMP       OUTHST      OUTHST to send it out.
-                          01073
-                 40       01074                                    END
-                          TOTAL ERRORS 00000--00000 
-           H     0.1      TOTAL WARNINGS 00000-00000
-
-
-"Progression" - it 
-movement. The la 
-family of power a 
-lifetime spent in th 
-components that . 
-dways respeoith- 
-'xxmnyrea|isrnfro
-   most thunder 
-;  if )1 illowed to
-
-
-
-
-
-
-
-    absol
-            I I  •
-          ',I
-
-
-
-
-
-
-
-
-                  •
-
+01036P 0156 8D   D2   012A        BSR    BILRC    Read the record length.  (LRC was
+01037                      *    cleared by OUTLRC.)
+01038P 0158 26   E8   0142        BNE    BLKERR   Timed out.
+01039P 015A A7   24      A        STA    &4,Y     Save the block length.
+01040P 015C AE   22      A        LDX    &2,Y     Point to the buffer.
+01041P 015E C6   80      A        LDB    #&128    Will read 128 bytes.
+01042P 0160 8D   C8   012A MORBLK BSR    BILRC    Read byte and update LRC.
+01043P 0162 26   DE   0142        BNE    BLKERR   Time out.
+01044P 0164 A7   80      A        STA    ,X+      Put it in the buffer.
+01045P 0166 5A                    DECB
+01046P 0167 26   F7   0160        BNE    MORBLK
+01047P 0169 8D   B8   0123        BSR    INLRC    Read and check the LRC.
+01048P 016B 26   D5   0142        BNE    BLKERR   No good, start all over.
+01049P 016D 32   64      A        LEAS   &4,S     Get rid of some garbage.
+01050P 016F 35   96      A        PULS   D,X,PC   A:=block length, get rid of the
+01051                      *    rest of the garbage and return.
+01052
+01053
+01054                      *
+01055                      * CLRCOI clears the LRC, outputs the byte in A, and jumps to
+01056                      * INHST to read the response.
+01057                      *
+01058
+01059P 0171 6F   21      A CLRCOI CLR    &1,Y     Clear the LRC.
+01060P 0173 8D   0B   0180        BSR    GOUTHS   Send out the byte.
+01061P 0175 7E   0000    A        JMP    INHST    Jump to INHST to read the response.
+01062
+01063
+01064                      *
+01065                      * BOLRC outputs the byte in A and updates the LRC.
+01066                      *
+01067
+01068P 0178 34   02      A BOLRC  PSHS   A        Save the byte.
+01069P 017A A8   21      A        EORA   &1,Y     Update the LRC.
+01070P 017C A7   21      A        STA    &1,Y
+01071P 017E 35   02      A        PULS   A        Retrieve the byte and jump to
+01072P 0180 7E   0000    A GOUTHS JMP    OUTHST   OUTHST to send it out.
+01073
+01074                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000

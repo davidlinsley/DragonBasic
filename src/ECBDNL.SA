@@ -331,3 +331,42 @@ BLKREQ LDA    #P.BLKR  Send out the block request and wait
        BSR    BOLRC
        BSR    OUTLRC   Send out the LRC and listen for ACK.
        BNE    BLKERR   Error, retry it.
+       BSR    BILRC    Read the record length.  (LRC was
+*    cleared by OUTLRC.)
+       BNE    BLKERR   Timed out.
+       STA    &4,Y     Save the block length.
+       LDX    &2,Y     Point to the buffer.
+       LDB    #&128    Will read 128 bytes.
+MORBLK BSR    BILRC    Read byte and update LRC.
+       BNE    BLKERR   Time out.
+       STA    ,X+      Put it in the buffer.
+       DECB
+       BNE    MORBLK
+       BSR    INLRC    Read and check the LRC.
+       BNE    BLKERR   No good, start all over.
+       LEAS   &4,S     Get rid of some garbage.
+       PULS   D,X,PC   A:=block length, get rid of the
+*    rest of the garbage and return.
+
+
+*
+* CLRCOI clears the LRC, outputs the byte in A, and jumps to
+* INHST to read the response.
+*
+
+CLRCOI CLR    &1,Y     Clear the LRC.
+       BSR    GOUTHS   Send out the byte.
+       JMP    INHST    Jump to INHST to read the response.
+
+
+*
+* BOLRC outputs the byte in A and updates the LRC.
+*
+
+BOLRC  PSHS   A        Save the byte.
+       EORA   &1,Y     Update the LRC.
+       STA    &1,Y
+       PULS   A        Retrieve the byte and jump to
+GOUTHS JMP    OUTHST   OUTHST to send it out.
+
+       END
