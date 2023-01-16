@@ -1,66 +1,58 @@
-                            :DAGE  005   ECB:-,1nD .SA:1   ECBYGD Power    uo and Reset code.
+PAGE  005  ECBMOD  .SA:1  ECBMOD Power up and Reset code.
 
-
-                            00925P  00A1  10    AF        A          ANDCC   #$FF:X(F!-FI)   Allow the cartridge to      interrupt  now
-                            00926                                 before   displaying the sign on message.          •
-                            00927P  00A3  BE    0117                 LDX     #SIGNON-&1 Print the sign on message.
-                            00928P  00A6  PD    0000      A          JSR     STROUT
-                            00929P  00A9  SE    0064                 LDX     #BASRST    Set the restart vector.
-                            00930P  00AC  9F    72        A          STX     RSTVEC
-                            00931                                    XDEF    FINIT
-                            009322  00AE  86    55        A FINIT    LDA     44:125     Set  the  restart  flag.
-                            00933P  006.0 97    71        A          STA     RSTFLG
-                            00934P  00B2  20    17    00n6           B'RA    GORDY      Go to command level and say "OK".
-                            00935
-                            00936                           *
-                            00937                           *  Here to restart BASIC.
-                            00938                           *
-                            00939
-                            00940                                    XDEF    BASRST
-                            00941P  00B4  12                BASRST NOP                  The NOP reduired of all      restart entry
-                            00942                                 Points.
-                            00943P  00B5  OF    E3        A          CLR     DURCNT     Clear toe PLAY note duration count
-                            00944P  0067  OF    E4        A          CLR     DURCNT+&1 so interrupts don't think we are
-                            00945                                 still   playing the note.
-                            00946P  00B9  66    FF03      A          LDA     PIAOBC     Enable the SO hertz     interrupt.
-                            00947P  00BC  EA    01        A          ORA     44:&1
-                            00948P  006F  67    FF03      A          STA     PIA0BC
-                            00949P  0001  OF    6F        A          CLR     DEVNUM     Make sure output goes to screen and
-                            00950                                 input comes from keyboard.
-                            00951P  0053  BD    0000      A          JSR     STKINI     Reset toe stack and things.
-                            00952P  0006  10    AF        A          ANDCC   #1,FF'X(F!-I-I) Enable  interrupts.
-                            00953P  0008  BD    06DC      P          JSR     ORNCHR     Clear the screen.
-                            00954P  00CB  7E    0000      A GORDY    JMP     READY      Go say "OK".
-                            00955
-                            00956
-                            00957                           *
-                            00958                           *  Here on a   FIRO to  handle the cartridge      interrupt.
-                            00959
-                            00960                                                                                                                                                            a
-                            00961P  00CE  7r,   FF27      A CARTRG TST       PIA1BC     Did the cartridge cause toe interrupt?
-                            00962P  00D1  213   01    00D4           BMI     GOCART     Yes.
-                            00963P  0003  36                         RTI                No,  return from the interrupt.
-                            00964
-                            00965P  0004  BD    00E5        SOCART jSR       DELHAF     Delay for about a second to let toe
-                            00966P  0007  ED    00E5      p          SSR     DELHAF     user finish installing the cartridge.
-                            00967P  000A  31    80 03                LEAY    <HRDRT2,PCR    Init the hardware.      HRDINI  leaves the
-                            00968P  000D  7E    0000                 jMP     HRDINI    .cartridge   interrubt   disabled.
-"Progression" -it's         00969P  00E0  OF    71          HRDRT2 CLR       RSTF-G     Don't allow BASIC to be restarted.                                                                   •
-movement. The late          00970P  00E2  76    C000      A          jMP     CARTRM     Go execute the cartrige program.
-family of power am          00971
-lifetime spent in the       00972                           *
-components that al          00973                           *  Delay for   about one half second.
-always respect the d        00974                           *
-convey realism from         00975
-  lo most thunderou         00976                                    XDIEF   DELHAF
-; ( I lot allowed to aff    00977P  00E5  96    RA        A DELHAF LDX       DBLZER
-                            00978P  00E7  30    1F        A DELAY    LEAX    -&1,X                                                                                                           a
-                            00979P  00E9  26    Fr    00E7           BNE     DELAY
-                            00980P  00EB  39                         RTS
-
-     absolu
-
-
-
-                                                                                                                                                                                             •
-
+00925P 00A1 1C   AF      A        ANDCC  #$FF!X(F!+I) Allow the cartridge to interrupt now
+00926                      *    before displaying the sign on message.
+00927P 00A3 8E   0117    P        LDX    #SIGNON-&1 Print the sign on message.
+00928P 00A6 BD   0000    A        JSR    STROUT
+00929P 00A9 8E   00B4    P        LDX    #BASRST  Set the restart vector.
+00930P 00AC 9F   72      A        STX    RSTVEC
+00931                             XDEF   FINIT
+00932P 00AE 86   55      A FINIT  LDA    #@125    Set the restart flag.
+00933P 00B0 97   71      A        STA    RSTFLG
+00934P 00B2 20   17   00CB        BRA    GORDY    Go to command level and say "OK".
+00935
+00936                      *
+00937                      * Here to restart BASIC.
+00938                      *
+00939
+00940                             XDEF   BASRST
+00941P 00B4 12             BASRST NOP             The NOP required of all restart entry
+00942                      *    points.
+00943P 00B5 0F   E3      A        CLR    DURCNT   Clear the PLAY note duration count
+00944P 00B7 0F   E4      A        CLR    DURCNT+&1 so interrupts don't think we are
+00945                      *    still playing the note.
+00946P 00B9 B6   FF03    A        LDA    PIA0BC   Enable the 60 hertz interrupt.
+00947P 00BC 8A   01      A        ORA    #&1
+00948P 00BE B7   FF03    A        STA    PIA0BC
+00949P 00C1 0F   6F      A        CLR    DEVNUM   Make sure output goes to screen and
+00950                      *    input comes from keyboard.
+00951P 00C3 BD   0000    A        JSR    STKINI   Reset the stack and things.
+00952P 00C6 1C   AF      A        ANDCC  #$FF!X(F!+I) Enable interrupts.
+00953P 00C8 BD   06DC    P        JSR    GRNCHR   Clear the screen.
+00954P 00CB 7E   0000    A GORDY  JMP    READY    Go say "OK".
+00955
+00956
+00957                      *
+00958                      * Here on a FIRQ to handle the cartridge interrupt.
+00959                      *
+00960
+00961P 00CE 7D   FF23    A CARTRG TST    PIA1BC   Did the cartridge cause the interrupt?
+00962P 00D1 2B   01   00D4        BMI    GOCART   Yes.
+00963P 00D3 3B                    RTI             No, return from the interrupt.
+00964
+00965P 00D4 BD   00E5    P GOCART JSR    DELHAF   Delay for about a second to let the
+00966P 00D7 BD   00E5    p        JSR    DELHAF   user finish installing the cartridge.
+00967P 00DA 31   8C 03            LEAY   <HRDRT2,PCR Init the hardware.  HRDINI leaves the
+00968P 00DD 7E   0000    A        JMP    HRDINI   cartridge interrupt disabled.
+00969P 00E0 0F   71      A HRDRT2 CLR    RSTFLG   Don't allow BASIC to be restarted.
+00970P 00E2 7E   C000    A        JMP    CARTRM   Go execute the cartrige program.
+00971
+00972                      *
+00973                      * Delay for about one half second.
+00974                      *
+00975
+00976                             XDEF   DELHAF
+00977P 00E5 9E   8A      A DELHAF LDX    DBLZER
+00978P 00E7 30   1F      A DELAY  LEAX   -&1,X
+00979P 00E9 26   FC   00E7        BNE    DELAY
+00980P 00EB 39                    RTS

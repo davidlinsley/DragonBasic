@@ -206,3 +206,59 @@ FCUSLP STU    ,X++     defined by the user.
        CMPX   DSKROM
        LBEQ   DSKROM+&2 Yes, go to its initialization code.
        ENDC   IFN      REALIO
+       ANDCC  #$FF!X(F!+I) Allow the cartridge to interrupt now
+*    before displaying the sign on message.
+       LDX    #SIGNON-&1 Print the sign on message.
+       JSR    STROUT
+       LDX    #BASRST  Set the restart vector.
+       STX    RSTVEC
+       XDEF   FINIT
+FINIT  LDA    #@125    Set the restart flag.
+       STA    RSTFLG
+       BRA    GORDY    Go to command level and say "OK".
+
+*
+* Here to restart BASIC.
+*
+
+       XDEF   BASRST
+BASRST NOP             The NOP required of all restart entry
+*    points.
+       CLR    DURCNT   Clear the PLAY note duration count
+       CLR    DURCNT+&1 so interrupts don't think we are
+*    still playing the note.
+       LDA    PIA0BC   Enable the 60 hertz interrupt.
+       ORA    #&1
+       STA    PIA0BC
+       CLR    DEVNUM   Make sure output goes to screen and
+*    input comes from keyboard.
+       JSR    STKINI   Reset the stack and things.
+       ANDCC  #$FF!X(F!+I) Enable interrupts.
+       JSR    GRNCHR   Clear the screen.
+GORDY  JMP    READY    Go say "OK".
+
+
+*
+* Here on a FIRQ to handle the cartridge interrupt.
+*
+
+CARTRG TST    PIA1BC   Did the cartridge cause the interrupt?
+       BMI    GOCART   Yes.
+       RTI             No, return from the interrupt.
+
+GOCART JSR    DELHAF   Delay for about a second to let the
+       JSR    DELHAF   user finish installing the cartridge.
+       LEAY   <HRDRT2,PCR Init the hardware.  HRDINI leaves the
+       JMP    HRDINI   cartridge interrupt disabled.
+HRDRT2 CLR    RSTFLG   Don't allow BASIC to be restarted.
+       JMP    CARTRM   Go execute the cartrige program.
+
+*
+* Delay for about one half second.
+*
+
+       XDEF   DELHAF
+DELHAF LDX    DBLZER
+DELAY  LEAX   -&1,X
+       BNE    DELAY
+       RTS
