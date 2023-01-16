@@ -115,3 +115,61 @@ POWRUP LEAY   HRDRT1,PCR Set up return address for HRDINI.
 •    good until the SAM is initialized.)
 *
 * Here to perform BASIC initialization.
+*
+
+       XDEF   INIT
+INIT   EQU    *
+       IFNE   REALIO
+       LDX    #SCRADR+&1 Clear RAM from 0 to the start of the
+CLRRAM CLR    ,--X     screen memory.
+       LEAX   &1,X     (This roundabout method saves bytes
+       BNE    CLRRAM   over the more obvious way.)
+       JSR    GRNCHR   Clear the screen and make X point to
+*    the first byte following the screen
+*    memory.
+       ENDC   IFN      REALIO
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+       CLR    ,X+      Put a zero below TXTTAB and set it
+       STX    TXTTAB   up.
+
+*
+* Here to find the top of RAM.
+*
+
+       IFNE   REALIO
+MEMLOP LDA    &2,X     Get byte from memory.
+       COMA            Invert all  the bits.
+       STA    &2,X     Store the complement.
+       CMPA   &2,X     Did it store OK?
+       BNE    HAVEND   No, this byte is not useable RAM.
+       LEAX   &1,X     Yes, bump the address.
+       COM    &1,X     Restore the original contents.
+       BRA    MEMLOP   Look at the next byte.
+       ENDC   IFN      REALIO
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+HAVEND STX    ENDMEM   Set pointer to end of memory.  Don't
+*    use last good byte so VAL trick will
+*    work OK in the degenerate case.
+       STX    MEMSIZ   Mark end of BASIC's memory.
+       STX    FRETOP   This is the end of string space also.
+       LEAX   -STRSPC,X Set the bottom of string space.
+       STX    STKTOP   This is the top of the stack.
+       TFR    X,S      Switch from temp stack to BASIC's
+*    real stack.
+       JSR    SFTINI   Init the I/O driver routines.
+       IFNE   REALIO
+       LDX    #LORAM   Initialize direct page RAM.
+       LDU    #EXECAD
+       LDB    #NLORAM
+       JSR    COPLOP
+       LDU    #VIRQ    Initialize RAM off the direct page.
+       LDB    #NHIRAM
+       JSR    COPLOP
+       LDX    #SNERR   X:=SNERR for intializing the dispatch
+*    addresses of stub 1.
+       ENDC   IFN      REALIO
+       IFEQ   REALIO
+ ENDC   IFE REALIO

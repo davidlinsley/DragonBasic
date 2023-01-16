@@ -1,116 +1,60 @@
-                             PAGE   003  E0BmCD    .SA:1  E0BMOD Power uo and Reset code.
+PAGE  003  ECBMOD  .SA:1  ECBMOD Power up and Reset code.
 
-                     •
-
-                             00824                          *
-
-
-                             00625
-
-                             00826                                  XDEF    INIT
-
-                             00827              001F        INIT    EQU     *
-
-                             00828              0001      Pt        IFNE    REALIO
-
-                             00829P  00IF  SE   0401                LDX     #S0RADR+&1 Clear RAM from 0 to the start of the
-
-                             00630P  0022  6F   83          CLRRAM CLR      ,--X       screen memory.
-
-                             00831P  0024  30    01                 LEAX    6:1,X      (This roundabout method saves bytes
-
-                     SO      00832P  0026  26    FA   00:22         BNE     CLRRAM     over the more obvious way.)
-
-                             00833P  0028  BD    06DC               JSR     BRNOHR     Clear the screen and make X point to
-
-                             00834                                the first  byte following the screen
-
-                             00835                                memory.
-
-                             00836                                  ENDC    IFN        REALIO
-
-                             00837               000l               IFEQ    REALIO
-
-                             00839                           ENDC    IFE REALIO
-
-                             00840P  002B  6F    ao                 CLR                Put a zero below TXTTAB and set     it
-
-                             00841P  002D  9H    19                 STX     TXTTAB     UD.
-
-                             00842
-
-                             00843                          *
-
-                             00844                          * Here to find the top of RAM.
-
-                             00845                          *
-
-                             00846
-
-                             00847               0001     A          IFNE   REALIO
-
-                             00848P   002F A6    02       A MEMLOP LDA      &2,X       Get byte from memory.
-
-                             00849P   0031 43                       COMA               Invert all  the bits.
-
-                             00850P   0032 A7    0'7)     A         STA     &2,X       Store the complement.
-
-                             00851P   0034 A1    02       A         OMPA    &2,X       Did it store OK?
-
-                             00852P   0036 26    06   003E          BNE     HAVEND     No, this byte is not    useable RAM.
-
-                             00853P   0038 30    01       A         LEAX    &1,X       Yes, bumb the address.
-
-                             00854P   003A 63    01       A         COM     &1,X       Restore the original contents.
-
-                             00655P   0030 20    Fl    002F          BRA    MEMLOP     Look at the next byte.
-
-                             00856                                   ENDO   IFN        REALIO
-
-                             00857
-
-                             00658               0001     A          IFED.  REALIO
-
-                             00861                           ENDC     IFE REALIO
-
-                             00862P   003E 9F    74       A HAVEND STX      ENDMEM     Set pointer to end of memory.      Don/t
-
-                             00863                          *     use last good byte so VAL trick will
-
-                             00864                          *     work OK in the degenerate case.
-
-                             00865P   0040 9F    27       A          STX    MEMSIZ     Mark end of BASIC's memory.
-
-                           ' 00666P   0042 9F    23       A          STX    FRETOP     This is the end of string soace also.
-
-                             00867P   0044 30    89 PP38 A           LEAX   -STRSPC ,X Set the bottom of string space.
-
-1 HE PHU                      00868P  0048 9F    21       A          STX    STKTOP     This is the too of the stack.
-                              00859P  004A  1F   14       A          TER    X,S        Switch from temp stack to BASIC's
-
-                              00870                               real stack.
-"Progression" - it's a wo     00871P  004C BD    0000                JSR    SFTINI     Init tne I/O driver    routines.
-movement. The latest in 
-                              00872              0001     A          IFNE   REALIO
-family of power amplifier 
-lifetime spent in the rese    00873P  004F SE    00EC                LDX    #LORAM     Initialize direct    page RAM.
-                              00874P  0052 CF    009D                LDU    #EXECAD
-components that always t 
-                              00875P  0055 06    0E                  LDB    #NLORAM
-always respect the dema 
-convey realism from the       00676P  0057  BD   0431                JSR    COPLOP
-                              00877P  005A  CE   0000                LDU    #VIRQ      Initialize RAM off the direct page.
-II in most thunderous of
- c not allowed to affect t    00878P  005D  06   1E       A          LDB    #NHIRAM
-                              00879P  005F  BD   0431                JSR    COPLOP
-
-                              00880P  0062       0000                LDX    *SNERR     X:=SNERR for   intializina the dispatch
-
-                              00881                               addresses of stub
-
-                              00882                                  ENDC    IFN       REALIO
-
-                              00863              0001                IFEQ    REALIO
-
-                           I  00890                           ENDC    IFE REAL10
-
+00824                      *
+00825
+00826                             XDEF   INIT
+00827            001F    P INIT   EQU    *
+00828            0001    A        IFNE   REALIO
+00829P 001F  8E  0401    A        LDX    #SCRADR+&1 Clear RAM from 0 to the start of the
+00630P 0022  6F  83      A CLRRAM CLR    ,--X     screen memory.
+00831P 0024  30  01      A        LEAX   &1,X     (This roundabout method saves bytes
+00832P 0026  26  FA   0022        BNE    CLRRAM   over the more obvious way.)
+00833P 0028  BD  06DC    P        JSR    GRNCHR   Clear the screen and make X point to
+00834                      *    the first byte following the screen
+00835                      *    memory.
+00836                             ENDC   IFN      REALIO
+00837             0001   A        IFEQ   REALIO
+00839                       ENDC   IFE REALIO
+00840P 002B  6F   80     A        CLR    ,X+      Put a zero below TXTTAB and set it
+00841P 002D  9F   19     A        STX    TXTTAB   up.
+00842
+00843                      *
+00844                      * Here to find the top of RAM.
+00845                      *
+00846
+00847            0001    A        IFNE   REALIO
+00848P 002F A6   02      A MEMLOP LDA    &2,X     Get byte from memory.
+00849P 0031 43                    COMA            Invert all  the bits.
+00850P 0032 A7   02      A        STA    &2,X     Store the complement.
+00851P 0034 A1   02      A        CMPA   &2,X     Did it store OK?
+00852P 0036 26   06   003E        BNE    HAVEND   No, this byte is not useable RAM.
+00853P 0038 30   01      A        LEAX   &1,X     Yes, bump the address.
+00854P 003A 63   01      A        COM    &1,X     Restore the original contents.
+00655P 003C 20   F1   002F        BRA    MEMLOP   Look at the next byte.
+00856                             ENDC   IFN      REALIO
+00857
+00658            0001    A        IFEQ   REALIO
+00861                       ENDC   IFE REALIO
+00862P 003E 9F   74      A HAVEND STX    ENDMEM   Set pointer to end of memory.  Don't
+00863                      *    use last good byte so VAL trick will
+00864                      *    work OK in the degenerate case.
+00865P 0040 9F   27      A        STX    MEMSIZ   Mark end of BASIC's memory.
+00666P 0042 9F   23      A        STX    FRETOP   This is the end of string space also.
+00867P 0044 30   89 FF38 A        LEAX   -STRSPC,X Set the bottom of string space.
+00868P 0048 9F   21      A        STX    STKTOP   This is the top of the stack.
+00869P 004A 1F   14      A        TFR    X,S      Switch from temp stack to BASIC's
+00870                      *    real stack.
+00871P 004C BD   0000    A        JSR    SFTINI   Init the I/O driver routines.
+00872            0001    A        IFNE   REALIO
+00873P 004F 8E   00EC    P        LDX    #LORAM   Initialize direct page RAM.
+00874P 0052 CE   009D    A        LDU    #EXECAD
+00875P 0055 C6   0E      A        LDB    #NLORAM
+00676P 0057 BD   0431    P        JSR    COPLOP
+00877P 005A CE   0000    A        LDU    #VIRQ    Initialize RAM off the direct page.
+00878P 005D C6   1E      A        LDB    #NHIRAM
+00879P 005F BD   0431    P        JSR    COPLOP
+00880P 0062 8E   0000    A        LDX    #SNERR   X:=SNERR for intializing the dispatch
+00881                      *    addresses of stub 1.
+00882                             ENDC   IFN      REALIO
+00863            0001    A        IFEQ   REALIO
+00890                       ENDC   IFE REALIO
