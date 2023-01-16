@@ -173,3 +173,36 @@ HAVEND STX    ENDMEM   Set pointer to end of memory.  Don't
        ENDC   IFN      REALIO
        IFEQ   REALIO
  ENDC   IFE REALIO
+       STX    &3, U    Init the stub 1 dispatch addresses.
+       STX    &8,U
+       IFNE   REALIO
+       LDX    #HOOKS   Initialize the extension hooks by
+*    putting in RTS instructions.
+       LDD    #$3900+NRTSH3 A:=RTS opcode,
+*    B:=number of bytes
+*    to initialize.
+*    (Add $Z since NRTSHK is external.)
+INIHKS STA    ,X+      (Note that putting RTS instructions
+       DECB            into all three bytes of each hook is
+       BNE    INIHKS   OK and saves bytes here.)
+       STA    NZLINK   Make NZLINK nonzero for CHEAD.
+       ENDC   IFN      REALIO
+       JSR    SCRTCH   Set up everthing else.
+       JSR    XRRUN    Set up the PLAY and DRAW defaults.
+       LDX    #USRTAB  Put the address of USRTAB into
+       STX    USTBAD   USTBAD so USRTAB can be referenced
+*    indirectly through USTBAD.
+       LDU    #FCERR   Init all USRTAB entries so they
+       LDB    #&10     dispatch to FCERR unless explicitly
+FCUSLP STU    ,X++     defined by the user.
+       DECB
+       BNE    FCUSLP
+       IFNE   REALIO
+       JSR    PINIT    Init for graphics code.
+       LDA    PIA0BC   Enable the 60 Hertz interrupt.
+       ORA    #&1
+       STA    PIA0BC
+       LDX    #'D*&256+'K Is there a disk ROM in the machine?
+       CMPX   DSKROM
+       LBEQ   DSKROM+&2 Yes, go to its initialization code.
+       ENDC   IFN      REALIO
