@@ -1,110 +1,14 @@
-                    a                                                                                                                                                  •
-             40 
+PAGE  011  ECBMOD  .SA:1  ECBMOD CHROUT - Output Character Routine
 
-               WI
-                    PAGE   011  ECBMOD       l   EC•MOD C:-;ROUT - Output Character  Routine
-             40 
-
-                    01179                         *
-
-                    0:180                         * Ouput character to   screen.                                                                                       •
-             40     0'181                         *
-
-                    01182 
-                    01183              01F4    p  SCROPT E L7-1U *                                                                                                     •
-             40     01184              0001    A         IFNE    REALIO
-                    01185P  01F4 BD    0000    A         JSR     SAMALP    Switch to  text mode.
-
-                    01186P  01F7 7E    0000    A         jMP     SCR:OUT   Go to the  screen driver.                                                                   a
-             40     01187                                ENDC    IFN       REALIC
-
-                    0:188 
-                    01189              0001    A         IFEQ    REALIO                                                                                                •
-             41     01221                          ENDO    IFE REALIO
-
-
-
-                                                                                                                                                                       •
-             a
-
-
-
-
-                                                                                                                                                                       •
-             a 
-
-
-
-
-                                                                                                                                                                       •
-             a 
-
-
-
-
-                                                                                                                                                                       •
-             a 
-
-
-
-
-                                                                                                                                                                       41111
-             • 
-
-
-
-
-                                                                                                                                                                       a
-
-
-
-
-
-
-             • 
-                                                                                                                                                                      I I
-
-
-                                                                                                                                                                       •
-
-
-
-
-
-                                                                                                                                                                       •
-             a
-
-
-
-
-             $                                                                                                                                                         0
-
-
- 1 H
-
-                                                                                                                                                                       •
-             a
-"Progression" 
-movement. Th, 
-family of pow:                                                                                                                                                         a
-lifetime spent i 
-
-components ti 
- Mays respeci                                                                                                                                                          •
-(;(flivey realism                                                                                                                                                    ii r
-
-II lcI most thun
-                                                                                                                                                                       a
-
-
-
-
-
-             a                                                                                                                                                         a
-
-
-
-
-
-             0
-
+01179                      *
+01180                      * Ouput character to screen.
+01181                      *
+01182
+01183            01F4    P SCROPT EQU    *
+01184            0001    A        IFNE   REALIO
+01185P 01F4 BD   0000    A        JSR    SAMALP   Switch to text mode.
+01186P 01F7 7E   0000    A        JMP    SCROUT   Go to the screen driver.
+01187                             ENDC   IFN      REALIO
+01188
+01189            0001    A        IFEQ   REALIO
+01221                       ENDC    IFE REALIO

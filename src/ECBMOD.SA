@@ -446,3 +446,16 @@ WRTEOF STB    BLKTYP
        JSR    WRTBLK   Write block out.
        PULS   A,Y,U    Restore regs.
        JMP    MRKMT    Mark the buffer as empty.
+
+*
+* Ouput character to screen.
+*
+
+SCROPT EQU    *
+       IFNE   REALIO
+       JSR    SAMALP   Switch to text mode.
+       JMP    SCROUT   Go to the screen driver.
+       ENDC   IFN      REALIO
+
+       IFEQ   REALIO
+ ENDC    IFE REALIO

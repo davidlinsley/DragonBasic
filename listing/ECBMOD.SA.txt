@@ -471,3 +471,18 @@ PAGE  010  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
 01176P 01EF 35   62      A        PULS   A,Y,U    Restore regs.
 01177P 01F1 7E   04E7    P        JMP    MRKMT    Mark the buffer as empty.
 
+PAGE  011  ECBMOD  .SA:1  ECBMOD CHROUT - Output Character Routine
+
+01179                      *
+01180                      * Ouput character to screen.
+01181                      *
+01182
+01183            01F4    P SCROPT EQU    *
+01184            0001    A        IFNE   REALIO
+01185P 01F4 BD   0000    A        JSR    SAMALP   Switch to text mode.
+01186P 01F7 7E   0000    A        JMP    SCROUT   Go to the screen driver.
+01187                             ENDC   IFN      REALIO
+01188
+01189            0001    A        IFEQ   REALIO
+01221                       ENDC    IFE REALIO
+
