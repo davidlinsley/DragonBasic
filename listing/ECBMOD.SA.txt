@@ -337,3 +337,24 @@ PAGE  006  ECBMOD  .SA:1  ECBMOD Power up and Reset code.
 01049                      * CHRINP inputs a character from the device specified by DEVNUM.
 01050                      * The character is returned in A.
 
+PAGE  007  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
+
+01051                      * All registers except A and CC are preserved.
+01052                      * If end of file is hit, EOFFLG=.TRUE.=non-zero, and A is meaningless.
+01053                      *
+01054                      * INCHR is called instead of CHRINP when a 7 bit code  is wanted.
+01055                      *
+01056
+01057                             XDEF   INCHR
+01058P 016A 8D   03   016F INCHR  BSR    CHRINP   Read a character.
+01059P 016C 84   7F      A        ANDA   #@177    Clear the high order bit.
+01060P 016E 39                    RTS             Return with it
+01061
+01062
+01063                             XDEF   CHRINP
+01064P 016F BD   0000    A CHRINP JSR    HKCHRI   RAM hook.
+01065P 0172 0F   70      A        CLR    EOFFLG   End of file flag:=.FALSE.
+01066P 0174 0D   6F      A        TST    DEVNUM   Check the device number.
+01067P 0176 27   25   019D        BEQ    KEYINP   Go handle the keyboard.
+01068                      *    No, fall into CASINP to get char from
+01069                      *    cassette.
