@@ -459,3 +459,62 @@ SCROPT EQU    *
 
        IFEQ   REALIO
  ENDC    IFE REALIO
+
+       TTL    DEVPRM - Return Device Parameters
+
+*
+* DEVPRM returns the following device parameters:
+*
+* DEVPOS - The position of the print head or it's equivalent.
+* DEVWID - The line width of the device.
+* DEVLCF - The column number where the last comma field starts.
+* DEVCFW - The comma field width.
+* SPCIO  - .TRUE. for special I/O handling in PRINT and INPUT code.
+*
+* All registers except CC are preserved.
+* On exit, Z=1 if the device has infinite width (DEVWID=0).
+*
+
+       XDEF   DEVPRM
+DEVPRM JSR    HKDPRM   RAM hook.
+       PSHS   X,D      Save registers.
+       CLR    SPCIO    Special I/O flag:=.FALSE.
+       LDA    DEVNUM   Get the device number.
+       BEQ    SCRPRM   Go get the screen parms.
+       INCA
+       BEQ    CASPRM   Go get cassette parms.
+
+*
+* Get line printer parameters.
+*
+
+LPTPRM LDX    LPTCFW   Get comma field width and last comma
+*    field.
+       LDD    LPTWID   Get width and current position.
+       BRA    DEVFIN   Go out it all away.
+
+*
+* Get screen parms.
+* The width, comma field width, and last comma field are fixed.
+* The position is obtained by reading the cursor address.
+*
+
+SCRPRM LDB    CURADR+&1 Get low order of cursor address.
+       ANDB   #&31     Determine the column number. This
+*    only works because the line width
+*    is a power of two.
+       LDX    #&16*&256+&16 Field width and last comma field.
+       LDA    #&32     Set up the width.
+       XDEF   DEVFIN
+DEVFIN STX    DEVCFW   Put away comma field width and last
+*    comma field.
+       STB    DEVPOS   Put away the position.
+       STA    DEVWID   Put away the width and set the Z bit
+*    for infinite width devices.
+       PULS   D,X,PC   Restore and return.
+
+
+*
+* Get the cassette parms.
+* They are all fixed at values which are necessary for the special
+* I/O code to work properly. SPCIO gets set TRUE.
