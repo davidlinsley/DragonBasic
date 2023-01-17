@@ -390,7 +390,7 @@ PAGE  008  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
 01097P 0198 BD   0000    A LODDNL JSR    LDBUFR   Reload download buffer.
 01098P 019B 20   F9   0196        BRA    CASIRT   Restore and return.
 
-PAGE  009  ECBMOD  .SA:1  CHRINP - Character Input Routine
+PAGE  009  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
 
 01100                      *
 01101                      * KEYINP reads a char from the keyboard.
@@ -409,4 +409,65 @@ PAGE  009  ECBMOD  .SA:1  CHRINP - Character Input Routine
 01114
 01115            0001    A        IFEQ   REALIO
 01118                       ENDC   IFE REALIO
+
+PAGE  010  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
+
+01120                             TTL    CHROUT - Output Character Routine
+01121
+01122                      *
+01123                      * CHROUT sends the character in A to the device specified by DEVNUM.
+01124                      * The output is suppressed if DEVNUM indicates that file input is
+01125                      * in progress.  This is done so character echo, input prompts
+01126                      * (such as double question mark for more input), etc is ignored
+01127                      * while inputting file data or loading an ASCII program file.
+01128                      *
+01129                      * All registers except CC are preserved.
+01130                      *
+01131
+01132                             XDEF   CHROUT
+01133P 01AF BD   0000    A CHROUT JSR    HKCHRO   RAM hook.
+01134P 01B2 34   04      A        PSHS   B        Save B.
+01135P 01B4 D6   6F      A        LDB    DEVNUM   Get the device number.
+01136P 01B6 C1   FD      A        CMPB   #-&3     Doing a download?
+01137P 01B8 26   02   01BC        BNE    NOTDNL   No.
+01138P 01BA 35   84      A        PULS   B,PC     Yes, throw away the echo.
+01139
+01140P 01BC 5C             NOTDNL INCB            See what it is.
+01141P 01BD 35   04      A        PULS   B        Restore B.
+01142P 01BF 102B FE3D    A        LBMI   LPTOUT   Send char to printer.
+01143P 01C3 26   2F   01F4        BNE    SCROPT   Send char to screen.
+01144
+01145P 01C5 34   16      A        PSHS   X,D      It's the cassette, save some regs.
+01146P 01C7 D6   78      A        LDB    CASOPN   Is the cassette
+01147P 01C9 5A                    DECB            open for input?
+01148P 01CA 27   0F   01DB        BEQ    OUTRTS   Yes, throw this output away.
+01149
+01150                      *
+01151                      * Output character to cassette file.
+01152                      *
+01153
+01154P 01CC D6   79      A CASOUT LDB    CBFCNT   Get the character count.
+01155P 01CE 5C                    INCB            Is the buffer full?
+01156P 01CF 26   02   01D3        BNE    NOTFUL   No, go put the char in the buffer.
+01157P 01D1 8D   0A   01DD        BSR    DMPBUF   Yes, write out the buffer.
+01158P 01D3 9E   7A      A NOTFUL LDX    CBFPTR   Get pointer into buffer.
+01159P 01D5 A7   80      A        STA    ,X+      Put the char away and increment the
+01160P 01D7 9F   7A      A        STX    CBFPTR   pointer.
+01161P 01D9 0C   79      A        INC    CBFCNT   Increment the count.
+01162P 01DB 35   96      A OUTRTS PULS   D,X,PC   Restore regs and return.
+01163
+01164                      *
+01165                      * Here to dump the cassette buffer to tape.
+01166                      *
+01167
+01168P 01DD C6   01      A DMPBUF LDB    #&1      Set block type to data.
+01169P 01DF D7   7C      A WRTEOF STB    BLKTYP
+01170P 01E1 8E   0000    A        LDX    #CASBUF  Set address of data for WRTBLK.
+01171P 01E4 9F   7E      A        STX    CBUFAD
+01172P 01E6 D6   79      A        LDB    CBFCNT   Set the block length.
+01173P 01E8 D7   7D      A        STB    BLKLEN
+01174P 01EA 34   62      A        PSHS   U,Y,A    Save the rest.
+01175P 01EC BD   05F6    P        JSR    WRTBLK   Write block out.
+01176P 01EF 35   62      A        PULS   A,Y,U    Restore regs.
+01177P 01F1 7E   04E7    P        JMP    MRKMT    Mark the buffer as empty.
 

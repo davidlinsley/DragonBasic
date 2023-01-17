@@ -1,4 +1,4 @@
-PAGE  009  ECBMOD  .SA:1  CHRINP - Character Input Routine
+PAGE  009  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
 
 01100                      *
 01101                      * KEYINP reads a char from the keyboard.
