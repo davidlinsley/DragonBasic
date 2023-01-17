@@ -276,3 +276,64 @@ PAGE  005  ECBMOD  .SA:1  ECBMOD Power up and Reset code.
 00979P 00E9 26   FC   00E7        BNE    DELAY
 00980P 00EB 39                    RTS
 
+PAGE  006  ECBMOD  .SA:1  ECBMOD Power up and Reset code.
+
+00982                      *
+0098                       * This stuff gets block transferred into RAM during initialization.
+00984                      *
+00985
+00986P 00EC      0000    A LORAM  FDB    BOOT64   EXECAD FOR 64K INITIALISATION
+00987P 00EE 0C   A7      A        INC    TXTPTR+&1 CHRGET RAM code.
+00988P 00F0 26   02   00F4        BNE    CHRLOD
+00989P 00F2 0C   A6      A        INC    TXTPTR
+00990P 00F4 B6   0000    A CHRLOD LDA    >0       (Force extended addressing.)
+00991P 00F7 7E   078B    P        JMP    ROMLOC
+00992
+00993            000E    A NLORAM EQU    *-LORAM
+00994
+00995P 00FA 7E   0000    A HIRAM  JMP    XRSLWC   VIRQ
+00996P 00FD 7E   00CE    P        JMP    CARTRG   VFIRQ
+00997P 0100      00      A        FCB    &0       TICKER (Overlays 8K version's USRJMP.)
+00998P 0101      00      A        FCB    &0       (Was JMP FCERR for 8k version.)
+00999P 0102      00      A        FCB    &0
+01000P 0103      80      A        FCB    @200     RNDX
+01001P 0104      4F      A        FCB    @117
+01002P 0105      C7      A        FCB    @307
+01003P 0106      52      A        FCB    @122
+01004            0001    A        IFNE   ADDPRC
+01005P 0107      59      A        FCB    @131
+01006                             ENDC   IFN      ADDPRC
+01007P 0108      00      A        FCB    &0       ALPHLK in Color Computer.
+01008P 0109      0000    A        FDB    &0       DBNCNT in Color Computer.
+01009P 010B      00      A        FCB    &0       The RAM hook FPWRT used to be here
+01010P 010C      00      A        FCB    &0       and was set uo with a JMP SNERR
+01011P 010D      05      A        FCB    &5       INTER-REPEAT DELAY
+01012P 010E      00      A        FCB    NNRMTK   STUB0
+01013P 010F      0000    A        FDB    RESLST
+01014P 0111      0000    A        FDB    STMDSP
+01015P 0113      00      A        FCB    NFUNTK
+01016P 0114      0000    A        FDB    FUNLST
+01017P 0116      0000    A        FDB    FUNDSP
+01018
+01019            001E    A NHIRAM EQU    *-HIRAM
+01020
+01021            0001    A        IFNE   METTOY
+01022P 0118      28      A SIGNON FCC    /(C) 1982 DRAGON DATA LTD /
+01023P 0131      0D      A        FCB    CR
+01024P 0132      31      A        FCC    /16K BASIC INTERPRETER 1.0      /
+01025P 0151      0D      A        FCB    CR
+01026P 0152      28      A MICRO  FCC    /(C) 1982 BY MICROSOFT/
+01027P 0167      0D      A        FCB    CR
+01028P 0168      0D      A        FCB    CR
+01029P 0169      00      A        FCB    &0
+01030                             ENDC   IFN      METTOY
+01031
+01032            0000    A        IFNE     GRPTEK
+01044                       ENDC   IFN GRPTEK
+01045
+01046                             TTL    CHRINP - Character Input Routine
+01047
+01048                      *
+01049                      * CHRINP inputs a character from the device specified by DEVNUM.
+01050                      * The character is returned in A.
+
