@@ -358,3 +358,34 @@ PAGE  007  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
 01067P 0176 27   25   019D        BEQ    KEYINP   Go handle the keyboard.
 01068                      *    No, fall into CASINP to get char from
 01069                      *    cassette.
+
+PAGE  008  ECBMOD  .SA:1  ECBMOD CHRINP - Character Input Routine
+
+01071                      *
+01072                      * CASINP reads a character from a cassette file.
+01073                      * (Also used for downloading in the extended version.)
+01074                      *
+01075
+01076P 0178 0D   79      A CASINP TST    CBFCNT   Is the buffer empty?
+01077P 017A 26   03   017F        BNE    NOTMT    No, go get a char from it.
+01078P 017C 03   70      A        COM    EOFFLG   Yes, end of file.
+01079P 017E 39                    RTS
+01080
+01081P 017F 34   74      A NOTMT  PSHS   U,Y,X,B  Save registers.  (Save all because
+0082                       *    of possible LODBUF call.)
+01083P 0181 9E   7A      A        LDX    CBFPTR   Get char from cassette buffer, update
+01084P 0183 A6   80      A        LDA    ,X+      the pointer, and decrement the count.
+01085P 0185 34   02      A        PSHS   A        (Save the char too.)
+01086P 0187 9F   7A      A        STX    CBFPTR
+01087P 0189 0A   79      A        DEC    CBFCNT
+01088P 018B 26   09   0196        BNE    CASIRT   Buffer still not empty, just return.
+01089P 018D 96   6F      A        LDA    DEVNUM   Doing a download?
+01090P 018F 81   FD      A        CMPA   #-&3
+01091P 0191 27   05   0198        BEQ    LODDNL   Yes, use different load buffer
+01092                      *    routine.
+01093P 0193 BD   04CC    P        JSR    LODBUF   Reload the buffer.
+010S4P 0196 35   F6      A CASIRT PULS   D,X,Y,U,PC Get the char into A, restore all regs
+01095                      *    and return.
+01096
+01097P 0198 BD   0000    A LODDNL JSR    LDBUFR   Reload download buffer.
+01098P 019B 20   F9   0196        BRA    CASIRT   Restore and return.
