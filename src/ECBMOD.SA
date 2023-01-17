@@ -369,3 +369,21 @@ CASIRT PULS   D,X,Y,U,PC Get the char into A, restore all regs
 
 LODDNL JSR    LDBUFR   Reload download buffer.
        BRA    CASIRT   Restore and return.
+
+*
+* KEYINP reads a char from the keyboard.
+*
+
+       IFNE   REALIO
+KEYINP PSHS   X,B      Save the registers.
+KEYILP JSR    CBLINK   Blink the cursor.
+       JSR    POLCAT   Scan the keyboard.
+       BEQ    KEYILP   No key, look again.
+       LDB    #@140    Have key, clear the cursor.
+       STB    [CURADR]
+KEYFIN PULS   B,X,PC   Restore B and X and return with the
+*    the char in A.
+       ENDC   IFN      REALIO
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO

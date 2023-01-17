@@ -1,84 +1,19 @@
-                                                                                                                                                                                                                                                •
+PAGE  009  ECBMOD  .SA:1  CHRINP - Character Input Routine
 
-
-                                     PAGE 005 ECBMOD .SW41                             CHRINP - Character Input Routine
-                                                                                                                                                                                                                                                •
-                                     01100                                   *
-                                     01101                                   *   KEYINP reads a char           from tne keyboard.
-                            0        01102                                   *                                                                                                                                                                  •
-                              II!■ 01103                                                                                                                                                                                                       Ux
-                                     01104                    0001        A             IFNE       REALIC
-                          00         01105P    0I9D    34     14          A  KEYINP PSHS           X,13          Save the registers.                                                                                                            •
-                                     01106P    015::   BD     0000        A  KEYILP JSR            CBLINK        Blink the cursor. 
-                                     01:07P    01A2    BD     0000        A             JSR        POLCAT        Scan the keyboard. 
-                                     01108P    01A5    27             019F              BEG!       KEYILP        No key, look again.
-                                     01109P    01A7    C6     60 A                      LDB        #@140         Have key, clear the cursor.
-                                     01110P    01A9    57     9F 0088 A                 STB        [SURADR]
-                                     01111P    01AD    35     94 A           KEYFIN PULS           B,X,PS        Restore B and X and return with the 
-                                     01112                                   *       the char in A.
-                                     01113                                              ENDS       IFN           REALID
-                                     01114 
-                                     01115                    0001        A             IFEQ       R5ALIO
-                                     01118                                     ENDC       IFE REAL'S
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"Progression" - it's a 
-movement. The latest 
-family of power ampl 
-lifetime spent in the r 
-components that alw 
-.ilways respect the de    rot
-(;onvey realism from t 
-Um most thunderous 
-; lot allowed to affe
-
-
-
-
-
-
-
-
-
-
-
-
-                          •
-
+01100                      *
+01101                      * KEYINP reads a char from the keyboard.
+01102                      *
+01103
+01104            0001    A        IFNE   REALIO
+01105P 019D 34   14      A KEYINP PSHS   X,B      Save the registers.
+01106P 019F BD   0000    A KEYILP JSR    CBLINK   Blink the cursor.
+01107P 01A2 BD   0000    A        JSR    POLCAT   Scan the keyboard.
+01108P 01A5 27   F8   019F        BEQ    KEYILP   No key, look again.
+01109P 01A7 C6   60      A        LDB    #@140    Have key, clear the cursor.
+01110P 01A9 E7   9F 0088 A        STB    [CURADR]
+01111P 01AD 35   94      A KEYFIN PULS   B,X,PC   Restore B and X and return with the
+01112                      *    the char in A.
+01113                             ENDC   IFN      REALIO
+01114
+01115            0001    A        IFEQ   REALIO
+01118                       ENDC   IFE REALIO
