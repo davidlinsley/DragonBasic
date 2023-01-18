@@ -518,3 +518,11 @@ DEVFIN STX    DEVCFW   Put away comma field width and last
 * Get the cassette parms.
 * They are all fixed at values which are necessary for the special
 * I/O code to work properly. SPCIO gets set TRUE.
+*
+
+CASPRM COM    SPCIO    Special I/O flag:=.TRUE.
+       LDX    #&256    Comma field width:=1, last comma
+*    field:=0 but don't really care.
+       CLRA            Width:=infinite and position:=0.
+       CLRB
+       BRA    DEVFIN   Go put them away.

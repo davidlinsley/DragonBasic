@@ -1,65 +1,10 @@
-                                          PAGE 013 ECBMOD                   nOr-t.J.     FCBMOD DEVPRM - Return Device Parameters
+PAGE  013  ECBMOD  .SA:1  ECBMOD DEVPRM - Return Device Parameters
 
-                                          01281                                            *
-                                          01282
-                                          01283P 021F 03                SE             A CASPRM COM                 SPCIO            Special I/O fiag:=.-FRUE.
-                                          01284P 0221 SE                0100           A                LDX         #&256            Comma field width:=1, last comma
-                                          01285                                            *        fieldg=0 but don't really care.
-                                          01286P 0224 4F                                                CLRA                         Width:=infinite and positiont=0.
-                                          01287P 0225 ''''-    ,Jr                                      CLRB
-                             4,           01288P 0226 20                EF        0217                  BRA         DEVFIN           Go put them away.
-                                IT
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"Progression" -it's 
-movement. The late 
-family of power am 
-lifetime spent in the 
-components that al 
-Ilways respect the d 
-(;oilvey realism from
-     most thunderou 
-;    lot allowed to aff
-
-
-                             (4)
-      absolu
-
+01281                      *
+01282
+01283P 021F 03   6E      A CASPRM COM    SPCIO    Special I/O flag:=.TRUE.
+01284P 0221 8E   0100    A        LDX    #&256    Comma field width:=1, last comma
+01285                      *    field:=0 but don't really care.
+01286P 0224 4F                    CLRA            Width:=infinite and position:=0.
+01287P 0225 5F                    CLRB
+01288P 0226 20   EF   0217        BRA    DEVFIN   Go put them away.
