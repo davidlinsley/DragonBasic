@@ -665,3 +665,41 @@ PAGE  015  ECBMOD  .SA:1  ECBMOD INLIN - The line input routine.
 01389P 02B0 39             OKOPN  RTS             Yes, all is OK.
 01390
 
+PAGE  016  ECBMOD  .SA:1  ECBMOD OPNICK and OPNOCK
+
+01392                             TTL    The CLOSE code.
+01393
+01394                             XDEF   CLOSE
+01395  02B1 27   0E   02C1 CLOSE  BEQ    CLSALL   Nothing specified, close everything.
+01396P 02B3 BD   043C    P        JSR    GETDNM   Read a device number.
+01397P 02B6 BD   10   02C8 NXTCLO BSR    CLOSIT   Close this device.
+01398P 02B8 9D   A5      A        JSR    CHRGOT   Another number specified?
+01399P 02BA 27   2A   02E6        BEQ    CLSRTS   No, all done.
+01400P 02BC BD   0439    P        JSR    GETCDN   Yes, read comma and device number.
+01401P 02BF 20   F5   02B6        BRA    NXTCLO   So close it.
+01402
+01403                             XDEF   CLSALL
+01404P 02C1 BD   0000    A CLSALL JSR    HKCLSA   RAM hook.
+01405                             XDEF   CLSCAS
+01406P 02C4 86   FF      A CLSCAS LDA    #-&1     Only thing requiring attention is
+01407P 02C6 97   6F      A        STA    DEVNUM   the cassette.
+01406
+01409                             XDEF   CLOSIT
+01410P 02C8 BD   0000    A CLOSIT JSR    HKCLS1   RAM hook.
+01411P 02CB 96   6F      A        LDA    DEVNUM   A:=device number.
+01412P 02CD 0F   6F      A        CLR    DEVNUM   Clear it so normal output occurs when
+01413                      *    close is finished.
+01414P 02CF 4C                    INCA            Do nothing if it isn't the cassette.
+01415P 02D0 26   14   02E6        BNE    CLSRTS
+01416P 02D2 96   78      A        LDA    CASOPN   Is the casette open for output?
+01417P 02D4 81   02      A        CMPA   #&2
+014l8P 02D6 26   0C   02E4        BNE    MRKCLS   No, just mark it as closed.
+01419P 02D8 96   79      A        LDA    CBFCNT   Yes, is there stuff in the buffer?
+01420P 02DA 27   03   02DF        BEQ    EOFWRT   No.
+01421P 02DC BD   01DD    P        JSR    DMPBUF   Yes, dump the buffer.
+01422                             XDEF   EOFWRT
+01423P 02DF C6   FF      A EOFWRT LDB    #@377    Set block type to end of flle.
+01424P 02E1 BD   01DF    P        JSR    WRTEOF   Write an EOF block.
+01425P 02E4 0F   78      A MRKCLS CLR    CASOPN   Mark the cassette as closed.
+01426P 02E6 39             CLSRTS RTS
+01427
