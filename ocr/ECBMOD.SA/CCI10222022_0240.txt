@@ -1,57 +1,45 @@
-                 PAGE  015   a.CBMOD .82:1   ECBMOD INLIN - The line input routine.
+PAGE  015  ECBMOD  .SA:1  ECBMOD INLIN - The line input routine.
 
-
-                 01348P  0280 A7   80       A        STA              No, store the character, Pump the 
-                 013492  0282 50                     INCB             pointer, and increment the court.
-          11)    01350P  0283 RD   012F     P ECHOIT JSR     CHROUT   Echo the char and go back for more.
-                 013512  0286 20   AD   0235         BRA     INLINC
-                 01352 
-          40     01353                               TTL.    OPNICK and OPNOCK
-                 01354
-                 01355                        *
-          40     01356                        * Make sure device specified by DEVNUM is open for input.
-                 01357                        *
-                 01358 
-          40     01359                               XDEF    OPNICK
-                 013602  0288 BD   0000     2 OPNICK JSR     HKOKDI   RAM hook.
-                 013612  0288 96   6F       A        LDA     DEVNUM   Get the device number. 
-          40     0'L:5622028D 27   21   0280         BEID    OKOPN    Keyboard is always open. 
-                 013632  028F 4C                     INCA             Is is the printer?
-                 01364P  0290 26   00   029E         BNE     GOBMER   Yes, give Bad Mote error. 
-          40     013652  0292 96   78                LDA     CASOPN   Is the cassette open?
-                 01366P  0294 26   05   0298         BNE     CHKMFID  Yes, no check the open mode.
-                 01367                               XDEF    NOERR
-          40     (...368P0296 C6   00         NOERR  LDB     ITERRNO  No, give Not Open error.
-                 01369P  0296 75   0000              JMP     ERROR
-                 01370
-          40     013712  0298 42              CHKMOD DECA             Is it open for input? 
-                 01372P  029n 27   12   0280         8E0     OKOPN    Yes, OK.
-                 013732  0295 7E   04AD     P GCBMER JMP     BMERR    No, give Bad Mode error.
-                 01374
-                 01375
-                 01376
-                 01377                        * Make sure device is poen for output.
-                 01378                        *
-                 01379
-                 01380                               XDEF    OPNOCK 
-                 013812  0221 BD   0000       OPNOCK JSR     HKCKDO   RAM hook.
-                 013822  0224 96   6F       A        LDA     DEVNUM   Get the device number.
-                 01583P  0226 4C                     INCA 
-                 01384P  0227 26   07   0280         BNE     OKOPN    Screen and printer are always open. 
-                 01385P  0229 96   78       A        LDA     CASOPN   Is the casette open?
-          40     013862  022B 27   1=9  0296         8E0     NOERR    No, give Not Open error. 
-             !11)01587P  02AD 42                     DECA             Yes, is it open for output?
-                 013882  022E 27   ES   0295         BEQ     GOBMER   No, give more error. 
-'1   IE          01389P  0280                 DKOPN  R7S              Yes, all is EX.
-                 01390
-
-"Progreso 
-rriovemen 
-family of 
-lifetime sp 
-componer 
-; Mays res 
-(:ot Ivey re 
-II in most 
-;le( 11()Iall
-
+01348P 0280 A7   80      A        STA    ,X+      No, store the character, bump the
+01349P 0282 5C                    INCB            pointer, and increment the count.
+01350P 0283 BD   01AF    P ECHOIT JSR    CHROUT   Echo the char and go back for more.
+01351P 0286 20   AD   0235        BRA    INLINC
+01352
+01353                             TTL    OPNICK and OPNOCK
+01354
+01355                      *
+01356                      * Make sure device specified by DEVNUM is open for input.
+01357                      *
+01358
+01359                             XDEF   OPNICK
+01360P 0288 BD   0000    A OPNICK JSR    HKCKDI   RAM hook.
+01361P 028B 96   6F      A        LDA    DEVNUM   Get the device number.
+01362P 028D 27   21   02B0        BEQ    OKOPN    Keyboard is always open.
+01363P 028F 4C                    INCA            Is is the printer?
+01364P 0290 26   0C   029E        BNE    GOBMER   Yes, give Bad Mode error.
+01365P 0292 96   78               LDA    CASOPN   Is the cassette open?
+01366P 0294 26   05   029B        BNE    CHKMOD   Yes, go check the open mode.
+01367                             XDEF   NOERR
+01368P 0296 C6   00      A NOERR  LDB    #ERRNO   No, give Not Open error.
+01369P 0298 7E   0000    A        JMP    ERROR
+01370
+01371P 029B 4A             CHKMOD DECA            Is it open for input?
+01372P 029C 27   12   02B0        BEQ    OKOPN    Yes, OK.
+01373P 029E 7E   04AD    P GOBMER JMP    BMERR    No, give Bad Mode error.
+01374
+01375
+01376                      *
+01377                      * Make sure device is open for output.
+01378                      *
+01379
+01380                             XDEF   OPNOCK
+01381P 02A1 BD   0000    A OPNOCK JSR    HKCKDO   RAM hook.
+01382P 02A4 96   6F      A        LDA    DEVNUM   Get the device number.
+01583P 02A6 4C                    INCA
+01384P 02A7 26   07   02B0        BNE    OKOPN    Screen and printer are always open.
+01385P 02A9 96   78      A        LDA    CASOPN   Is the casette open?
+01386P 02AB 27   E9   0296        BEQ    NOERR    No, give Not Open error.
+01587P 02AD 4A                    DECA            Yes, is it open for output?
+01388P 02AE 27   EE   029E        BEQ    GOBMER   No, give mode error.
+01389P 02B0 39             OKOPN  RTS             Yes, all is OK.
+01390
