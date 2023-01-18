@@ -526,3 +526,62 @@ CASPRM COM    SPCIO    Special I/O flag:=.TRUE.
        CLRA            Width:=infinite and position:=0.
        CLRB
        BRA    DEVFIN   Go put them away.
+
+       TTL    INLIN - The line input routine.
+
+INLCLS JSR    GRNCHR   Clear the screen and start over.
+       XDEF   INLIN
+INLIN  JSR    HKINLN   RAM hook.
+       CLR    INKCHR   Throw away INKEY's character.
+       LDX    #BUF     Point to the start of the line buffer.
+       LDB    #&1      Init the character count.
+INLINC JSR    INCHR    Read a character.
+       TST    EOFFLG   End of file reached?
+       BNE    INLDON   Yes, go finish up.
+       TST    DEVNUM   Reading from the keyboard?
+       BNE    NOEDIT   No, don't check for editing chars.
+       CMPA   #@14     CLEAR key?
+       BEQ    INLCLS   Yes, clear screen and start over.
+       CMPA   #CHRDEL  Character delete?
+       BNE    NTCDEL   No.
+       DECB            Yes, at beginning of line?
+       BEQ    INLIN    Yes, just start over.
+       LEAX   -&1,X    Backup the buffer pointer.
+       BRA    ECHOIT   Output the CHRDEL to the screen to
+*    backup the cursor and go back for
+*    another char.
+
+NTCDEL CMPA   #LINDEL  Is it a line delete?
+       BNE    NTLDEL   No
+RUBLIN DECB            Yes, send CHRDELs to the screen
+       BEQ    INLIN    until all characters have been erased.
+       LDA    #CHRDEL  Then go start all over.
+       JSR    CHROUT
+       BRA    RUBLIN
+
+NTLDEL CMPA   #BRKCHR  Break character? (Like control-C)
+       SEC             (Set the carry just in case.)
+       BEQ    FININL   Yes
+
+NOEDIT CMPA   #CR      Carriage return?
+       BNE    NOTCR    No
+INLDON CLRA            (Clear carry.)  Clear control-C flag.
+FININL PSHS   CC       Save the control-C flag.
+       JSR    CRDO     Start a new line.
+       CLR    ,X       Put a zero in to mark the end.
+       LDX    #BUF-&1  Set up a pointer for CRUNCH.
+       PULS   CC,PC    Get the control-C flag and return.
+
+*
+* The character is not a special char.  Weed out bad ones and store
+* the good ones in the buffer.
+*
+NOTCR  CMPA   #SPACE   Those below space and above lower
+       BCS    INLINC   case z are thrown away.
+       CMPA   #'z+&1
+       BCC    INLINC
+GOODCH CMPB   #BUFLEN  Would this char fill the buffer?
+       BCC    INLINC   Yes, ignore it then because one
+*    byte must be reserved for the zero
+*    terminator inserted when a carriage
+*    return is typed.

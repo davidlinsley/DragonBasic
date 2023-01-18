@@ -558,3 +558,64 @@ PAGE  013  ECBMOD  .SA:1  ECBMOD DEVPRM - Return Device Parameters
 01287P 0225 5F                    CLRB
 01288P 0226 20   EF   0217        BRA    DEVFIN   Go put them away.
 
+PAGE  014  ECBMOD  .SA:1  ECBMOD DEVPRM - Return Device Parameters
+
+01290                             TTL    INLIN - The line input routine.
+01291
+01292P 0228 BD   06DC    P INLCLS JSR    GRNCHR   Clear the screen and start over.
+01293                             XDEF   INLIN
+01294P 022B BD   0000    A INLIN  JSR    HKINLN   RAM hook.
+01295P 022E 0F   87      A        CLR    INKCHR   Throw away INKEY's character.
+01296P 0230 8E   0000    A        LDX    #BUF     Point to the start of the line buffer.
+01297P 0233 C6   01      A        LDB    #&1      Init the character count.
+01298P 0235 BD   016A    A INLINC JSR    INCHR    Read a character.
+01299P 0238 0D   70      A        TST    EOFFLG   End of file reached?
+01300P 023A 26   2B   0267        BNE    INLDON   Yes, go finish up.
+01301P 023C 0D   6F      A        TST    DEVNUM   Reading from the keyboard?
+01302P 023E 26   23   0263        BNE    NOEDIT   No, don't check for editing chars.
+01303P 0240 81   0C      A        CMPA   #@14     CLEAR key?
+01304P 0242 27   E4   0228        BEQ    INLCLS   Yes, clear screen and start over.
+01305P 0244 81   08      A        CMPA   #CHRDEL  Character delete?
+01306P 0246 26   07   024F        BNE    NTCDEL   No.
+01307P 0248 5A                    DECB            Yes, at beginning of line?
+01308P 0249 27   E0   022B        BEQ    INLIN    Yes, just start over.
+01309P 024B 30   1F      A        LEAX   -&1,X    Backup the buffer pointer.
+01310P 024D 20   34   0283        BRA    ECHOIT   Output the CHRDEL to the screen to
+01311                      *    backup the cursor and go back for
+01312                      *    another char.
+01313
+01314P 024F 81   15      A NTCDEL CMPA   #LINDEL  Is it a line delete?
+01315P 0251 26   0A   025D        BNE    NTLDEL   No
+01316P 0253 5A             RUBLIN DECB            Yes, send CHRDELs to the screen
+01317P 0254 27   D5   022B        BEQ    INLIN    until all characters have been erased.
+01318P 0256 86   08      A        LDA    #CHRDEL  Then go start all over.
+01319P 0258 BD   01AF    P        JSR    CHROUT
+01320P 025B 20   F6   0253        BRA    RUBLIN
+01321
+01322P 025D 81   03      A NTLDEL CMPA   #BRKCHR  Break character? (Like control-C)
+01323P 025F 1A   01               SEC             (Set the carry just in case.)
+01324P 0261 27   05   0268        BEQ    FININL   Yes
+01325
+01326P 0263 81   0D      A NOEDIT CMPA   #CR      Carriage return?
+01327P 0265 26   0D   0274        BNE    NOTCR    No
+01328P 0267 4F             INLDON CLRA            (Clear carry.)  Clear control-C flag.
+01329P 0268 34   01      A FININL PSHS   CC       Save the control-C flag.
+01330P 026A BD   0000    A        JSR    CRDO     Start a new line.
+01331P 026D 6F   84      A        CLR    ,X       Put a zero in to mark the end.
+01332P 026F 8E   FFFF    A        LDX    #BUF-&1  Set up a pointer for CRUNCH.
+01333P 0272 35   81      A        PULS   CC,PC    Get the control-C flag and return.
+01334
+01335                      *
+01336                      * The character is not a special char.  Weed out bad ones and store
+01337                      * the good ones in the buffer.
+01338                      *
+01339P 0274 81   20      A NOTCR  CMPA   #SPACE   Those below space and above lower
+01340P 0276 25   BD   0235        BCS    INLINC   case z are thrown away.
+01341P 0278 81   7B      A        CMPA   #'z+&1
+01342P 027A 24   B9   0235        BCC    INLINC
+01343P 027C C1   FA      A GOODCH CMPB   #BUFLEN  Would this char fill the buffer?
+01344P 027E 24   B5   0235        BCC    INLINC   Yes, ignore it then because one
+01345                      *    byte must be reserved for the zero
+01346                      *    terminator inserted when a carriage
+01347                      *    return is typed.
+
