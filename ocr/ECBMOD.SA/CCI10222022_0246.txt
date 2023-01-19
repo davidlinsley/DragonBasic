@@ -1,17 +1,16 @@
-PAGE  021  ECBMOD  .SA1   ECBMOD       - Load a program from cassette.-
+PAGE  021  ECBMOD  .SA:1  ECBMOD CLOAD - Load a program from cassette.
 
-Cr594                             TTL    The EXEC statement.
+01594                             TTL    The EXEC statement.
 01595
 01596                      *
-01597                      * The EXEC statement causes processor control to ne transferred to
+01597                      * The EXEC statement causes processor control to be transferred to
 01596                      * the specified address.  If no address is specified the address
 01599                      * contained in EXECAD is used.
-0'1600                     *
+01600                      *
 01601
 01602                             XDEF   EXEC
-01603P 0305 27   05   0300 EXEC   BE0    EXECDO   Use EXECAD if notninq soecfied.
+01603P 03D5 27   05   03DC EXEC   BEQ    EXECDO   Use EXECAD if nothing specified.
 01604P 03D7 BD   0000    A        JSR    EVLADR   Evaluate the execution address.
-01605P 030A 9F   9D      A        STX    EXECAD   Put it away.
-01606P 03DC 6E   9F 009D A   ECDO jr11A  EEXEOADJ Or to It.
+01605P 03DA 9F   9D      A        STX    EXECAD   Put it away.
+01606P 03DC 6E   9F 009D A EXECDO JMP    [EXECADJ Go to it.
 01607
-

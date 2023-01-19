@@ -877,3 +877,20 @@ PAGE  020  ECBMOD  .SA:1  ECBMOD CLOAD — Load a program from cassette.
 01590P 03D0 2A   F3   03C5        BPL    MLDCLP   A data record, go read more.
 01591P 03D2 7E   0000    A GOCOFF JMP    CASOFF   End of file, turn off cassette and
 01592                      *    return  to NEWSTT.
+
+PAGE  021  ECBMOD  .SA:1  ECBMOD CLOAD - Load a program from cassette.
+
+01594                             TTL    The EXEC statement.
+01595
+01596                      *
+01597                      * The EXEC statement causes processor control to be transferred to
+01596                      * the specified address.  If no address is specified the address
+01599                      * contained in EXECAD is used.
+01600                      *
+01601
+01602                             XDEF   EXEC
+01603P 03D5 27   05   03DC EXEC   BEQ    EXECDO   Use EXECAD if nothing specified.
+01604P 03D7 BD   0000    A        JSR    EVLADR   Evaluate the execution address.
+01605P 03DA 9F   9D      A        STX    EXECAD   Put it away.
+01606P 03DC 6E   9F 009D A EXECDO JMP    [EXECADJ Go to it.
+01607

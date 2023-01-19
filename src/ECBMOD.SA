@@ -826,3 +826,18 @@ MLDCLP JSR    BLKIN    Read tne next block of the file.
        BPL    MLDCLP   A data record, go read more.
 GOCOFF JMP    CASOFF   End of file, turn off cassette and
 *    return  to NEWSTT.
+
+       TTL    The EXEC statement.
+
+*
+* The EXEC statement causes processor control to be transferred to
+* the specified address.  If no address is specified the address
+* contained in EXECAD is used.
+*
+
+       XDEF   EXEC
+EXEC   BEQ    EXECDO   Use EXECAD if nothing specified.
+       JSR    EVLADR   Evaluate the execution address.
+       STX    EXECAD   Put it away.
+EXECDO JMP    [EXECADJ Go to it.
+
