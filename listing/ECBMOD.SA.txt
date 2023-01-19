@@ -703,3 +703,62 @@ PAGE  016  ECBMOD  .SA:1  ECBMOD OPNICK and OPNOCK
 01425P 02E4 0F   78      A MRKCLS CLR    CASOPN   Mark the cassette as closed.
 01426P 02E6 39             CLSRTS RTS
 01427
+
+PAGE  017  ECBMOD  .SA:1  ECBMOD The CLOSE code.
+
+01429                             TTL    CSAVE - Save program on cassette.
+01430
+01431                             XDEF   CSAVE
+01432P 02E7 81   4D      A CSAVE  CMPA   #'M      Is it CSAVEM?
+01433P 02E9 1027 FD13    A        LBEQ   CSAVEM   Yes, go handle it.
+01434P 02ED BD   040F    P        JSR    GETFLN   Read the filename.
+01435P 02F0 9D   A5      A        JSR    CHRGOT   End of statement?
+01436P 02F2 27   16   030A        BEQ    BCSAVE   Yes, do binary CSAVE.
+0l437P 02F4 BD   0000    A        JSR    CHKCOM   No, must be followed bya comma and
+01438P 02F7                       SYNCHK 'A       an "A" for ASCII.
+01439P 02FC 26   E8   02E6        BNE    CLSRTS   If statement doesn't end now let
+01440                      *    NEWSTT give a syntax error.
+01441P 02FE 4F                    CLRA            Say it's a BASIC program.
+01442P 02FF BD   04F3    P        JSR    OPNASC   Open ASCII, gapped output file.
+01443P 0302 86   FF      A        LDA    #CASNUM  Make the listing go to cassette.
+01444P 0304 97   6F      A        STA    DEVNUM
+01445P 0306 4F                    CLRA            Make the LIST code see a terminator
+01446                      *    so the whole program gets saved.
+01447P 0307 7E   0000    A        JMP    LIST     The LIST code will do the rest,
+01448                      *    When LIST is done it will close the
+0i449                      *    file.
+01450
+01451                      *
+01452                      * Here to do binary CSAVE.
+01453                      *
+01454
+01455P 030A 4F             BCSAVE CLRA            Say it's a BASIC program.
+01456P 030B 9E   8A      A        LDX    DBLZER   Say not ASCII or gapped.
+01457P 030D BD   04F6    P        JSR    OPNCSO   Open cassette file for output.
+01458P 0310 0F   78      A        CLR    CASOPN   Mark cassette as closed since OPNCSO
+01459                      *    marked it as open.
+01460P 0312 0C   7C      A        INC    BLKTYP   Set block type to data.
+01461P 0314 BD   0000    A        JSR    WRTLDR   Turn on the cassette and write a
+01462                      *    leader.
+01463P 0317 9E   19      A        LDX    TXTTAB   Get the starting point.
+01464
+01465P 0319 9F   7E      A BCSLOP STX    CBUFAD   Store buffer address for BLKOUT.
+01466P 031B 86   FF      A        LDA    #&255    Assume it's a full block.
+01467P 031D 97   7D      A        STA    BLKLEN
+01468P 031F DC   1B      A        LDD    VARTAB   How many more to write?
+01469P 0321 93   7E      A        SUBD   CBUFAD
+01470P 0323 27   0D   0332        BEQ    FINSAV   All done.
+01471P 0325 1083 00FF    A        CMPD   #&255    Is it a full block?
+01472P 0329 24   02   032D        BHS    FULBLK   Yes.
+01473P 032B D7   7D      A        STB    BLKLEN   No, set actual block length.
+01474P 032D BD   05FE    P FULBLK JSR    BLKOUT   Output the block.
+01475P 0330 20   E7   0319        BRA    BCSLOP   Go back for more.  BLKOUT set X
+01476                      *    to [CBUFAD]+[BLKLEN].
+01477
+01478                             XDEF   FINSAV
+01479P 0332 00   7C      A FINSAV NEG    BLKTYP   Set block type to EOF.  (It was 1
+01480                      *    for data, now -1 for eof.
+01481P 0334 0F   7D      A        CLR    BLKLEN   No data to go out.
+01482P 0336 7E   05F9    P        JMP    BLKOFF   Write EOF block, turn off motor, and
+01483                      *    return to NEWSTT.
+01484
