@@ -1,112 +1,30 @@
-                       PAGE 020 ECBMOD       .SAgl 808MOD            — Load a program from cassette.,
-
-
-                       01565                           *
-
-                       01566                           * Here to load an ungadoed machine langl.,ace file.
-                       01567                           *
-
-                       01568 
-
-                       01569                                   XDEF     MLDUNG
-
-                       01570P  03A1  9E    BA       A  MLDUNO LDX       DBLZER     Assume no load offset specified. 
-
-                       01571P  03A3  9D    A5       A          JSR      CHROOT     End of statement?
-
-                       01572P  03A5  27    06    03AD          Ei'"U    2E:RUFF    Yes, use tne default offset of zero. 
-                       015732  03A7  8D    0000     A          JSR      CHKCOM     No, eat toe comma and evaluate                                                                      •
-
-                       01574P  03AA  RD    0000     A          jSR      EVLADR     the specifled offset.
-
-                       01575P  03AD  96    0000     A  Z!".ROFF LDA     FILTYP     Is the file a machine language file?
-
-                       01576P  0380  81    02       A          r;MPA    #a.2
-
-                       01577P  0382  26    BC    0370          BNE      SMERR1     No, glve file mode error.
-
-                       01578P  0384  FC    0000     A          LDD      STRTAD     Yes, add tne load offset to tf-e 
-
-                       015792  0387  33    88       A          LEAU     D,X        execution address and save it for
-
-                       0580P   0329  DF    90                  STU      EXECAD     the EXEC statement.
-
-                       01581P  03BB  FC    0000                LDD      LOADAD     Ado the load offset to the load
-                       015822  038F  30    88                  LEAX     0,X        address of the file.                                                                                •
-                       01583P  03r.0       7E       A          STX      CBUFAD     Save the effective load address.
-
-                       01584P  0302  80    0000     A          JSR      CSRDON     Turn on tne cassette and sync up.
-
-                       01565P  0305  80    05A3        ;fiLDCLP JSR     BLXIN      Read tne next blocx of the file. 
-
-                       (Y,586P 0308  26    D4    0398          SNE      GOIOER     Bad read.
-
-                       01587P  030A        7E       A          STX      CBUFAD     Update the load address.
-                       015882  03CC  OD    7C       A                   BLKTYP     What type of bloc was read?                                                                         •
-                       01589P  03Cci:.27   CE    039E                   OCIOER     Can't have header in middle of file. 
-
-                       01590P  0300  2A    F3    0305          BPL      MLDCLP     A data re...?cord, go read more.
-
-                       01591P  0302  7E    0000     A  FiocnFE JY1P     CASOFF     End of file, turn off cassette anc:,
-                       01592                                 return  to NEWSTT.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- I HE
-
-
-
-"Progression" 
-movement. Thl 
-
-family of pow: 
-lifetime spent 
-components tl 
-always respect 
-convey realism
-    most thun 
-;11( ; allowed
-
-
-
-
-
-
-
-     albs
-
-               •
-
-
-
-
-
-               •
-
-
-
-
-               •                                                                                                                                                                       •
-
+PAGE  020  ECBMOD  .SA:1  ECBMOD CLOAD — Load a program from cassette.
+
+01565                      *
+01566                      * Here to load an ungapped machine langauge file.
+01567                      *
+01568
+01569                             XDEF   MLDUNG
+01570P 03A1 9E   8A      A MLDUNG LDX    DBLZER   Assume no load offset specified.
+01571P 03A3 9D   A5      A        JSR    CHRGOT   End of statement?
+01572P 03A5 27   06   03AD        BEQ    ZEROFF   Yes, use tne default offset of zero.
+01573P 03A7 BD   0000    A        JSR    CHKCOM   No, eat the comma and evaluate
+01574P 03AA BD   0000    A        JSR    EVLADR   the specified offset.
+01575P 03AD B6   0000    A ZEROFF LDA    FILTYP   Is the file a machine language file?
+01576P 03B0 81   02      A        CMPA   #&2
+01577P 03B2 26   BC   0370        BNE    BMERR1   No, give file mode error.
+01578P 03B4 FC   0000    A        LDD    STRTAD   Yes, add tne load offset to the
+01579P 03B7 33   8B      A        LEAU   D,X      execution address and save it for
+01580P 03B9 DF   9D      A        STU    EXECAD   the EXEC statement.
+01581P 03BB FC   0000    A        LDD    LOADAD   Add the load offset to the load
+01582P 03BE 30   8B      A        LEAX   D,X      address of the file.
+01583P 03C0 9F   7E      A        STX    CBUFAD   Save the effective load address.
+01584P 03C2 BD   0000    A        JSR    CSRDON   Turn on tne cassette and sync up.
+01565P 03C5 BD   05A3    P MLDCLP JSR    BLKIN    Read tne next block of the file.
+01586P 03C8 26   D4   039E        BNE    GOIOER   Bad read.
+01587P 03CA 9F   7E      A        STX    CBUFAD   Update the load address.
+01588P 03CC 0D   7C      A        TST    BLKTYP   What type of block was read?
+01589P 03CE 27   CE   039E        BEQ    GOIOER   Can't have header in middle of file.
+01590P 03D0 2A   F3   03C5        BPL    MLDCLP   A data record, go read more.
+01591P 03D2 7E   0000    A GOCOFF JMP    CASOFF   End of file, turn off cassette and
+01592                      *    return  to NEWSTT.
