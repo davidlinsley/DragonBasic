@@ -824,3 +824,25 @@ PAGE  018  ECBMOD  .SA:1  ECBMOD CSAVE - Save program on cassette.
 01542                      *    be able to load a program they saved
 01543                      *    if it was a very tight fit, but they
 
+PAGE  019  ECBMOD  .SA:1  ECBMOD CLOAD - Load a program from cassette.
+
+01544                      *    wouldn't be able to run it anyway.)
+01545P 0383 BD   05A3    P        JSR    BLKIN    Load the next block.
+01546P 0386 26   13   039B        BNE    WIPER    An error occured.
+01547P 0388 96   7C      A        LDA    BLKTYP   No error, get the block type.
+01548P 038A 27   0F   039B        BEQ    WIPER    Can't have file header in middle of
+01549                      *    file.
+01550P 038C 2A   ED   037B        BPL    CLDLOP   Data record so continue.  Note that
+01551                      *    X has load address for next block.
+01552P 038E 9F   1B      A        STX    VARTAB   End of file, set end of program.
+01553P 0390 8D   40   03D2        BSR    GOCOFF   Turn off the motor.
+01554P 0392 8E   FFFE    A        LDX    #REDDY-&2 Print "OK" since we won't be going
+01555P 0395 BD   0000    A        JSR    STROUT   through READY.  (NOTE: REDDY-2 is
+01556                      *    used to force a carriage return.)
+01557P 0398 7E   0000    A        JMP    FINI     Go fix up the links,etc. End up
+01558                      *    at MAIN.
+01559
+01560P 039B BD   0000    A WIPER  JSR    SCRTCH   Error occured, wipe out whatever did
+01561                      *    load so garbage isn't left around.
+01562P 039E 7E   04B0    P GOIOER JMP    IOERR
+01563
