@@ -1039,3 +1039,51 @@ AOERR  LDB    #ERRAO   Already open error.
        XDEF   DNERR
 DNERR  LDB    #ERRDN   Device Number error.
        JMP    ERROR
+
+*
+* Here to open a device for input.
+*
+
+OPENI  INCA            If lineprinter give mode error.
+       BMI    BMERR
+       BNE    OPNRTS   If keyboard just return.
+       BSR    OPNCSI   Do the dirty work.
+       LDA    ASCFLG   Must be an ASCII gapped file.
+       ANDA   GAPFLG
+       BEQ    BMERR    Give mode error if not.
+       INC    CASOPN   Mark as open for input.
+*    Fall into LODBUF to load the buffer.
+
+*
+* LODBUF loads the cassette buffer.
+*
+
+       XDEF   LODBUF
+LODBUF JSR    RDBLK    Read the next block from tape.
+       BNE    IOERR    Read error.
+       TST    BLKTYP   Examine the block type.
+       BEQ    IOERR    Can't have header in middle of file!
+       BMI    OPNRTS   If EOF block just return and leave
+*    the buffer empty.
+       LDA    BLKLEN   Get the block length.
+       BEQ    LODBUF   Nothing there, go back for more.
+       XDEF   FINLDB
+FINLDB STA    CBFCNT   Set buffer count.
+       BRA    SETPTR   Set the pointer to the beginning of
+*    of the buffer.
+
+
+*
+* Make sure cassette isn't already open, find the file, mark the
+* cassette as open for input, and mark the cassette buffer as empty.
+*
+
+       XDEF   OPNCSI
+OPNCSI TST    CASOPN   Is the cassette already open?
+       BNE    AOERR    Yes, give Already Open error.
+       BSR    TAPSRC   No, search cassette for the file.
+       BNE    IOERR    An error occurred while searching.
+MRKMT  CLR    CBFCNT   Zero the count.
+SETPTR LDX    #CASBUF  Point to the start of the buffer.
+       STX    CBFPTR
+OPNRTS RTS

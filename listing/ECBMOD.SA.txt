@@ -1109,3 +1109,54 @@ PAGE  027  ECBMOD  .SA:1  ECBMOD The SKPIF statement.
 01807P 04B8 7E   0000    A        JMP    ERROR
 01806
 
+PAGE  028  ECBMCD  .SA:1  ECBMOD The OPEN code.
+
+01810                      *
+01811                      * Here to open a device for input.
+01812                      *
+01813
+01814P 04BB 4C             OPENI  INCA            If lineprinter give mode error.
+01815P 04BC 2B   EF   04AD        BMI    BMERR
+018162 04BE 26   2E   04EE        BNE    OPNRTS   If keyboard just return.
+01817P 04C0 8D   1D   04DF        BSR    OPNCSI   Do the dirty work.
+01818P 04C2 B6   0000    A        LDA    ASCFLG   Must be an ASCII gapped file.
+01819P 04C6 B4   0000    A        ANDA   GAPFLG
+01820P 04C8 27   E3   04AD        BEQ    BMERR    Give mode error if not.
+01821P 04CA 0C   78      A        INC    CASOPN   Mark as open for input.
+01822                      *    Fall into LODBUF to load the buffer.
+01823
+01824                      *
+01825                      * LODBUF loads the cassette buffer.
+01826                      *
+01827
+01828                             XDEF   LODBUF
+01829P 04CC BD   0598    P LODBUF JSR    RDBLK    Read the next block from tape.
+01830P 04CF 26   DF   04B0        BNE    IOERR    Read error.
+01831P 04D1 0D   7C      A        TST    BLKTYP   Examine the block type.
+01832P 04D3 27   DB   04B0        BEQ    IOERR    Can't have header in middle of file!
+01833P 04D5 2B   17   04EE        BMI    OPNRTS   If EOF block just return and leave
+01834                      *    the buffer empty.
+01835P 04D7 96   7D      A        LDA    BLKLEN   Get the block length.
+01836P 04D9 27   F1   04CC        BEQ    LODBUF   Nothing there, go back for more.
+01837                             XDEF   FINLDB
+01838P 04DB 97   79      A FINLDB STA    CBFCNT   Set buffer count.
+01839P 04DD 20   0A   04E9        BRA    SETPTR   Set the pointer to the beginning of
+01840                      *    of the buffer.
+01841
+01842
+01843                      *
+01844                      * Make sure cassette isn't already open, find the file, mark the
+01845                      * cassette as open for input, and mark the cassette buffer as empty.
+01846                      *
+01847
+01848                             XDEF   OPNCSI
+01849P 04DF 0D   78      A OPNCSI TST    CASOPN   Is the cassette already open?
+01850P 04E1 26   D0   04B3        BNE    AOERR    Yes, give Already Open error.
+01851P 04E3 8D   33   0518        BSR    TAPSRC   No, search cassette for the file.
+01852P 04E5 26   C9   04B0        BNE    IOERR    An error occurred while searching.
+01853P 04E7 0F   79      A MRKMT  CLR    CBFCNT   Zero the count.
+01854P 04E9 8E   0000    A SETPTR LDX    #CASBUF  Point to the start of the buffer.
+01855P 04EC 9F   7A      A        STX    CBFPTR
+01856P 04EE 39             OPNRTS RTS
+01857
+
