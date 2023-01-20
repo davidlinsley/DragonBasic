@@ -894,3 +894,65 @@ PAGE  021  ECBMOD  .SA:1  ECBMOD CLOAD - Load a program from cassette.
 01605P 03DA 9F   9D      A        STX    EXECAD   Put it away.
 01606P 03DC 6E   9F 009D A EXECDO JMP    [EXECADJ Go to it.
 01607
+
+PAGE  022  ECBMOD  .SA:1  ECBMOD The EXEC statement.
+
+01609                             TTL    Miscellaneous
+01610
+01611                      *
+01612                      * Check for BREAK and others.
+01513                      * Don't do it if cassette I/O is in progress.
+01614                      *
+01515
+01616                             XDEF   BRKCHK
+01617P 03E0 BD   0000    A BRKCHK JSR    HKBRKC   RAM hook.
+01618P 03E3 96   6F      A        LDA    DEVNUM
+01619P 03E5 4C                    INCA
+01620P 03E6 27   50   0438        BEQ    COPRTS   Cassette, don't check for BREAK.
+01621P 03E8 7E   0000    A        JMP    ISCNTC   Not cassette, go poll keyboard.
+01622
+01623
+01524                      *
+01625                      * Here when the PRINT code sees an @ sign directly after the
+01626                      * PRINT token.
+01627                      *
+01626
+01629                             XDEF   PATDO
+01630P 03EB BD   0000    A PATDO  JSR    INTIDX   D:=screen address.
+01631P 03EE 83   01FF    A        SUBD   #&511    Make sure it's in range.
+01532P 03F1 1022 FC0B    A        LBHI   FCERR    It isn't.
+01633P 03F5 C3   05FF    A        ADDD   #SCRADR+&511 It is, set the new cursor position.
+01634P 03F8 DD   88      A        STD    CURADR
+01535P 03FA 39             PATRTS RTS
+01636
+01637
+01638                      *
+01639                      * INKEY$ returns a single byte string containing the key code of
+01640                      * an active key or the null string if no key is active.
+01641                      *
+01542
+01643                             XDEF   INKEY$
+01544P 03FB 96   87      A INKEY$ LDA    INKCHR   Is there a char in the single char
+01645                      *    buffer?
+01646P 03FD 26   03   0402        BNE    NOPOLL   Yes, use it rather than poll for one.
+01647P 03FF BD   0000    A        JSR    POLCAT   No, scan the keyboard.
+01648P 0402 0F   87      A NOPOLL CLR    INKCHR   Mark Pufber as empty.
+01649P 0404 97   53      A        STA    FACLO    Save the key code.
+01650P 0406 1026 FBF6    A        LBNE   CHR$DO   Go put it away.
+01651P 040A 97   56      A        STA    DSCTMP   No key seen, return the null string.
+01652P 040C 7E   0000    A        JMP    GOPTNW
+01653
+01654                             TTL    Get Filename.
+01555
+01656                             XDEF   GETFLN
+01657P 040F 8E   0000    A GETFLN LDX    #FNAMLN  Set the filename length to zero and
+01658P 0412 6F   80      A        CLR    ,X+      blank fill the filename buffer.
+01659P 0414 86   20      A        LDA    #SPACE
+01650P 0416 A7   80      A BLNKFL STA    ,X+
+01661P 0418 8C   0008    A        CMPX   #FILNAM+&8
+01562P 041B 26   F9   0416        BNE    BLNKFL
+01663
+01654P 041D 9D   A5      A        JSR    CHRGOT   Does the statement end here?
+01665P 041F 27   17   0438        BEQ    COPRTS   Yes, no filename specified so use
+01666                      *    none.
+
