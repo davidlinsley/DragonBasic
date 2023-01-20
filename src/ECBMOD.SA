@@ -899,3 +899,28 @@ BLNKFL STA    ,X+
        JSR    CHRGOT   Does the statement end here?
        BEQ    COPRTS   Yes, no filename specified so use
 *    none.
+       JSR    FRMEVL   Yes, evaluate the filename string formula.
+       JSR    FRESTR   Make sure it's a string, free up the
+*    temp, B:=length of string,  X:=pointer
+*    to string data.
+       LDU    #FNAMLN  Store the filename length and point
+       STB    ,U+      to FILNAM.  (FILNAM immediately
+*    follows FNAMLN.)
+       BEQ    COPRTS   Don't copy null string, use default
+*    filename.
+       SKIP2  Skip     into COPNAM to move the specified
+*    filename into FILNAM.
+
+*
+* Copy filename (or any 8 bytes) from [X] to [U].
+*
+
+COPNAM LDB    #&8      Set up the count.
+       XDEF   COPBXU
+COPBXU EQU    *
+       XDEF   COPLOP
+COPLOP LDA    ,X+      Get a byte.
+       STA    ,U+      Move it.
+       DECB            Do it eight times.
+       BNE    COPLOP
+COPRTS RTS

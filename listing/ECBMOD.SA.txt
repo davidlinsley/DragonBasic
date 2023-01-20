@@ -956,3 +956,32 @@ PAGE  022  ECBMOD  .SA:1  ECBMOD The EXEC statement.
 01665P 041F 27   17   0438        BEQ    COPRTS   Yes, no filename specified so use
 01666                      *    none.
 
+PAGE  023  ECBMOD  .SA:1  ECBMOD Get Filename.
+
+01667P 0421 BD   0000    A        JSR    FRMEVL   Yes, evaluate the filename string formula.
+01668P 0424 BD   0000    A        JSR    FRESTR   Make sure it's a string, free up the
+0z669                      *    temp, B:=length of string,  X:=pointer
+01670                      *    to string data.
+01671P 0427 CE   0000    A        LDU    #FNAMLN  Store the filename length and point
+01672P 042A E7   C0      A        STB    ,U+      to FILNAM.  (FILNAM immediately
+01673                      *    follows FNAMLN.)
+01674P 042C 27   0A   0438        BEQ    COPRTS   Don't copy null string, use default
+01675                      *    filename.
+01676P 042E                       SKIP2  Skip     into COPNAM to move the specified
+01677                      *    filename into FILNAM.
+01678
+01679                      *
+01680                      * Copy filename (or any 8 bytes) from [X] to [U].
+01681                      *
+01662
+01683P 042F C6   08      A COPNAM LDB    #&8      Set up the count.
+01684                             XDEF   COPBXU
+01685            0431    P COPBXU EQU    *
+01686                             XDEF   COPLOP
+01687P 0431 A6   80      A COPLOP LDA    ,X+      Get a byte.
+01686P 0433 A7   C0      A        STA    ,U+      Move it.
+01689P 0435 5A                    DECB            Do it eight times.
+01690P 0436 26   F9   0431        BNE    COPLOP
+01691P 0438 39             COPRTS RTS
+01692
+
