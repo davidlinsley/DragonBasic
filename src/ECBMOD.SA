@@ -1007,3 +1007,35 @@ SKPDOR BSR    OPNCSI   Find the file.
        BNE    IOERR    SKPFIL encountered an error.
        RTS
 
+       TTL    The OPEN code.
+
+       XDEF   OPEN
+OPEN   JSR    HKOPEN   Hook for disk version.
+       JSR    FRMEVL   Evaluate the open mode.
+       JSR    ASC2     B:=open mode char.
+       PSHS   B        Save the open mode.
+       BSR    GETCDN   Eat comma and get device number.
+       XDEF   OPNDEV
+OPNDEV JSR    CHKCOM   Eat comma following device number.
+       BSR    FLNTRM   Read the filename into FILNAM.
+       LDA    DEVNUM   A:=device number.
+       CLR    DEVNUM   Must be clear when OPEN returns.
+       PULS   B        Retrieve the open mode.
+       CMPB   #'I      Open for input?
+       BEQ    OPENI    Yes, go do it.
+       CMPB   #'O      No, open for output?
+       BEQ    OPENO    Yes, go do it.
+*    No, give Bad Mode error.
+       XDEF   FMERR
+FMERR  EQU    *        Also known as File Mode error.
+BMERR  LDB    #ERRBM   Bad Mode error.
+       SKIP2
+       XDEF   IOERR
+IOERR  LDB    #ERRIO   Cassette I/O error.
+       SKIP2
+       XDEF   AOERR
+AOERR  LDB    #ERRAO   Already open error.
+       SKIP2
+       XDEF   DNERR
+DNERR  LDB    #ERRDN   Device Number error.
+       JMP    ERROR
