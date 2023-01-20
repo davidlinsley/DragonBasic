@@ -964,3 +964,31 @@ FLNTRM BSR    GETFLN   Get filename.  Fall into TRMCHK to
 TRMCHK JSR    CHRGOT   Set codes on current char.
 ZERCHK BEQ    DNMOK    It's a terminator.
        JMP    SNERR    Give syntax error
+
+       TTL    The End Of File (EOF) Function.
+
+*
+* EOF returns FALSE (0) if device is not at end of file.
+* TRUE (-1) is returned if the device is at the end of file.
+*
+
+       XDEF   EOF
+EOF    JSR    HKEOF    RPM hook.
+       LDA    DEVNUM   Preserve the old device number since
+       PSHS   A        this could be something like
+*    PRINT EOF(#-1).
+       BSR    SETDNM   Convert the argument to integer and
+*    check it's range.
+       JSR    OPNICK   Make sure it's open for input.
+       XDEF   EOFDEV
+EOFDEV CLRB            Assume not at end of file.
+       LDA    DEVNUM   Get the device number.
+       BEQ    EOFFIN   Keyboard never runs out of data.
+       TST    CBFCNT   Is the cassette buffer empty?
+       BNE    EOFFIN   No, not at end of file.
+       COMB            Yes, there is nothing left.
+       XDEF   EOFFIN
+EOFFIN PULS   A        Restore old DEVNUM.
+       STA    DEVNUM
+SINTB  SEX             Make it a 16 bit result and go
+       JMP    GIVABF   float it.
