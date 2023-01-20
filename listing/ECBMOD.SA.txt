@@ -1057,3 +1057,19 @@ PAGE  025  ECBMOD  .SA:1  ECBMOD Get Device or File Number.
 01759P 047F 1D             SINTB  SEX             Make it a 16 bit result and go
 017600 0480 7E   0000    A        JMP    GIVABF   float it.
 
+PAGE  026  ECBMOD  .SA:1  ECBMOD The End Of File (EOF) Function.
+
+01762                             TTL    The SKIPF statement.
+01763
+01764                      *
+01765                      * SKIPF skips the specified or next file on the tape.
+01766                      * Filenames are displayed if SKIPF is used in a direct statement.
+01767                      *
+01768
+01769                             XDEF   SKIPF
+01770P 0483 8D   D7   045C SKIPF  BSR    FLNTRM   Read the filename and check for EOS.
+01771P 0485 8D   58   04DF SKPDOR BSR    OPNCSI   Find the file.
+01772P 0487 BD   0568    P        JSR    SKPFIL   Skip it.
+01773P 048A 26   24   04B0        BNE    IOERR    SKPFIL encountered an error.
+01774P 048C 39                    RTS
+

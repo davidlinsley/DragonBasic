@@ -992,3 +992,18 @@ EOFFIN PULS   A        Restore old DEVNUM.
        STA    DEVNUM
 SINTB  SEX             Make it a 16 bit result and go
        JMP    GIVABF   float it.
+
+       TTL    The SKIPF statement.
+
+*
+* SKIPF skips the specified or next file on the tape.
+* Filenames are displayed if SKIPF is used in a direct statement.
+*
+
+       XDEF   SKIPF
+SKIPF  BSR    FLNTRM   Read the filename and check for EOS.
+SKPDOR BSR    OPNCSI   Find the file.
+       JSR    SKPFIL   Skip it.
+       BNE    IOERR    SKPFIL encountered an error.
+       RTS
+
