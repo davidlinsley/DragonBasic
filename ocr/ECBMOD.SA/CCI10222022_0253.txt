@@ -1,4 +1,4 @@
-PAGE  028  ECBMCD  .SA:1  ECBMOD The OPEN code.
+PAGE  028  ECBMOD  .SA:1  ECBMOD The OPEN code.
 
 01810                      *
 01811                      * Here to open a device for input.

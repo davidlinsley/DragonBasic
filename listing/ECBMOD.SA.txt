@@ -1109,7 +1109,7 @@ PAGE  027  ECBMOD  .SA:1  ECBMOD The SKPIF statement.
 01807P 04B8 7E   0000    A        JMP    ERROR
 01806
 
-PAGE  028  ECBMCD  .SA:1  ECBMOD The OPEN code.
+PAGE  028  ECBMOD  .SA:1  ECBMOD The OPEN code.
 
 01810                      *
 01811                      * Here to open a device for input.
@@ -1159,4 +1159,46 @@ PAGE  028  ECBMCD  .SA:1  ECBMOD The OPEN code.
 01855P 04EC 9F   7A      A        STX    CBFPTR
 01856P 04EE 39             OPNRTS RTS
 01857
+
+PAGE  029  ECBMOD  .SA:1  ECBMOD The OPEN code.
+
+01859                      *
+01860                      * Here to open device for output.
+01861                      *
+01862
+01863P 04EF 4C             OPENO  INCA            If lineprinter or screen just return.
+01864P 04F0 26    FC  04EE        BNE    OPNRTS
+01865P 04F2 4C                    INCA            To say it's a BASIC data file.
+01866P 04F3 8E    FFFF   A OPNASC LDX    #-&1     To set ASCFLG:=GAPFLGt:=.TRUE.
+01867                      *    Fall  into OPNCSO to write out the
+01868                      *    file header.
+01869
+01870                      *
+01871                      * OPNCSO writes out a file header and marks the cassette as open
+01872                      * for output.  On entry XHI=ASCFLG, XLO=GAPFLG, and A=File type.
+01873                      *
+01874
+01875                             XDEF   OPNCSO
+01876P 04F6 0D   78      A OPNCSO TST    CASOPN   Is the cassette already open?
+01877P 04F8 26   B9   04B3        BNE    AOERR    Yes, give an Already Open error.
+01878P 04FA CE   0000    A        LDU    #CASBUF  No, point to place to build the
+01879                      *    header.
+01880P O4FD DF   7E      A        STU    CBUFAD   Set buffer address for BLKOUT.
+01881P 04FF A7   48      A        STA    &8,U     Put away the file type.
+01882                      *    (FILTYP-CASBUF=8 but since FILTYP
+01883                      *    and CASBUF are external the cross
+01884                      *    assembler would use a 16 bit offset
+01885                      *    if the expression were used.)
+01886P 0501 AF   49      A        STX    &9,U     Follow witn ASCFLG and GAPFLG.
+01887                      *    (ASCFLG-CASBUF=9.)
+01888P 0503 8E   0000    A        LDX    #FILNAM  Copy the filename from FILNAM
+01889P 0506 BD   042F    P        JSR    COPNAM   into the header.
+01890P 0509 0F   7C      A        CLR    BLKTYP   Set block type to file header.
+01891P 050B 86   00      A        LDA    #HDRLEN  Set length of block.
+01892P 050D 97   7D      A        STA    BLKLEN
+01893P 050F BD   05F6    P        JSR    WRTBLK   Turn on the motor, write a block,
+01894                      *    and turn off the motor.
+01895P 0512 86   02      A        LDA    #&2      Mark the cassette as open for output.
+01896P 0514 97   78      A        STA    CASOPN
+01972  0516 20   CF   04E7        BRA    MRKMT    Mark the buffer as empty.
 
