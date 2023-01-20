@@ -38,4 +38,4 @@ PAGE  029  ECBMOD  .SA:1  ECBMOD The OPEN code.
 01894                      *    and turn off the motor.
 01895P 0512 86   02      A        LDA    #&2      Mark the cassette as open for output.
 01896P 0514 97   78      A        STA    CASOPN
-01972  0516 20   CF   04E7        BRA    MRKMT    Mark the buffer as empty.
+01897P 0516 20   CF   04E7        BRA    MRKMT    Mark the buffer as empty.
