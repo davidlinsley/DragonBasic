@@ -1276,3 +1276,10 @@ BLKILP JSR    CBIN     Read a byte of data.
        BNE    BLKILP   Yes, go read the next one.
 
 NODATA JSR    CBIN     No, read the checksum.
+       SUBA   CHKSUM   Does it agree witn the calculated one?
+       BEQ    OKREAD   Yes.
+       LDA    #&1      No, indicate a checksum error occured.
+       SKIP2
+BADMEM LDA    #&2      Indicate a memory error occured.
+OKREAD STA    CSRERR   Put away the status byte and return.
+       RTS

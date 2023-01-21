@@ -1358,3 +1358,12 @@ PAGE  032  ECBMOD  .SA:1  ECBMOD Search Cassette for a File
 02046
 02047P 05D7 BD   0000    A NODATA JSR    CBIN     No, read the checksum.
 
+PAGE  033  ECBMOD  .SA:1  ECBMOD Cassette Input Routines
+
+02048P 05DA 90   80      A        SUBA   CHKSUM   Does it agree witn the calculated one?
+02049P 05DC 27   05   05E3        BEQ    OKREAD   Yes.
+02050P 05DE 86   01      A        LDA    #&1      No, indicate a checksum error occured.
+02051P 05E0                       SKIP2
+02052P 05E1 86   02      A BADMEM LDA    #&2      Indicate a memory error occured.
+02053P 05E3 97   81      A OKREAD STA    CSRERR   Put away the status byte and return.
+02054P 05E5 39                    RTS
