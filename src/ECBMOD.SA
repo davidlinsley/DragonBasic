@@ -1483,3 +1483,37 @@ LSRLOP LSRB            Shift into bit specified by A.
        BPL    LSRLOP
        STB    CELL     Put it away for the callers.
        RTS
+
+*
+* POINT returns the status of the specified cell as follows:
+*
+* -1 Block containg cell is not in graphics mode.
+* 0 The cell is unlit.
+* 1 Green
+* 2 Yellow
+* 3 Blue
+* 4 Red
+* 5 Buff
+* 6 Cyan
+* 7 Magenta
+* 8 Orange
+*
+
+       XDEF   POINT
+POINT  BSR    GRPHA2   Evaluate the args.  (Enter at GRPHA2
+*    since the open paren has already been
+*    eaten by the function dispatcher.
+       LDB    #-&1     Assume it isn't graphic.
+       LDA    ,X       Get the current stuff.
+       BPL    NTGRPH   It is not graphic.
+       ANDA   CELL     Mask off the desired cell.
+       BEQ    NOTLIT   It isn't lit, return 0.
+       LDB    ,X       It is lit, get the color code and
+       LSRB            shift it down.
+       LSRB
+       LSRB
+       LSRB
+       ANDB   #&7      Mask off the bits of interest.
+NOTLIT INCB            Do the final adjustment.
+NTGRPH JSR    SINTB    Float the signed integer in B.
+CHKRP  JMP    CHKCLS   Check for the right paren and return.

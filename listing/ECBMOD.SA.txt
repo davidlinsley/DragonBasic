@@ -1583,3 +1583,40 @@ PAGE  039  ECBMOD  .SA:1  ECBMOD Simple Graphics - SET, RESET, POINT, CLS
 02254P 06A6 D7   86      A        STB    CELL     Put it away for the callers.
 02255P 06A8 39                    RTS
 
+PAGE  040  ECBMOD  .SA:1  ECBMOD Simple Graphics - SET, RESET, POINT, CLS
+
+02257                      *
+02258                      * POINT returns the status of the specified cell as follows:
+02259                      *
+02260                      * -1 Block containg cell is not in graphics mode.
+02261                      * 0 The cell is unlit.
+02262                      * 1 Green
+02263                      * 2 Yellow
+02264                      * 3 Blue
+02265                      * 4 Red
+02266                      * 5 Buff
+02267                      * 6 Cyan
+02268                      * 7 Magenta
+02269                      * 8 Orange
+02270                      *
+02271
+02272                             XDEF   POINT
+02273P 06A9 8D   D0   067B POINT  BSR    GRPHA2   Evaluate the args.  (Enter at GRPHA2
+02274                      *    since the open paren has already been
+02275                      *    eaten by the function dispatcher.
+02276P 06AB C6   FF      A        LDB    #-&1     Assume it isn't graphic.
+02277P 06AD A6   84      A        LDA    ,X       Get the current stuff.
+02278P 06AF 2A   0D   06BE        BPL    NTGRPH   It is not graphic.
+02279P 06B1 94   86      A        ANDA   CELL     Mask off the desired cell.
+02280P 06B3 27   08   06BD        BEQ    NOTLIT   It isn't lit, return 0.
+02281P 06B5 E6   84      A        LDB    ,X       It is lit, get the color code and
+02282P 06B7 54                    LSRB            shift it down.
+02283P 06B8 54                    LSRB
+02284P 06B9 54                    LSRB
+02285P 06BA 54                    LSRB
+02286P 06BB C4   07      A        ANDB   #&7      Mask off the bits of interest.
+02287P 06BD 5C             NOTLIT INCB            Do the final adjustment.
+02288P 06BE BD   047F    P NTGRPH JSR    SINTB    Float the signed integer in B.
+02289P 06C1 7E   0000    A CHKRP  JMP    CHKCLS   Check for the right paren and return.
+02290
+
