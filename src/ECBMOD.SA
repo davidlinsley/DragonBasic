@@ -1414,3 +1414,6 @@ HAVCLR PSHS   B        Save the color code.
 ISGRPH ANDA   #@17     Get only the cell bits.
        ORA    CELL     Include the only being SET.
        ORA    ,S+      Now get the color bits.
+STGRPH ORA    #@200    Set MSB for graphics mode.
+       STA    ,X       Put it away and return.
+       RTS

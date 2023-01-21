@@ -1505,3 +1505,10 @@ PAGE  036  ECBMOD  .SA:1  ECBMOD Simple Graphics - SET, RESET, POINT, CLS
 02183P 065D 84   0F      A ISGRPH ANDA   #@17     Get only the cell bits.
 02184P 065F 9A   86      A        ORA    CELL     Include the only being SET.
 02185P 0661 AA   E0      A        ORA    ,S+      Now get the color bits.
+
+PAGE  037  ECBMOD  .SA:1  ECBMOD Simple Graphics - SET, RESET, POINT, CLS
+
+02186P 0663 8A   80      A STGRPH ORA    #@200    Set MSB for graphics mode.
+02187P 0665 A7   84      A        STA    ,X       Put it away and return.
+02188P 0667 39                    RTS
+
