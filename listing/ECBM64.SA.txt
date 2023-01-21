@@ -58,3 +58,64 @@ PAGE  001  ECBCOM  .SA:0  ECBM64 Extension ROM Direct Page RAM
 00761                             XDEF   PIA0BD
 00762            FF02    A PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
 00763                             XDEF   PIA0BC
+
+PAGE  002  ECBM64  .SA:1  ECBM64 Equates
+
+00764            FF03    A PIA0BC EQU    PIA0BD+&1 PIA0, side B, control reg.
+00765
+00766            0001    A        IFNE   METTOY
+00767                             XDEF   PIA1AD
+00768            FF20    A PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
+00769                             ENDC   IFN      METTOY
+00770            0000    A        IFNE   GRPTEK
+00773                        ENDC  IFN GRPTEK
+00774                             XDEF   PIA1AC
+00775            FF21    A PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
+00776                             XDEF   PIA1BD
+00777            FF22    A PIA1BD EQU    PIA1AC+&1 PIA1, side B, data reg.
+00778                             XDEF   PIA1BC
+00779            FF23    A PIA1BC EQU    PIA1BD+&1 PIA1, side B, conrtrol reg.
+00780
+00781            C000    A CARTRM EQU    @140000  Address of cartridge ROM.  (C000)
+00782            8000    A EXTROM EQU    @100000  Address of extension ROM.  (8000)
+00783
+00784                             XDEF   SAM
+00785            FFC0    A SAM    EQU    @177700  Address of SAM chip.  (FFC0)
+00786
+00787            C000    A DSKRUM EQU    @140000 The address of the disk ROM.  (C000)
+00788
+00789            BE7F    A BOOT64 EQU    $BE7F
+00790            011A    A FLAG64 EQU    $11A
+00791                             TTL    Power up and Reset code.
+00792                             XDEF   POWRUP
+00793            0000    P POWRUP EQU    *        DUMMY LABEL FOR 64K VERSION
+00794                             XDEF   ZHRDIN
+00795            0000    P ZHRDIN EQU    *
+00796                             XDEF   INIT
+00797P 0000 8E   0071    P INIT   LDX    #LORAM   INITIALISE DIRECT PAGE RAM
+00798P 0003 CE   009D    A        LDU    #EXECAD
+00799P 0006 C6   0E      A        LDB    #NLORAM
+00800P 0008 BD   03B1    P        JSR    COPLOP
+00801P 000B CE   0000    A        LDU    #VIRQ    INITIALISE RAM OFF DIRECT PAGE
+00802P 000E C6   0E      A        LDB    #NMDRAM  UP TO 64K FLAG
+00803P 0010 BD   03B1    P        JSR    COPLOP
+00804P 0013 33   45      A        LEAU   5,U      SKIP PAST USED BYTES
+00805P 0015 C6   0B      A        LDB    #NHIRAM
+00806P 0017 BD   03B1    P        JSR    COPLOP
+00807P 001A 8E   0000    A        LDX    #SNERR   X:=SNERR FOR INITIALISING THE DISPATCH
+00808P 001D AF   43      A        STX    &3,U     INIT STUB 1 DISPATCH ADDRESS
+00809P 001F AF   48      A        STX    &8,U
+00810P 0021 8E   0000    A        LDX    #HOOKS
+00811P 0024 CC   3900    A        LDD    #$3900+NRTSH3
+00812P 0027 A7   80      A INIHKS STA    ,X+
+00813P 0029 5A                    DECB
+00814P 002A 26   FB   0027        BNE    INIHKS
+00815P 002C BD   065C    P        JSR    GRNCHR  Clear the screen.
+00816P 002F BD   00000   A        JSR    CLEARC  DESTROY OLD VARIABLES
+00817P 0032 1C   AF      A        ANDCC  #$FF!X(F!+I) Allow the cartridge to interrupt now
+00818                      *    before displaying the sign on message.
+00819P 0034 8E   0097    P        LDX    #SIGNON-&1 Print the sign on message.
+00820P 0037 BD   0000    A        JSR    STROUT
+00821                             XDEF   FINIT
+00822P 003A 86   55      A FINIT  LDA    #@125    Set the restart flag.
+00823P 003C 97   71      A        STA    RSTFLG

@@ -55,3 +55,61 @@ PIA0AC EQU    PIA0AD+&1 PIA0, side A, control  reg.
        XDEF   PIA0BD
 PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
        XDEF   PIA0BC
+PIA0BC EQU    PIA0BD+&1 PIA0, side B, control reg.
+
+       IFNE   METTOY
+       XDEF   PIA1AD
+PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
+       ENDC   IFN      METTOY
+       IFNE   GRPTEK
+  ENDC  IFN GRPTEK
+       XDEF   PIA1AC
+PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
+       XDEF   PIA1BD
+PIA1BD EQU    PIA1AC+&1 PIA1, side B, data reg.
+       XDEF   PIA1BC
+PIA1BC EQU    PIA1BD+&1 PIA1, side B, conrtrol reg.
+
+CARTRM EQU    @140000  Address of cartridge ROM.  (C000)
+EXTROM EQU    @100000  Address of extension ROM.  (8000)
+
+       XDEF   SAM
+SAM    EQU    @177700  Address of SAM chip.  (FFC0)
+
+DSKRUM EQU    @140000 The address of the disk ROM.  (C000)
+
+BOOT64 EQU    $BE7F
+FLAG64 EQU    $11A
+       TTL    Power up and Reset code.
+       XDEF   POWRUP
+POWRUP EQU    *        DUMMY LABEL FOR 64K VERSION
+       XDEF   ZHRDIN
+ZHRDIN EQU    *
+       XDEF   INIT
+INIT   LDX    #LORAM   INITIALISE DIRECT PAGE RAM
+       LDU    #EXECAD
+       LDB    #NLORAM
+       JSR    COPLOP
+       LDU    #VIRQ    INITIALISE RAM OFF DIRECT PAGE
+       LDB    #NMDRAM  UP TO 64K FLAG
+       JSR    COPLOP
+       LEAU   5,U      SKIP PAST USED BYTES
+       LDB    #NHIRAM
+       JSR    COPLOP
+       LDX    #SNERR   X:=SNERR FOR INITIALISING THE DISPATCH
+       STX    &3,U     INIT STUB 1 DISPATCH ADDRESS
+       STX    &8,U
+       LDX    #HOOKS
+       LDD    #$3900+NRTSH3
+INIHKS STA    ,X+
+       DECB
+       BNE    INIHKS
+       JSR    GRNCHR  Clear the screen.
+       JSR    CLEARC  DESTROY OLD VARIABLES
+       ANDCC  #$FF!X(F!+I) Allow the cartridge to interrupt now
+*    before displaying the sign on message.
+       LDX    #SIGNON-&1 Print the sign on message.
+       JSR    STROUT
+       XDEF   FINIT
+FINIT  LDA    #@125    Set the restart flag.
+       STA    RSTFLG
