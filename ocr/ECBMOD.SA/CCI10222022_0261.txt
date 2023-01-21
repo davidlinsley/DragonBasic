@@ -1,65 +1,60 @@
-                                                                       PAGE            03E           ECBMOD                                   ECBMnD Simple Graphics - SET, RESET, POINT, CLS
+PAGE  036  ECBMOD  .SA:1  ECBMOD Simple Graphics - SET, RESET, POINT, CLS
 
-
-                                                                       02128
-                                                                       02129                                                                     * 
-                                                                       02130                                                                     *     SET makes the specified cell the soecified color.
-                                                                o      02131                                                                     *
-                                                                       02132                                                                     *     Colors are
-                                                    •                  02133                                                                     *       1 - Green
-                                                                       02134                                                                     *       2 - Yellow
-                                                                       02135                                                                     *       3          Blue 
-                                                                       02136                                                                     *       4          Red
-                                                                       02137                                                                     *       5          Buff
-                                                                       02138                                                                     *       6 Cyan
-                                                                       02139                                                                     *       7 - Magenta
-                                                                       02140                                                                     *       8 - Orange
-                                                                       02141                                                                     * 
-                                                                       02142                                                                     *     If the color number given is zero and the block containing the cell 
-                                                                       02143                                                                     *     is already in graphic mode, the color of the block is unchanged.
-                                                                       02144                                                                     * 
-                                                                       02145                                                                     *     If the color number given is zero and the block containing the cell 
-                                                                       02146                                                                     *     is not already in graphic moae, the color of the block defaults to 
-                                                                       02147                                                                     *     Green.
-                                                    •                  02148                                                                     *
-                                                                       02149
-                                                                       02150                                                                                        XDEF               SET
-                                                    •                  021512             0637          8D           3F            0678          SET                BSR                GRPHAR                   Evaluate the column and row arais and
-                                                                       02l52                                                                     *             make X point to the block containing
-                                                                       02153                                                                     *             the cell and CEL_L contain the bit
-                                                                       02154                                                                     *             corresponding to the cell.
-                                                                       021552             0639          34           10                    A                        PSHS               X                        Save the address.
-                                                                       021562             063B          BD           0000                  A                        JSR                COMBYT                   Eat the comma and get the color number
-                                                                       02157                                                                     *             in B.
-                                                                       021582             063E          35           10                    A                        PULS               X                        Retrieve the address.
-                                                                       021592             0640          Cl           08                    A                        CM2B               #&8                      Is the color number in range?
-                                                                       021602             0642          22           45            0689                             BHI                BADARG                   No, give FC error.                                      (Negatives were 
-                 4:N                                                   02161                                                                     *             thrown out by GETBYT.)
-                                                                       021622             0644          5A                                                          DECB                                        Adjust the code for actual VDG color
-                                                    (54                02163                                                                     *             cocies.
-                                                                       021642             0645          2B           08            064C                             BMI                COLOR()                  Handle color 0 as a special case.
-                                                                       021652             0647          86                                 A                        LDA                #&16                     Shift the color code into bits
-                                                                       021662             0649          3D                                                          MUL                                         4, 5, and 6 for the VDEI.
-                                                                       021672             064A          20           06            0654                             BRA                HAVCLR                   We have the color code.
-                                                                       02168
-                                                                       021692             0640          ES           84                          COLOR° LDB                            ,X                       B:=current contents of
-                                                                       02170P             064E          2A           03            0653                             BPL                SETGRN                   It isn't in graphic mode so
-                                                                       02171                                                                     *             color 0 defaults                              to green.
-sion" -it's a word that                             •                  021722             0650          C4           70                    A                        ANDB               #R160                    It is graphic, retain the current
- nt. The latest in Dan D'A                                             02173                                                                     *             color.
-   power amplifiers is the                                             02174P             0652                       21                    A                        FOB                @41                      BRN over CLRB.
- pent in the research an                                               02175
-ents that always rise to t                                             02176P             0653          5F                                       SETGRN CLRB                                                    Set color to green.
- spect the demands of tf                                               021772             0654          34           04                          HAVCLR PSHS                                                    Save the color code.
-ealism from the most su                                                021782             0656          BD           69            OE.;                             BSR                CHKR2                    Must have a right paren before we
-    thunderous of cresce                                               02179                                                                     •             actually                do anything to the screen.
-'lowed to affect the dynar                                             021802             0658          A6           84                                             LDA                ,X                       Get the current block.
-                                                                       021812             065A          2B           01            0 6 5 D                          DMI                ISSR2H                   Graphic - retain currently lit cells.
-                                                                       021822             065C          4F                                                          CLRA                                        Character - clear all other cells.
-                                                                       02183P             065D          84           OF                    A     ISGRPH             ANDA               #@17                     Get only the cell bits.
-    solute sou                                                         021842             065F          9A           86                    A                        ORA                CELL                     Include the only being SET.
-    I h  .1                     ,r  .1    ,t                           021852             0661          AA           FO                    A                        ORA                                         Now act the color bits.
-   I         I  ,r          \AP,-?i) I 1 I N
-                 II "       /II
-                                         `
-
+02128
+02129                      *
+02130                      * SET makes the specified cell the specified color.
+02131                      *
+02132                      * Colors are -
+02133                      *  1 - Green
+02134                      *  2 - Yellow
+02135                      *  3 - Blue
+02136                      *  4 - Red
+02137                      *  5 - Buff
+02138                      *  6 - Cyan
+02139                      *  7 - Magenta
+02140                      *  8 - Orange
+02141                      *
+02142                      * If the color number given is zero and the block containing the cell
+02143                      * is already in graphic mode, the color of the block is unchanged.
+02144                      *
+02145                      * If the color number given is zero and the block containing the cell
+02146                      * is not already in graphic mode, the color of the block defaults to
+02147                      * Green.
+02148                      *
+02149
+02150                             XDEF   SET
+02151P 0637 8D   3F   0678 SET    BSR    GRPHAR   Evaluate the column and row args and
+02l52                      *    make X point to the block containing
+02153                      *    the cell and CELL contain the bit
+02154                      *    corresponding to the cell.
+02155P 0639 34   10      A        PSHS   X        Save the address.
+02156P 063B BD   0000    A        JSR    COMBYT   Eat the comma and get the color number
+02157                      *    in B.
+02158P 063E 35   10      A        PULS   X        Retrieve the address.
+02159P 0640 C1   08      A        CMPB   #&8      Is the color number in range?
+02160P 0642 22   45   0689        BHI    BADARG   No, give FC error.  (Negatives were
+02161                      *    thrown out by GETBYT.)
+02162P 0644 5A                    DECB            Adjust the code for actual VDG color
+02163                      *    codes.
+02164P 0645 2B   05   064C        BMI    COLOR0   Handle color 0 as a special case.
+02165P 0647 86   10      A        LDA    #&16     Shift the color code into bits
+02166P 0649 3D                    MUL             4, 5, and 6 for the VDG.
+02167P 064A 20   08   0654        BRA    HAVCLR   We have the color code.
+02168
+02169P 064C E6   84      A COLOR0 LDB    ,X       B:=current contents of block.
+02170P 064E 2A   03   0653        BPL    SETGRN   It isn't in graphic mode so
+02171                      *    color 0 defaults to green.
+02172P 0650 C4   70      A        ANDB   #@160    It is graphic, retain the current
+02173                      *    color.
+02174P 0652      21      A        FCB    @41      BRN over CLRB.
+02175
+02176P 0653 5F             SETGRN CLRB            Set color to green.
+02177P 0654 34   04      A HAVCLR PSHS   B        Save the color code.
+02178P 0656 8D   69   06C1        BSR    CHKRP    Must have a right paren before we
+02179                      *    actually do anything to the screen.
+02180P 0658 A6   84      A        LDA    ,X       Get the current block.
+02181P 065A 2B   01   065D        BMI    ISGRPH   Graphic - retain currently lit cells.
+02182P 065C 4F                    CLRA            Character - clear all other cells.
+02183P 065D 84   0F      A ISGRPH ANDA   #@17     Get only the cell bits.
+02184P 065F 9A   86      A        ORA    CELL     Include the only being SET.
+02185P 0661 AA   E0      A        ORA    ,S+      Now get the color bits.
