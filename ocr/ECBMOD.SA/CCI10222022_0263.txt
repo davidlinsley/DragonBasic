@@ -1,71 +1,22 @@
-                          •
+PAGE  038  ECBMOD  .SA:1  ECBMOD Simple Graphics - SET, RESET, POINT, CLS
 
-
-                                   PAGE    038    ECBMOD     .SAgi    ECBMOD Simple Graohics - SET,             RESET,   POINT, .CLS
-                          •
-                                   02190                                *
-                                   02191                                *  RESET turns off the specified cell.
-                          40       02192                                *
-                                   02193                                *  If the block containing the cell             is not    in graphics mode,       all
-                                   02194                                *  the cells are turned off and the block is out                  into graphics mode
-                          40       02195                                *  with the default color of green.
-                                   02196                                *
-                                   02197
-                          40       02198                                          XDEF     RESET
-                                   02199P    0668   8D    OE     0678   RESET     BSR      GRPHAR       Evaluate the column and row ards.
-                                   02200P    066A   8D    55     0601             BSR      CHKRP        Make sure there is a closing           piarEfrl.
-                          40       02201P    066C   4F                            CLRA                  Assume the block       isn't graphic.
-                                   02202P    066D   E6    84         A            LDB      ,X           Get the current contents.
-                                   02203P    066F   2A    F2     0663             BPL      STGRPH       Not graphic,     no make it graphic
-                          40       02204                                *      with all cells off and a default
-                            I 111  02205                                *      color of green.
-                                   02206P    0671   03    86         A            COM      CELL         Make only the specified cell           bit 0.
-                          40       02207P    0673   D4    86         A            ANDB     CELL         RESET the cell.
-                                   02208P    0675   E7    84         A            STB      ,X           Put  it away and      return.
-                                   02209P    0677   39                            RTS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- I HE PHU
-
-
-"Progression" - it's a w 
-movement. The latest in 
-family of power amplifie 
-lifetime spent in the res 
-components that alway 
-always respect the dem 
-convey realism from the 
-II in most thunderous o 
-; riot allowed to affect
-
-
-                          •
-
-      absolute
-
+02190                      *
+02191                      * RESET turns off the specified cell.
+02192                      *
+02193                      * If the block containing the cell is not in graphics mode, all
+02194                      * the cells are turned off and the block is put into graphics mode
+02195                      * with the default color of green.
+02196                      *
+02197
+02198                             XDEF   RESET
+02199P 0668 8D   0E   0678 RESET  BSR    GRPHAR   Evaluate the column and row args.
+02200P 066A 8D   55   06C1        BSR    CHKRP    Make sure there is a closing paren.
+02201P 066C 4F                    CLRA            Assume the block isn't graphic.
+02202P 066D E6   84      A        LDB    ,X       Get the current contents.
+02203P 066F 2A   F2   0663        BPL    STGRPH   Not graphic, go make it graphic
+02204                      *    with all cells off and a default
+02205                      *    color of green.
+02206P 0671 03   86      A        COM    CELL     Make only the specified cell bit 0.
+02207P 0673 D4   86      A        ANDB   CELL     RESET the cell.
+02208P 0675 E7   84      A        STB    ,X       Put it away and return.
+02209P 0677 39                    RTS

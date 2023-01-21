@@ -1417,3 +1417,24 @@ ISGRPH ANDA   #@17     Get only the cell bits.
 STGRPH ORA    #@200    Set MSB for graphics mode.
        STA    ,X       Put it away and return.
        RTS
+
+*
+* RESET turns off the specified cell.
+*
+* If the block containing the cell is not in graphics mode, all
+* the cells are turned off and the block is put into graphics mode
+* with the default color of green.
+*
+
+       XDEF   RESET
+RESET  BSR    GRPHAR   Evaluate the column and row args.
+       BSR    CHKRP    Make sure there is a closing paren.
+       CLRA            Assume the block isn't graphic.
+       LDB    ,X       Get the current contents.
+       BPL    STGRPH   Not graphic, go make it graphic
+*    with all cells off and a default
+*    color of green.
+       COM    CELL     Make only the specified cell bit 0.
+       ANDB   CELL     RESET the cell.
+       STB    ,X       Put it away and return.
+       RTS
