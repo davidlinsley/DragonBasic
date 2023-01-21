@@ -1779,3 +1779,40 @@ PAGE  043  ECBMOD  .SA:1  ECBMOD SOUND and AUDIO commands.
 02441P 0771 3B             SLWRTI RTI             Return from the interrupt.
 02442
 
+PAGE  044  ECBMOD  .SA:1  ECBMOD SOUND and AUDIO commands.
+
+02444                             TTL    The JOYSTK function.
+02445
+02446                             XDEF   JOYSTK
+02447P 0772 BD   0000    A JOYSTK JSR    CONINT   Convert the pot number to a single
+02448                      *    byte integer in B and FACLO.
+02449P 0775 C1   03      A        CMPB   #&3      Must be 0, 1, 2, or 3.
+02450P 0777 1022 F885    A        LBHI   FCERR
+02451P 077B 5D                    TSTB            Is it pot 0?
+02452P 077C 26   03   0781        BNE    GETPOT   No, just return tne old value.
+02453P 077E BD   0000    A        JSR    JOYIN    Yes, actually read all four pots.
+02454P 0781 8E   0000    A GETPOT LDX    #POTVAL  Point to the pot value table.
+02455P 0784 D6   53      A        LDB    FACLO    Get the pot number.
+02456P 0786 E6   85      A        LDB    B,X      Get the requested pot value.
+02457P 0788 7E   0000    A        JMP    SNGFLT   Go float it and return.
+02458
+02459                             TTL    ROMable part of CHRGET.
+02460
+02461                             XDEF   ROMLOC
+02462            078B    P ROMLOC EQU    *
+02463            0001    A        IFNE   REALIO
+02464P 078B 81   3A      A        CMPA   #':      IS IT A ":"?
+02465P 078D 24   0A   0799        BCC    CHRRTS   IT IS .GE. ":"
+02466P 078F 81   20      A        CMPA   #'       SKIP SPACES.
+02467P 0791 26   02   0795        BNE    NTBLNK   BNE, JMP direct is faster than LBEQ,
+02468P 0793 0E   9F      A        JMP    CHRGET   but both use 4 bytes.
+02469P 0795 80   30      A NTBLNK SUBA   #'0      ALL CHARS .GT. "9" HAVE RET'D SO
+02470P 0797 80   D0      A        SUBA   #-'0     SEE IF NUMERIC.
+02471                      *    TURN CARRY ON IF NUMERIC.
+02472                      *    ALSO, SETZ IF NULL.
+02473P 0799 39             CHRRTS RTS             RETURN TO CALLER.
+02474                             ENDC   IFN      REALIO
+02475
+02476                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000

@@ -1668,3 +1668,36 @@ SNDCLK LDX    >SNDTMR  Is the SOUND countdown timer
        STX    >SNDTMR
 SLWRTI RTI             Return from the interrupt.
 
+       TTL    The JOYSTK function.
+
+       XDEF   JOYSTK
+JOYSTK JSR    CONINT   Convert the pot number to a single
+*    byte integer in B and FACLO.
+       CMPB   #&3      Must be 0, 1, 2, or 3.
+       LBHI   FCERR
+       TSTB            Is it pot 0?
+       BNE    GETPOT   No, just return tne old value.
+       JSR    JOYIN    Yes, actually read all four pots.
+GETPOT LDX    #POTVAL  Point to the pot value table.
+       LDB    FACLO    Get the pot number.
+       LDB    B,X      Get the requested pot value.
+       JMP    SNGFLT   Go float it and return.
+
+       TTL    ROMable part of CHRGET.
+
+       XDEF   ROMLOC
+ROMLOC EQU    *
+       IFNE   REALIO
+       CMPA   #':      IS IT A ":"?
+       BCC    CHRRTS   IT IS .GE. ":"
+       CMPA   #'       SKIP SPACES.
+       BNE    NTBLNK   BNE, JMP direct is faster than LBEQ,
+       JMP    CHRGET   but both use 4 bytes.
+NTBLNK SUBA   #'0      ALL CHARS .GT. "9" HAVE RET'D SO
+       SUBA   #-'0     SEE IF NUMERIC.
+*    TURN CARRY ON IF NUMERIC.
+*    ALSO, SETZ IF NULL.
+CHRRTS RTS             RETURN TO CALLER.
+       ENDC   IFN      REALIO
+
+       END
