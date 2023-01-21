@@ -1610,3 +1610,61 @@ SNDON  LDA    #@10     Turn on TV sound.
        STA    PIA1BC
 SNDRTS RTS
 
+SNDMID LDA    #&124!+PIABIT Put out center amplitude.
+DOSND  STA    PIA1AD   Output amplitude to D/A.
+       LDA    SNDFRQ   Get the frequency.
+SNDLOP INCA            Hold it longer for lower frequencies.
+       BNE    SNDLOP
+       RTS
+
+
+*
+* AUDIO ON/OFF turns on or off the cassette audio to the TV.
+*
+
+       XDEF   AUDIO
+AUDIO  TFR    A,B      Save the ON or OFF token.
+       JSR    CHRGET   Eat it for NEWSTT.
+       CMPB   #OFFTK   OFF?
+       BEQ    SNDOFF   Yes, go turn off sound enable.
+       SUBB   #ONTK    ON?
+       JSR    ZERCHK   If not give SN error.
+       INCB            Yes, select cassette sound.
+       BSR    SETSEL
+       BRA    SNDON    Turn on sound enable and return.
+
+
+*
+* SETSEL sets the select lines according to the contents of B.
+* B0 should be on to set SEL1, B1 should be on to set SEL2.
+*
+* U, A, and B are changed.
+*
+
+       XDEF   SETSEL
+SETSEL LDU    #PIA0AC  Point to PIA0 A side control reg.
+       BSR    SETIT    Set or clear SEL1.
+*    Fall in to set or clear SEL2.
+SETIT  LDA    ,U       Get current reg contents and clear
+       ANDA   #@367    the select line bit.
+       ASRB            Set carry if line is to be set.
+       BCC    NOSET    Don't set it.
+       ORA    #@10     Set it.
+NOSET  STA    ,U++     Store control word and point to next
+       RTS             control register.
+
+
+*
+* SNDCLK handles the timing for the SOUND routine.
+* It is invoked on an IRQ interrupt.
+*
+
+       XDEF   SNDCLK
+SNDCLK LDX    >SNDTMR  Is the SOUND countdown timer
+*    already zero?  (Force extended
+*    addressing since at interrupt level.)
+       BEQ    SLWRTI   Yes, leave it as is.
+       LEAX   -&1,X    No, decrement it.
+       STX    >SNDTMR
+SLWRTI RTI             Return from the interrupt.
+
