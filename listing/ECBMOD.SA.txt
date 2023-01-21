@@ -1367,3 +1367,19 @@ PAGE  033  ECBMOD  .SA:1  ECBMOD Cassette Input Routines
 02052P 05E1 86   02      A BADMEM LDA    #&2      Indicate a memory error occured.
 02053P 05E3 97   81      A OKREAD STA    CSRERR   Put away the status byte and return.
 02054P 05E5 39                    RTS
+
+PAGE  034  ECBMOD  .SA:1  ECBMOD Cassette Input Routines
+
+02056                      *
+02057                      * "MOTOR ON" turns the cassette motor on.
+02058                      * "MOTOR OFF" turns cassette motor off.
+02059                      *
+02060
+02061                             XDEF   MOTOR
+02062P 05E6 1F   89      A MOTOR  TFR    A,B      Save the ON or OFF token.
+02063P 05E8 9D   9F      A        JSR    CHRGET   Eat it for NEWSTT.
+02064P 05EA C1   00      A        CMPB   #OFFTK   Is it "MOTOR OFF"?
+02065P 05EC 27   0D   05FB        BEQ    DOCOFF   Yes, go do it.
+02066P 05EE C1   00      A        CMPB   #ONTK    No, how about "MOTOR ON"?
+02067P 05F0 BD   0460    P        JSR    ZERCHK   Give SN error if not.
+02068P 05F3 7E   0000    A        JMP    CASON    Yes, go turn it on.

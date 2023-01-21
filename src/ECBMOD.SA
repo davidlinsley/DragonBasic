@@ -1283,3 +1283,17 @@ NODATA JSR    CBIN     No, read the checksum.
 BADMEM LDA    #&2      Indicate a memory error occured.
 OKREAD STA    CSRERR   Put away the status byte and return.
        RTS
+
+*
+* "MOTOR ON" turns the cassette motor on.
+* "MOTOR OFF" turns cassette motor off.
+*
+
+       XDEF   MOTOR
+MOTOR  TFR    A,B      Save the ON or OFF token.
+       JSR    CHRGET   Eat it for NEWSTT.
+       CMPB   #OFFTK   Is it "MOTOR OFF"?
+       BEQ    DOCOFF   Yes, go do it.
+       CMPB   #ONTK    No, how about "MOTOR ON"?
+       JSR    ZERCHK   Give SN error if not.
+       JMP    CASON    Yes, go turn it on.
