@@ -1,104 +1,60 @@
-                          PAGE 032 E0BMOD .SA:1               PCBMOD Search Cassette for a File
-                 •
+PAGE  032  ECBMOD  .SA:1  ECBMOD Search Cassette for a File
 
-                          01990                                          TTL       Cassette Input Routines
-
-                          01991 
-
-                          01992                                 *
-
-                          01993                                 *  Turn motor on, read a block., and turn motor off.
-
-                          01994                                 *
-
-                 40       01995
-
-                          019962 0598 BD          0000       A  RDBLK jSR          CSRDON      Turn on motor and sync up.
-
-                          01997P 059B 8D          06 05A3                BSR       BLKIN       Read a block.
-                 40 01998P 059D BD                0000       A  RDBFIN JSR         CASOFF      Turn off motor and enaple interrupts. 
-
-                          01999P 05A0 D6          81         A           LDB       CSRERR      BI=error code and set cond codas.
-
-                          02000P 05A2 39                                  RTS
-                 40       02001
-
-                          02002
-
-                          02003                                 *
-                 40       02004                                 *  BLKIN reads a block from cassette.
-
-                   1111   02005                                 *  On entry CBUFAD contains the buffer address.
-                          02006                                 *  On exit -
-                 40 02007                                       *  BLTYP and BLKLEN are set up.
-
-                          02008                                 *  Z=1 and A=CSRERR=0 if no errors occured.
-
-                          02009                                 *  Z=0 if an error occuret and A=CSRERR=1 for a checksum error and 2
-                 40 02010                                       *  for a memory error.
-
-                          02011                                 *  Unless a memory error occurs X=CBUFAD+BLKLEN.
-
-                           02012                                *  If a memory error occurs, X points one beyond the bad address.
-                 40 02013                                       *
-
-                           02014                                *  CC, A, B, X are modified. The others are preserved.
-
-                           02015                                *  Interrupts are left disabled.
-                 40        02016                                *
-
-                           02017
-
-                           02018                                          XDEF      BLAIN
-
-                           02019P 05A3                          BLKIN     SETCC                 No interrupts during timing loops. 
-                           020202 05A5     on     E3 0582                 BSR       BLINKS      Blink the char if showing names. 
-
-                           02021P 05A7 9E         7F                      LDX       CBUFAD      Get the buffer address.
-                 40        02022P 05A9 4F                                 CLOP                  Start with a zero Oyte. 
-
-                   1111 02023P 05RA BD             0000      A SYNLP      jGR       BITIN       Read a bit.
-
-                           020242 05AD 46                                 RORA                  Rotate it into the byte. 
-
-                           02025P 05AE 81                    A            CMPA      Wa.274      Is it the sync byte?
-
-                           02026P 05B0 26          F8    05AA             BNE       SYNLP       No, look further.
-
-                           02027
-
-                           020282 05B2 BD 0000               A            JSR       CBIN        Yes, read and store the block type. 
-
-                           02029P 05B5 97 70                 A            STA       BLKTYP 
-
-                           020302 05B7 BD 0000                            JSR       CBIN        Read and store the bloc~ length. 
-                 40        020312 05BA 97          7D        A            STA       BLKLEN 
-
- I H±                      02032P 05BC 99 70                 A            ADDA      BLKTYP      init the checksum.
-
-                                 05BE 97 80                  A            STA       CHKSUm 
-
-"Progression"              02034P 0500 96 7D                 A            LOA       BLKLEN      Set up a loop count.
-movement. The              020352 0502 97          81        A            STA       BYTCNT 
-family of powe             020362 0504 27          11    05D7             BED       NODATA      No data in this record, just go
-lifetime spent it go       02037                                       check the     checksum.
-(;()Inponents th           02038P 0506 BD 0000               A  BLKILP JGR          CBIN        Read a byte of data.
-; tys respect              020332 0509 27 84                 A            STA       ,X          Put it away.
-  flivey realism  4o       02040P 050B Al          80        A            CM2A                  See if stored OK.
-
-11H, »1(  Muni      q't 02041P 05CD 26             12    05E1             BNF       B• ADMEN    It didn't, return a memory error. 
-
-     I( )1; illowecl       02042P 057F             80        A            ADDA      CHKSUM      It did, update the checksum.
-
-                           02043P 05D1 97          80        A            STA       CHKSUM 
-
-                           020442 05D3 OA          81        A            DEC       BYTCNT      More 'bytes to read?
-
-                           020452 0505 26 EF             05C6             BNE       BLKILP      Yes, CO read the next one.
-      alas •      40       02046
-                           020472 05D7 BD 0000               A NCDATA JSR           CBIN        No, read the checksum.
-
-
-
-                  4,
-
+01990                             TTL    Cassette Input Routines
+01991
+01992                      *
+01993                      * Turn motor on, read a block, and turn motor off.
+01994                      *
+01995
+01996P 0598 BD   0000    A RDBLK  JSR    CSRDON   Turn on motor and sync up.
+01997P 059B 8D   06   05A3        BSR    BLKIN    Read a block.
+01998P 059D BD   0000    A RDBFIN JSR    CASOFF   Turn off motor and enable interrupts.
+01999P 05A0 D6   81      A        LDB    CSRERR   B:=error code and set cond codes.
+02000P 05A2 39                    RTS
+02001
+02002
+02003                      *
+02004                      * BLKIN reads a block from cassette.
+02005                      * On entry CBUFAD contains the buffer address.
+02006                      * On exit -
+02007                      * BLTYP and BLKLEN are set up.
+02008                      * Z=1 and A=CSRERR=0 if no errors occured.
+02009                      * Z=0 if an error occured and A=CSRERR=1 for a checksum error and 2
+02010                      * for a memory error.
+02011                      * Unless a memory error occurs X=CBUFAD+BLKLEN.
+02012                      * If a memory error occurs, X points one beyond the bad address.
+02013                      *
+02014                      * CC, A, B, X are modified.  The others are preserved.
+02015                      * Interrupts are left disabled.
+02016                      *
+02017
+02018                             XDEF   BLKIN
+02019P 05A3                BLKIN  SETCC  F!+I     No interrupts during timing loops.
+02020P 05A5 8D   E3   058A        BSR    BLINKS   Blink the char if showing names.
+02021P 05A7 9E   7F      A        LDX    CBUFAD   Get the buffer address.
+02022P 05A9 4F                    CLRA            Start with a zero byte.
+02023P 05AA BD   0000    A SYNLP  JSR    BITIN    Read a bit.
+020242 05AD 46                    RORA            Rotate it into the byte.
+02025P 05AE 81   3C      A        CMPA   #@74     Is it the sync byte?
+02026P 05B0 26   F8   05AA        BNE    SYNLP    No, look further.
+02027
+02028P 05B2 BD   0000    A        JSR    CBIN     Yes, read and store the block type.
+02029P 05B5 97   7C      A        STA    BLKTYP
+02030P 05B7 BD   0000    A        JSR    CBIN     Read and store the block length.
+02031P 05BA 97   7D      A        STA    BLKLEN
+02032P 05BC 9B   7C      A        ADDA   BLKTYP   Init the checksum.
+02033P 05BE 97   80      A        STA    CHKSUM
+02034P 05C0 96   7D      A        LDA    BLKLEN   Set up a loop count.
+02035P 05C2 97   81      A        STA    BYTCNT
+02036P 05C4 27   11   05D7        BEQ    NODATA   No data in this record, just go
+02037                      *    check the checksum.
+02038P 05C6 BD   0000    A BLKILP JSR    CBIN     Read a byte of data.
+02033P 05C9 A7   84      A        STA    ,X       Put it away.
+02040P 05CB A1   80      A        CMPA   ,X+      See if stored OK.
+02041P 05CD 26   12   05E1        BNE    BADMEM   It didn't, return a memory error.
+02042P 05CF 9B   80      A        ADDA   CHKSUM   It did, update the checksum.
+02043P 05D1 97   80      A        STA    CHKSUM
+02044P 05D3 0A   81      A        DEC    BYTCNT   More bytes to read?
+02045P 05D5 26   EF   05C6        BNE    BLKILP   Yes, go read the next one.
+02046
+02047P 05D7 BD   0000    A NODATA JSR    CBIN     No, read the checksum.

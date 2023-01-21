@@ -1,64 +1,60 @@
-                                                                                              PAGE                 041                ECBMOD                                                ECBMOD Simple Grapnics -                                                                                      RESET,                    POINT, .CLS
+PAGE  041  ECBMOD  .SA:1  ECBMOD Simple Graphics - SET, RESET, POINT, CLS
 
-
-                                                                                              02292                                                                                             *
-                                                                                              02293                                                                                             *      CLS "clears" the screen.
-                                                                                              02294                                                                                             *      If no argument                                          is given,                           the screen is cleared using green spaces
-                                                                                              02295                                                                                                    (character mode).
-                                                                                              02296                                                                                             *      If the argument                                            is zero,                         the screen is blacked out by putting
-                                                                                              02297                                                                                             *      all            blocks into graphics mode with all                                                                                              cells off and with a green
-                                                                                              02298                                                                                             *      color                  field.
-                                                                                              02299                                                                                             *      If the argument                                            is between 1                                   and 8 all                            Ploc.,< are put                                    in graphics
-                                                                                              02300                                                                                             *      mode with all cells on using the color specified.                                                                                                                                          The colors are
-                                                                                              02301                                                                                             *      the same as for the SET command.
-                                                                                              02302                                                                                             *
-                                                                                              02303
-                                                                                              02304                                                                                                                       XDEF                     CLS
-                                                                                              02305P                   0604              BD                0000                          A      CLS                       JSR                      HKCLS                            RAM hook.
-                                                                                              02306P                   06C7              27                13                 06DC                                        BEGI                     GRNCHR                           No argument,                                    use green space chars.
-                                                                           I  1 1   '         02307P                   06C9                                0000                          A                                JSR                      GETBYT                           Read the argument.
-                                                                                              02308P                   06CC              ClBD              08                            A                                CMPB                     #&8                              Valid args are from 0 to 8.
-                                                                                              02309P                   06CE              22                1B                 06EB                                        BHI                      DOMIC                            Go print MICROSOF7.
-                                                                                              02310P                   06DO              5D                                                                               TSTB                                                      Black out tne screen if zero.
-                                                                                              02311P                   06D1              27                06                 06D9                                        BPID                     ALLOFF
-                                                                                              02312P                   06D3              5A                                                                               DECB                                                      Adlust to YDS color code and shift
-                                                                                              02313P                   06D4              86                10                            A                                LDA                      #(16                             into bits 4,                                    5,         and           6.
-                                                                                              02314P                   06D6                                                                                               MUL
-                                                                                              02315P                   06D7              CA                OF                                                             ORB                      461,17                           Turn               on all                   cells.
-                                                                                              02316P                   06D9              CA                80                            A      ALLOFF ORB                                         #8200                            Turn on the graphics mode                                                                          it
-                                                                                              02317P                   06DB                                                                                               SKIP2                    Skip                             over green character load.
-                                                                                              02318                                                                                                                       XDEF                     GRNCHR
-                                                                                              02319P                   06DC              C6                60                            A      GRNCHR LDB                                         #8140                            This is a green space.
-                                                                                              02320P                   06DE              BE                0400                          A                                LDX                      #SCRADR                          Point to start of screen.
-                                                                                              02321P                   06E1              9F                88                            A      CLRLIN STX                                         CURADR                           Store new cursor address.
-                                                                                              02322P                   06E3              67                80                            A      CLSLOP STB                                         ,X+                              Do all sceen positions.
-                                                                                              02323P                   06E5              8C                05FF                          A                                CMPX                     #SCRADR-1-&511
-                                                                                              02324P                   06E8              23                F9                 06E3                                        BLS                      CLSLOP
-                                                                                              02325P                   06EA              39                                                                               RTS
-                                                                                              02326
-                                                                                              02327P                   06EB              8D                EF                 06DC              DOMIC                     BSR                      GRNCHR                           Clear the screen.
-                                                                                              02328P                   06ED              BE                0151                          P                                LDX                      #MICRO-&1 Print MICROSOFT.
-                                                                                              02329P                   06E0              7=                0000                          A                                JMP                      STROUT
-                                                                                              02330
-                                                                                              02,2,31                                                                                                                     TTL                      SOUND and AuDIO commands.
-                                                                                              02332
-                                                                     a                        02333P                   06F3              BD                0000                          A      GCNZBY JSR                                         CHKCOm                           Eat comma and get nonzero byte.
-                                                                                              02334P                   06F6              BD                0000                          A      BNZBYT JSR                                         BETBYT                           Get nonzero byte.
-        HHU(JF-1                                                                              02335P                   06F9              5D                                                                               TSTB                                                      Give FC error if it's zero.
-                                                                                              0233(:,P                 06FA              26                                   0738                                        BNE                      SNDRTS
-ion" - it's a word that s                                                                     02337P                   06FC              7E                0000                          A      SUFCER JMP                                         FCERR
-t. The latest in Dan D'Ag                                                                     02338
-power amplifiers is the                                                                       02339                                                                                             *
-ent in the research and                                                                       02340                                                                                             *      SOUND frequency,Ouration
-nts that always rise to th                                                                    02341
-spect the demands of th                                                                       02342                                                                                             *      0 .LT.                    frequency .LE.                                         255,              0 .L.T.                   duration
-alism from the most sub                                                                       02343                                                                                             *
- thunderous of crescen                                                                        02344
-lowed to affect the dynan                                                                     02345                                                                                                                       XDEF                     SOUND
-                                                                                              02346P                   06FF              8D                F5                 06F6              SOUND                     BSR                      GNZBYT                           Get the frequency number.
-                                                                                              0'7'347P                 0701              D7                Br                            A                                SFB                      SNDFRQ                           Put            it away.
-                                                                                              02348P                   0703              8D                EE                 06F3                                        BSR                      GCNZBY                           Eat comma and get duration.
-   solute sou                                                                                 02349                                                                                                                       XDEF                     SOUNDR
-                    lt,I   H       MI         :Ult.,         ■
-                 r   11         ',--.)\NC":1.) 11     \A/
-
+02292                      *
+02293                      * CLS "clears" the screen.
+02294                      * If no argument is given, the screen is cleared using green spaces
+02295                      * (character mode).
+02296                      * If the argument is zero, the screen is blacked out by putting
+02297                      * all blocks into graphics mode with all cells off and with a green
+02298                      * color field.
+02299                      * If the argument is between 1 and 8 all block are put in graphics
+02300                      * mode with all cells on using the color specified.  The colors are
+02301                      * the same as for the SET command.
+02302                      *
+02303
+02304                             XDEF   CLS
+02305P 06C4 BD   0000    A CLS    JSR    HKCLS    RAM hook.
+02306P 06C7 27   13   06DC        BEQ    GRNCHR   No argument, use green space chars.
+02307P 06C9 BD   0000    A        JSR    GETBYT   Read the argument.
+02308P 06CC C1   08      A        CMPB   #&8      Valid args are from 0 to 8.
+02309P 06CE 22   1B   06EB        BHI    DOMIC    Go print MICROSOFT.
+02310P 06D0 5D                    TSTB            Black out tne screen if zero.
+02311P 06D1 27   06   06D9        BEQ    ALLOFF
+02312P 06D3 5A                    DECB            Adjust to YDG color code and shift
+02313P 06D4 86   10      A        LDA    #&16     into bits 4, 5, and 6.
+02314P 06D6 3D                    MUL
+02315P 06D7 CA   0F      A        ORB    #@17     Turn on all cells.
+02316P 06D9 CA   80      A ALLOFF ORB    #@200    Turn on the graphics mode bit.
+02317P 06DB                       SKIP2  Skip     over green character load.
+02318                             XDEF   GRNCHR
+02319P 06DC C6   60      A GRNCHR LDB    #@140    This is a green space.
+02320P 06DE 8E   0400    A        LDX    #SCRADR  Point to start of screen.
+02321P 06E1 9F   88      A CLRLIN STX    CURADR   Store new cursor address.
+02322P 06E3 E7   80      A CLSLOP STB    ,X+      Do all sceen positions.
+02323P 06E5 8C   05FF    A        CMPX   #SCRADR+&511
+02324P 06E8 23   F9   06E3        BLS    CLSLOP
+02325P 06EA 39                    RTS
+02326
+02327P 06EB 8D   EF   06DC DOMIC  BSR    GRNCHR   Clear the screen.
+02328P 06ED 8E   0151    P        LDX    #MICRO-&1 Print MICROSOFT.
+02329P 06F0 7E   0000    A        JMP    STROUT
+02330
+02331                             TTL    SOUND and AUDIO commands.
+02332
+02333P 06F3 BD   0000    A GCNZBY JSR    CHKCOM   Eat comma and get nonzero byte.
+02334P 06F6 BD   0000    A GNZBYT JSR    GETBYT   Get nonzero byte.
+02335P 06F9 5D                    TSTB            Give FC error if it's zero.
+02336P 06FA 26   3C   0738        BNE    SNDRTS
+02337P 06FC 7E   0000    A GOFCER JMP    FCERR
+02338
+02339                      *
+02340                      * SOUND frequency,duration
+02341                      *
+02342                      * 0 .LT. frequency .LE. 255, 0 .L.T. duration .LE. 255.
+02343                      *
+02344
+02345                             XDEF   SOUND
+02346P 06FF 8D   F5   06F6 SOUND  BSR    GNZBYT   Get the frequency number.
+02347P 0701 D7   8C      A        STB    SNDFRQ   Put it away.
+02348P 0703 8D   EE   06F3        BSR    GCNZBY   Eat comma and get duration.
+02349                             XDEF   SOUNDR

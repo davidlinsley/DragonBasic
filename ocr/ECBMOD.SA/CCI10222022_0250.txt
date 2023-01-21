@@ -1,70 +1,29 @@
-                                                                                                                    PAGE                       025                   ECBMOD                               .SP:1                           ECBMOD Get Device or File Number.
+PAGE  025  ECBMOD  .SA:1  ECBMOD Get Device or File Number.
 
-                                                                                                                    01734                                                                                                                                                      TTL                             The End Of Fi.e                                                           (ECF)                     Function.
-                                                                                                                    01735
-                                                                                                                    01736                                                                                                                      *
-                                                                                                                    01737                                                                                                                      *        EOF returns FALSE                                                                  (0)               if device                                    is no--;                        at           end                of file.
-                                                                                                                    01738                                                                                                                      *        TRUE                   (-1)                   is            returned                                 if t!,--e                      device                           is at                     the                end               of            file.
-                                                                                                                    017:z9                                                                                                                     *
-                                                                                                                    01740
-                                                                                                                    01741                                                                                                                                                      XDEF                            EOF
-                                                                                                                    01742P                          0465                   BD                    0000                                 A        EOF                             JSR                             HKEOF                                    RPM hook.
-                                                                                             H          i           01743P                          0468                   96                    6F                                   A                                        LDA                             DEVNUM                                   Preserve the old device number since
-                                                                                                                    01744P                          046A                   34                    02                                   A                                        PSHS                            A                                        this could                                        '.ze something                                              like
-                                                                                                                    01745                                                                                                                                             PRINT EOF(#-1).
-                                                                                                                    01746P                          046C                   80                    07                     0445                                                   BSR                             SET0NM                                   Convert the argument to integer and
-                                                                                                                    01747                                                                                                                                             check                       it's range.
-                                                                                                                    01746P                          046E                   BD                    0286                                                                          JSR                             OPNICK                                   Make sure                                     it's open for                                                   ins.
-                                                                                                                    01749                                                                                                                                                      XDEF                            EOFDEV
-                                                                                                                    01750P                          0471                   5F                                                                  EOFDEV CLRB                                                                                              Assume not at                                                   end of file.
-                                                                                                                    01751P                          0472                   96                    6F                                   A                                        LOA                             DEVNUM                                   Get the device number.
-                                                                                                                    01752P                          0474                   27                    05                     0478                                                   BEQ                             EOFFIN                                   Keyboard never runs out of data.
-                                                                                                                    01753P                          0476                   OD                    79                                                                            TST                             CBFCNT                                   is the cassette buffer empty?
-                                                                                                                    01754P                          0478                   26                    OI                     0478                                                   BNE                             EOFFIN                                   No,               not at end of
-                                                                                                                    01755P                          047A                   53                                                                                                  COMB                                                                     Yes,                   there is nothing                                                              left.
-                                                                                                                    01756                                                                                                                                                      XDEF                            EOFFIN
-                                                                                                                    01757P                          047B                   35                    02                                   A        FOFFIN PULS                                                     A                                        Restore old DEVNUM.
-                                                                                                                    01756P                          0470                   97                    6F                                   A                                        S7A                             DEVNUM
-                                                                                                                    01759P                          047F                   ID                                                                  SINTB                           SEX                                                                      make                   it a 16 bit                                             result and go
-                                                                                     •                              0I7600                          0480                   76                    0000                                                                          JMP                             GIVABF                                   float                       it
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  gression" - it's a word 
-vement. The latest in Da 
-ily of power amplifiers i                                                            41
-ime spent in the resear 
-    ponents that always ris 
-ays respect the demand                                                               #ao
-vey realism from the m 
-  most thunderous of c/ 
-  not allowed to affect the
-
-
-
-                                                                                     •
-        absolute
-                         I  lo  ,I,r   rl           rr                r
-                       I Ir     o   r, I   r o
-
+01734                             TTL    The End Of File (EOF) Function.
+01735
+01736                      *
+01737                      * EOF returns FALSE (0) if device is not at end of file.
+01738                      * TRUE (-1) is returned if the device is at the end of file.
+01739                      *
+01740
+01741                             XDEF   EOF
+01742P 0465 BD   0000    A EOF    JSR    HKEOF    RPM hook.
+01743P 0468 96   6F      A        LDA    DEVNUM   Preserve the old device number since
+01744P 046A 34   02      A        PSHS   A        this could be something like
+01745                      *    PRINT EOF(#-1).
+01746P 046C 8D   07   0445        BSR    SETDNM   Convert the argument to integer and
+01747                      *    check it's range.
+01746P 046E BD   0286    P        JSR    OPNICK   Make sure it's open for input.
+01749                             XDEF   EOFDEV
+01750P 0471 5F             EOFDEV CLRB            Assume not at end of file.
+01751P 0472 96   6F      A        LDA    DEVNUM   Get the device number.
+01752P 0474 27   05   047B        BEQ    EOFFIN   Keyboard never runs out of data.
+01753P 0476 0D   79      A        TST    CBFCNT   Is the cassette buffer empty?
+01754P 0478 26   01   047B        BNE    EOFFIN   No, not at end of file.
+01755P 047A 53                    COMB            Yes, there is nothing left.
+01756                             XDEF   EOFFIN
+01757P 047B 35   02      A EOFFIN PULS   A        Restore old DEVNUM.
+01756P 047D 97   6F      A        STA    DEVNUM
+01759P 047F 1D             SINTB  SEX             Make it a 16 bit result and go
+017600 0480 7E   0000    A        JMP    GIVABF   float it.
