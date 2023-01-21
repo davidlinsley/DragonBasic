@@ -1,73 +1,36 @@
-                                                                                                             PAGE                      042                   ECBMOD                                                            ECBMOD SOUND and AUDIO commands.
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       •
-                                                                                                             02350P                        0705                  86                                                       A        SOUNDR LDA                                                   #&4                                     Multiply duration by something
-                                                                                                             02351P                        0707                  3D                                                                                               MUL                                                                   so the sound can be heard.
-                                                                                                             02352P                        0708                  DD                    8D                                                                         STD                           SNDT-ff:R                               Init                  the sound                                   countdown timer.
-                                                                                                             02353P                        070A                  B6                    FF03                               A                                       LDA                           PIAOBC                                  make sure slow clock is ena0lec at
-                                                                                                             02354P                        0700                  SA                    01                                 A                                       ORA                           #e',1                                   the               PIA.
-                                                                                                             02355P                        070F                  B7                    FF03                               A                                       STA                           PIA0BC                                                                                                                                                                                                                                                                                                                                                                                                                 •
-                                                                                                             02356P                        0712                  12                                                                                               NOP                                                                   WASTE A BYTE FOR ADDRESS COMPATABILITY
-                                                                                                             02357P                        0713                  5!-:                                                                                             CLRB                                                                  Select                         D/A sound'.
-                                                                                                             02358P                        0714                  8D                    40                    0756                                                 BSR                           SETSEL
-                                                                                                             02359P                        0716                  RD                    12                    072A                                                 BSR                           SNDON                                   Turn on sound to TV.
-                                                                                                             027,60
-                                                                                                             02361P                        0716                  80                    IF                    0739                  HLDSND                         BSR                           SNDMID                                  Put               out center amplitude.
-                                                                                                             02362P                        071A                  86                    FC                                 A                                       LDA                           #&252!+PIABIT Put                                                              out max amplitude.
-                                                                                                             02363P                        072C                  8D                    1D                    073B                                                 BSR                           DOSND
-                                                                                                             02364P                        0716                  8D                    19                    0739                                                 BSR                           SNDMiD                                  Put               out center amplitude again.
-                                                                                                             02365P                        0720                  86                    00                                 A                                       LOA                           #&0!+PIABIT Put                                                        out min amplitude.
-                                                                                                             02366P                        0722                  8D                    17                    073B                                                 BSR                           DOSND
-                                                                                                             02367P                        0724                  SE                    8D                                 A                                       LDX                           SNDTMR                                  Has the timer expired?
-                                                                                                             02368P                        0726                  26                    F0                    0718                                                 BNE                           HLDSND                                  No,               hold the sound.
-                                                                                                             02369                                                                                                                                       Yes,                  fall                  into SNDOFF to turn off
-                                                                                                             02370                                                                                                                                       TV           sound.
-                                                                                                             02371
-                                                                                                             0237')                                                                                                                                               XDEF                          SNDOFF
-                                                                                                             02373P                        0728                  4F                                                                SNDOFF                         CLRA                                                                  Turn                  o.c.:f           TV            sound.                                                                                                                                                                                                                                                                                                                    •
-                                                                                                             02374P                        0729                                                                                                                   SKIP2                         Skip                                    over SNDON entry point.
-                                                                                                             02375                                                                                                                                                XDE                           SNDON
-                                                                                                             02376P                        072A                  86                    08                                 A        SNDON                          LDA                           #@10                                    Turn on TV sound,                                                                                                                                                                                                                                                                                                                                                              •
-                                                                                                             02377P                        0720                  A7                    E2                                 A                                       STA                           ,-S                                     Save ON/OFF bit.
-                                                                                                             02376P                        0726                  B6                    FF23                               A                                       LDA                           PIA1BC                                  Get current contents of control                                                                                                              reg.
-                                                                                                             02379P                        0731                  84                    F7                                 A                                       ANDA                          #P367                                   Reset sound enabie bit.
-                                                                                                             02,80P                        0733                  AA                    FO                                 A                                       ORA                           ,S+                                     Now turn it                                          on if desired.
-                                                                                                             02:381P                       0735                  B7                    FF23                               A                                       STA                           PIA1BC
-                                                                                                             02382P                        0738                  39                                                                SNDRTS                         RTS
-                                                                                                             02383
+PAGE  042  ECBMOD  .SA:1  ECBMOD SOUND and AUDIO commands.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-"Progression" -it's a 
-movement. The latest i 
-family of power amplifi                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                •
-lifetime spent in the re 
-components that alwa 
-; A I ways respect the der                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             •
-( ;el wey realism from th 
-I I )e host thunderous 
-              lel allowed to affec
-
-
-
-
-
-                 absolut
-                                  I  I, .1  f.       II., 0
-                                  '     ^I/               .1 /I I,     /
-
-
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       •
-
+02350P 0705 86   04      A SOUNDR LDA    #&4      Multiply duration by something
+02351P 0707 3D                    MUL             so the sound can be heard.
+02352P 0708 DD   8D      A        STD    SNDTMR   Init the sound countdown timer.
+02353P 070A B6   FF03    A        LDA    PIA0BC   Make sure slow clock is enabled at
+02354P 070D 8A   01      A        ORA    #&1      the PIA.
+02355P 070F B7   FF03    A        STA    PIA0BC
+02356P 0712 12                    NOP             WASTE A BYTE FOR ADDRESS COMPATABILITY
+02357P 0713 5F                    CLRB            Select D/A sound.
+02358P 0714 8D   40   0756        BSR    SETSEL
+02359P 0716 8D   12   072A        BSR    SNDON    Turn on sound to TV.
+02360
+02361P 0718 8D   1F   0739 HLDSND BSR    SNDMID   Put out center amplitude.
+02362P 071A 86   FC      A        LDA    #&252!+PIABIT Put out max amplitude.
+02363P 071C 8D   1D   073B        BSR    DOSND
+02364P 071E 8D   19   0739        BSR    SNDMID   Put out center amplitude again.
+02365P 0720 86   00      A        LDA    #&0!+PIABIT Put out min amplitude.
+02366P 0722 8D   17   073B        BSR    DOSND
+02367P 0724 9E   8D      A        LDX    SNDTMR   Has the timer expired?
+02368P 0726 26   F0   0718        BNE    HLDSND   No, hold the sound.
+02369                      *    Yes, fall into SNDOFF to turn off
+02370                      *    TV sound.
+02371
+02372                             XDEF   SNDOFF
+02373P 0728 4F             SNDOFF CLRA            Turn off TV sound.
+02374P 0729                       SKIP2  Skip     over SNDON entry point.
+02375                             XDEF   SNDON
+02376P 072A 86   08      A SNDON  LDA    #@10     Turn on TV sound.
+02377P 072C A7   E2      A        STA    ,-S      Save ON/OFF bit.
+02376P 072E B6   FF23    A        LDA    PIA1BC   Get current contents of control reg.
+02379P 0731 84   F7      A        ANDA   #@367    Reset sound enabie bit.
+02380P 0733 AA   E0      A        ORA    ,S+      Now turn it on if desired.
+02381P 0735 B7   FF23    A        STA    PIA1BC
+02382P 0738 39             SNDRTS RTS
+02383
