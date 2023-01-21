@@ -1438,3 +1438,48 @@ RESET  BSR    GRPHAR   Evaluate the column and row args.
        ANDB   CELL     RESET the cell.
        STB    ,X       Put it away and return.
        RTS
+
+*
+* GRPHAR evaluates the column and row numbers.
+* It then calculates the address of the block containing the specified
+* cell.  The address is returned in X.
+* CELL contains the bit corresponding to the specified cell.
+*
+* Block address = SCRADR + ROW\2*32 + COLUMN\2
+* Cell bit = 2^(3-(2*(ROW MOD 2)+(COLUMN MOD 2)))
+*
+
+GRPHAR JSR    CHKOPN   Check for a left parenthesis.
+GRPHA2 JSR    GETBYT   Evaluate the column number.
+       CMPB   #&63     Make sure it is in range.
+       BHI    BADARG
+       PSHS   B        It is OK, save it.
+       JSR    COMBYT   Eat comma and evaluate the row number.
+       CMPB   #&31     Make sure it's in range.
+BADARG BHI    GOFCER   (All who come here must meet the
+*    branch condition.)
+       PSHS   B        Row is OK, save it.
+       LSRB            Integer divide by 2 and
+       LDA    #&32     multiply by 32.
+       MUL
+       LDX    #SCRADR  Get the base address of the screen
+*    memory.
+       LEAX   D,X      Add in the row offset.
+       LDB    &1,S     Integer divide the column by 2.
+       LSRB
+       ABX             Add in the column offset.
+
+*
+* Now calculate the cell bit.
+*
+
+       PULS   D        A:=row, b:=column.
+       ANDA   #&1      A:=bit number:=2*(ROW MOD 2) +
+       RORB            (COLUMN MOD 2).
+       ROLA
+       LDB    #@20     Something to shift.
+LSRLOP LSRB            Shift into bit specified by A.
+       DECA
+       BPL    LSRLOP
+       STB    CELL     Put it away for the callers.
+       RTS
