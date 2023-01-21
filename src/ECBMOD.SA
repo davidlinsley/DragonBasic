@@ -1217,3 +1217,62 @@ DSPCHR LDB    CURLIN    Only display if direct statement.
        BNE    NODSP3
        STA    SCRADR    Put it back.
 NODSP3 RTS
+
+       TTL    Cassette Input Routines
+
+*
+* Turn motor on, read a block, and turn motor off.
+*
+
+RDBLK  JSR    CSRDON   Turn on motor and sync up.
+       BSR    BLKIN    Read a block.
+RDBFIN JSR    CASOFF   Turn off motor and enable interrupts.
+       LDB    CSRERR   B:=error code and set cond codes.
+       RTS
+
+
+*
+* BLKIN reads a block from cassette.
+* On entry CBUFAD contains the buffer address.
+* On exit -
+* BLTYP and BLKLEN are set up.
+* Z=1 and A=CSRERR=0 if no errors occured.
+* Z=0 if an error occured and A=CSRERR=1 for a checksum error and 2
+* for a memory error.
+* Unless a memory error occurs X=CBUFAD+BLKLEN.
+* If a memory error occurs, X points one beyond the bad address.
+*
+* CC, A, B, X are modified.  The others are preserved.
+* Interrupts are left disabled.
+*
+
+       XDEF   BLKIN
+BLKIN  SETCC  F!+I     No interrupts during timing loops.
+       BSR    BLINKS   Blink the char if showing names.
+       LDX    CBUFAD   Get the buffer address.
+       CLRA            Start with a zero byte.
+SYNLP  JSR    BITIN    Read a bit.
+       RORA            Rotate it into the byte.
+       CMPA   #@74     Is it the sync byte?
+       BNE    SYNLP    No, look further.
+
+       JSR    CBIN     Yes, read and store the block type.
+       STA    BLKTYP
+       JSR    CBIN     Read and store the block length.
+       STA    BLKLEN
+       ADDA   BLKTYP   Init the checksum.
+       STA    CHKSUM
+       LDA    BLKLEN   Set up a loop count.
+       STA    BYTCNT
+       BEQ    NODATA   No data in this record, just go
+*    check the checksum.
+BLKILP JSR    CBIN     Read a byte of data.
+       STA    ,X       Put it away.
+       CMPA   ,X+      See if stored OK.
+       BNE    BADMEM   It didn't, return a memory error.
+       ADDA   CHKSUM   It did, update the checksum.
+       STA    CHKSUM
+       DEC    BYTCNT   More bytes to read?
+       BNE    BLKILP   Yes, go read the next one.
+
+NODATA JSR    CBIN     No, read the checksum.
