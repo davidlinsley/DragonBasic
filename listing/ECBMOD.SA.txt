@@ -1383,3 +1383,65 @@ PAGE  034  ECBMOD  .SA:1  ECBMOD Cassette Input Routines
 02066P 05EE C1   00      A        CMPB   #ONTK    No, how about "MOTOR ON"?
 02067P 05F0 BD   0460    P        JSR    ZERCHK   Give SN error if not.
 02068P 05F3 7E   0000    A        JMP    CASON    Yes, go turn it on.
+
+PAGE  035  ECBMOD  .SA:1  ECBMOD Cassette Input Routines
+
+02070                             TTL    The cassette output routines.
+02071
+02072                      *
+02073                      * WRTBLK turns the motor on, outputs a leader, writes a block of
+02074                      * data, and turns off the motor.
+02075                      * On entry, BLKTYP, BLKLEN, and CBUFAD must be set up.
+02076                      * On exit X contains [CBUFAD]+[BLKLEN].
+02077                      *
+02078
+02079P 05F6 BD   0000    A WRTBLK JSR    WRTLDR   Turn on motor and write leader.
+02080P 05F9 8D   03   05FE BLKOFF BSR    BLKOUT   Output the block.
+02081P 05FB 7E   0000    A DOCOFF JMP    CASOFF   Go turn off the motor.
+02082
+02083
+02084                      *
+02085                      * BLKOUT outputs a block of data.
+02086                      * On entry BLKTYP, BLKLEN, and CBUFAD must be set up.
+02087                      * On exit, X contains [CBUFAD]+[BLKLEN].
+02088                      *
+02089
+02090                             XDEF   BLKOUT
+02091P 05FE                BLKOUT SETCC  F!+I     No interrupts during cassette I/O.
+020922 0600 D6   7D      A        LDB    BLKLEN   Get the block length.
+02093P 0602 D7   81      A        STB    BYTCNT   Save for output loop count.
+02094P 0604 96   7D      A        LDA    BLKLEN   Also start the checksum with it.
+02095P 0606 27   07   060F        BEQ    ZERLEN   No data in block.
+020962 0608 9E   7E      A        LDX    CBUFAD   Compute the checksum.  Note that this
+02097P 060A AB   80      A CHKSLP ADDA   ,X+      done prior to rather than while
+02098P 060C 5A                    DECB            writing the data to minimize the byte
+02099P 060D 26   FB   060A        BNE    CHKSLP   to byte delay while writing.  This
+02100                      *    results in a smoother sinewave.
+02101P 060F 9B   7C      A ZERLEN ADDA   BLKTYP   The block type is included in the
+022022 0611 97   80      A        STA    CHKSUM   checksum.
+02103P 0613 9E   7E      A        LDX    CBUFAD   Set up the data pointer.
+02104P 0615 8D   1B   0632        BSR    LDRBYT   Write a leader byte.
+02105P 0617 86   3C      A        LDA    #@74     Follow it with the sync byte.
+02106P 0619 8D   19   0634        BSR    GOCBO    (3C  hex.)
+02107P 061B 96   7C      A        LDA    BLKTYP   Send out the block type.
+02108P 061D 8D   15   0634        BSR    GOCBO
+02109P 061F 96   7D      A        LDA    BLKLEN   Follow with the block length.
+02110P 0621 8D   11   0634        BSR    GOCBO
+02111P 0623 4D                    TSTA            Any data to write?
+021122 0624 27   08   062E        BEQ    OUTCHK   No, just go output the checksum.
+02113P 0626 A6   80      A BLKOLP LDA    ,X+      Yes, output the data.
+02114P 0628 8D   0A   0634        BSR    GOCBO
+02115P 062A 0A   81      A        DEC    BYTCNT
+02126P 062C 26   F8   0626        BNE    BLKOLP
+02117P 062E 96   80      A OUTCHK LDA    CHKSUM   Output the checksum and fall into
+021182 0630 8D   02   0634        BSR    GOCBO    LDRBYT to write a trailer byte.
+02119
+02120                      *
+02121                      * LDRBYT writes a 55 hex leader char.
+02122                      *
+02123
+021242 0632 86   55      A LDRBYT LDA    #@125    Leader byte is 55 hex.
+02125P 0634 7E   0000    A GOCBO  JMP    CBOUT    Output it and return.
+02126
+02127                             TTL    Simple Graphics - SET, RESET, POINT, CLS
+

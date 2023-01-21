@@ -1297,3 +1297,62 @@ MOTOR  TFR    A,B      Save the ON or OFF token.
        CMPB   #ONTK    No, how about "MOTOR ON"?
        JSR    ZERCHK   Give SN error if not.
        JMP    CASON    Yes, go turn it on.
+
+       TTL    The cassette output routines.
+
+*
+* WRTBLK turns the motor on, outputs a leader, writes a block of
+* data, and turns off the motor.
+* On entry, BLKTYP, BLKLEN, and CBUFAD must be set up.
+* On exit X contains [CBUFAD]+[BLKLEN].
+*
+
+WRTBLK JSR    WRTLDR   Turn on motor and write leader.
+BLKOFF BSR    BLKOUT   Output the block.
+DOCOFF JMP    CASOFF   Go turn off the motor.
+
+
+*
+* BLKOUT outputs a block of data.
+* On entry BLKTYP, BLKLEN, and CBUFAD must be set up.
+* On exit, X contains [CBUFAD]+[BLKLEN].
+*
+
+       XDEF   BLKOUT
+BLKOUT SETCC  F!+I     No interrupts during cassette I/O.
+       LDB    BLKLEN   Get the block length.
+       STB    BYTCNT   Save for output loop count.
+       LDA    BLKLEN   Also start the checksum with it.
+       BEQ    ZERLEN   No data in block.
+       LDX    CBUFAD   Compute the checksum.  Note that this
+CHKSLP ADDA   ,X+      done prior to rather than while
+       DECB            writing the data to minimize the byte
+       BNE    CHKSLP   to byte delay while writing.  This
+*    results in a smoother sinewave.
+ZERLEN ADDA   BLKTYP   The block type is included in the
+       STA    CHKSUM   checksum.
+       LDX    CBUFAD   Set up the data pointer.
+       BSR    LDRBYT   Write a leader byte.
+       LDA    #@74     Follow it with the sync byte.
+       BSR    GOCBO    (3C  hex.)
+       LDA    BLKTYP   Send out the block type.
+       BSR    GOCBO
+       LDA    BLKLEN   Follow with the block length.
+       BSR    GOCBO
+       TSTA            Any data to write?
+       BEQ    OUTCHK   No, just go output the checksum.
+BLKOLP LDA    ,X+      Yes, output the data.
+       BSR    GOCBO
+       DEC    BYTCNT
+       BNE    BLKOLP
+OUTCHK LDA    CHKSUM   Output the checksum and fall into
+       BSR    GOCBO    LDRBYT to write a trailer byte.
+
+*
+* LDRBYT writes a 55 hex leader char.
+*
+
+LDRBYT LDA    #@125    Leader byte is 55 hex.
+GOCBO  JMP    CBOUT    Output it and return.
+
+       TTL    Simple Graphics - SET, RESET, POINT, CLS
