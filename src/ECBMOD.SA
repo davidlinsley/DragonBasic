@@ -1176,3 +1176,44 @@ FNDFIL LDA    #'F      Display "F" for Found.
        BSR    DSPCHR
        CLRA            Clear Z to indicate no tape error.
 BADHDR RTS
+
+*
+* SKPFIL skips the current file.
+* On exit Z=1 if all OK, Z=0 if error occured.
+*
+
+SKPFIL TST    GAPFLG   Does this file have gaps?
+       BNE    SKPGFL   Yes, go handle it.
+       JSR    CSRDON   No, turn on cassette and sync up.
+SKPLP  BSR    BLKIN    Read the next block.
+       BSR    SKIPER   See if error or EOF.
+       BRA    SKPLP    It was a good data record so look
+*    at the next block.
+
+SKPGFL BSR    RDBLK    Turn on, read block, turn off.
+       BSR    SKIPER   Check for errors or EOF.
+       BRA    SKPGFL   Good data record, look at next block.
+
+SKIPER BNE    BADSKP   Cassette read error.
+       LDA    BLKTYP   Get tne block type.
+       NEGA            0 to 0, FF to 1, 1 to FF.
+       BMI    NODSP3   Data record, return to skip loop.
+       DECA            0 to FF, 1 to 0 so if EOF A=0 and
+*    if header A=FF for error.
+BADSKP STA    CSRERR   Save the error status.
+       LEAS   &2,S     Get rid of skip loop return address.
+       BRA    RDBFIN   Turn off cassette and return with
+*    Z=1 if all OK.
+
+
+*
+* "Blink" char on screen.
+*
+
+BLINKS LDA    SCRADR    Get the char.
+       EORA   #@100    Reverse the video on it.
+DSPCHR LDB    CURLIN    Only display if direct statement.
+       INCB
+       BNE    NODSP3
+       STA    SCRADR    Put it back.
+NODSP3 RTS

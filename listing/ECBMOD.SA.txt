@@ -1254,3 +1254,46 @@ PAGE  030  ECBMOD  .SA:1  ECBMOD The OPEN code.
 01946P 0567 39             BADHDR RTS
 01947
 
+PAGE  031  ECBMOD  .SA:1  ECBMOD Search Cassette for a File
+
+01949                      *
+01950                      * SKPFIL skips the current file.
+01951                      * On exit Z=1 if all OK, Z=0 if error occured.
+01952                      *
+01953
+01954P 0568 7D   0000    A SKPFIL TST    GAPFLG   Does this file have gaps?
+01955P 056B 26   09   0576        BNE    SKPGFL   Yes, go handle it.
+01956P 056D BD   0000    A        JSR    CSRDON   No, turn on cassette and sync up.
+01957P 0570 8D   31   05A3 SKPLP  BSR    BLKIN    Read the next block.
+01958P 0572 8D   08   057C        BSR    SKIPER   See if error or EOF.
+01959P 0574 20   FA   0570        BRA    SKPLP    It was a good data record so look
+01960                      *    at the next block.
+01961
+01962P 0576 8D   20   0598 SKPGFL BSR    RDBLK    Turn on, read block, turn off.
+01963P 0578 8D   02   057C        BSR    SKIPER   Check for errors or EOF.
+01964P 057A 20   FA   0576        BRA    SKPGFL   Good data record, look at next block.
+01965
+01966P 057C 26   06   0584 SKIPER BNE    BADSKP   Cassette read error.
+01967P 057E 96   7C      A        LDA    BLKTYP   Get tne block type.
+01968P 0580 40                    NEGA            0 to 0, FF to 1, 1 to FF.
+01969P 0581 2B   14   0597        BMI    NODSP3   Data record, return to skip loop.
+01970P 0583 4A                    DECA            0 to FF, 1 to 0 so if EOF A=0 and
+01971                      *    if header A=FF for error.
+01972P 0584 97   81      A BADSKP STA    CSRERR   Save the error status.
+01973P 0586 32   62      A        LEAS   &2,S     Get rid of skip loop return address.
+01974P 0588 20   13   059D        BRA    RDBFIN   Turn off cassette and return with
+01975                      *    Z=1 if all OK.
+01976
+01977
+01978                      *
+01979                      * "Blink" char on screen.
+01980                      *
+01981
+01982P 058A B6   0400    A BLINKS LDA    SCRADR    Get the char.
+01987P 058D 88   40      A        EORA   #@100    Reverse the video on it.
+01984P 058F D6   68      A DSPCHR LDB    CURLIN    Only display if direct statement.
+01985P 0591 5C                    INCB
+01986P 0592 26   03   0597        BNE    NODSP3
+01987P 0594 B7   0400    A        STA    SCRADR    Put it back.
+01988P 0597 39             NODSP3 RTS
+
