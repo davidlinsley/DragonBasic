@@ -434,3 +434,14 @@ PAGE  010  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
 01162                      * They are all fixed at values which are necessary for the special
 01163                      * I/O code to work properly.  SPCIO gets set TRUE.
 
+PAGE  011  ECBM64  .SA:1  ECBM64 DEVPRM - Return Device Parameters
+
+01164                      *
+01165
+01166P 019F 03   6E      A CASPRM COM    SPCIO    Speciai I/O flag:=.TRUE.
+01167P 01A1 8E   0100    A        LDX    #&256    Comma field width:=1, last comma
+01168                      *    field:=0 but don't really care.
+01169P 01A4 4F                    CLRA            Width:=infinite and position:=0.
+01170P 01A5 5F                    CLRB
+01171P 01A6 20   EF   0197        BRA    DEVFIN   Go put them away.
+
