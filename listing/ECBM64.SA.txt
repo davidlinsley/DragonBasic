@@ -164,3 +164,65 @@ PAGE  003  ECBM64  .SA:1  ECBM64 Power up and Reset code.
 00863P 006C 30   1F      A DELAY  LEAX   -&1,X
 00864P 006E 26   FC   006C        BNE    DELAY
 00865P 0070 39                    RTS
+
+PAGE  004  ECBM64  .SA:1  ECBM64 Power up and Reset code.
+
+00867                      *
+00868                      * Tnis stuff gets block transferred into RAM during initialization.
+00869                      *
+00870
+00871P 0071      0000    A LORAM  FDB    FCERR    EXECAD
+00872P 0073 0C   A7      A        INC    TXTPTR+&1 CHRGET RAM code.
+00R73P 0075 26   02   0079        BNE    CHRLOD
+00874P 0077 0C   A6      A        INC    TXTPTR
+00875P 0079 B6   0000    A CHRLOD LDA    >0       (Force extended addressing.)
+00876P 007C 7E   070B    P        JMP    ROMLOC
+00877
+00878            000E    A NLORAM EQU    *-LORAM
+00879
+00880P 007F 7E   0000    A MIDRAM JMP    INTWDG   VIRQ WEDGE (AUTO-REPEAT & RS232)
+00881P 0082 7E   005C    P        JMP    CARTRG   VFIRQ
+00882P 0085      00      A        FCB    &0       TICKER (Overlays 8K version's USRJMP.)
+00663P 0086      00      A        FCB    &0       (Was JMP FCERR for 8k version.)
+00884P 0087      00      A        FCB    &0
+00885P 0088      80      A        FCB    @200     RNDX
+00886P 0089      4F      A        FCB    @117
+00867P 008A      C7      A        FCB    @307
+00868P 008B      52      A        FCB    @122
+00889            0001    A        IFNE   ADDPRC
+00890P 008C      59      A        FCB    @131
+00691            000E    A NMDRAM EQU    *-MIDRAM
+00892                             ENDC   IFN      ADDPRC
+00893
+00894P 008D      05      A HIRAM  FCB    &5        INTER-REPEAT DELAY
+00895P 008E      00      A        FCB    NNRMTK    STUB0
+00896P 008F      0000    A        FDB    RESLST
+00897P 0091      0000    A        FDB    STMDSP
+00898P 0093      00      A        FCB    NFUNTK
+00899P 0094      0000    A        FDB    FUNLST
+00900P 0096      0000    A        FDB    FUNDSP
+00901
+00902            000B    A NHIRAM EQU    *-HIRAM
+00903
+00904            0001    A        IFNE   METTOY
+00905P 0098      28      A SIGNON FCC    /(C) 1983 DRAGON DATA LTD /
+00906P 00B1      0D      A        FCB    CR
+00907P 00B2      31      A        FCC    /16K BASIC INTERPRETER 1.0      /
+00908P 00D1      0D      A        FCB    CR
+00909P 00D2      28      A MICRO  FCC    /(C) 1983 BY MICROSOFT/
+00910P 00E7      0D      A        FCB    CR
+00911P 00E8      0D      A        FCB    CR
+00912P 00E9      00      A        FCB    &0
+00913                             ENDC   IFN      METTOY
+00914
+00915            0000    A        IFNE   GRPTEK
+00927                       ENDC   IFN GRPTEK
+00928
+00929                             TTL    CHRINP - Character Input Routine
+00930
+00931                      *
+00932                      * CHRINP inputs a character from the device specified by DEVNUM.
+00933                      * The character is returned in A.
+00934                      * All registers except A and CC are preserved.
+00935                      * If end of file is hit, EOFFLG=.TRUE.=non-zero, and A is meaningless.
+

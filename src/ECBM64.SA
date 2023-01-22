@@ -155,3 +155,62 @@ DELHAF LDX    DBLZER
 DELAY  LEAX   -&1,X
        BNE    DELAY
        RTS
+
+*
+* Tnis stuff gets block transferred into RAM during initialization.
+*
+
+LORAM  FDB    FCERR    EXECAD
+       INC    TXTPTR+&1 CHRGET RAM code.
+       BNE    CHRLOD
+       INC    TXTPTR
+CHRLOD LDA    >0       (Force extended addressing.)
+       JMP    ROMLOC
+
+NLORAM EQU    *-LORAM
+
+MIDRAM JMP    INTWDG   VIRQ WEDGE (AUTO-REPEAT & RS232)
+       JMP    CARTRG   VFIRQ
+       FCB    &0       TICKER (Overlays 8K version's USRJMP.)
+       FCB    &0       (Was JMP FCERR for 8k version.)
+       FCB    &0
+       FCB    @200     RNDX
+       FCB    @117
+       FCB    @307
+       FCB    @122
+       IFNE   ADDPRC
+       FCB    @131
+NMDRAM EQU    *-MIDRAM
+       ENDC   IFN      ADDPRC
+
+HIRAM  FCB    &5        INTER-REPEAT DELAY
+       FCB    NNRMTK    STUB0
+       FDB    RESLST
+       FDB    STMDSP
+       FCB    NFUNTK
+       FDB    FUNLST
+       FDB    FUNDSP
+
+NHIRAM EQU    *-HIRAM
+
+       IFNE   METTOY
+SIGNON FCC    /(C) 1983 DRAGON DATA LTD /
+       FCB    CR
+       FCC    /16K BASIC INTERPRETER 1.0      /
+       FCB    CR
+MICRO  FCC    /(C) 1983 BY MICROSOFT/
+       FCB    CR
+       FCB    CR
+       FCB    &0
+       ENDC   IFN      METTOY
+
+       IFNE   GRPTEK
+ ENDC   IFN GRPTEK
+
+       TTL    CHRINP - Character Input Routine
+
+*
+* CHRINP inputs a character from the device specified by DEVNUM.
+* The character is returned in A.
+* All registers except A and CC are preserved.
+* If end of file is hit, EOFFLG=.TRUE.=non-zero, and A is meaningless.
