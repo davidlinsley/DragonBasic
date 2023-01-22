@@ -231,3 +231,32 @@ CHRINP JSR    HKCHRI   RAM hook.
        BEQ    KEYINP   Go handle the keyboard.
 *    No, fall into CASINP to get char from
 *    cassette.
+
+*
+* CASINP reads a character from a cassette file.
+* (Also used for downloading in the extended version.)
+*
+
+CASINP TST    CBFCNT   Is the buffer empty?
+       BNE    NOTMT    No, go get a char from it.
+       COM    EOFFLG   Yes, end of file.
+       RTS
+
+NOTMT PSHS    U,Y,X,B Save registers.  (Save all because
+*    of bossible LODBUF call.)
+       LDX    CBFPTR   Get char from cassette buffer, update
+       LDA    ,X+      the pointer, and decrement the count.
+       PSHS   A        (Save the char too.)
+       STX    CBFPTR
+       DEC    CBFCNT
+       BNE    CASIRT   Buffer still not empty, just return.
+       LDA    DEVNUM   Doing a download?
+       CMPA   #-&3
+       BEQ    LODDNL   Yes, use different load buffer
+*    routine.
+       JSR    LODBUF   Reload the buffer.
+CASIRT PULS   D,X,Y,U,PC Get tne char into A, restore all regs
+*    and return.
+
+LODDNL JSR    LDBUFR   Reload download buffer.
+       BRA    CASIRT   Restore and return.
