@@ -1,63 +1,60 @@
-                                PAGE   012   ECBM64     .SA31   EC8M64 DEVPRM - Return Device Parameters
-                                                                                                                                                                                                          40
-                                01173                                               INLIN - The    line  input   routine.
-                                01174
-              OE                01175P  01A8   BD    065C      2  INLCLS JSR        SRNCHR     Clear the screen and start over.
-                                01176                                      XDEF     INLIN                                                                                                             11o
-              H I               011772  01AB   BD    0000      A  INLIN    JSR      HKINLN     RAM hook.
-                                01178P  01AE   OF    87                    CUR      INKCHR     Throw away INKEY's character.
-                                01179P  0180   8E    0000      A           LDX      #BUF       Point to the start      of the line buffer.
-                                01180P  0183   C6    01                    LDB      #8,1       Init the character count.
-                                01181P  0185   BD    00EA         INLINC JSR        INCHR      Read a character.
-                                01182P  0188   OD    70        A           TST      EOFFL6     End of file reached?
-                                01183P  01BA   26    28    01E7            BNE      INLDON     Yes,  go  f..-nisn uo.
-                                01184P  018C   OD    6F        A           TST      DEVNUM     Reading from the keyboard?
-                                01185P  01BE   26    23    01E3            BNE      NOEDIT     No,  don't   check for editlng chars.
-                                011862  0100   81    OC        A           CMPA     #(2'14     CLEAR key?
-                                01187P  01C2   27    E4    01A8            BEQ      INLCLS     Yes,  clear screen and start over.
-                                01188P  01C4   81    08        A           CMPA     #CHRDEL    Character delete?
-                                011892  0106   26    07    01CF            BNE      NTCDEL     No
-                                01190P  01C8   5A                          DECB                Yes,  at  beginning of line?
-                                011912  01C9   27    FO    01AB            BEQ      INLIN      Yes,  just start    over.
-                                011922  OICB   30    IF        A           LEAX     -&1,X      Backup the buffer pointer.
-                                011932  01CD   20    34    0203            BRA      ECHOIT     Output the CHRDEL to tne screen to
-                                01194                                   backup the cursor and go back for                                                                                             Uvnn
-                                01195                                   another char.
-                                01196
-                                011972  01CF   81    15        A  NTCDEL CMPA       #LINDEL    Is it a line delete?
-                                01198P  01D1   26    OA    01DD            BNE      NTLDEL     No
-                       40       011992  01D3   5A                 RUBLIN DECB                  Yes,  send CHRDELs to the screen                                                                           •
-                                01200P  01D4   27    D5    01AB            BEQ      INLIN      until all characters have been erased.
-                                012012  01D6   86    08        A           LDA      #CHRDEL    Then go start all      over.
-                                01202P  01D8   BD    012F      P           JSR      CHROUT
-                                01203P  01DB   20    F6    01D3            BRA      RUBLIN
-                                01204
-                       4,       01205P  0188   61    03        A  NTLDEL CMPA       #BRKCHR    Break character?      (Llke control-C)                                                                     •
-                                012062  OlDF   lA    01                    SEC                 (Set the carry just       in case.)
-                                01207P  01E1   '27   05    01E8            BEAD     FININL     Yes
-                       40       01208
-                                012092  01E3   81    OD        A  NOEDIT CMPA       #CR        Carr/age return?
-                                01210P  01E5   26    OD    01F4            BNE      NOTCR      No
-                                012112  01E7   4F                 INLDON CLRA                  (Clear carry.)      Clear control-C flag.
-                                012122  01E8   34    01        A  FININL PSHS       CC         Save the control-C flag.
-                                01213P  01EA   88    0000      A           JSR      CRDO       Start a new line.
-                                012142  01ED   6F    84        A           CUR                 Put a zero    in to mark the end.
-                                012152  01EF   BE    FFFF      A           LDX      #BUF-1,1   Set  uo a pointer for CRUNCH.
-                                01216P  01F2   35    81        A           PULS     CC,PC      Get the control-C flag and         return.
-                                01217
-                                01218
-                                01219                             * The character is not a soecial char.             Weed out   bad ones and     store
-                                01220                             * the good ones in the buffer.
-                                01221
-                                012222  01F4   81    20        A  NOTCR    CMPA     #SPACE     Those below space and above lower
-                                012232  01F6   25    BC    0185            BCS      INLINC     case z are thrown away.
-                                01224P  01F8   81    78        A.          CMPA
-                                01225P  OIFA   24    89    0185            BCC      INLINC
-                                012262  01FC   Cl    FA        A  GOODCH CMPB       #BUFLEN    Would this char fill the buffer?
-                                01227P  01FE   24    85    0185            BCC      INLINC     Yes,  ignore it then because one
-                                01228                                   byte must    be reserved for the zero
-                                01229                                   terminator inserted when a carriage
-44 (0)20 89 71 BE        114    01230                                   return   is typed.
+PAGE  012  ECBM64  .SA:1  ECBM64 DEVPRM - Return Device Parameters
 
-  For Your Neares 0(
-
+01173                             TTL    INLIN - The line input routine.
+01174
+01175P 01A8 BD   065C    P INLCLS JSR    GRNCHR   Clear the screen and start over.
+01176                             XDEF   INLIN
+01177P 01AB BD   0000    A INLIN  JSR    HKINLN   RAM hook.
+01178P 01AE 0F   87      A        CLR    INKCHR   Throw away INKEY's character.
+01179P 01B0 8E   0000    A        LDX    #BUF     Point to the start of the line buffer.
+01180P 01B3 C6   01      A        LDB    #&1      Init the character count.
+01181P 01B5 BD   00EA    P INLINC JSR    INCHR    Read a character.
+01182P 01B8 0D   70      A        TST    EOFFLG   End of file reached?
+01183P 01BA 26   2B   01E7        BNE    INLDON   Yes, go finish up.
+01184P 01BC 0D   6F      A        TST    DEVNUM   Reading from the keyboard?
+01185P 01BE 26   23   01E3        BNE    NOEDIT   No, don't check for editing chars.
+01186P 01C0 81   0C      A        CMPA   #@14     CLEAR key?
+01187P 01C2 27   E4   01A8        BEQ    INLCLS   Yes, clear screen and start over.
+01188P 01C4 81   08      A        CMPA   #CHRDEL  Character delete?
+01189P 01C6 26   07   01CF        BNE    NTCDEL   No.
+01190P 01C8 5A                    DECB            Yes, at beginning of line?
+01191P 01C9 27   E0   01AB        BEQ    INLIN    Yes, just start over.
+01192P 01CB 30   1F      A        LEAX   -&1,X    Backup the buffer pointer.
+01193P 01CD 20   34   0203        BRA    ECHOIT   Output the CHRDEL to the screen to
+01194                      *    backup the cursor and go back for
+01195                      *    another char.
+01196
+01197P 01CF 81   15      A NTCDEL CMPA   #LINDEL  Is it a line delete?
+01198P 01D1 26   0A   01DD        BNE    NTLDEL   No
+01199P 01D3 5A             RUBLIN DECB            Yes, send CHRDELs to the screen
+01200P 01D4 27   D5   01AB        BEQ    INLIN    until all characters have been erased.
+01201P 01D6 86   08      A        LDA    #CHRDEL  Then go start all over.
+01202P 01D8 BD   012F    P        JSR    CHROUT
+01203P 01DB 20   F6   01D3        BRA    RUBLIN
+01204
+01205P 01DD 81   03      A NTLDEL CMPA   #BRKCHR  Break character? (Llke control-C)
+01206P 01DF 1A   01               SEC             (Set the carry just in case.)
+01207P 01E1 27   05   01E8        BEQ    FININL   Yes
+01208
+01209P 01E3 81   0D      A NOEDIT CMPA   #CR      Carriage return?
+01210P 01E5 26   0D   01F4        BNE    NOTCR    No
+01211P 01E7 4F             INLDON CLRA            (Clear carry.)  Clear control-C flag.
+01212P 01E8 34   01      A FININL PSHS   CC       Save the control-C flag.
+01213P 01EA BD   0000    A        JSR    CRDO     Start a new line.
+01214P 01ED 6F   84      A        CLR    ,X       Put a zero in to mark the end.
+01215P 01EF 8E   FFFF    A        LDX    #BUF-&1  Set up a pointer for CRUNCH.
+01216P 01F2 35   81      A        PULS   CC,PC    Get the control-C flag and return.
+01217
+01218                      *
+01219                      * The character is not a special char.  Weed out bad ones and store
+01220                      * the good ones in the buffer.
+01221                      *
+01222P 01F4 81   20      A NOTCR  CMPA   #SPACE   Those below space and above lower
+01223P 01F6 25   BD   01B5        BCS    INLINC   case z are thrown away.
+01224P 01F8 81   7B      A        CMPA   #'z+&1
+01225P 01FA 24   B9   01B5        BCC    INLINC
+01226P 01FC C1   FA      A GOODCH CMPB   #BUFLEN  Would this char fill the buffer?
+01227P 01FE 24   B5   01B5        BCC    INLINC   Yes, ignore it then because one
+01228                      *    byte must be reserved for the zero
+01229                      *    terminator inserted when a carriage
+01230                      *    return is typed.
