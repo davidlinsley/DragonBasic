@@ -476,3 +476,46 @@ GOODCH CMPB   #BUFLEN  Would this char fill the buffer?
 *    byte must be reserved for the zero
 *    terminator inserted when a carriage
 *    return is typed.
+       STA    ,X+      No, store the character, bump the
+       INCB            pointer, and increment the count.
+ECHOIT JSR    CHROUT   Echo the char and go back for more.
+       BRA    INLINC
+
+       TTL    OPNICK and OPNOCK
+
+*
+* Make sure device specified by DEVNUM is open for input.
+*
+
+       XDEF   OPNICK
+OPNICK JSR    HKCKDI   RAM hook.
+       LDA    DEVNUM   Get the device number.
+       BEQ    OKOPN    Keyboard is always open.
+       INCA            Is is the printer?
+       BNE    GOBMER   Yes, give Bad Mode error.
+       LDA    CASOPN   Is the cassette open?
+       BNE    CHKMOD   Yes, do check the open mode.
+       XDEF   NOERR
+NOERR  LDB    #ERRNO   No, give Not Open error.
+       JMP    ERROR
+
+CHKMOD DECA            Is it open for input?
+       BEQ    OKOPN    Yes, OK.
+GOBMER JMP    BMERR    No, give Bad Mode error.
+
+
+*
+* Make sure device is open for output.
+*
+
+       XDEF   OPNOCK
+OPNOCK JSR    HKCKDO   RAM hook.
+       LDA    DEVNUM   Get the device number.
+       INCA
+       BNE    OKOPN    Screen and printer are always open.
+       LDA    CASOPN   Is the casette open?
+       BEQ    NOERR    No, give Not Open error.
+       DECA            Yes, is it open for output?
+       BEQ    GOBMER   No, give mode error.
+OKOPN  RTS             Yes, all is OK.
+
