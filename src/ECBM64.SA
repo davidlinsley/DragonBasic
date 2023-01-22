@@ -519,3 +519,39 @@ OPNOCK JSR    HKCKDO   RAM hook.
        BEQ    GOBMER   No, give mode error.
 OKOPN  RTS             Yes, all is OK.
 
+       TTL    The CLOSE code.
+
+       XDEF   CLOSE
+CLOSE  BEQ    CLSALL   Nothing specified, close everything.
+       JSR    GETDNM   Read a device number.
+NXTCLO BSR    CLOSIT   Close this device.
+       JSR    CHRGOT   Another number specified?
+       BEQ    CLSRTS   No, all done.
+       JSR    GETCDN   Yes, read comma and device number.
+       BRA    NXTCLO   Go close it.
+
+       XDEF   CLSALL
+CLSALL JSR    HKCLSA   RAM hook.
+       XDEF   CLSCAS
+CLSCAS LDA    #-&1     Only thing requiring attention is
+       STA    DEVNUM   the cassette.
+
+       XDEF   CLOSIT
+CLOSIT JSR    HKCLS1   RAM hook.
+       LDA    DEVNUM   A:=device number.
+       CLR    DEVNUM   Clear it so normal output occurs when
+*    close is finished.
+       INCA            Do nothing if it isn't the cassette.
+       BNE    CLSRTS
+       LDA    CASOPN   Is the casette open for output?
+       CMPA   #&2
+       BNE    MRKCLS   No, just mark it as closed.
+       LDA    CBFCNT   Yes, is there stuff in the buffer?
+       BEQ    EOFWRT   No.
+       JSR    DMPBUF   Yes, dump the buffer.
+       XDEF   EOFWRT
+EOFWRT LDB    #@377    Set block type to end of file.
+       JSR    WRTEOF   Write an EOF block.
+MRKCLS CLR    CASOPN   Mark the cassette as closed.
+CLSRTS RTS
+
