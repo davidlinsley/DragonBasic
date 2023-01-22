@@ -278,3 +278,62 @@ KEYFIN PULS   B,X,PC   Restore B and X and return with the
 
        IFEQ   REALIO
  ENDC   IFE REALIO
+
+       TTL    CHROUT - Output Character Routine
+
+*
+* CHROUT sends the character in A to the device specified by DEVNUM.
+* The output is suppressed if DEVNUM indicates that file input is
+* in progress.  This is done so character echo, input prompts
+* (such as double duestion mark for more input), etc is ignored
+* while inputting file data or loading an ASCII program file.
+*
+* All registers except CC are preserved.
+*
+
+       XDEF   CHROUT
+CHROUT JSR    HKCHRO   RAM hook.
+       PSHS   B        Save B.
+       LDB    DEVNUM   Get the device number.
+       CMPB   #-&3     Doing a download?
+       BNE    NOTDNL   No.
+       PULS   B,PC     Yes, throw away the echo.
+
+NOTDNL INCB            See what it is.
+       PULS   B        Restore B.
+       LBMI   LPTOUT   Send char to printer.
+       BNE    SCROPT   Send char to screen.
+
+       PSHS   X,D      It's the cassette, save some regs.
+       LDB    CASOPN   Is the cassette
+       DECB            open for input?
+       BEQ    OUTRTS   Yes, throw this output away.
+
+*
+* Output character to cassette file.
+*
+
+CASOUT LDB    CBFCNT   Get the character count.
+       INCB            Is the buffer full?
+       BNE    NOTFUL   No, go put the char in the buffer.
+       BSR    DMPBUF   Yes, write out the buffer.
+NOTFUL LDX    CBFPTR   Get pointer into buffer.
+       STA    ,X+      Put the char away and increment the
+       STX    CBFPTR   pointer.
+       INC    CBFCNT   Increment the count.
+OUTRTS PULS   D,X,PC   Restore regs and return.
+
+*
+* Here to dump the cassette buffer to tape.
+*
+
+DMPBUF LDB    #&1      Set block type to data.
+WRTEOF STB    BLKTYP
+       LDX    #CASBUF  Set address of data for WRTBLK.
+       STX    CBUFAD
+       LDB    CBFCNT   Set the block length.
+       STB    BLKLEN
+       PSHS   U,Y,A    Save the rest.
+       JSR    WRTBLK   Write block out.
+       PULS   A,Y,U    Restore regs.
+       JMP    MRKMT    Mark the buffer as empty.
