@@ -358,3 +358,18 @@ PAGE  008  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
 01059P 016F 35   62      A        PULS   A,Y,U    Restore regs.
 01060P 0171 7E   0467    P        JMP    MRKMT    Mark the buffer as empty.
 
+PAGE  009  ECBM64  .SA:1   ECBM64 CHROUT - Output Character Routine
+
+01062                      *
+01063                      * Ouput character to screen.
+01064                      *
+01065
+01066            0174    P SCROPT EQU    *
+01067            0001    A        IFNE   REALIO
+01068P 0174 BD   0000    A        JSR    SAMALP   Switch to text mode.
+01069P 0177 7E   0000    A        JMP    SCROUT   Go to the screen driver.
+01070                             ENDC   IFN      REALIO
+01071
+01072            0001    A        IFEQ   REALIO
+01104                       ENDC   IFE REALIO
+
