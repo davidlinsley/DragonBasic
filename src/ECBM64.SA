@@ -555,3 +555,58 @@ EOFWRT LDB    #@377    Set block type to end of file.
 MRKCLS CLR    CASOPN   Mark the cassette as closed.
 CLSRTS RTS
 
+       TTL    CSAVE - Save program on cassette.
+
+       XDEF   CSAVE
+CSAVE  CMPA   #'M      Is it CSAVEM?
+       LBEQ   CSAVEM   Yes, go handle it.
+       JSR    GETFLN   Read the filename.
+       JSR    CHRGOT   End of statement?
+       BEQ    BCSAVE   Yes, do binary CSAVE.
+       JSR    CHKCOM   No, must be followed bya comma and
+       SYNCHK 'A       an "A" for ASCII.
+       BNE    CLSRTS   If statement doesn't end now let
+*    NEWSTT give a syntax error.
+       CLRA            Say it's a BASIC program.
+       JSR    OPNASC   Open ASCII, gapped output file.
+       LDA    #CASNUM  Make the listing go to cassette.
+       STA    DEVNUM
+       CLRA            Make the LIST code see a terminator
+*    so the whole program gets saved.
+       JMP    LIST     The LIST code will do the rest.
+*    When LIST is done it will close the
+*    file.
+
+*
+* Here to do binary CSAVE.
+*
+
+BCSAVE CLRA            Say it's a BASIC program.
+       LDX    DBLZER   Say not ASCII or gapped.
+       JSR    OPNCSO   Open cassette file for output.
+       CLR    CASOPN   Mark cassette as closed since OPNCSO
+*    marked it as open.
+       INC    BLKTYP   Set block type to data.
+       JSR    WRTLDR   Turn on the cassette and write a
+*    leader.
+       LDX    TXTTAB   Get the starting point.
+
+BCSLOP STX    CBUFAD   Store buffer address for BLKOUT.
+       LDA    #&255    Assume it's a full block.
+       STA    BLKLEN
+       LDD    VARTAB   How many more to write?
+       SUBD   CBUFAD
+       BEQ    FINSAV   All done.
+       CMPD   #&255    Is it a full block?
+       BHS    FULBLK   Yes.
+       STB    BLKLEN   No, set actual block length.
+FULBLK JSR    BLKOUT   Output the block.
+       BRA    BCSLOP   So back for more.  BLKOUT set X
+*    to [CBUFAD]+[BLKLEN].
+
+       XDEF   FINSAV
+FINSAV NEG    BLKTYP   Set block type to EOF.  (It was 1
+*    for data, now -1 for eof.
+       CLR    BLKLEN   No data to go out.
+       JMP    BLKOFF   Write EOF block, turn off motor, and
+*    return to NEWSTT.
