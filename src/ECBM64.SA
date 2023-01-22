@@ -214,3 +214,20 @@ MICRO  FCC    /(C) 1983 BY MICROSOFT/
 * The character is returned in A.
 * All registers except A and CC are preserved.
 * If end of file is hit, EOFFLG=.TRUE.=non-zero, and A is meaningless.
+*
+* INCHR is called instead of CHRINP when a 7 bit code is wanted.
+*
+
+       XDEF   INCHR
+INCHR  BSR    CHRINP   Read a character.
+       ANDA   #@177    Clear the high order bit.
+       RTS             Return with it
+
+
+       XDEF   CHRINP
+CHRINP JSR    HKCHRI   RAM hook.
+       CLR    EOFFLG   End of file flag:=.FALSE.
+       TST    DEVNUM   Check the device number.
+       BEQ    KEYINP   Go handle the keyboard.
+*    No, fall into CASINP to get char from
+*    cassette.
