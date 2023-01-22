@@ -1,4 +1,4 @@
-PAGE  009  ECBM64  .SA:1   ECBM64 CHROUT - Output Character Routine
+PAGE  009  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
 
 01062                      *
 01063                      * Ouput character to screen.

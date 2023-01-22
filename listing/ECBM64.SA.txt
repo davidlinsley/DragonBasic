@@ -358,7 +358,7 @@ PAGE  008  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
 01059P 016F 35   62      A        PULS   A,Y,U    Restore regs.
 01060P 0171 7E   0467    P        JMP    MRKMT    Mark the buffer as empty.
 
-PAGE  009  ECBM64  .SA:1   ECBM64 CHROUT - Output Character Routine
+PAGE  009  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
 
 01062                      *
 01063                      * Ouput character to screen.
@@ -372,4 +372,65 @@ PAGE  009  ECBM64  .SA:1   ECBM64 CHROUT - Output Character Routine
 01071
 01072            0001    A        IFEQ   REALIO
 01104                       ENDC   IFE REALIO
+
+PAGE  010  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
+
+01106                             TTL    DEVPRM - Return Device Parameters
+01107
+01108                      *
+01109                      * DEVPRM returns the following device parameters:
+01110                      *
+01111                      * DEVPOS - The position of the print head or it's equivalent.
+01112                      * DEVWID - The line width of the device.
+01113                      * DEVLCF - The column number where the last comma field starts.
+01114                      * DEVCFW - The comma field width.
+01115                      * SPCIO  -  .TRUE. for special I/O handling in PRINT and INPUT code.
+01116                      *
+01117                      * All registers except CC are preserved.
+01118                      * On exit, Z=1 if the device has infinite width (DEVWID=0).
+01119                      *
+01120
+01121                             XDEF   DEVPRM
+01122P 017A BD   0000    A DEVPRM JSR    HKDPRM   RAM hook.
+01123P 017D 34   16      A        PSHS   X,D      Save registers.
+01124P 017F 0F   6E      A        CLR    SPCIO    Special I/O flag=.FALSE.
+01125P 0181 96   6F      A        LDA    DEVNUM   Set the device number.
+01126P 0183 27   09   018E        BEQ    SCRPRM   Go get the screen parms.
+01127P 0185 4C                    INCA
+01128P 0186 27   17   019F        BEQ    CASPRM   Go get cassette parms.
+01129
+01130                      *
+01131                      * Get line printer parameters.
+01132                      *
+01133
+01134P 0188 9E   99      A LPTPRM LDX    LPTCFW   Get comma field width and last comma
+01135                      *    field.
+01136P 018A DC   9B      A        LDD    LPTWID   Get width and current position.
+01137P 018C 20   09   0197        BRA    DEVFIN   Go put it all away.
+01138
+01139                      *
+01140                      * Get screen parms.
+01141                      * The width, comma field width, and last comma field are fixed.
+01142                      * The position is obtained by reading tne cursor address.
+01143                      *
+01144
+01145P 018E D6   89      A SCRPRM LDB    CURADR+&1 Get low order of cursor address.
+01146P 0190 C4   1F      A        ANDB   #&31     Determine the column number. This
+01147                      *    only works because the line width
+01148                      *    is a power of two.
+01149P 0192 8E   1010    A        LDX    #&16*&256+&16 Field width and last comma field.
+01150P 0195 86   20      A        LDA    #&32     Set up the width.
+01151                             XDEF   DEVFIN
+01152P 0197 9F   6A      A DEVFIN STX    DEVCFW   Put away comma field width and last
+01153                      *    comma field.
+01154P 0199 D7   6C      A        STB    DEVPOS   Put away the position.
+01155P 019B 97   6D      A        STA    DEVWID   Put away the width and set the Z bit
+01156                      *    for infinite width devices.
+01157P 019D 35   96      A        PULS   D,X,PC   Restore and return.
+01158
+01159
+01160                      *
+01161                      * Get tne cassette parms.
+01162                      * They are all fixed at values which are necessary for the special
+01163                      * I/O code to work properly.  SPCIO gets set TRUE.
 
