@@ -978,3 +978,43 @@ MRKMT  CLR    CBFCNT   Zero the count.
 SETPTR LDX    #CASBUF  Point to the start of the buffer.
        STX    CBFPTR
 OPNRTS RTS
+
+*
+* Here to open device for output.
+*
+
+OPENO  INCA            If lineprinter or screen just return.
+       BNE    OPNRTS
+       INCA            To say it's a BASIC data file.
+OPNASC LDX    #-&1     To set ASCFLG:=GAPFLG:=.TRUE.
+*    Fall into OPNCSO to write out the
+*    file header.
+
+*
+* OPNCSO writes out a file header and marks the cassette as open
+* for output.  On entry XHI=ASCFLG, XLO=GAPFLG, and A=File type.
+*
+
+       XDEF   OPNCSO
+OPNCSO TST    CASOPN   Is the cassette already open?
+       BNE    AOERR    Yes, give an Already Open error.
+       LDU    #CASBUF  No, point to place to build the
+*    header.
+       STU    CBUFAD   Set buffer address for BLKOUT.
+       STA    &8,U     Put away the file type.
+*    (FILTYP-CASBUF=8 but since FILTYP
+*    and CASBUF are external the cross
+*    assembler would use a 16 bit offset
+*    if the expression were used.)
+       STX    &9,U     Follow with ASCFLG and GAPFG.
+*    (ASCFLG-CASBUF=9.)
+       LDX    #FILNAM  Copy the filename from FILNAM
+       JSR    COPNAM   into the header.
+       CLR    BLKTYP   Set block type to file header.
+       LDA    #HDRLEN  Set length of block.
+       STA    BLKLEN
+       JSR    WRTBLK   Turn on the motor, write a block,
+*    and turn off the motor.
+       LDA    #&2      Mark the cassette as open for output.
+       STA    CASOPN
+       BRA    MRKMT    Mark the buffer as empty.

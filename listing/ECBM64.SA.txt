@@ -1046,3 +1046,45 @@ PAGE  026  ECBM64  .SA:1  ECBM64 The OPEN code.
 01738P 046C 9F   7A      A        STX    CBFPTR
 01739P 046E 39             OPNRTS RTS
 01740
+
+PAGE  027  ECBM64  .SA:1  ECBM64 The OPEN code.
+
+01742                      *
+01743                      * Here to open device for output.
+01744                      *
+01745
+01746P 046F 4C             OPENO  INCA            If lineprinter or screen just return.
+01747P 0470 26   FC   046E        BNE    OPNRTS
+01748P 0472 4C                    INCA            To say it's a BASIC data file.
+01749P 0473 8E   FFFF    A OPNASC LDX    #-&1     To set ASCFLG:=GAPFLG:=.TRUE.
+01750                      *    Fall into OPNCSO to write out the
+01751                      *    file header.
+01752
+01753                      *
+01754                      * OPNCSO writes out a file header and marks the cassette as open
+01755                      * for output.  On entry XHI=ASCFLG, XLO=GAPFLG, and A=File type.
+01756                      *
+01757
+01758                             XDEF   OPNCSO
+01759P 0476 0D   78      A OPNCSO TST    CASOPN   Is the cassette already open?
+01760P 0478 26   B9   0433        BNE    AOERR    Yes, give an Already Open error.
+01761P 047A CE   0000    A        LDU    #CASBUF  No, point to place to build the
+01762                      *    header.
+01763P 047D DF   7E      A        STU    CBUFAD   Set buffer address for BLKOUT.
+01764P 047F A7   48      A        STA    &8,U     Put away the file type.
+01765                      *    (FILTYP-CASBUF=8 but since FILTYP
+01766                      *    and CASBUF are external the cross
+01767                      *    assembler would use a 16 bit offset
+01768                      *    if the expression were used.)
+01769P 0481 AF   49      A        STX    &9,U     Follow with ASCFLG and GAPFG.
+01770                      *    (ASCFLG-CASBUF=9.)
+01771P 0483 8E   0000    A        LDX    #FILNAM  Copy the filename from FILNAM
+01772P 0486 BD   03AF    P        JSR    COPNAM   into the header.
+01773P 0489 0F   7C      A        CLR    BLKTYP   Set block type to file header.
+01774P 048B 86   00      A        LDA    #HDRLEN  Set length of block.
+01775P 048B 97   7D      A        STA    BLKLEN
+01776P 048F BD   0576    P        JSR    WRTBLK   Turn on the motor, write a block,
+01777                      *    and turn off the motor.
+01778P 0492 86   02      A        LDA    #&2      Mark the cassette as open for output.
+01779P 0494 97   78      A        STA    CASOPN
+01780P 0496 20   CF   0467        BRA    MRKMT    Mark the buffer as empty.
