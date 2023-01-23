@@ -1,184 +1,60 @@
-                                                          PAGE          016        ECBM64             .SA31           ECBM64 CSAVE -                    Save program on cassette.
-
-
-
-
-
-
-                                                          01369                                                                         TTL             CLOAD - Load a program from r-assette.
-
-
-                                                          01370
-
-
-                                                          01371                                                                         XDEF            CLOAD
-
-
-                                                          01372P          02P9        OP         78                A    CLOAD           CLR             CASOPN               Force the cassette closed.                                     The
-
-
-                               H                          01373                                                         *          last        block of an output                         file may
-
-
-                                                          01374                                                         *          be lost            but we don't have enough
-
-
-                                                          01375                                                         *          bytes to             flush the buffer and the
-
-
-                                                          01376                                                         *          user has             :probably out the cassette
-
-
-                                                          01377                                                         *          in play            mode anyway.
-
-                                               1 1
-                                               [I         01378P          02BB        81         40                A                    CMPA            #'M                  Do they want to load a machine
-
-                                                          01379                                                         *          language             file?
-
-
-                                                          01380P          02BD        1027       FD3F              A                    LBEQ            CLOADM               Yes,       go co         it.
-
-
-                                                          01381P          02C1        32         62                A                    LEAS            &2,S                 No,      get      rid of NEWSTT return address.
-
-
-                                                          0182P           0203        BD         03DC              P                    JSR             FLNTRM               Read the filename.
-
-
-                                                          01383P          02E6        BD         045F              P                    JSR             OPNCSI               Open the cassette for input.
-
-
-                                                          01384P          02C9        7D         0000              A                    TST             GAPFLG               Is it a gapped file?
-
-
-                                                          01365P          02CC        27         10          02FB                       BEQ             BCLOD                No,      go do binary CLOAD.
-
-
-                                                          01366
-
-
-                                                          01387                                                         *
-
-
-                                                          01388                                                         *    Here to           load ASCII               file.
-
-
-                                                          01389                                                         *
-
-
-                                                          01390
-
-
-                                                          01391P          02CF        B6         0000              A                    LDA             ASCFLG               Make sure it                  is ASCII.
-
-
-                                                          01392P          0201        27         ::..L.)00   02F1:(?4                   BEQ             BMERR1               If not          give mote error.
-
-
-                                                          01393P          0203        BD                                                jSR             SCRTCH               Get      rid of the existing program.
-
-
-                                                          01394P          0206        86         FF                A                    LDA             #CASNUM              Make program come from cassette.
-
-
-                                                          01395P          0208        97         6F                A                    STA             DEVNUM
-
-
-                                               mi         01396P          020A        OC         78                A                    INC             CASOPN               Mark the cassette as open for input.
-
-
-                                                          01397P          02DC        BD         044C              P                    JSR             LODBUF               Load the buffer and let main do the
-
-
-                                                          01396P          02DF        7E         0000              A                    „IMP            MAIN                 actual          loading.
-
-
-                                                          01399
-
-
-                                                          01400                                                         *
-
-
-                                                          01401                                                         ** Here when MAIN sees the end of file.
-
-
-                                                          01402                                                         *
-
-
-                                                          01403
-
-
-                                                          01404                                                                         XDEF            FINLOD
-
-
-                                                          01405P          02E2        BD         0000              A    FINLOD JSR                      HKFNLD               RAM hook.
-
-
-                                                          01406P          02E5        BD                           P                    JSR             CLOSIT               Close the cassette file.
-
-
-                                                          01407P          02E8        7E         (.=               A                    JMP             READY                Go print            "DK".
-
-
-                                                          01408
-
-
-                                                          01409                                                         *
-
-
-                                                          01410                                                         *    Here to load a binary cassette file.
-
-
-                                                          0141=                                                         *
-
-
-                                                          01412
-
-
-                                                          01413P          02EB        BE         0000              A    BCLOD           LDA             FILTYP               It must be a BASIC program.
-
-                                               !.rir
-                                                          01414P          02E5        27         03          02F3                       BEQ             00BCLD               It     is.
-
-
-                                                          01415P          02F0        7E         042D              P    BMERR1 jMP                      BMERR                It     isn't,         give a mode error.
-
-
-                                                          01416
-
-
-                                                          01417P          02F3        BD         0000              A    DOBCLD JSR                      SCRTCH               Wipe out            the existing program.
-
-
-                                                          01416P          02F6        BD         0000              A                    JSR             CsRDON               Start cassette and get                               into bit sync.
-
-
-                                                          01419P          02F9        9E         19                A                    LDX             TXTTAB               Set uo first                  load address.
-
-
-                                                          01420
-
-
-                                                          01421P          02FB        9F         7E                A    CLDLOP STX                      CBUFAD               Set      load address for BLKINV.
-
-
-                                                          01422P          02FD        DC         75                A                    LDD             CBUFAD               There must be another 256 bytes
-
-
-                                                          01423P          02FF        4C                                                INCA                                 available or we give an OM error.
-
-
-                                                          01424P          0300        BD         0000              A                    jSR             REASON               (Yes,        it     is possibj.e that                      they won't
-
-
-                                                          01425                                                         *          be able            to load a program they saved
-
-+44 (0)20 B9 71
-                                                          01426                                                         *          if      it    was a very tight                       fit,       but they
-
-
-
-
-          For Your Near( (r
-
+PAGE  016  ECBM64  .SA:1  ECBM64 CSAVE - Save program on cassette.
+
+01369                             TTL    CLOAD - Load a program from cassette.
+01370
+01371                             XDEF   CLOAD
+01372P 02B9 0F   78      A CLOAD  CLR    CASOPN   Force the cassette closed.  The
+01373                      *    last block of an output file may
+01374                      *    be lost but we don't have enough
+01375                      *    bytes to flush the buffer and the
+01376                      *    user has probably put the cassette
+01377                      *    in play mode anyway.
+01378P 02BB 81   4D      A        CMPA   #'M      Do they want to load a machine
+01379                      *    language file?
+01380P 02BD 1027 FD3F    A        LBEQ   CLOADM   Yes, go do it.
+01381P 02C1 32   62      A        LEAS   &2,S     No, get rid of NEWSTT return address.
+0182P  02C3 BD   03DC    P        JSR    FLNTRM   Read the filename.
+01383P 02C6 BD   045F    P        JSR    OPNCSI   Open the cassette for input.
+01384P 02C9 7D   0000    A        TST    GAPFLG   Is it a gapped file?
+01365P 02CC 27   1D   02EB        BEQ    BCLOD    No, go do binary CLOAD.
+01366
+01387                      *
+01388                      * Here to load ASCII file.
+01389                      *
+01390
+01391P 02CE B6   0000    A        LDA    ASCFLG   Make sure it is ASCII.
+01392P 02D1 27   1D   02F0        BEQ    BMERR1   If not give mode error.
+01393P 02D3 BD   0000    A        JSR    SCRTCH   Get rid of the existing program.
+01394P 02D6 86   FF      A        LDA    #CASNUM  Make program come from cassette.
+01395P 02D8 97   6F      A        STA    DEVNUM
+01396P 02DA 0C   78      A        INC    CASOPN   Mark the cassette as open for input.
+01397P 02DC BD   044C    P        JSR    LODBUF   Load the buffer and let main do the
+01396P 02DF 7E   0000    A        JMP    MAIN     actual loading.
+01399
+01400                      *
+01401                      * Here when MAIN sees the end of file.
+01402                      *
+01403
+01404                             XDEF   FINLOD
+01405P 02E2 BD   0000    A FINLOD JSR    HKFNLD   RAM hook.
+01406P 02E5 BD   0248    P        JSR    CLOSIT   Close the cassette file.
+01407P 02E8 7E   0000    A        JMP    READY    Go print "OK".
+01408
+01409                      *
+01410                      * Here to load a binary cassette file.
+01411                      *
+01412
+01413P 02EB B6   0000    A BCLOD  LDA    FILTYP   It must be a BASIC program.
+01414P 02EE 27   03   02F3        BEQ    DOBCLD   It is.
+01415P 02F0 7E   042D    P BMERR1 JMP    BMERR    It isn't, give a mode error.
+01416
+01417P 02F3 BD   0000    A DOBCLD JSR    SCRTCH   Wipe out the existing program.
+01416P 02F6 BD   0000    A        JSR    CSRDON   Start cassette and get into bit sync.
+01419P 02F9 9E   19      A        LDX    TXTTAB   Set up first load address.
+01420
+01421P 02FB 9F   7E      A CLDLOP STX    CBUFAD   Set load address for BLKINV.
+01422P 02FD DC   7E      A        LDD    CBUFAD   There must be another 256 bytes
+01423P 02FF 4C                    INCA            available or we give an OM error.
+01424P 0300 BD   0000    A        JSR    REASON   (Yes, it is possible that they won't
+01425                      *    be able to load a program they saved
+01426                      *    if it was a very tight fit, but they

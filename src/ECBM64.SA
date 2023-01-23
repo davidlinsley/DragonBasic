@@ -610,3 +610,62 @@ FINSAV NEG    BLKTYP   Set block type to EOF.  (It was 1
        CLR    BLKLEN   No data to go out.
        JMP    BLKOFF   Write EOF block, turn off motor, and
 *    return to NEWSTT.
+
+       TTL    CLOAD - Load a program from cassette.
+
+       XDEF   CLOAD
+CLOAD  CLR    CASOPN   Force the cassette closed.  The
+*    last block of an output file may
+*    be lost but we don't have enough
+*    bytes to flush the buffer and the
+*    user has probably put the cassette
+*    in play mode anyway.
+       CMPA   #'M      Do they want to load a machine
+*    language file?
+       LBEQ   CLOADM   Yes, go do it.
+       LEAS   &2,S     No, get rid of NEWSTT return address.
+       JSR    FLNTRM   Read the filename.
+       JSR    OPNCSI   Open the cassette for input.
+       TST    GAPFLG   Is it a gapped file?
+       BEQ    BCLOD    No, go do binary CLOAD.
+
+*
+* Here to load ASCII file.
+*
+
+       LDA    ASCFLG   Make sure it is ASCII.
+       BEQ    BMERR1   If not give mode error.
+       JSR    SCRTCH   Get rid of the existing program.
+       LDA    #CASNUM  Make program come from cassette.
+       STA    DEVNUM
+       INC    CASOPN   Mark the cassette as open for input.
+       JSR    LODBUF   Load the buffer and let main do the
+       JMP    MAIN     actual loading.
+
+*
+* Here when MAIN sees the end of file.
+*
+
+       XDEF   FINLOD
+FINLOD JSR    HKFNLD   RAM hook.
+       JSR    CLOSIT   Close the cassette file.
+       JMP    READY    Go print "OK".
+
+*
+* Here to load a binary cassette file.
+*
+
+BCLOD  LDA    FILTYP   It must be a BASIC program.
+       BEQ    DOBCLD   It is.
+BMERR1 JMP    BMERR    It isn't, give a mode error.
+
+DOBCLD JSR    SCRTCH   Wipe out the existing program.
+       JSR    CSRDON   Start cassette and get into bit sync.
+       LDX    TXTTAB   Set up first load address.
+
+CLDLOP STX    CBUFAD   Set load address for BLKINV.
+       LDD    CBUFAD   There must be another 256 bytes
+       INCA            available or we give an OM error.
+       JSR    REASON   (Yes, it is possible that they won't
+*    be able to load a program they saved
+*    if it was a very tight fit, but they
