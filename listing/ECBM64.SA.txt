@@ -1088,3 +1088,55 @@ PAGE  027  ECBM64  .SA:1  ECBM64 The OPEN code.
 01778P 0492 86   02      A        LDA    #&2      Mark the cassette as open for output.
 01779P 0494 97   78      A        STA    CASOPN
 01780P 0496 20   CF   0467        BRA    MRKMT    Mark the buffer as empty.
+
+PAGE  028  ECBM64  .SA:1  ECBM64 The OPEN code.
+
+01782                             TTL    Search Cassette for a File
+01783
+01784                             XDEF   TAPSRC
+01785P 0498 BE   0000    A TAPSRC LDX    #CASBUF  Tell BLKIN where to read into.
+0173SP 049B 9F   7E      A        STX    CBUFAD
+01787P 049D 96   68      A NXTFIL LDA    CURLIN   Direct statement?
+01788P 049F 4C                    INCA
+01789P 04A0 26   0B   04AD        BNE    NODSP1   No, don't display filenames.
+01790P 04A2 BD   065C    P        JSR    GRNCHR   Yes, clear the screen.
+01791P 04A5 9E   88      A        LDX    CURADR   Put up an "S" to say searching and
+01792P 04A7 C6   53      A        LDB    #'S      move the cursor over two for display-
+01793P 04A9 E7   81      A        STB    ,X++     ing the filename.
+01794P 04AB 9F   88      A        STX    CURADR
+01795P 04AD 8D   69   0518 NODSP1 BSR    RDBLK    Read what should be a header block.
+01796P 04AF DA   7C      A        ORB    BLKTYP   If a read error occurred or the
+01797P 04B1 26   FA   04AD        BNE    NODSP1   block isn't a header block REPEAT
+01798P 04B3 8E   0000    A        LDX    #CSFNAM  Y:=pointer to filename read from tape.
+01799P 04B6 CE   0000    A        LDU    #FILNAM  U:=pointer to filename being sought.
+01800P 04B9 C6   08      A        LDB    #&8      B:=loop count.
+01801P 04BB 6F   E2      A        CLR    ,-S      Put flag on stack saying names are
+01802                      *    the same.
+01803P 04BD A6   80      A DCFNAM LDA    ,X+      Get a byte of the tape filename.
+01804P 04BF 109E 68      A        LDY    CURLIN   Only display name if direct
+01805P 04C2 31   21      A        LEAY   &1,Y     statement.
+01606P 04C4 26   05   0409        BNE    NODSP2
+01807P 04C6 0F   6F      A        CLR    DEVNUM   Yes, output the char to the screen.
+01808P 04C8 BD   012F    P        JSR    CHROUT
+01809P 04CB A0   C0      A NODSP2 SUBA   ,U+      Get zero if matches desired name.
+01810P 04CD AA   E4      A        ORA    ,S       Any difference will make flag on
+01811P 04CF A7   E4      A        STA    ,S       stack non-zero.
+01812P 04D1 5A                    DECB            Loop so all characters will be
+01813P 04D2 26   E9   04BD        BNE    DCFNAM   displayed and compared.
+01814
+01815P 04D4 A6   E0      A        LDA    ,S+      Do the filenames match?
+01816P 04D6 27   0A   04E2        BEQ    FNDFIL   Yes.
+01817P 04D8 6D   57      A        TST    -&9,U    No, is the desired name null?
+01818                      *    (U is pointing one beyond the end
+01819                      *    of FILNAM (which is 8 bytes long) and
+01820                      *    FNAMLN immediately precedes FILNAM.)
+01821P 04DA 27   06   04E2        BEQ    FNDFIL   Yes, so we want the first file seen.
+01822P 04DC 8D   0A   04E8        BSR    SKPFIL   No, skip this file.
+01823P 04DE 26   07   04E7        BNE    BADHDR   Return with Z=0 if error.
+01824P 04E0 20   BB   049D        BRA    NXTFIL   So look at the next file.
+01825
+01826P 04E2 86   46      A FNDFIL LDA    #'F      Display "F" for Found.
+01827P 04E4 8D   29   050F        BSR    DSPCHR
+01828P 04E6 4F                    CLRA            Clear Z to indicate no tape error.
+01829P 04E7 39             BADHDR RTS
+01830

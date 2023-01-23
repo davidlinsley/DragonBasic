@@ -1018,3 +1018,52 @@ OPNCSO TST    CASOPN   Is the cassette already open?
        LDA    #&2      Mark the cassette as open for output.
        STA    CASOPN
        BRA    MRKMT    Mark the buffer as empty.
+
+       TTL    Search Cassette for a File
+
+       XDEF   TAPSRC
+TAPSRC LDX    #CASBUF  Tell BLKIN where to read into.
+       STX    CBUFAD
+NXTFIL LDA    CURLIN   Direct statement?
+       INCA
+       BNE    NODSP1   No, don't display filenames.
+       JSR    GRNCHR   Yes, clear the screen.
+       LDX    CURADR   Put up an "S" to say searching and
+       LDB    #'S      move the cursor over two for display-
+       STB    ,X++     ing the filename.
+       STX    CURADR
+NODSP1 BSR    RDBLK    Read what should be a header block.
+       ORB    BLKTYP   If a read error occurred or the
+       BNE    NODSP1   block isn't a header block REPEAT
+       LDX    #CSFNAM  Y:=pointer to filename read from tape.
+       LDU    #FILNAM  U:=pointer to filename being sought.
+       LDB    #&8      B:=loop count.
+       CLR    ,-S      Put flag on stack saying names are
+*    the same.
+DCFNAM LDA    ,X+      Get a byte of the tape filename.
+       LDY    CURLIN   Only display name if direct
+       LEAY   &1,Y     statement.
+       BNE    NODSP2
+       CLR    DEVNUM   Yes, output the char to the screen.
+       JSR    CHROUT
+NODSP2 SUBA   ,U+      Get zero if matches desired name.
+       ORA    ,S       Any difference will make flag on
+       STA    ,S       stack non-zero.
+       DECB            Loop so all characters will be
+       BNE    DCFNAM   displayed and compared.
+
+       LDA    ,S+      Do the filenames match?
+       BEQ    FNDFIL   Yes.
+       TST    -&9,U    No, is the desired name null?
+*    (U is pointing one beyond the end
+*    of FILNAM (which is 8 bytes long) and
+*    FNAMLN immediately precedes FILNAM.)
+       BEQ    FNDFIL   Yes, so we want the first file seen.
+       BSR    SKPFIL   No, skip this file.
+       BNE    BADHDR   Return with Z=0 if error.
+       BRA    NXTFIL   So look at the next file.
+
+FNDFIL LDA    #'F      Display "F" for Found.
+       BSR    DSPCHR
+       CLRA            Clear Z to indicate no tape error.
+BADHDR RTS
