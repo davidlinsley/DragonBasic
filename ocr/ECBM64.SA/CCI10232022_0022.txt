@@ -1,6 +1,6 @@
 PAGE  023  ECBM64  .SA:1  ECBM64 Get Device or File Number.
 
-01617                             TTL    Tne End Of File (EOF) Function.
+01617                             TTL    The End Of File (EOF) Function.
 01618
 01619                      *
 01620                      * EOF returns FALSE (0) if device is not at end of file.

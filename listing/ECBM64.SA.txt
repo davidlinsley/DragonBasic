@@ -916,7 +916,7 @@ PAGE  022  ECBM64  .SA:1  ECBM64 Get Filename.
 
 PAGE  023  ECBM64  .SA:1  ECBM64 Get Device or File Number.
 
-01617                             TTL    Tne End Of File (EOF) Function.
+01617                             TTL    The End Of File (EOF) Function.
 01618
 01619                      *
 01620                      * EOF returns FALSE (0) if device is not at end of file.
@@ -943,4 +943,20 @@ PAGE  023  ECBM64  .SA:1  ECBM64 Get Device or File Number.
 01641P 03FD 97   6F      A        STA    DEVNUM
 01642P 03FF 1D             SINTB  SEX             Make it a 16 bit result and go
 01643P 0400 7E   0000    A        JMP    GIVABF   float it.
+
+PAGE  024  ECBM64  .SA:1  ECBM64 The End Of File (EOF) Function.
+
+01645                             TTL    The SKIPF statement.
+01646
+01647                      *
+01648                      * SKIPF skips the specified or next file on the tape.
+01649                      * Filenames are displayed if SKIPF is used in a direct statement.
+01650                      *
+01651
+01652                             XDEF   SKIPF
+01653P 0403 8D   D7   03DC SKIPF  BSR    FLNTRM   Read the filename and check for EOS.
+01654P 0405 8D   58   045F SKPDOR BSR    OPNCSI   Find the file.
+01655P 0407 BD   04E8    P        JSR    SKPFIL   Skip it.
+01656P 040A 26   24   0430        BNE    IOERR    SKPFIL encountered an error.
+01657P 040C 39                    RTS
 
