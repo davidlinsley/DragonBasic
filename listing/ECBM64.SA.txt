@@ -734,3 +734,34 @@ PAGE  017  ECBM64  .SA:1  ECBM64 CLOAD - Load a program from cassette.
 01445P 031E 7E   0430    P GOIOER JMP    IOERR
 01446
 
+PAGE  018  ECBM64  .SA:1  ECBM64 CLOAD - Load a program from cassette.
+
+01448                      *
+01449                      * Here to load an ungapped machine language file.
+01450                      *
+01451
+01452                             XDEF   MLDUNG
+01453P 0321 9E   8A      A MLDUNG LDX    DBLZER   Assume no load offset specified.
+01454P 0323 9D   A5      A        JSR    CHRGOT   End of statement?
+01455P 0325 27   06   032D        BEQ    ZEROFF   Yes, use the default offset of zero.
+01456P 0327 BD   0000    A        JSR    CHKCOM   No, eat the comma and evaluate
+01457P 032A BD   0000    A        JSR    EVLADR   the specified offset.
+01458P 052D B6   0000    A ZEROFF LDA    FILTYP   Is the file a machine language file?
+01459P 0330 81   02      A        CMPA   #&2
+01460P 0332 26   BC   02F0        BNE    BMERR1   No, give file mode error.
+01461P 0334 FC   0000    A        LDD    STRTAD   Yes, add the load offset to the
+01452P 0337 33   8B      A        LEAU   D,X      execution address and save it for
+01463P 0339 DF   9D      A        STU    EXECAD   the EXEC statement.
+01464P 033B FC   0000    A        LDD    LOADAD   Add the load offset to the load
+01465P 033E 30   8B      A        LEAX   D,X      address of the file.
+01466P 0340 9F   7E      A        STX    CBUFAD   Save the effective load address.
+01467P 0342 BD   0000    A        JSR    CSRDON   Turn on the cassette and sync up.
+01468P 0345 BD   0523    P MLDCLP JSR    BLKIN    Read the next block of the file.
+01469P 0348 26   D4   031E        BNE    GOIOER   Bad read.
+01470P 034A 9F   7E      A        STX    CBUFAD   Update the load address.
+01471P 034C 0D   7C      A        TST    BLKTYP   What type of block was read?
+01472P 034E 27   CE   031E        BEQ    GOIOER   Can't have header in middle of file.
+01477P 0350 2A   F3   0345        BPL    MLDCLP   A data record, go read more.
+01474P 0352 7E   0000    A GOCOFF JMP    CASOFF   End of file, turn off cassette and
+01475                      *    return to NEWSTT.
+

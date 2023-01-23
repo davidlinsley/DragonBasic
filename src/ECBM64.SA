@@ -689,3 +689,31 @@ WIPER  JSR    SCRTCH   Error occured, wipe out wnatever did
 *    load so garbage isn't left around.
 GOIOER JMP    IOERR
 
+*
+* Here to load an ungapped machine language file.
+*
+
+       XDEF   MLDUNG
+MLDUNG LDX    DBLZER   Assume no load offset specified.
+       JSR    CHRGOT   End of statement?
+       BEQ    ZEROFF   Yes, use the default offset of zero.
+       JSR    CHKCOM   No, eat the comma and evaluate
+       JSR    EVLADR   the specified offset.
+ZEROFF LDA    FILTYP   Is the file a machine language file?
+       CMPA   #&2
+       BNE    BMERR1   No, give file mode error.
+       LDD    STRTAD   Yes, add the load offset to the
+       LEAU   D,X      execution address and save it for
+       STU    EXECAD   the EXEC statement.
+       LDD    LOADAD   Add the load offset to the load
+       LEAX   D,X      address of the file.
+       STX    CBUFAD   Save the effective load address.
+       JSR    CSRDON   Turn on the cassette and sync up.
+MLDCLP JSR    BLKIN    Read the next block of the file.
+       BNE    GOIOER   Bad read.
+       STX    CBUFAD   Update the load address.
+       TST    BLKTYP   What type of block was read?
+       BEQ    GOIOER   Can't have header in middle of file.
+       BPL    MLDCLP   A data record, go read more.
+GOCOFF JMP    CASOFF   End of file, turn off cassette and
+*    return to NEWSTT.
