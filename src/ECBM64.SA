@@ -732,3 +732,61 @@ EXEC   BEQ    EXECDO   Use EXECAD if nothing specified.
        STX    EXECAD   Put it away.
 EXECDO JMP    [EXECAD] Go to it.
 
+       TTL    Miscellaneous
+
+*
+* Check for BREAK and others.
+* Don't do it if cassette I/O is in progress.
+*
+
+       XDEF   BRKCHK
+BRKCHK JSR    HKBRKC   RAM hook.
+       LDA    DEVNUM
+       INCA
+       BEQ    COPRTS   Cassette, don't check for BREAK.
+       JMP    ISCNTC   Not cassette, go poll keyboard.
+
+
+*
+* Here when the PRINT code sees an @ sign directly after the
+* PRINT token.
+*
+
+       XDEF   PATDO
+PATDO  JSR    INTIDX   D:=screen address.
+       SUBD   #&511    Make sure it's in range.
+       LBHI   FCERR    It isn't.
+       ADDD   #SCRADR+&511 It is, set the new cursor position.
+       STD    CURADR
+PATRTS RTS
+
+
+*
+* INKEY$ returns a single byte string containing the key code of
+* an active key or the null string if no key is active.
+*
+
+       XDEF   INKEY$
+INKEY$ LDA    INKCHR   Is there a char in the single char
+*    buffer?
+       BNE    NOPOLL   Yes, use it rather than poll for one.
+       JSR    POLCAT   No, scan the keyboard.
+NOPOLL CLR    INKCHR   Mark buffer as empty.
+       STA    FACLO    Save the key code.
+       LBNE   CHR$DO   Go put it away.
+       STA    DSCTMP   No key seen, return the null string.
+       JMP    GOPTNW
+
+       TTL    Get Filename.
+
+       XDEF   GETFLN
+GETFLN LDX    #FNAMLN  Set the filename length to zero and
+       CLR    ,X+      blank fill the filename buffer.
+       LDA    #SPACE
+BLNKFL STA    ,X+
+       CMPX   #FILNAM+&8
+       BNE    BLNKFL
+
+       JSR    CHRGOT   Does the statement end here?
+       BEQ    COPRTS   Yes, no filename specified so use
+*    none.

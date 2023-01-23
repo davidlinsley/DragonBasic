@@ -782,3 +782,63 @@ PAGE  019  ECBM64  .SA:1  ECBM64 CLOAD - Load a program from cassette.
 01489P 035C 6E   9F 009D A EXECDO JMP    [EXECAD] Go to it.
 01490
 
+PAGE  020  ECBM64  .SA:1  ECBM64 The EXEC statement.
+
+01492                             TTL    Miscellaneous
+01493
+01494                      *
+01495                      * Check for BREAK and others.
+01496                      * Don't do it if cassette I/O is in progress.
+01497                      *
+01498
+01499                             XDEF   BRKCHK
+01500P 0360 BD   0000    A BRKCHK JSR    HKBRKC   RAM hook.
+01501P 0363 96   6F      A        LDA    DEVNUM
+01502P 0365 4C                    INCA
+01503P 0366 27   50   03B8        BEQ    COPRTS   Cassette, don't check for BREAK.
+01504P 0368 7E   0000    A        JMP    ISCNTC   Not cassette, go poll keyboard.
+01505
+01506
+01507                      *
+01508                      * Here when the PRINT code sees an @ sign directly after the
+01505                      * PRINT token.
+01510                      *
+01511
+01512                             XDEF   PATDO
+01513P 036B BD   0000    A PATDO  JSR    INTIDX   D:=screen address.
+01514P 036E 83   01FF    A        SUBD   #&511    Make sure it's in range.
+01515P 0371 1022 FC8B    A        LBHI   FCERR    It isn't.
+01516P 0375 C3   05FF    A        ADDD   #SCRADR+&511 It is, set the new cursor position.
+01517P 0378 DD   88      A        STD    CURADR
+01518P 037A 39             PATRTS RTS
+01519
+01520
+01521                      *
+01522                      * INKEY$ returns a single byte string containing the key code of
+01523                      * an active key or the null string if no key is active.
+01524                      *
+01525
+01525                             XDEF   INKEY$
+01527P 037B 96   87      A INKEY$ LDA    INKCHR   Is there a char in the single char
+01528                      *    buffer?
+01529P 037D 26   03   0382        BNE    NOPOLL   Yes, use it rather than poll for one.
+01530P 037F BD   0000    A        JSR    POLCAT   No, scan the keyboard.
+01531P 0382 0F   87      A NOPOLL CLR    INKCHR   Mark buffer as empty.
+01532P 0384 97   53      A        STA    FACLO    Save the key code.
+01533P 0386 1026 FC76    A        LBNE   CHR$DO   Go put it away.
+01534P 038A 97   56      A        STA    DSCTMP   No key seen, return the null string.
+01535P 038C 7E   0000    A        JMP    GOPTNW
+01535
+01537                             TTL    Get Filename.
+01538
+01539                             XDEF   GETFLN
+01540P 038F 8E   0000    A GETFLN LDX    #FNAMLN  Set the filename length to zero and
+01541P 0392 6F   80      A        CLR    ,X+      blank fill the filename buffer.
+01342P 0394 86   20      A        LDA    #SPACE
+01543P 0396 A7   80      A BLNKFL STA    ,X+
+01544P 0398 8C   0008    A        CMPX   #FILNAM+&8
+01545P 039B 26   F9   0396        BNE    BLNKFL
+01545
+01547P 039D 9D   A5      A        JSR    CHRGOT   Does the statement end here?
+01548P 039F 27   17   03B8        BEQ    COPRTS   Yes, no filename specified so use
+01549                      *    none.
