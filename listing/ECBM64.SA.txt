@@ -960,3 +960,39 @@ PAGE  024  ECBM64  .SA:1  ECBM64 The End Of File (EOF) Function.
 01656P 040A 26   24   0430        BNE    IOERR    SKPFIL encountered an error.
 01657P 040C 39                    RTS
 
+PAGE  025  ECBM64  .SA:1  ECBM64 The SKIPF statement.
+
+01659                             TTL    The OPEN code.
+01660
+01661                             XDEF   OPEN
+01662P 040D BD   0000    A OPEN   JSR    HKOPEN   Hook for disk version.
+01663P 0410 BD   0000    A        JSR    FRMEVL   Evaluate tne open mode.
+01664P 0413 BD   0000    A        JSR    ASC2     B:=open mode char.
+01665P 0416 34   04      A        PSHS   B        Save the open mode.
+01666P 0418 8D   9F   03B9        BSR    GETCDN   Eat comma and get device number.
+01667                             XDEF   OPNDEV
+01668P 041A BD   0000    A OPNDEV JSR    CHKCOM   Eat comma following device number.
+01669P 041D 8D   BD   03DC        BSR    FLNTRM   Read the filename into FILNAM.
+01670P 041F 96   6F      A        LDA    DEVNUM   A:=device number.
+01671P 0421 0F   6F      A        CLR    DEVNUM   Must be clear when OPEN returns.
+01672P 0423 35   04      A        PULS   B        Retrieve the open mode.
+01673P 0425 C1   49      A        CMPB   #'I      Open for input?
+01674P 0427 37   12   043B        BEQ    OPENI    Yes, go do it.
+01675P 0429 C1   4F      A        CMPB   #'O      No, open for output?
+01676P 042B 27   42   046F        BEQ    OPENO    Yes, go do it.
+01677                      *    No, give Bad Mode error.
+01678                             XDEF   FMERR
+01679            042D    P FMERR  EQU    *        Also known as File Mode error.
+01680P 042D C6   00      A BMERR  LDB    #ERRBM   Bad Mode error.
+01661P 042F                       SKIP2
+01682                             XDEF   IOERR
+01683P 0430 C6   00      A IOERR  LDB    #ERRIO   Cassette I/O error.
+01684P 0432                       SKIP2
+01685                             XDEF   AOERR
+01686P 0433 C6   00      A AOERR  LDB    #ERRAO   Already open error.
+01687P 0435                       SKIP2
+01688                             XDEF   DNERR
+01689P 0436 C6   00      A DNERR  LDB    #ERRDN   Device Number error.
+01690P 0438 7E   0000    A        JMP    ERROR
+01691
+
