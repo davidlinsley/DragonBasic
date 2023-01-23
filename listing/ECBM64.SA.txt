@@ -871,3 +871,45 @@ PAGE  021  ECBM64  .SA:1  ECBM64 Get Filename.
 01573  03B6 26   F9  03B1         BNE     COPLOP
 01574P 03B8 39             COPRTS RTS
 01575
+
+PAGE  022  ECBM64  .SA:1  ECBM64 Get Filename.
+
+01577                             TTL    Get Device or File Number.
+01578
+01579                             XDEF   GETCDN
+01580P 03B9 BD   0000    A GETCDN JSR    CHKCOM   Eat comma and get device number.
+01581
+01582                             XDEF   GETDNM
+01583P 03BC 81   23      A GETDNM CMPA   #'#      If there is a number sign eat it.
+01584P 03BE 26   02   03C2        BNE    EVLDNM
+01585P 03C0 9D   9F      A        JSR    CHRGET
+01586P 03C2 BD   0000    A EVLDNM JSR    FRMNUM   Evaluate the device number formula.
+01587                             XDEF   SETDNM
+01588P 03C5 BD   0000    A SETDNM JSR    INTCNV   D:=signed integer from FAC.
+01589P 03C8 59                    ROLB            The high order 9 bits must be the same
+01590P 03C9 89   00      A        ADCA   #&0      for the number to be in the range
+01591P 03CB 26   69   0436        BNE    DNERR    -128 to +127.
+01592P 03CD 56                    RORB            It's OK, fix it back up.  Note that
+01593                      *    if it is negative the carry was set
+01594                      *    by the ADCAIM so the sign will come
+01595                      *    back in properly witn the RORB.
+01596P 03CE D7   6F      A        STB    DEVNUM   Put away the device number.
+01597P 03D0 BD   0000    A        JSR    HKDNCK   RPM hook for device number check.
+01598P 03D3 27   06   03DB        BEQ    DNMOK    0 for screen is OK.
+01599P 03D5 2A   5F   0436        BPL    DNERR    No other positive ones are allowed.
+01600P 03D7 C1   FE      A        CMPB   #-&2     Disallow those below -2.
+01601P 03D9 2D   5B   0436        BLT    DNERR
+01602P 03DB 39             DNMOK  RTS
+01603
+01604
+01605P 03DC 8D   B1   038F FLNTRM BSR    GETFLN   Get filename.  Fall into TRMCHK to
+01606                      *    make sure the statement ends now.
+01607
+01608                      *
+01609                      * TRMCHK makes sure that a statement is properly terminated.
+01610                      *
+01611
+01612                             XDEF   TRMCHK
+01613P 03DE 9D   A5      A TRMCHK JSR    CHRGOT   Set codes on current char.
+01614P 03E0 27   F9   03DB ZERCHK BEQ    DNMOK    It's a terminator.
+01615P 03E2 7E   0000    A        JMP    SNERR    Give syntax error

@@ -816,3 +816,42 @@ COPLOP LDA    ,X+      Get a byte.
        BNE     COPLOP
 COPRTS RTS
 
+       TTL    Get Device or File Number.
+
+       XDEF   GETCDN
+GETCDN JSR    CHKCOM   Eat comma and get device number.
+
+       XDEF   GETDNM
+GETDNM CMPA   #'#      If there is a number sign eat it.
+       BNE    EVLDNM
+       JSR    CHRGET
+EVLDNM JSR    FRMNUM   Evaluate the device number formula.
+       XDEF   SETDNM
+SETDNM JSR    INTCNV   D:=signed integer from FAC.
+       ROLB            The high order 9 bits must be the same
+       ADCA   #&0      for the number to be in the range
+       BNE    DNERR    -128 to +127.
+       RORB            It's OK, fix it back up.  Note that
+*    if it is negative the carry was set
+*    by the ADCAIM so the sign will come
+*    back in properly witn the RORB.
+       STB    DEVNUM   Put away the device number.
+       JSR    HKDNCK   RPM hook for device number check.
+       BEQ    DNMOK    0 for screen is OK.
+       BPL    DNERR    No other positive ones are allowed.
+       CMPB   #-&2     Disallow those below -2.
+       BLT    DNERR
+DNMOK  RTS
+
+
+FLNTRM BSR    GETFLN   Get filename.  Fall into TRMCHK to
+*    make sure the statement ends now.
+
+*
+* TRMCHK makes sure that a statement is properly terminated.
+*
+
+       XDEF   TRMCHK
+TRMCHK JSR    CHRGOT   Set codes on current char.
+ZERCHK BEQ    DNMOK    It's a terminator.
+       JMP    SNERR    Give syntax error
