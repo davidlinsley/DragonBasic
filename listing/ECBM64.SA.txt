@@ -1255,3 +1255,19 @@ PAGE  031  ECBM64  .SA:1  ECBM64 Cassette Input Routines
 01936P 0563 97   81      A OKREAD STA    CSRERR   Put away the status byte and return.
 01937P 0565 39                    RTS
 
+PAGE  032  ECBM64  .SA:1  ECBM64 Cassette Input Routines
+
+01939                      *
+01940                      * "MOTOR ON" turns the cassette motor on
+01941                      * "MOTOR OFF" turns tne cassette motor off.
+01942                      *
+01943
+01944                             XDEF   MOTOR
+01945P 0566 1F   89      A MOTOR  TFR    A,B      Save tne ON or OFF token.
+01946P 0568 9D   9F      A        JSR    CHRGET   Eat it for NEWSTT.
+01947P 056A C1   00      A        CMPB   #OFFTK   Is it "MOTOR OFF"?
+01948P 056C 27   0D   057B        BEQ    DOCOFF   Yes, go do it.
+01949P 056E C1   00      A        CMPB   #ONTK    No, how about "MOTOR ON"?
+01950P 0570 BD   03E0    P        JSR    ZERCHK   Give SN error if not.
+01951P 0573 7E   0000    A        JMP    CASON    Yes, go turn it on.
+
