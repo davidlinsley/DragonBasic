@@ -1,111 +1,60 @@
-                                        '
+PAGE  041  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 
-                                                PAGE       041       ECa-,164       .SA:1         ECBM64 SOUND             and AUDIO          commands.
-
-
-
-                                                02268P       06B9      BE        7C             A   SNDMID LDA                 #&124!+PIABIT Put                 out center amplitude.
-                HUI                •            02269P       06BB      37        =F20           A   DUSND        STA           PIA1AD           Output       amolitude to D/A.
-                                                02270P       06BE      96        8C             A                LDA           SNDFRQ           Set the frecuency.
-                                                02271P       06C0      4r                           SNDLOP INCA                                 Hold      it   longer for lower freduencies.
-                H I G                           02272P       0601      26        FD       0600                   BNF           SNDLOP
-                                                022732       OEC3      39                                        RTS
-
-                                                02274
-
-                                                02275
-
-                                                02276
-
-                                                02277                                               *   AuDIO ON/OFF turns                  on or off tne cassette audio to the TV.
-
-                                                02278
-
-                                                02279
-
-                                                02260                                                            XDEF          AUDIO
-
-                                                0228:P       06C4      IF        89             H   AUDIO        TFR           A,B              Save the ON or OFF t
-                                                02262P       0606      91-)      9F             A                jSR           CHRGET           Eat     it   for NEWSTT.
-                                      H1(       02283P       06C8      Cl        00             A                OMPB          #OFFTK           OFF?
-
-                                                02284P       060A      27        DC       06A8                   BEO           SNDOFF           Yes,      go turn off sound enable.
-                                   40           02285P       0600      CO        00             A                SUBB          #ONTK            ON?
-
-                                                02266P       060E      BD        03E0           P                JSR           ZERCHK           If not       give SN error.
-
-                                                02287P       ()EDI     50                                        INflB                          Yes,      select cassette sound.
-
-                                                02238P       06D2      8D        02       0606                   BSR           SETSEL
-
-                                                02289P       0604      20        D4       06AA                   BRA           SNDON            Turn on sound enab-ie and                       return.
-                                                02290
-
-                                                02291
-
-                                                02292
-
-                                                02293                                               *   SETSEL sets the select                      lines according to tne contents of                                 B.
-                                   40           02294                                               *   BO should          be on to         set     SE.1....1- B1    should        be    on to      set     SEL2.
-                                                02295
-
-                                                02296                                               *   U,   A,    and     B are changed.
-
-                                                02297
-
-                                                02296
-
-                                                02299                                                            XDEF          SETSEL
-                                   40           02300P       06D6      CE        FF01           A   SETSEL LDU                 #PIAOAC          Point       to PIA() A side control                     reg.
-                                      Wf        02301P       06D9      BD        00       06DB                   BSR           SETIT            Set     or clear SEL1.
-
-                                                02302                                               *        Fall      in    to set or clear SEL2.
-                                   40           023032       OSDB      A6        C4             A   SETIT        LDA           ,U               Get current            reg contents and clear
-
-                                                02304P       06DD      84        F7             A                ANDA          #@367            the select           line bit.
-
-                                                02305P       06DE      57                                        ASRB                           Set carry           if line is to be set.
-
-                                                02306P       06E0      24        02       06E4                   BCC           NOSET            Don't       set     it.
-
-                                                02307P       0E82      8A        08             A                ORA           #@10             Set     it.
-                                                02308P       06E4      A7        Cl             A   NOSET        STA           ,U++             Store control word and point to next
-
-                                                02305P       06E6      35                                        RTS                            control        register.
-
-                                                02310
-
-                                                02311
-
-                                                02312
-
-                                                02313                                               *   SNDCLK handles the                  timing for the SOUND routine.
-
-                                                02314                                               *   It   is    invoked on an              IRO     interrupt.
-
-                                                02315
-
-                                                02316
-
-                                                02317                                                            XDEF          SNDCLK
-
-                                                02318P       06E7      BE        008D           A   SNDCLK j_DX                >SNDTmR          Is the SOUND countdown timer
-
-                                                023:.9                                              *        already         zero?         (Force extended
-
-                                                02320_                                                       addressing since                 at    interrupt          level.)
-
-                                                02321P       OEEA      27        05       OEF1                   BEQ           SLWRTI           Yes,      leave it as is.
-
-                                                02322P       06E0      30        IF             A                LEAX          -&1,X            No,     decrement          it
-
-                                                02323,D      06EE                008D           A                              >SNDTYIR
-
-                                                02124P       06F1      3B                           SLWRTI       RTI                            Return from the interrupt.
-
-1(0)20 E39 71 39 o                              02325
-
-
-
-For Your Nearest E qD
-
+02268P 06B9 86   7C      A SNDMID LDA    #&124!+PIABIT Put out center amplitude.
+02269P 06BB B7   FF20    A DOSND  STA    PIA1AD   Output amplitude to D/A.
+02270P 06BE 96   8C      A        LDA    SNDFRQ   Set the frecuency.
+02271P 06C0 4C             SNDLOP INCA            Hold it longer for lower frequencies.
+02272P 06C1 26   FD   06C0        BNE    SNDLOP
+02273P 06C3 39                    RTS
+02274
+02275
+02276                      *
+02277                      * AUDIO ON/OFF turns on or off tne cassette audio to the TV.
+02278                      *
+02279
+02280                             XDEF   AUDIO
+02281P 06C4 1F   89      A AUDIO  TFR    A,B      Save the ON or OFF token.
+02262P 06C6 9D   9F      A        JSR    CHRGET   Eat it for NEWSTT.
+02283P 06C8 C1   00      A        CMPB   #OFFTK   OFF?
+02284P 06CA 27   DC   06A8        BEQ    SNDOFF   Yes, go turn off sound enable.
+02285P 06CC C0   00      A        SUBB   #ONTK    ON?
+02266P 06CE BD   03E0    P        JSR    ZERCHK   If not give SN error.
+02287P 06D1 5C                    INCB            Yes, select cassette sound.
+02238P 06D2 8D   02   06D6        BSR    SETSEL
+02289P 06D4 20   D4   06AA        BRA    SNDON    Turn on sound enable and return.
+02290
+02291
+02292                      *
+02293                      * SETSEL sets the select lines according to tne contents of B.
+02294                      * B0 should be on to set SEL1, B1 should be on to set SEL2.
+02295                      *
+02296                      * U, A, and B are changed.
+02297                      *
+02296
+02299                             XDEF   SETSEL
+02300P 06D6 CE   FF01    A SETSEL LDU    #PIA0AC  Point to PIA0 A side control reg.
+02301P 06D9 8D   00   06DB        BSR    SETIT    Set or clear SEL1.
+02302                      *    Fall in to set or clear SEL2.
+02303P 06DB A6   C4      A SETIT  LDA    ,U       Get current reg contents and clear
+02304P 06DD 84   F7      A        ANDA   #@367    the select line bit.
+02305P 06DF 57                    ASRB            Set carry if line is to be set.
+02306P 06E0 24   02   06E4        BCC    NOSET    Don't set it.
+02307P 0EE2 8A   08      A        ORA    #@10     Set it.
+02308P 06E4 A7   C1      A NOSET  STA    ,U++     Store control word and point to next
+02305P 06E6 39                    RTS             control register.
+02310
+02311
+02312                      *
+02313                      * SNDCLK handles the timing for the SOUND routine.
+02314                      * It is invoked on an IRQ interrupt.
+02315                      *
+02316
+02317                             XDEF   SNDCLK
+02318P 06E7 BE   008D    A SNDCLK LDX    >SNDTMR  Is the SOUND countdown timer
+02319                      *    already zero?  (Force extended
+02320                      *    addressing since at interrupt level.)
+02321P 06EA 27   05   06F1        BEQ    SLWRTI   Yes, leave it as is.
+02322P 06EC 30   1F      A        LEAX   -&1,X    No, decrement it.
+02323P 06EE BF   008D    A        STX    >SNDTMR
+02324P 06F1 3B             SLWRTI RTI             Return from the interrupt.
+02325

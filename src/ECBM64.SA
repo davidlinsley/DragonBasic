@@ -1,0 +1,1594 @@
+       NAM    ECBM64
+
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
+
+       TTL     External Declarations
+
+       XREF    ALPHLK,ASC2,ASCFLG
+       XREF    BITIN,BUF
+       XREP    CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
+       XREF    CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
+       XREF    CLEARC
+       XREF    DBNCNT
+       XREF    ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
+       XREF    FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
+       XREF    FUNDSP,FUNLST
+       XREF    GAPFLG,GETBYT,GIVABF,GOPTNW
+       XREF    HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+       XREF    HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
+       XREF    INTCNV,INTIDX,ISCNTC,INTWDG
+       XREF    JOYIN
+       XREF    LDBUFR,LIST,LOADAD,LPTOUT
+       XREF    MAIN
+       XREF    NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
+       XREF    OFFTK,ONTK
+       XREF    PINIT,POLCAT,POTVAL
+       XREF    READY,REASON,REDDY,RESLST,ROLTBL
+       XREF    SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
+       XREF    STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+       XREF    TEMPST
+       XREF    USRTAB
+       XREF    VIRQ
+       XREF    WRTLDR
+       XREF    XRRUN,XRSLWC
+
+       IFEQ    REALIO
+ ENDC   IFE REALIO
+
+       TTL    Equates
+
+       XDEF   SCRADR
+SCRADR EQU    @2000    Address of screen memory (400 hex).
+
+       IFNE   METTOY
+       XDEF   PIA0AD
+PIA0AD EQU    @177400  PIA0, side A, data reg.  (FF00)
+       ENDC   IFN      METTOY
+       IFNE   GRPTEK
+ ENDC   IFN GRPTEK
+       XDEF   PIA0AC
+PIA0AC EQU    PIA0AD+&1 PIA0, side A, control  reg.
+       XDEF   PIA0BD
+PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
+       XDEF   PIA0BC
+PIA0BC EQU    PIA0BD+&1 PIA0, side B, control reg.
+
+       IFNE   METTOY
+       XDEF   PIA1AD
+PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
+       ENDC   IFN      METTOY
+       IFNE   GRPTEK
+  ENDC  IFN GRPTEK
+       XDEF   PIA1AC
+PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
+       XDEF   PIA1BD
+PIA1BD EQU    PIA1AC+&1 PIA1, side B, data reg.
+       XDEF   PIA1BC
+PIA1BC EQU    PIA1BD+&1 PIA1, side B, conrtrol reg.
+
+CARTRM EQU    @140000  Address of cartridge ROM.  (C000)
+EXTROM EQU    @100000  Address of extension ROM.  (8000)
+
+       XDEF   SAM
+SAM    EQU    @177700  Address of SAM chip.  (FFC0)
+
+DSKRUM EQU    @140000 The address of the disk ROM.  (C000)
+
+BOOT64 EQU    $BE7F
+FLAG64 EQU    $11A
+       TTL    Power up and Reset code.
+       XDEF   POWRUP
+POWRUP EQU    *        DUMMY LABEL FOR 64K VERSION
+       XDEF   ZHRDIN
+ZHRDIN EQU    *
+       XDEF   INIT
+INIT   LDX    #LORAM   INITIALISE DIRECT PAGE RAM
+       LDU    #EXECAD
+       LDB    #NLORAM
+       JSR    COPLOP
+       LDU    #VIRQ    INITIALISE RAM OFF DIRECT PAGE
+       LDB    #NMDRAM  UP TO 64K FLAG
+       JSR    COPLOP
+       LEAU   5,U      SKIP PAST USED BYTES
+       LDB    #NHIRAM
+       JSR    COPLOP
+       LDX    #SNERR   X:=SNERR FOR INITIALISING THE DISPATCH
+       STX    &3,U     INIT STUB 1 DISPATCH ADDRESS
+       STX    &8,U
+       LDX    #HOOKS
+       LDD    #$3900+NRTSH3
+INIHKS STA    ,X+
+       DECB
+       BNE    INIHKS
+       JSR    GRNCHR  Clear the screen.
+       JSR    CLEARC  DESTROY OLD VARIABLES
+       ANDCC  #$FF!X(F!+I) Allow the cartridge to interrupt now
+*    before displaying the sign on message.
+       LDX    #SIGNON-&1 Print the sign on message.
+       JSR    STROUT
+       XDEF   FINIT
+FINIT  LDA    #@125    Set the restart flag.
+       STA    RSTFLG
+       STA    FLAG64
+       BRA    BASRST
+*
+* Here to restart BASIC.
+*
+       XDEF   ZSFTIN
+ZSFTIN JSR    GRNCHR
+       XDEF   BASRST
+BASRST CLR    DURCNT   Clear the PLAY note duration count
+       CLR    DURCNT+&1 so interrupts don't think we are
+*    still playing the note.
+       LDA    PIA0BC   Enable the 60 hertz interrupt.
+       ORA    #&1
+       STA    PIA0BC
+       CLR    DEVNUM   Make sure output goes to screen and
+*    input comes from keyboard.
+       JSR    STKINI   Reset the stack and things.
+       ANDCC  #$FF!X(F!+I) Enable interrupts.
+GORDY  JMP    READY    Go say "OK".
+
+
+*
+* Here on a FIRQ to handle the cartridge interrupt.
+*
+       XDEF   CARTRG
+CARTRG TST    PIA1BC   Did the cartridge cause the interrupt?
+       BMI    GOCART   Yes.
+       RTI             No, return from the interrupt.
+
+GOCART JSR    DELHAF   Delay for about a second
+       CLR    RSTFLG   Don't allow BASIC to be restarted.
+       JMP    CARTRM   Go execute the cartrige program.
+
+*
+* Delay for about one half second.
+*
+
+       XDEF   DELHAF
+DELHAF LDX    DBLZER
+DELAY  LEAX   -&1,X
+       BNE    DELAY
+       RTS
+
+*
+* Tnis stuff gets block transferred into RAM during initialization.
+*
+
+LORAM  FDB    FCERR    EXECAD
+       INC    TXTPTR+&1 CHRGET RAM code.
+       BNE    CHRLOD
+       INC    TXTPTR
+CHRLOD LDA    >0       (Force extended addressing.)
+       JMP    ROMLOC
+
+NLORAM EQU    *-LORAM
+
+MIDRAM JMP    INTWDG   VIRQ WEDGE (AUTO-REPEAT & RS232)
+       JMP    CARTRG   VFIRQ
+       FCB    &0       TICKER (Overlays 8K version's USRJMP.)
+       FCB    &0       (Was JMP FCERR for 8k version.)
+       FCB    &0
+       FCB    @200     RNDX
+       FCB    @117
+       FCB    @307
+       FCB    @122
+       IFNE   ADDPRC
+       FCB    @131
+NMDRAM EQU    *-MIDRAM
+       ENDC   IFN      ADDPRC
+
+HIRAM  FCB    &5        INTER-REPEAT DELAY
+       FCB    NNRMTK    STUB0
+       FDB    RESLST
+       FDB    STMDSP
+       FCB    NFUNTK
+       FDB    FUNLST
+       FDB    FUNDSP
+
+NHIRAM EQU    *-HIRAM
+
+       IFNE   METTOY
+SIGNON FCC    /(C) 1983 DRAGON DATA LTD /
+       FCB    CR
+       FCC    /16K BASIC INTERPRETER 1.0      /
+       FCB    CR
+MICRO  FCC    /(C) 1983 BY MICROSOFT/
+       FCB    CR
+       FCB    CR
+       FCB    &0
+       ENDC   IFN      METTOY
+
+       IFNE   GRPTEK
+ ENDC   IFN GRPTEK
+
+       TTL    CHRINP - Character Input Routine
+
+*
+* CHRINP inputs a character from the device specified by DEVNUM.
+* The character is returned in A.
+* All registers except A and CC are preserved.
+* If end of file is hit, EOFFLG=.TRUE.=non-zero, and A is meaningless.
+*
+* INCHR is called instead of CHRINP when a 7 bit code is wanted.
+*
+
+       XDEF   INCHR
+INCHR  BSR    CHRINP   Read a character.
+       ANDA   #@177    Clear the high order bit.
+       RTS             Return with it
+
+
+       XDEF   CHRINP
+CHRINP JSR    HKCHRI   RAM hook.
+       CLR    EOFFLG   End of file flag:=.FALSE.
+       TST    DEVNUM   Check the device number.
+       BEQ    KEYINP   Go handle the keyboard.
+*    No, fall into CASINP to get char from
+*    cassette.
+
+*
+* CASINP reads a character from a cassette file.
+* (Also used for downloading in the extended version.)
+*
+
+CASINP TST    CBFCNT   Is the buffer empty?
+       BNE    NOTMT    No, go get a char from it.
+       COM    EOFFLG   Yes, end of file.
+       RTS
+
+NOTMT PSHS    U,Y,X,B Save registers.  (Save all because
+*    of bossible LODBUF call.)
+       LDX    CBFPTR   Get char from cassette buffer, update
+       LDA    ,X+      the pointer, and decrement the count.
+       PSHS   A        (Save the char too.)
+       STX    CBFPTR
+       DEC    CBFCNT
+       BNE    CASIRT   Buffer still not empty, just return.
+       LDA    DEVNUM   Doing a download?
+       CMPA   #-&3
+       BEQ    LODDNL   Yes, use different load buffer
+*    routine.
+       JSR    LODBUF   Reload the buffer.
+CASIRT PULS   D,X,Y,U,PC Get tne char into A, restore all regs
+*    and return.
+
+LODDNL JSR    LDBUFR   Reload download buffer.
+       BRA    CASIRT   Restore and return.
+
+*
+* KEYINP reads a char from the keyboard.
+*
+
+       IFNE   REALIO
+KEYINP PSHS   X,B      Save the registers.
+KEYILP JSR    CBLINK   Blink the cursor.
+       JSR    POLCAT   Scan the keyboard.
+       BEQ    KEYILP   No key, look again.
+       LDB    #@140    Have key, clear the cursor.
+       STB    [CURADR]
+KEYFIN PULS   B,X,PC   Restore B and X and return with the
+*    the char in A.
+       ENDC   IFN      REALIO
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+
+       TTL    CHROUT - Output Character Routine
+
+*
+* CHROUT sends the character in A to the device specified by DEVNUM.
+* The output is suppressed if DEVNUM indicates that file input is
+* in progress.  This is done so character echo, input prompts
+* (such as double duestion mark for more input), etc is ignored
+* while inputting file data or loading an ASCII program file.
+*
+* All registers except CC are preserved.
+*
+
+       XDEF   CHROUT
+CHROUT JSR    HKCHRO   RAM hook.
+       PSHS   B        Save B.
+       LDB    DEVNUM   Get the device number.
+       CMPB   #-&3     Doing a download?
+       BNE    NOTDNL   No.
+       PULS   B,PC     Yes, throw away the echo.
+
+NOTDNL INCB            See what it is.
+       PULS   B        Restore B.
+       LBMI   LPTOUT   Send char to printer.
+       BNE    SCROPT   Send char to screen.
+
+       PSHS   X,D      It's the cassette, save some regs.
+       LDB    CASOPN   Is the cassette
+       DECB            open for input?
+       BEQ    OUTRTS   Yes, throw this output away.
+
+*
+* Output character to cassette file.
+*
+
+CASOUT LDB    CBFCNT   Get the character count.
+       INCB            Is the buffer full?
+       BNE    NOTFUL   No, go put the char in the buffer.
+       BSR    DMPBUF   Yes, write out the buffer.
+NOTFUL LDX    CBFPTR   Get pointer into buffer.
+       STA    ,X+      Put the char away and increment the
+       STX    CBFPTR   pointer.
+       INC    CBFCNT   Increment the count.
+OUTRTS PULS   D,X,PC   Restore regs and return.
+
+*
+* Here to dump the cassette buffer to tape.
+*
+
+DMPBUF LDB    #&1      Set block type to data.
+WRTEOF STB    BLKTYP
+       LDX    #CASBUF  Set address of data for WRTBLK.
+       STX    CBUFAD
+       LDB    CBFCNT   Set the block length.
+       STB    BLKLEN
+       PSHS   U,Y,A    Save the rest.
+       JSR    WRTBLK   Write block out.
+       PULS   A,Y,U    Restore regs.
+       JMP    MRKMT    Mark the buffer as empty.
+
+*
+* Ouput character to screen.
+*
+
+SCROPT EQU    *
+       IFNE   REALIO
+       JSR    SAMALP   Switch to text mode.
+       JMP    SCROUT   Go to the screen driver.
+       ENDC   IFN      REALIO
+
+       IFEQ   REALIO
+ ENDC   IFE REALIO
+
+       TTL    DEVPRM - Return Device Parameters
+
+*
+* DEVPRM returns the following device parameters:
+*
+* DEVPOS - The position of the print head or it's equivalent.
+* DEVWID - The line width of the device.
+* DEVLCF - The column number where the last comma field starts.
+* DEVCFW - The comma field width.
+* SPCIO  -  .TRUE. for special I/O handling in PRINT and INPUT code.
+*
+* All registers except CC are preserved.
+* On exit, Z=1 if the device has infinite width (DEVWID=0).
+*
+
+       XDEF   DEVPRM
+DEVPRM JSR    HKDPRM   RAM hook.
+       PSHS   X,D      Save registers.
+       CLR    SPCIO    Special I/O flag=.FALSE.
+       LDA    DEVNUM   Set the device number.
+       BEQ    SCRPRM   Go get the screen parms.
+       INCA
+       BEQ    CASPRM   Go get cassette parms.
+
+*
+* Get line printer parameters.
+*
+
+LPTPRM LDX    LPTCFW   Get comma field width and last comma
+*    field.
+       LDD    LPTWID   Get width and current position.
+       BRA    DEVFIN   Go put it all away.
+
+*
+* Get screen parms.
+* The width, comma field width, and last comma field are fixed.
+* The position is obtained by reading tne cursor address.
+*
+
+SCRPRM LDB    CURADR+&1 Get low order of cursor address.
+       ANDB   #&31     Determine the column number. This
+*    only works because the line width
+*    is a power of two.
+       LDX    #&16*&256+&16 Field width and last comma field.
+       LDA    #&32     Set up the width.
+       XDEF   DEVFIN
+DEVFIN STX    DEVCFW   Put away comma field width and last
+*    comma field.
+       STB    DEVPOS   Put away the position.
+       STA    DEVWID   Put away the width and set the Z bit
+*    for infinite width devices.
+       PULS   D,X,PC   Restore and return.
+
+
+*
+* Get tne cassette parms.
+* They are all fixed at values which are necessary for the special
+* I/O code to work properly.  SPCIO gets set TRUE.
+*
+
+CASPRM COM    SPCIO    Speciai I/O flag:=.TRUE.
+       LDX    #&256    Comma field width:=1, last comma
+*    field:=0 but don't really care.
+       CLRA            Width:=infinite and position:=0.
+       CLRB
+       BRA    DEVFIN   Go put them away.
+
+       TTL    INLIN - The line input routine.
+
+INLCLS JSR    GRNCHR   Clear the screen and start over.
+       XDEF   INLIN
+INLIN  JSR    HKINLN   RAM hook.
+       CLR    INKCHR   Throw away INKEY's character.
+       LDX    #BUF     Point to the start of the line buffer.
+       LDB    #&1      Init the character count.
+INLINC JSR    INCHR    Read a character.
+       TST    EOFFLG   End of file reached?
+       BNE    INLDON   Yes, go finish up.
+       TST    DEVNUM   Reading from the keyboard?
+       BNE    NOEDIT   No, don't check for editing chars.
+       CMPA   #@14     CLEAR key?
+       BEQ    INLCLS   Yes, clear screen and start over.
+       CMPA   #CHRDEL  Character delete?
+       BNE    NTCDEL   No.
+       DECB            Yes, at beginning of line?
+       BEQ    INLIN    Yes, just start over.
+       LEAX   -&1,X    Backup the buffer pointer.
+       BRA    ECHOIT   Output the CHRDEL to the screen to
+*    backup the cursor and go back for
+*    another char.
+
+NTCDEL CMPA   #LINDEL  Is it a line delete?
+       BNE    NTLDEL   No
+RUBLIN DECB            Yes, send CHRDELs to the screen
+       BEQ    INLIN    until all characters have been erased.
+       LDA    #CHRDEL  Then go start all over.
+       JSR    CHROUT
+       BRA    RUBLIN
+
+NTLDEL CMPA   #BRKCHR  Break character? (Llke control-C)
+       SEC             (Set the carry just in case.)
+       BEQ    FININL   Yes
+
+NOEDIT CMPA   #CR      Carriage return?
+       BNE    NOTCR    No
+INLDON CLRA            (Clear carry.)  Clear control-C flag.
+FININL PSHS   CC       Save the control-C flag.
+       JSR    CRDO     Start a new line.
+       CLR    ,X       Put a zero in to mark the end.
+       LDX    #BUF-&1  Set up a pointer for CRUNCH.
+       PULS   CC,PC    Get the control-C flag and return.
+
+*
+* The character is not a special char.  Weed out bad ones and store
+* the good ones in the buffer.
+*
+NOTCR  CMPA   #SPACE   Those below space and above lower
+       BCS    INLINC   case z are thrown away.
+       CMPA   #'z+&1
+       BCC    INLINC
+GOODCH CMPB   #BUFLEN  Would this char fill the buffer?
+       BCC    INLINC   Yes, ignore it then because one
+*    byte must be reserved for the zero
+*    terminator inserted when a carriage
+*    return is typed.
+       STA    ,X+      No, store the character, bump the
+       INCB            pointer, and increment the count.
+ECHOIT JSR    CHROUT   Echo the char and go back for more.
+       BRA    INLINC
+
+       TTL    OPNICK and OPNOCK
+
+*
+* Make sure device specified by DEVNUM is open for input.
+*
+
+       XDEF   OPNICK
+OPNICK JSR    HKCKDI   RAM hook.
+       LDA    DEVNUM   Get the device number.
+       BEQ    OKOPN    Keyboard is always open.
+       INCA            Is is the printer?
+       BNE    GOBMER   Yes, give Bad Mode error.
+       LDA    CASOPN   Is the cassette open?
+       BNE    CHKMOD   Yes, do check the open mode.
+       XDEF   NOERR
+NOERR  LDB    #ERRNO   No, give Not Open error.
+       JMP    ERROR
+
+CHKMOD DECA            Is it open for input?
+       BEQ    OKOPN    Yes, OK.
+GOBMER JMP    BMERR    No, give Bad Mode error.
+
+
+*
+* Make sure device is open for output.
+*
+
+       XDEF   OPNOCK
+OPNOCK JSR    HKCKDO   RAM hook.
+       LDA    DEVNUM   Get the device number.
+       INCA
+       BNE    OKOPN    Screen and printer are always open.
+       LDA    CASOPN   Is the casette open?
+       BEQ    NOERR    No, give Not Open error.
+       DECA            Yes, is it open for output?
+       BEQ    GOBMER   No, give mode error.
+OKOPN  RTS             Yes, all is OK.
+
+       TTL    The CLOSE code.
+
+       XDEF   CLOSE
+CLOSE  BEQ    CLSALL   Nothing specified, close everything.
+       JSR    GETDNM   Read a device number.
+NXTCLO BSR    CLOSIT   Close this device.
+       JSR    CHRGOT   Another number specified?
+       BEQ    CLSRTS   No, all done.
+       JSR    GETCDN   Yes, read comma and device number.
+       BRA    NXTCLO   Go close it.
+
+       XDEF   CLSALL
+CLSALL JSR    HKCLSA   RAM hook.
+       XDEF   CLSCAS
+CLSCAS LDA    #-&1     Only thing requiring attention is
+       STA    DEVNUM   the cassette.
+
+       XDEF   CLOSIT
+CLOSIT JSR    HKCLS1   RAM hook.
+       LDA    DEVNUM   A:=device number.
+       CLR    DEVNUM   Clear it so normal output occurs when
+*    close is finished.
+       INCA            Do nothing if it isn't the cassette.
+       BNE    CLSRTS
+       LDA    CASOPN   Is the casette open for output?
+       CMPA   #&2
+       BNE    MRKCLS   No, just mark it as closed.
+       LDA    CBFCNT   Yes, is there stuff in the buffer?
+       BEQ    EOFWRT   No.
+       JSR    DMPBUF   Yes, dump the buffer.
+       XDEF   EOFWRT
+EOFWRT LDB    #@377    Set block type to end of file.
+       JSR    WRTEOF   Write an EOF block.
+MRKCLS CLR    CASOPN   Mark the cassette as closed.
+CLSRTS RTS
+
+       TTL    CSAVE - Save program on cassette.
+
+       XDEF   CSAVE
+CSAVE  CMPA   #'M      Is it CSAVEM?
+       LBEQ   CSAVEM   Yes, go handle it.
+       JSR    GETFLN   Read the filename.
+       JSR    CHRGOT   End of statement?
+       BEQ    BCSAVE   Yes, do binary CSAVE.
+       JSR    CHKCOM   No, must be followed bya comma and
+       SYNCHK 'A       an "A" for ASCII.
+       BNE    CLSRTS   If statement doesn't end now let
+*    NEWSTT give a syntax error.
+       CLRA            Say it's a BASIC program.
+       JSR    OPNASC   Open ASCII, gapped output file.
+       LDA    #CASNUM  Make the listing go to cassette.
+       STA    DEVNUM
+       CLRA            Make the LIST code see a terminator
+*    so the whole program gets saved.
+       JMP    LIST     The LIST code will do the rest.
+*    When LIST is done it will close the
+*    file.
+
+*
+* Here to do binary CSAVE.
+*
+
+BCSAVE CLRA            Say it's a BASIC program.
+       LDX    DBLZER   Say not ASCII or gapped.
+       JSR    OPNCSO   Open cassette file for output.
+       CLR    CASOPN   Mark cassette as closed since OPNCSO
+*    marked it as open.
+       INC    BLKTYP   Set block type to data.
+       JSR    WRTLDR   Turn on the cassette and write a
+*    leader.
+       LDX    TXTTAB   Get the starting point.
+
+BCSLOP STX    CBUFAD   Store buffer address for BLKOUT.
+       LDA    #&255    Assume it's a full block.
+       STA    BLKLEN
+       LDD    VARTAB   How many more to write?
+       SUBD   CBUFAD
+       BEQ    FINSAV   All done.
+       CMPD   #&255    Is it a full block?
+       BHS    FULBLK   Yes.
+       STB    BLKLEN   No, set actual block length.
+FULBLK JSR    BLKOUT   Output the block.
+       BRA    BCSLOP   So back for more.  BLKOUT set X
+*    to [CBUFAD]+[BLKLEN].
+
+       XDEF   FINSAV
+FINSAV NEG    BLKTYP   Set block type to EOF.  (It was 1
+*    for data, now -1 for eof.
+       CLR    BLKLEN   No data to go out.
+       JMP    BLKOFF   Write EOF block, turn off motor, and
+*    return to NEWSTT.
+
+       TTL    CLOAD - Load a program from cassette.
+
+       XDEF   CLOAD
+CLOAD  CLR    CASOPN   Force the cassette closed.  The
+*    last block of an output file may
+*    be lost but we don't have enough
+*    bytes to flush the buffer and the
+*    user has probably put the cassette
+*    in play mode anyway.
+       CMPA   #'M      Do they want to load a machine
+*    language file?
+       LBEQ   CLOADM   Yes, go do it.
+       LEAS   &2,S     No, get rid of NEWSTT return address.
+       JSR    FLNTRM   Read the filename.
+       JSR    OPNCSI   Open the cassette for input.
+       TST    GAPFLG   Is it a gapped file?
+       BEQ    BCLOD    No, go do binary CLOAD.
+
+*
+* Here to load ASCII file.
+*
+
+       LDA    ASCFLG   Make sure it is ASCII.
+       BEQ    BMERR1   If not give mode error.
+       JSR    SCRTCH   Get rid of the existing program.
+       LDA    #CASNUM  Make program come from cassette.
+       STA    DEVNUM
+       INC    CASOPN   Mark the cassette as open for input.
+       JSR    LODBUF   Load the buffer and let main do the
+       JMP    MAIN     actual loading.
+
+*
+* Here when MAIN sees the end of file.
+*
+
+       XDEF   FINLOD
+FINLOD JSR    HKFNLD   RAM hook.
+       JSR    CLOSIT   Close the cassette file.
+       JMP    READY    Go print "OK".
+
+*
+* Here to load a binary cassette file.
+*
+
+BCLOD  LDA    FILTYP   It must be a BASIC program.
+       BEQ    DOBCLD   It is.
+BMERR1 JMP    BMERR    It isn't, give a mode error.
+
+DOBCLD JSR    SCRTCH   Wipe out the existing program.
+       JSR    CSRDON   Start cassette and get into bit sync.
+       LDX    TXTTAB   Set up first load address.
+
+CLDLOP STX    CBUFAD   Set load address for BLKINV.
+       LDD    CBUFAD   There must be another 256 bytes
+       INCA            available or we give an OM error.
+       JSR    REASON   (Yes, it is possible that they won't
+*    be able to load a program they saved
+*    if it was a very tight fit, but they
+*    wouldn't be able to run it anyway.)
+       JSR    BLKIN    Load the next block.
+       BNE    WIPER    An error occured.
+       LDA    BLKTYP   No error, get the block type.
+       BEQ    WIPER    Can't have file header in middle of
+*    file.
+       BPL    CLDLOP   Data record so continue. Note that
+*    X has load address for next block.
+       STX    VARTAB   End of file, set end of program.
+       BSR    GOCOFF   Turn off the motor.
+       LDX    #REDDY-&2 Print "OK" since we won't be going
+       JSR    STROUT   through READY.  (NOTE: REDDY-2 is
+*   used to force a carriage return.)
+       JMP    FINI     Go fix up the links, etc.  End up
+*    at MAIN.
+
+WIPER  JSR    SCRTCH   Error occured, wipe out wnatever did
+*    load so garbage isn't left around.
+GOIOER JMP    IOERR
+
+*
+* Here to load an ungapped machine language file.
+*
+
+       XDEF   MLDUNG
+MLDUNG LDX    DBLZER   Assume no load offset specified.
+       JSR    CHRGOT   End of statement?
+       BEQ    ZEROFF   Yes, use the default offset of zero.
+       JSR    CHKCOM   No, eat the comma and evaluate
+       JSR    EVLADR   the specified offset.
+ZEROFF LDA    FILTYP   Is the file a machine language file?
+       CMPA   #&2
+       BNE    BMERR1   No, give file mode error.
+       LDD    STRTAD   Yes, add the load offset to the
+       LEAU   D,X      execution address and save it for
+       STU    EXECAD   the EXEC statement.
+       LDD    LOADAD   Add the load offset to the load
+       LEAX   D,X      address of the file.
+       STX    CBUFAD   Save the effective load address.
+       JSR    CSRDON   Turn on the cassette and sync up.
+MLDCLP JSR    BLKIN    Read the next block of the file.
+       BNE    GOIOER   Bad read.
+       STX    CBUFAD   Update the load address.
+       TST    BLKTYP   What type of block was read?
+       BEQ    GOIOER   Can't have header in middle of file.
+       BPL    MLDCLP   A data record, go read more.
+GOCOFF JMP    CASOFF   End of file, turn off cassette and
+*    return to NEWSTT.
+
+       TTL    The EXEC statement.
+
+*
+* The EXEC statement causes processor control to be transferred to
+* the specified address.  If no address is specified the address
+* contained in EXECAD is used.
+*
+
+       XDEF   EXEC
+EXEC   BEQ    EXECDO   Use EXECAD if nothing specified.
+       JSR    EVLADR   Evaluate the execution address.
+       STX    EXECAD   Put it away.
+EXECDO JMP    [EXECAD] Go to it.
+
+       TTL    Miscellaneous
+
+*
+* Check for BREAK and others.
+* Don't do it if cassette I/O is in progress.
+*
+
+       XDEF   BRKCHK
+BRKCHK JSR    HKBRKC   RAM hook.
+       LDA    DEVNUM
+       INCA
+       BEQ    COPRTS   Cassette, don't check for BREAK.
+       JMP    ISCNTC   Not cassette, go poll keyboard.
+
+
+*
+* Here when the PRINT code sees an @ sign directly after the
+* PRINT token.
+*
+
+       XDEF   PATDO
+PATDO  JSR    INTIDX   D:=screen address.
+       SUBD   #&511    Make sure it's in range.
+       LBHI   FCERR    It isn't.
+       ADDD   #SCRADR+&511 It is, set the new cursor position.
+       STD    CURADR
+PATRTS RTS
+
+
+*
+* INKEY$ returns a single byte string containing the key code of
+* an active key or the null string if no key is active.
+*
+
+       XDEF   INKEY$
+INKEY$ LDA    INKCHR   Is there a char in the single char
+*    buffer?
+       BNE    NOPOLL   Yes, use it rather than poll for one.
+       JSR    POLCAT   No, scan the keyboard.
+NOPOLL CLR    INKCHR   Mark buffer as empty.
+       STA    FACLO    Save the key code.
+       LBNE   CHR$DO   Go put it away.
+       STA    DSCTMP   No key seen, return the null string.
+       JMP    GOPTNW
+
+       TTL    Get Filename.
+
+       XDEF   GETFLN
+GETFLN LDX    #FNAMLN  Set the filename length to zero and
+       CLR    ,X+      blank fill the filename buffer.
+       LDA    #SPACE
+BLNKFL STA    ,X+
+       CMPX   #FILNAM+&8
+       BNE    BLNKFL
+
+       JSR    CHRGOT   Does the statement end here?
+       BEQ    COPRTS   Yes, no filename specified so use
+*    none.
+       JSR    FRMEVL   Yes, evaluate the filename string formula.
+       JSR    FRESTR   Make sure it's a string, free up the
+*   temp, B:=length of string, X:=pointer
+*   to strng data.
+       LDU    #FNAMLN  Store the filename length and point
+       STB    ,U+      to FILNAM.  (FILNAM immediately
+*    follows FNAMLN.)
+       BEQ    COPRTS   Don't copy null string, use default
+*    filename.
+       SKIP2  Skip     into COPNAM to move the specified
+*    filename into FILNAM.
+
+*
+* Copy filename (or any 8 bytes) from [X] to [U].
+*
+
+COPNAM LDB    #&8      Set up the count.
+       XDEF   COPBXU
+COPBXU EQU    *
+       XDEF   COPLOP
+COPLOP LDA    ,X+      Get a byte.
+       STA    ,U+      Move it.
+       DECB            Do it eight times.
+       BNE     COPLOP
+COPRTS RTS
+
+       TTL    Get Device or File Number.
+
+       XDEF   GETCDN
+GETCDN JSR    CHKCOM   Eat comma and get device number.
+
+       XDEF   GETDNM
+GETDNM CMPA   #'#      If there is a number sign eat it.
+       BNE    EVLDNM
+       JSR    CHRGET
+EVLDNM JSR    FRMNUM   Evaluate the device number formula.
+       XDEF   SETDNM
+SETDNM JSR    INTCNV   D:=signed integer from FAC.
+       ROLB            The high order 9 bits must be the same
+       ADCA   #&0      for the number to be in the range
+       BNE    DNERR    -128 to +127.
+       RORB            It's OK, fix it back up.  Note that
+*    if it is negative the carry was set
+*    by the ADCAIM so the sign will come
+*    back in properly witn the RORB.
+       STB    DEVNUM   Put away the device number.
+       JSR    HKDNCK   RPM hook for device number check.
+       BEQ    DNMOK    0 for screen is OK.
+       BPL    DNERR    No other positive ones are allowed.
+       CMPB   #-&2     Disallow those below -2.
+       BLT    DNERR
+DNMOK  RTS
+
+
+FLNTRM BSR    GETFLN   Get filename.  Fall into TRMCHK to
+*    make sure the statement ends now.
+
+*
+* TRMCHK makes sure that a statement is properly terminated.
+*
+
+       XDEF   TRMCHK
+TRMCHK JSR    CHRGOT   Set codes on current char.
+ZERCHK BEQ    DNMOK    It's a terminator.
+       JMP    SNERR    Give syntax error
+
+       TTL    The End Of File (EOF) Function.
+
+*
+* EOF returns FALSE (0) if device is not at end of file.
+* TRUE (-1) is returned if the device is at the end of file.
+*
+
+       XDEF   EOF
+EOF    JSR    HKEOF    RAM hook.
+       LDA    DEVNUM   Preserve the old device number since
+       PSHS   A        this could be something like
+*    PRINT EOF(#-1).
+       BSR    SETDNM   Convert the argument to integer and
+*    check it's range.
+       JSR    OPNICK   Make sure it's open for input.
+       XDEF   EOFDEV
+EOFDEV CLRB            Assume not at end of file.
+       LDA    DEVNUM   Get the device number.
+       BEQ    EOFFIN   Keyboard never runs out of data.
+       TST    CBFCNT   Is the cassette buffer empty?
+       BNE    EOFFIN   No, not at end of file.
+       COMB            Yes, there is nothing left.
+       XDEF   EOFFIN
+EOFFIN PULS   A        Restore old DEVNUM.
+       STA    DEVNUM
+SINTB  SEX             Make it a 16 bit result and go
+       JMP    GIVABF   float it.
+
+       TTL    The SKIPF statement.
+
+*
+* SKIPF skips the specified or next file on the tape.
+* Filenames are displayed if SKIPF is used in a direct statement.
+*
+
+       XDEF   SKIPF
+SKIPF  BSR    FLNTRM   Read the filename and check for EOS.
+SKPDOR BSR    OPNCSI   Find the file.
+       JSR    SKPFIL   Skip it.
+       BNE    IOERR    SKPFIL encountered an error.
+       RTS
+
+       TTL    The OPEN code.
+
+       XDEF   OPEN
+OPEN   JSR    HKOPEN   Hook for disk version.
+       JSR    FRMEVL   Evaluate tne open mode.
+       JSR    ASC2     B:=open mode char.
+       PSHS   B        Save the open mode.
+       BSR    GETCDN   Eat comma and get device number.
+       XDEF   OPNDEV
+OPNDEV JSR    CHKCOM   Eat comma following device number.
+       BSR    FLNTRM   Read the filename into FILNAM.
+       LDA    DEVNUM   A:=device number.
+       CLR    DEVNUM   Must be clear when OPEN returns.
+       PULS   B        Retrieve the open mode.
+       CMPB   #'I      Open for input?
+       BEQ    OPENI    Yes, go do it.
+       CMPB   #'O      No, open for output?
+       BEQ    OPENO    Yes, go do it.
+*    No, give Bad Mode error.
+       XDEF   FMERR
+FMERR  EQU    *        Also known as File Mode error.
+BMERR  LDB    #ERRBM   Bad Mode error.
+       SKIP2
+       XDEF   IOERR
+IOERR  LDB    #ERRIO   Cassette I/O error.
+       SKIP2
+       XDEF   AOERR
+AOERR  LDB    #ERRAO   Already open error.
+       SKIP2
+       XDEF   DNERR
+DNERR  LDB    #ERRDN   Device Number error.
+       JMP    ERROR
+
+*
+* Here to oben a device for input.
+*
+
+OPENI  INCA            If lineprinter give mode error.
+       BMI    BMERR
+       BNE    OPNRTS   If keyboard just return.
+       BSR    OPNCSI   Do the dirty work.
+       LDA    ASCFLG   Must be an ASCII gapped file.
+       ANDA   GAPFLG
+       BEQ    BMERR    Give mode error if not.
+       INC    CASOPN   Mark as open for input.
+*    Fall into LODBUF to load the buffer.
+
+*
+* LODBUF loads the cassette buffer.
+*
+
+       XDEF   LODBUF
+LODBUF JSR    RDBLK    Read the next block from tape.
+       BNE    IOERR    Read error.
+       TST    BLKTYP   Examine the block type.
+       BEQ    IOERR    Can't have header in middle of file!
+       BMI    OPNRTS   If EOF block just return and leave
+*    the buffer empty.
+       LDA    BLKLEN   Get the block length.
+       BEQ    LODBUF   Nothing there, go back for more.
+       XDEF   FINLDB
+FINLDB STA    CBFCNT   Set buffer count.
+       BRA    SETPTR   Set the pointer to the beginning of
+*    of the buffer.
+
+
+*
+*  Make sure cassette isn't already open, find the file, mark the
+*  cassette as open for input, and mark the cassette buffer as empty.
+*
+
+       XDEF   OPNCSI
+OPNCSI TST    CASOPN   Is the cassette already open?
+       BNE    AOERR    Yes, give Already Open error.
+       BSR    TAPSRC   No, search the cassette for the file.
+       BNE    IOERR    An error occurred while searching.
+MRKMT  CLR    CBFCNT   Zero the count.
+SETPTR LDX    #CASBUF  Point to the start of the buffer.
+       STX    CBFPTR
+OPNRTS RTS
+
+*
+* Here to open device for output.
+*
+
+OPENO  INCA            If lineprinter or screen just return.
+       BNE    OPNRTS
+       INCA            To say it's a BASIC data file.
+OPNASC LDX    #-&1     To set ASCFLG:=GAPFLG:=.TRUE.
+*    Fall into OPNCSO to write out the
+*    file header.
+
+*
+* OPNCSO writes out a file header and marks the cassette as open
+* for output.  On entry XHI=ASCFLG, XLO=GAPFLG, and A=File type.
+*
+
+       XDEF   OPNCSO
+OPNCSO TST    CASOPN   Is the cassette already open?
+       BNE    AOERR    Yes, give an Already Open error.
+       LDU    #CASBUF  No, point to place to build the
+*    header.
+       STU    CBUFAD   Set buffer address for BLKOUT.
+       STA    &8,U     Put away the file type.
+*    (FILTYP-CASBUF=8 but since FILTYP
+*    and CASBUF are external the cross
+*    assembler would use a 16 bit offset
+*    if the expression were used.)
+       STX    &9,U     Follow with ASCFLG and GAPFG.
+*    (ASCFLG-CASBUF=9.)
+       LDX    #FILNAM  Copy the filename from FILNAM
+       JSR    COPNAM   into the header.
+       CLR    BLKTYP   Set block type to file header.
+       LDA    #HDRLEN  Set length of block.
+       STA    BLKLEN
+       JSR    WRTBLK   Turn on the motor, write a block,
+*    and turn off the motor.
+       LDA    #&2      Mark the cassette as open for output.
+       STA    CASOPN
+       BRA    MRKMT    Mark the buffer as empty.
+
+       TTL    Search Cassette for a File
+
+       XDEF   TAPSRC
+TAPSRC LDX    #CASBUF  Tell BLKIN where to read into.
+       STX    CBUFAD
+NXTFIL LDA    CURLIN   Direct statement?
+       INCA
+       BNE    NODSP1   No, don't display filenames.
+       JSR    GRNCHR   Yes, clear the screen.
+       LDX    CURADR   Put up an "S" to say searching and
+       LDB    #'S      move the cursor over two for display-
+       STB    ,X++     ing the filename.
+       STX    CURADR
+NODSP1 BSR    RDBLK    Read what should be a header block.
+       ORB    BLKTYP   If a read error occurred or the
+       BNE    NODSP1   block isn't a header block REPEAT
+       LDX    #CSFNAM  Y:=pointer to filename read from tape.
+       LDU    #FILNAM  U:=pointer to filename being sought.
+       LDB    #&8      B:=loop count.
+       CLR    ,-S      Put flag on stack saying names are
+*    the same.
+DCFNAM LDA    ,X+      Get a byte of the tape filename.
+       LDY    CURLIN   Only display name if direct
+       LEAY   &1,Y     statement.
+       BNE    NODSP2
+       CLR    DEVNUM   Yes, output the char to the screen.
+       JSR    CHROUT
+NODSP2 SUBA   ,U+      Get zero if matches desired name.
+       ORA    ,S       Any difference will make flag on
+       STA    ,S       stack non-zero.
+       DECB            Loop so all characters will be
+       BNE    DCFNAM   displayed and compared.
+
+       LDA    ,S+      Do the filenames match?
+       BEQ    FNDFIL   Yes.
+       TST    -&9,U    No, is the desired name null?
+*    (U is pointing one beyond the end
+*    of FILNAM (which is 8 bytes long) and
+*    FNAMLN immediately precedes FILNAM.)
+       BEQ    FNDFIL   Yes, so we want the first file seen.
+       BSR    SKPFIL   No, skip this file.
+       BNE    BADHDR   Return with Z=0 if error.
+       BRA    NXTFIL   So look at the next file.
+
+FNDFIL LDA    #'F      Display "F" for Found.
+       BSR    DSPCHR
+       CLRA            Clear Z to indicate no tape error.
+BADHDR RTS
+
+*
+* SKPFIL skips the current file.
+* On exit Z=1 if all OK, Z=0 if error occured.
+*
+
+SKPFIL TST    GAPFLG   Does this file have gaps?
+       BNE    SKPGFL   Yes, go handle it.
+       JSR    CSRDON   No, turn on cassette and sync up.
+SKPLP  BSR    BLKIN    Read the next block.
+       BSR    SKIPER   See if error or EOF.
+       BRA    SKPLP    It was a good data record so look
+*    at the next block.
+
+SKPGFL BSR    RDBLK    Turn on, read block, turn off.
+       BSR    SKIPER   Check for errors or EOF.
+       BRA    SKPGFL   Good data record, look at next block.
+
+SKIPER BNE    BADSKP   Cassette read error.
+       LDA    BLKTYP   Get the block type.
+       NEGA            0 to 0, FF to 1, 1 to FF.
+       BMI    NODSP3   Data record, return to skip loop.
+       DECA            0 to FF, 1 to 0 so if EOF A=0 and
+*    if header A=FF for error.
+BADSKP STA    CSRERR   Save the error status.
+       LEAS   &2,S     Get rid of skip loop return address.
+       BRA    RDBFIN   Turn off cassette and return with
+*    Z=1 if all OK.
+
+
+*
+* "Blink" char on screen.
+*
+
+BLINKS LDA    SCRADR   Get the char.
+       EORA   #@100    Reverse the video on it.
+DSPCHR LDB    CURLIN   Only display if direct statement.
+       INCB
+       BNE    NODSP3
+       STA    SCRADR   Put it back.
+NODSP3 RTS
+
+       TTL    Cassette Input Routines
+
+*
+* Turn motor on, read a block, and turn motor off.
+*
+
+RDBLK  JSR    CSRDON   Turn on motor and sync up.
+       BSR    BLKIN    Read a block.
+RDBFIN JSR    CASOFF   Turn off motor and enable interrupts.
+       LDB    CSRERR   B:=error code and set cond codes.
+       RTS
+
+
+*
+* BLKIN reads a block from cassette.
+* On entry CBUFAD contains the buffer address.
+* On exit -
+* BLTYP and BLKLEN are set up.
+* Z=1 and A=CSRERR=0 if no errors occured.
+* Z=0 if an error occured and A=CSRERR=1 for a checksum error and 2
+* for a memory error.
+* Unless a memory error occurs X=CBUFAD+BLKLEN.
+* If a memory error occurs, X points one beyond the bad address.
+*
+* CC, A, B, X are modified.  The others are preserved.
+* Interrupts are left disabled.
+*
+
+       XDEF   BLKIN
+BLKIN  SETCC  F!+I     No interrupts during timing loops.
+       BSR    BLINKS   Blink the char if showing names.
+       LDX    CBUFAD   Get the buffer address.
+       CLRA            Start with a zero byte.
+SYNLP  JSR    BITIN    Read a bit.
+       RORA            Rotate it into the byte.
+       CMPA   #@74     Is it the sync byte?
+       BNE    SYNLP    No, look further.
+
+       JSR    CBIN     Yes, read and store the block type.
+       LDA    BLKTYP
+       JSR    CBIN     Read and store the block length.
+       STA    BLKLEN
+       ADDA   BLKTYP   Init the checksum.
+       STA    CHKSUM
+       LDA    BLKLEN   Set uo a loop count.
+       STA    BYTCNT
+       BEQ    NODATA   No data in this record, just go
+*    check the checksum.
+BLKILP JSR    CBIN     Read a byte of data.
+       STA    ,X       Put it away.
+       CMPA   ,X+      See if stored OK.
+       BNE    BADMEM   It didn't, return a memory error.
+       ADDA   CHKSUM   It did, update the checksum.
+       STA    CHKSUM
+       DEC    BYTCNT   More bytes to read?
+       BNE    BLKILP   Yes, go read the next one.
+
+NODATA JSR    CBIN     No, read the checksum.
+       SUBA   CHKSUM   Does it agree with tne calculated one?
+       BEQ    OKREAD   Yes.
+       LDA    #&1      No, indicate a checksum error occured.
+       SKIP2
+BADMEM LDA    #&2      Indicate a memory error occured.
+OKREAD STA    CSRERR   Put away the status byte and return.
+       RTS
+
+*
+* "MOTOR ON" turns the cassette motor on
+* "MOTOR OFF" turns tne cassette motor off.
+*
+
+       XDEF   MOTOR
+MOTOR  TFR    A,B      Save tne ON or OFF token.
+       JSR    CHRGET   Eat it for NEWSTT.
+       CMPB   #OFFTK   Is it "MOTOR OFF"?
+       BEQ    DOCOFF   Yes, go do it.
+       CMPB   #ONTK    No, how about "MOTOR ON"?
+       JSR    ZERCHK   Give SN error if not.
+       JMP    CASON    Yes, go turn it on.
+
+       TTL    The cassette output routines.
+
+*
+* WRTBLK turns the motor on, outputs a leader, writes a block of
+* data, and turns off the motor.
+* On entry, BLKTYP, BLKLEN, and CBUFAD must be set up.
+* On exit X contains [CBUFAD]+[BLKLEN].
+*
+
+WRTBLK JSR    WRTLDR   Turn on motor and write leader.
+BLKOFF BSR    BLKOUT   Output the block.
+DOCOFF JMP    CASOFF   Go turn off the motor.
+
+
+*
+* BLKOUT outputs a block of data.
+* Dn entry BLKTYP, BLKLEN, and CBUFAD must be set up.
+* On exit, X contains [CBUFAD]+[BLKLEN].
+*
+
+       XDEF   BLKOUT
+BLKOUT SETCC  F!+I     No interrupts during cassette I/O.
+       LDB    BLKLEN   Get the block length.
+       STB    BYTCNT   Save for output loop count.
+       LDA    BLKLEN   Also start the checksum with it.
+       BEQ    ZERLEN   No data in block.
+       LDX    CBUFAD   Compute the checksum.  Note that this
+CHKSLP ADDA   ,X+      done prior to rather than while
+       DECB            writing the data to minimize the byte
+       BNE    CHKSLP   to byte delay while writing.  This
+*    results in a smoother sinewave.
+ZERLEN ADDA   BLKTYP   The block type is included in the
+       STA    CHKSUM   checksum.
+       LDX    CBUFAD   Set up the data pointer.
+       BSR    LDRBYT   Write a leader byte.
+       LDA    #@74     Follow it with the sync byte.
+       BSR    GOCBO    (3C hex.)
+       LDA    BLKTYP   Send out the block type.
+       B5R    GOCBO
+       LDA    BLKLEN   Follow with the block length.
+       BSR    GOCBO
+       TSTA            Any data to write?
+       BEQ    OUTCHK   No, just go output the checksum.
+BLKOLP LDA    ,X+      Yes, output the data.
+       BSR    GOCBO
+       DEC    BYTCNT
+       BNE    BLKOLP
+OUTCHK LDA    CHKSUM   Output the checksum and fall into
+       BSR    GOCBO    LDRBYT to write a trailer byte.
+
+*
+* LDRBYT writes a 55 hex leader char.
+*
+
+LDR8YT LDA    #@125    Leader byte is 55 hex.
+GOCBO  JMP    CBOUT    Output it and return.
+
+       TTL    Simple Graphics - SET, RESET, POINT, CLS
+
+*
+* SET makes the specified cell the specified color.
+*
+* Colors are -
+*  1 - Green
+*  2 - Yellow
+*  3 - Blue
+*  4 - Red
+*  5 - Buff
+*  6 - Cyan
+*  7 - Magenta
+*  8 - Orange
+*
+* If the color number given is zero and the block containing the cell
+* is already in graphic mode, the color of the block is unchanged.
+*
+* If the color number given is zero and the block containing the cell
+* is not already in graphic mode, the color of the block defaults to
+* Green.
+*
+
+       XDEF   SET
+SET    BSR    GRPHAR   Evaluate the column and row args and
+*    make X point to the block containing
+*    the cell and CELL contain the bit
+*    corresponding to the cell.
+       PSHS   X        Save the address.
+       JSR    COMBYT   Eat the comma and get the color number
+*    in B.
+       PULS   X        Retrieve the address.
+       CMPB   #&8      Is the color number in range?
+       BHI    BADARG   No, give FC error.  (Negatives were
+*    thrown out by GETBYT.)
+       DECB            Adjust the code for actual VDG color
+*    codes.
+       BMI    COLOR0   Handle color 0 as a special case.
+       LDA    #&16     Shift the color code into bits
+       MUL             4, 5, and 6 for the VDG.
+       BRA    HAVCLR   We have the color code.
+
+COLOR0 LDB    ,X       B:=current contents of block.
+       BPL    SETGRN   It isn't in graphic mode so
+*    color 0 defaults to green.
+       ANDB   #@160    It is graphic, retain the current
+*    color.
+       FCB    @41      BRN over CLRB.
+
+SETGRN CLRB            Set color to green.
+HAVCLR PSHS   B        Save the color code.
+       BSR    CHKRP    Must have a right paren before we
+*    actually do anything to the screen.
+       LDA    ,X       Get the current block.
+       BMI    ISGRPH   Graphic - retain currently lit cells.
+       CLRA            Character - clear all other cells.
+ISGRPH ANDA   #@17     Get only the cell bits.
+       ORA    CELL     Include the only being SET.
+       ORA    ,S+      Now get the color bits.
+STGRPH ORA    #@200    Set MSB for graphics mode.
+       STA    ,X       Put it away and return.
+       RTS
+
+*
+* RESET turns off the specified cell.
+*
+* If the block containing the cell is not in graphics mode, all
+* the cells are turned off and the block is put into graphics mode
+* with the default color of green.
+*
+
+       XDEF   RESET
+RESET  BSR    GRPHAR   Evaluate the column and row args.
+       BSR    CHKRP    Make sure there is a closing paren.
+       CLRA            Assume the block isn't graphic.
+       LDB    ,X       Get the current contents.
+       BPL    STGRPH   Not graphic, go make it graphic
+*    with all cells off and a default
+*    color of green.
+       COM    CELL     Make only tne specified cell bit 0.
+       ANDB   CELL     RESET the cell.
+       STB    ,X       Put it away and return.
+       RTS
+
+*
+* GRPHAR evaluates the column and row numbers.
+* It then calculates the address of the block containing the specified
+* cell.  The address is returned in X.
+* CELL contains the bit corresponding to the specified cell.
+*
+* Block address = SCRADR + ROW\2*32 + COLUMN\2
+* Cell bit = 2^(3-(2*(ROW MOD 2)+(COLUMN MOD 2)))
+*
+
+GRPHAR JSR    CHKOPN   Check for a left parenthesis.
+GRPHA2 JSR    GETBYT   Evaluate the column number.
+       CMPB   #&63     Make sure it is in range.
+       BHI    BADARG
+       PSHS   B        It is OK, save it.
+       JSR    COMBYT   Eat comma and evaluate the row number.
+       CMPB   #&31     Make sure it's in range.
+BADARG BHI    GOFCER   (All who come here must meet the
+*    branch condition.)
+       PSHS   B        Row is OK, save it.
+       LSRB            Integer divide by 2 and
+       LDA    #&32     multiply by 32.
+       MUL
+       LDX    #SCRADR  Get the base address of the screen
+*    memory.
+       LEAX   D,X      Add in the row offset.
+       LDB    &1,S     integer divide the column by 2.
+       LSRB
+       ABX             Add in the column offset.
+
+*
+* Now calculate the cell bit.
+*
+
+       PULS   D        A:=row, b:=column.
+       ANDA   #&1      A:=bit number:=2*(ROW MOD 2) +
+       RORB            (COLUMN MOD 2).
+       ROLA
+       LDB    #@20     Something to shift.
+LSRLOP LSRB            Shift into bit specified by A.
+       DECA
+       BPL    LSRLOP
+       STB    CELL     Put it away for the callers.
+       RTS
+
+*
+* POINT returns the status of the specified cell as follows:
+*
+* -1 Block containg cell is not in graphics mode.
+* 0 The cell is unlit.
+* 1 Green
+* 2 Yellow
+* 3 Blue
+* 4 Red
+* 5 Buff
+* 6 Cyan
+* 7 Magenta
+* 8 Orange
+*
+
+       XDEF   POINT
+POINT  BSR    GRPHA2   Evaluate the args.  (Enter at GRPHA2
+*    since the open paren has already been
+*    eaten by the function dispatcher.
+       LDB    #-&1     Assume it isn't graphic.
+       LDA    ,X       Get the current stuff.
+       BPL    NTGRPH   It is not graphic.
+       ANDA   CELL     Mask off the desired cell.
+       BEQ    NOTLIT   It isn't lit, return 0.
+       LDB    ,X       It is lit, get the color code and
+       LSRB            shift it down.
+       LSRB
+       LSRB
+       LSRB
+       ANDB   #&7      Mask off the bits of interest.
+NOTLIT INCB            Do the final adjustment.
+NTGRPH JSR    SINTB    Float the signed integer in B.
+CHKRP  JMP    CHKCLS   Check for the right paren and return.
+
+*
+* CLS "clears" the screen.
+* If no argument is given, the screen is cleared using green spaces
+* (character mode).
+* If the argument is zero, the screen is blacked out oy putting
+* all blocks into graphics mode with all cells off and with a green
+* color field.
+* If the argument is between 1 and 8 all block are put in graphics
+* mode with all cells on using the color specified.  The colors are
+* the same as for the SET command.
+*
+
+       XDEF   CLS
+CLS    JSR    HKCLS    RAM hook.
+       BEQ    GRNCHR   No argument, use green space chars.
+       JSR    GETBYT   Read the argument.
+       CMPB   #&8      Valid args are from 0 to 8.
+       BHI    DOMIC    Go print MICROSOFT.
+       TSTB            Black out the screen if zero.
+       BEQ    ALLOFF
+       DECB            Adjust to VDG color code and shift
+       LDA    #&16     into bits 4, 5, and 6.
+       MUL
+       ORB    #@17     Turn on all cells.
+ALLOFF ORB    #@200    Turn on the graphics mode bit.
+       SKIP2  Skip     over green character load.
+       XDEF   GRNCHR
+GRNCHR LDB    #@140    This is a green space.
+       LDX    #SCRADR  Point to start of screen.
+CLRLIN STX    CURADR   Store new cursor address.
+CLSLOP STB    ,X+      Do all sceen positions.
+       CMPX   #SCRADR+&511
+       BLS    CLSLOP
+       RTS
+
+DOMIC  BSR    GRNCHR   Clear the screen.
+       LDX    #MICRO-&1 Print MICROSOFT.
+       JMP    STROUT
+
+       TTL    SOUND and AUDIO commands.
+
+GCNZBY JSR    CHKCOM   Eat comma and get nonzero byte.
+GNZBYT JSR    GETBYT   Get nonzero byte.
+       TSTB            Give FC error if it's zero.
+       BNE    SNDRTS
+GOFCER JMP    FCERR
+
+*
+* SOUND frequency,duration
+*
+* 0 .LT. frequency .LE. 255, 0 .LT. duration .LE. 255.
+*
+
+       XDEF   SOUND
+SOUND  BSR    GNZBYT   Get the frequency number.
+       STB    SNDFRQ   Put it away.
+       BSR    GCNZBY   Eat comma and get duration.
+       XDEF   SOUNDR
+SOUNDR LDA    #&4      Multiply duration by something
+       MUL             so the sound can be heard.
+       STD    SNDTMR   Init the sound countdown timer.
+       LDA    PIA0BC   Make sure slow clock is enabled at
+       ORA    #&1      the PIA.
+       STA    PIA0BC
+       NOP             WASTE A BYTE FOR ADDRESS COMPATABILITY
+       CLRB            Select D/A sound.
+       BSR    SETSEL
+       BSR    SNDON    Turn on sound to TV.
+
+HLDSND BSR    SNDMID   Put out center amplitude.
+       LDA    #&252!+PIABIT Put out max amplitude.
+       BSR    DOSND
+       BSR    SNDMID   Put out center amplitude again.
+       LDA    #&0!+PIABIT Put out min amplitude.
+       BSR    DOSND
+       LDX    SNDTMR   Has the timer expired?
+       BNE    HLDSND   No, hold the sound.
+*    Yes, fall into SNDOFF to turn off
+*    TV sound.
+
+       XDEF   SNDOFF
+SNDOFF CLRA            Turn off TV sound.
+              Skip     over SNDON entry point.
+       XDEF   SNDON
+SNDON  LDA    #@10     Turn on TV sound.
+       STA    ,-S      Save ON/OFF bit.
+       LDA    PIA1BC   Get current contents of control reg.
+       ANDA   #@367    Reset sound enable bit.
+       ORA    ,S+      Now turn it on if desired.
+       STA    PIA1BC
+SNDRTS RTS
+
+SNDMID LDA    #&124!+PIABIT Put out center amplitude.
+DOSND  STA    PIA1AD   Output amplitude to D/A.
+       LDA    SNDFRQ   Set the frecuency.
+SNDLOP INCA            Hold it longer for lower frequencies.
+       BNE    SNDLOP
+       RTS
+
+
+*
+* AUDIO ON/OFF turns on or off tne cassette audio to the TV.
+*
+
+       XDEF   AUDIO
+AUDIO  TFR    A,B      Save the ON or OFF token.
+       JSR    CHRGET   Eat it for NEWSTT.
+       CMPB   #OFFTK   OFF?
+       BEQ    SNDOFF   Yes, go turn off sound enable.
+       SUBB   #ONTK    ON?
+       JSR    ZERCHK   If not give SN error.
+       INCB            Yes, select cassette sound.
+       BSR    SETSEL
+       BRA    SNDON    Turn on sound enable and return.
+
+
+*
+* SETSEL sets the select lines according to tne contents of B.
+* B0 should be on to set SEL1, B1 should be on to set SEL2.
+*
+* U, A, and B are changed.
+*
+
+       XDEF   SETSEL
+SETSEL LDU    #PIA0AC  Point to PIA0 A side control reg.
+       BSR    SETIT    Set or clear SEL1.
+*    Fall in to set or clear SEL2.
+SETIT  LDA    ,U       Get current reg contents and clear
+       ANDA   #@367    the select line bit.
+       ASRB            Set carry if line is to be set.
+       BCC    NOSET    Don't set it.
+       ORA    #@10     Set it.
+NOSET  STA    ,U++     Store control word and point to next
+       RTS             control register.
+
+
+*
+* SNDCLK handles the timing for the SOUND routine.
+* It is invoked on an IRQ interrupt.
+*
+
+       XDEF   SNDCLK
+SNDCLK LDX    >SNDTMR  Is the SOUND countdown timer
+*    already zero?  (Force extended
+*    addressing since at interrupt level.)
+       BEQ    SLWRTI   Yes, leave it as is.
+       LEAX   -&1,X    No, decrement it.
+       STX    >SNDTMR
+SLWRTI RTI             Return from the interrupt.
+
+       TTL    The JOYSTK function.
+
+       XOEF   JOYSTK
+JOYSTK JSR    CONINT   Convert the pot number to a single
+*    byte integer in B and FACLO.
+       CMPB   #&3      Must be 0, 1, 2, or 3.
+       LBHI   FCERR
+       TSTB            Is it pot 0?
+       BNE    GETPOT   No, just return the old value.
+       JSR    JOYIN    Yes, actually read all four pots.
+GETPOT LDX    #POTVAL  Point to the pot value table.
+       LDB    FACLO    Get the pot number.
+       LDB    B,X      Get tne requested pot value.
+       JMP    SNGFLT   Go float it and return.
+
+       TTL    ROMable part of CHRGET.
+
+       XDEF   ROMLOC
+ROMLOC EQU    *
+       IFNE   REALIO
+       CMPA   #':       IS IT A ":"?
+       BCC    CHRRTS    IT IS .GE. ":"
+       CMPA   #'        SKIP SPACES.
+       BNE    NTBLNK    BNE, JMP direct is faster tnan LBEQ,
+       JMP    CHRGET    but both use 4 bytes.
+NTBLNK SUBA   #'0       ALL CHARS .GT. "9" HAVE RET'D SO
+       SUBA   #-'0      SEE IF NUMERIC.
+*    TURN CARRY ON IF NUMERIC.
+*    ALSO, SETZ IF NULL.
+CHRRTS RTS             RETURN TO CALLER.
+       ENDC   IFN      REALIO
+
+       END

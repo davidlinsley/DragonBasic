@@ -1,263 +1,60 @@
-                                                                                           40
-
-
-
-
-
-
-
-
-                                                                                                                            PAGE 034 E0BM64                                                                           .SP1 E0BM64 Simple Graphics                                                                                                                        SET, RESET, POINT,.OLS
-
-
-
-
-
-
-
-                                                                                                                            02011
-
-
-
-                                                                                                                            02012
-
-
-
-                                                                                                                            02013                                                                                                                           *        SET makes the specified cell the specified color.
-
-
-
-                                                                                                                            02014                                                                                                                           *
-
-
-
-                                                                                                                            02015                                                                                                                           *        Colors are -
-
-                                                                                           01 
-                                                                                                                            02016                                                                                                                           *             1 - Green
-
-
-
-                                                                                                                            02017                                                                                                                           *             2                  Yellow
-
-
-
-                                                                                                                            02018                                                                                                                                                            Blue
-
-
-                                   H0 G YL                                                                                  02019                                                                                                                           *             4                  Red
-
-
-
-                                                                                                                            02020                                                                                                                                                   -        Buff
-
-
-
-                                                                                                                            02021                                                                                                                                         6 - Cyan
-
-
-
-                                                                                                                            02022                                                                                                                           *             7 - Magenta
-
-
-
-                                                                                                                            02023                                                                                                                           *             8                  Orange
-
-
-
-                                                                                                                            02024                                                                                                                           *
-
-
-
-                                                                                                                            02025                                                                                                                                    If the color number given is zero and the 'block containing the cell 
-
-
-
-                                                                                                                            02026                                                                                                                           *        is already in graphic mode, the color of the block is unchanged.
-
-
-
-                                                                                                                            02027                                                                                                                           *
-
-
-
-                                                                                                                            02028                                                                                                                           *        If the color number given is zero and the block containing the cell
-
-
-
-                                                                                                                            02029                                                                                                                           *        is not already in graphic mote, the color of the block defaults to
-
-
-
-                                                                                                                            02030                                                                                                                           *        Green.
-
-
-
-                                                                                                                            02031                                                                                                                           *
-
-
-
-                                                                                                                            02032
-
-
-
-                                                                                                                            02033                                                                                                                                                            XDEF                             SET
-
-
-
-                                                                                                                            02034P 05B7 SD                                                                  3F 05F8 SET                                                                      BSR                              GRPHAR                                     Evaluate the column and row ards and
-
-
-
-                                                                                                                            02035                                                                                                                           *                       make X point to the block containing
-
-
-
-                                                                                                                            02036                                                                                                                                                   the cell and CELL contain the 'nit
-
-
-
-                                                                                                                            02037                                                                                                                           *                       corresponding to the cell.
-
-
-
-                                                                                                    HH 02038P 051;9 34                                                                                      10                                                                               PSHS                             X                                          Save the address.
-
-
-
-                                                                                                                            02039P 05B3 BD                                                                  0000                                  A                                          jSR                              COMBYT                                     Eat the comma and get the color number
-
-                                                                                           4, 
-                                                                                                                            02040                                                                                                                                                   in B. 
-
-
-
-                                                                                                                            02041P 05BE 35                                                                  10                                    A                                          PULS                             X                                          Retrieve the address.
-
-
-
-                                                                                                                            02042P 050 CI                                                                   08                                    A                                          CMPB                             #8,8                                       Is the color number in range?
-
-
-
-                                                                                                                            02043P 0502 22                                                                  45                      0609                                                     BHI                              BADARG                                     No, give FC error.                                                                              (Negatives were 
-
-
-
-                                                                                                                            02044                                                                                                                                                   thrown                           out by SETBYT.)
-
-
-
-                                                                                                                            02045P 0504 5A                                                                                                                                                   DECB                                                                        Adjust the code for actual VDG color
-
-
-
-                                                                                                                            02046                                                                                                                           *                       codes. 
-
-
-
-                                                                                                                            02047P 0505 2B                                                                  05                      050C                                                     BMI                              ODLORO                                     Handle color 0 as a special case.
-
-
-
-                                                                                                                            02048P 0507 86                                                                  10                                    A                                          LDA                              #&16                                       Shift the color code into bits
-
-
-
-                                                                                                                            02049P 0509 3D.                                                                                                                                                  NUL                                                                         4, 5, and 6 for the VDG.
-
-
-
-                                                                                                                            02050P 05CA 20                                                                  08                      05D4                                                     BRA                              HAVCLR                                     We have the color code.
-
-
-
-                                                                                                                            02051
-
-
-
-                                                                                                                            020522 05Co ES                                                                  A4                                    A         COLT.i0 LDB                                                       ,X                                         B;=current contents of block.
-
-
-
-                                                                                                                            02053P 05CE 2A                                                                  03                      05D3                                                     BPL                              SETGRN                                     It isn't in graphic mode so
-
-
-
-                                                                                                                            02054                                                                                                                                                   color 0                              defaults to green.
-
-                                                                                           4, 
-                                                                                                                            02055P 05D0 04                                                                                                                                                   ANDB                             4:2160                                     It is graphic, retain the current
-
-
-
-                                                                                                    I I I                   02056                                                                                                                                                   color.
-                                               4,1..0111/rhipor
-
-                                                   ,14/                                                                     02057P 05D2                                                                     21                                                                               FCB                              @41                                        BRN over CLRB.
-                                                   .1,// //1/1./
-                                                               :/kl/                                                        02058                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     40
-
-
-
-                                                                                                                            02059p 051)3 SE                                                                                                                 SFTGRN CLRB                                                                                                  Set color to green.
-
-
-
-                                                                                                                            02060P 05D4                                                                     04                                    A         HAVOLR PSFS                                                       B                                          Save the color code.
-
-
-
-                                                                                                                            02061P 05D6 RD                                                                  39                      0641                                                     BSR                              CHKRP                                      Must have a right :Jaren before we
-
-
-
-                                                                                                                            020E2                                                                                                                           -                       actually                                  do anything to the screen.
-
-
-
-                                                                                                                            02063P 05D8 A3                                                                  84                                    A                                          LOP                              ,X                                         Get the current block.
-
-
-
-                                                                                                                            02064P 05DA 2B                                                                  01                      05DD                                                     BMI                              ISSRPH                                     Graphic - retain currently lit cells.
-
-
-
-                                                                                                                            02065P 05D0 4F                                                                                                                                                   CLRA                                                                        Character - clear all other cells.
-
-
-
-                                                                                                                            0206EP 05DD 84                                                                                                                  ISGRPH ANDA                                                       #517                                       Get only the cell bits.
-
-
-
-                                                                                                                            02067P 05DF 9A                                                                                                                                                   CRP                              CELL                                       Include the only Peinq SET.
-
-
-
-                                                                                                                            020E8P 05E1 AA                                                                                                                                                   nRA                                                                         Now get the color bits.
-                                                                                                                                                                                                                                                                                                                              ,S+ 
-
-
-
-
-
-
-
-
-
-
-
-+44 (0)20 B9 71 3. _
-
-
-
-
-
-
-                      For Your Near( t
-
-
-                                                                                                         I
-
+PAGE  034  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02011
+02012                      *
+02013                      * SET makes the specified cell the specified color.
+02014                      *
+02015                      * Colors are -
+02016                      *  1 - Green
+02017                      *  2 - Yellow
+02018                      *  3 - Blue
+02019                      *  4 - Red
+02020                      *  5 - Buff
+02021                      *  6 - Cyan
+02022                      *  7 - Magenta
+02023                      *  8 - Orange
+02024                      *
+02025                      * If the color number given is zero and the block containing the cell
+02026                      * is already in graphic mode, the color of the block is unchanged.
+02027                      *
+02028                      * If the color number given is zero and the block containing the cell
+02029                      * is not already in graphic mode, the color of the block defaults to
+02030                      * Green.
+02031                      *
+02032
+02033                             XDEF   SET
+02034P 05B7 8D   3F   05F8 SET    BSR    GRPHAR   Evaluate the column and row args and
+02035                      *    make X point to the block containing
+02036                      *    the cell and CELL contain the bit
+02037                      *    corresponding to the cell.
+02038P 05B9 34   10      A        PSHS   X        Save the address.
+02039P 05BB BD   0000    A        JSR    COMBYT   Eat the comma and get the color number
+02040                      *    in B.
+02041P 05BE 35   10      A        PULS   X        Retrieve the address.
+02042P 05C0 C1   08      A        CMPB   #&8      Is the color number in range?
+02043P 05C2 22   45   0609        BHI    BADARG   No, give FC error.  (Negatives were
+02044                      *    thrown out by GETBYT.)
+02045P 05C4 5A                    DECB            Adjust the code for actual VDG color
+02046                      *    codes.
+02047P 05C5 2B   05   05CC        BMI    COLOR0   Handle color 0 as a special case.
+02048P 05C7 86   10      A        LDA    #&16     Shift the color code into bits
+02049P 05C9 3D                    MUL             4, 5, and 6 for the VDG.
+02050P 05CA 20   08   05D4        BRA    HAVCLR   We have the color code.
+02051
+02052P 05CC E6   84      A COLOR0 LDB    ,X       B:=current contents of block.
+02053P 05CE 2A   03   05D3        BPL    SETGRN   It isn't in graphic mode so
+02054                      *    color 0 defaults to green.
+02055P 05D0 C4   70      A        ANDB   #@160    It is graphic, retain the current
+02056                      *    color.
+02057P 05D2      21      A        FCB    @41      BRN over CLRB.
+02058
+02059P 05D3 5F             SETGRN CLRB            Set color to green.
+02060P 05D4 34   04      A HAVCLR PSHS   B        Save the color code.
+02061P 05D6 8D   69   0641        BSR    CHKRP    Must have a right paren before we
+02062                      *    actually do anything to the screen.
+02063P 05D8 A6   84      A        LDA    ,X       Get the current block.
+02064P 05DA 2B   01   05DD        BMI    ISGRPH   Graphic - retain currently lit cells.
+02065P 05DC 4F                    CLRA            Character - clear all other cells.
+02066P 05DD 84   0F      A ISGRPH ANDA   #@17     Get only the cell bits.
+02067P 05DF 9A   86      A        ORA    CELL     Include the only being SET.
+02068P 05E1 AA   E0      A        ORA    ,S+      Now get the color bits.

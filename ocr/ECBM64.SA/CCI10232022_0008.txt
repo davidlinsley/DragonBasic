@@ -1,110 +1,14 @@
-                                                                                                                                                                                                 •
-
-
-
-
-                               PAGE   009   E0Bm64    .SAgi   F.19M64 C;.-fROUT - Outnut  Cnaracter   Routine                                                                                    •
-
-
-                               01062                            *
-                               01063                            * Ouout character to     screen.                                                                                                 •
-                               01064                            *
-
-                               01065
-                               01066               0174      P  SCROPT  ESKJ     *                                                                                                               •
-                               01067               0001      A          IFNE     REALIO
-                               01068P  0174  BD    0000      A          jSR      SAMALP     Switch to   text mode.
-                               01069P  0177  7E    0000      A          jrflP    SCROUT     Go to the   screen driver.                                                                           •
-                               01070                                    ENDC     TiN        REALM
-
-                               01071
-                               01072               0001      A          IFFU     REALIO                                                                                                          •
-                               01104                             FNDC     IFE REALIO
-
-
-
-                                                                                                                                                                                                 •
-
-
-
-
-                                                                                                                                                                                                 •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                 •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                       •
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                  S 
-
-
-
-
-                                                                                                                                                                                                  S
-
-
-
-
-                                                                                                                                                                                                  •
-
-
-
-
-                                                                                                                                                                                                  •
-
-                                                                                                                                                                                                 11
-
--44 (0)20 89 71 3!                                                                                                                                                                                e
-
-     For Your Neare
-
+PAGE  009  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
+
+01062                      *
+01063                      * Ouput character to screen.
+01064                      *
+01065
+01066            0174    P SCROPT EQU    *
+01067            0001    A        IFNE   REALIO
+01068P 0174 BD   0000    A        JSR    SAMALP   Switch to text mode.
+01069P 0177 7E   0000    A        JMP    SCROUT   Go to the screen driver.
+01070                             ENDC   IFN      REALIO
+01071
+01072            0001    A        IFEQ   REALIO
+01104                       ENDC   IFE REALIO

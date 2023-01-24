@@ -1,64 +1,60 @@
-                                             PA&F       039                     .SA1        ECBM64       Simple       Grat....;ics    -   SET,     RESET,       POINT,.C..";LS
+PAGE  039  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
 
-                                             02:77 175
-                                             021(6                                            *   0LS "clears" the screen.
-                                                                                              *   If no argument              is given,         the screen is cleared using green spaces
-                                             02178                                            *   (character mode).
-                                             0279                                             *   :f the argument               is zero,        the screen is blacked out oy putting
-                                             02180                                            *   all    blocks into graphics mode with all                              cells off and with a green
-                                             02181                                            *   color      field.
-                                                                                              *   If the argument               is between 1 and 8 all                   block are put             in graphics
-                                             0283                                             *   mode with all cels on using the color specified.                                             The colors are
-                                             02186,                                           *   the same as for the SET command.
-                                             02185
-                                             02186
-                                             02187                                                         XDEF         CLS
-                                             02188P       0644     BD       0000           A OLS           sYSR         HKOLS           RAM hook.
-                                             02189P       0647     27       13       0650                  BEID         ORNCHR          No argument,            use green space chars.
-                                             02190P       0649     BD       0000           A               jSR          GETBYT          Read the argument.
-                                             02191P       064C     01       08             A               CMPB         4.4&8           Valid args are from 0 to 8.
-                                             02192P       064E     22       18       066B                  BHI          DOMIO           Go orint MICROSOFT.
-                                             02193P       0650     5D                                      TSTB                         Black out the screen if zero.
-                                             02194P       0E51     27       06       0659                  BEQ          ALLOFF
-                                             02195P       0653     ,J A                                    DECB                         Adjust to VDG color code and shift
-                                             02196P       0654     86       10             A               LDA          #&16            into bits 4,            5,    and 6.
-                                             02197P       0656     3D                                      MUL
-                                             02198P       0657     CA       OF             A               ORB          #@17            Turn on all           cells.                                                                                                                              40 
-                                             02199P       0659     CA       80             A ALLOFF ORB                 #@200           Turn on the graphics mode bit.
-                                             02200P       065B                                             SKIP2        Skip            over green character load.
-                                             02201                                                         XDEF         GRNCHR                                                                                                                                                                    40 
-                                             02202P       0650     06       60             A GRNCHR LDB                 #@140           This is a green soace.
-                                             02203P       065E     8H       0400           A               LDX          #SCRADR         Point to start              of screen.
-                                             02204P       0661     9F '     88             A CLRLIN STX                 CURADR          Store new cursor atdress.                                                                                                                                 40 
-                                             02205P       0663     E7       80             A 17L.SLOP STB                               Do all       sceen positions.
-                                             02206P       0665     RC       05FF           A               CMPX         *SCRADRA-&511
-                                             02207P       0668     23       F9       0663                  BLS          CLSLOP                                                                                                                                                                    40
-                                             02208P       066A     39                                      RTS
-                                             02209
-                                             02210P       0166B    80       EP       065C DOMIC            BSR          GRNCHR          Clear the screen.
-                                             0221IP       0E6D     SE       00D1           P               LDX          *MICRO-&1 Print MICROSOFT.
-                                             02212P       0E70     7E       0000           A               jMP          STROUT
-                                             02213
-                                                                                                           TTL          SOUND and AUDIO commands.
-                                             02215
-                                             02218P       0673     BD       UUOQ           A UUNZBY JSFR                CHKCOM            at comma and get nonzero byte.
-                                             022i7P       0676     BD       0000           A GNIZBYT JSR                GETBYT          Get nonzero byte.
-                                             02218P       0679     5D                                      TSTB                         Give PC error if it's zero.
-                                             02219P       067A     26       30       06B8                  BNE          SNDRTS
-                             1               02220P       0670     7E       0000           A OOFCER JMP                 FOERR
-                                             02:221
-                                             02::222
-                                             02223                                            *   SOUND frequency„duration
-                                             02224
-                                             02225                                            *   0 .LT.       frequency .LE.             255,     0 .LT.       duration          LH.     255.
-                                             02226                                          .*
-                                             02227
-                                             02228                                                         XDEF         SOUND
-                                             02229P       067F     ED       F5       0676 SOUND            BSR          9NZBYT          Get the frecuency number.
-                                             02230P       0681     D7       8C                             STB          SNDFRQ          Put     it away.
-                                             02231P       0683     8D       EP       0673                  RS*          GCNZBY          Eat comma and get duration.
-                                             02232                                                         XDEF         SOUNDR
-44 (0)20 89 71 BE
-
-   For Your Neare5
-
+02175                      *
+02176                      * CLS "clears" the screen.
+02177                      * If no argument is given, the screen is cleared using green spaces
+02178                      * (character mode).
+02179                      * If the argument is zero, the screen is blacked out oy putting
+02180                      * all blocks into graphics mode with all cells off and with a green
+02181                      * color field.
+02182                      * If the argument is between 1 and 8 all block are put in graphics
+02183                      * mode with all cells on using the color specified.  The colors are
+02184                      * the same as for the SET command.
+02185                      *
+02186
+02187                             XDEF   CLS
+02188P 0644 BD   0000    A CLS    JSR    HKCLS    RAM hook.
+02189P 0647 27   13   065C        BEQ    GRNCHR   No argument, use green space chars.
+02190P 0649 BD   0000    A        JSR    GETBYT   Read the argument.
+02191P 064C C1   08      A        CMPB   #&8      Valid args are from 0 to 8.
+02192P 064E 22   1B   066B        BHI    DOMIC    Go print MICROSOFT.
+02193P 0650 5D                    TSTB            Black out the screen if zero.
+02194P 0651 27   06   0659        BEQ    ALLOFF
+02195P 0653 5A                    DECB            Adjust to VDG color code and shift
+02196P 0654 86   10      A        LDA    #&16     into bits 4, 5, and 6.
+02197P 0656 3D                    MUL
+02198P 0657 CA   0F      A        ORB    #@17     Turn on all cells.
+02199P 0659 CA   80      A ALLOFF ORB    #@200    Turn on the graphics mode bit.
+02200P 065B                       SKIP2  Skip     over green character load.
+02201                             XDEF   GRNCHR
+02202P 065C C6   60      A GRNCHR LDB    #@140    This is a green space.
+02203P 065E 8E   0400    A        LDX    #SCRADR  Point to start of screen.
+02204P 0661 9F   88      A CLRLIN STX    CURADR   Store new cursor address.
+02205P 0663 E7   80      A CLSLOP STB    ,X+      Do all sceen positions.
+02206P 0665 8C   05FF    A        CMPX   #SCRADR+&511
+02207P 0668 23   F9   0663        BLS    CLSLOP
+02208P 066A 39                    RTS
+02209
+02210P 066B 8D   EF   065C DOMIC  BSR    GRNCHR   Clear the screen.
+02211P 066D 8E   00D1    P        LDX    #MICRO-&1 Print MICROSOFT.
+02212P 0670 7E   0000    A        JMP    STROUT
+02213
+02214                             TTL    SOUND and AUDIO commands.
+02215
+02218P 0673 BD   0000    A GCNZBY JSR    CHKCOM   Eat comma and get nonzero byte.
+02217P 0676 BD   0000    A GNZBYT JSR    GETBYT   Get nonzero byte.
+02218P 0679 5D                    TSTB            Give FC error if it's zero.
+02219P 067A 26   3C   06B8        BNE    SNDRTS
+02220P 067C 7E   0000    A GOFCER JMP    FCERR
+02221
+02222                      *
+02223                      * SOUND frequency,duration
+02224                      *
+02225                      * 0 .LT. frequency .LE. 255, 0 .LT. duration .LE. 255.
+02226                      *
+02227
+02228                             XDEF   SOUND
+02229P 067F 8D   F5   0676 SOUND  BSR    GNZBYT   Get the frequency number.
+02230P 0681 D7   8C      A        STB    SNDFRQ   Put it away.
+02231P 0683 8D   EE   0673        BSR    GCNZBY   Eat comma and get duration.
+02232                             XDEF   SOUNDR

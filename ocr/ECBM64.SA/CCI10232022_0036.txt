@@ -1,69 +1,47 @@
-                                   PAGE 037 rECBM64         .SA:1     HCB7'.64 Simple Graphics - SET, RE2,E:7", POINT, CLS
-                         (
-                                   02094 
-                                   02095 
-                 al                02096                                  BRPHAR evaluates the column and row numbers.
-                                   02097                                  It then calculates the address of the block containing the specified 
-                                    2096                                  cell. The address is returned in X.
-                 H                 02099                                  CELL contains the bit corresponding to the specified cell.
-                                   02100 
-                                   02101                                  Block address - SCRPDR + ROW\2*32 + COLUMN\2 
-                                   02:02                                  Cell bit = 2'(3-(2*(ROW MOD 2)+(COLUMN MOD 2)))
-                                   02103
+PAGE  037  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
 
-                         (         02105P          BD     0000       A GRPHAR JSR          CHKOPN      Check for a left parenthesis.
-                                   02106P   05FB BD 0000             A GRPHA2 JSR          GETBYT      Evaluate the column number.
-                                   02107P   05FE Ci       3F         A           CMPB      #&63        Make sure it is in range.
-                         EP        02108P   0600 22       07    0609             BHI       BADARG
-                                   02109P   0602 34       04         A           PP.HS     B           It is OK, save it.
-                                   0210P    0604 BD 0000             A           JSR       COMBYT      Eat comma and evaluate the row number.
-                         40        02111P   0607 C1       iF         A           CMPB      #&31        Make sure it's in range.                                                                                           C:
-                                   02112P   0609 22       r-    067C   BADARG BK1          GOFCER      (All who come here must meet the
-                                   02113                                      branch condition.)
-                                   0214P    060B 34 04                           ASHS      B           Row is OK, save it.                                                                                                40
-                                   02115P   060D 54                              LSRB                  integer divide by 2 and
-                                   02116P   060E 86 20                           LOA       #&32        multiply by 32.
-                                   02117P          3D                            MUL                                                                                                                                      41
-                                   02116P   0611          (:)1.1.0(3 A           LOX       #SCRADR Get the base address of the screen
-                                   02119                               *      memory.
-                         40        02120P   0614 30       8B         A           LEAX      D,X         Add in the row offset.                                                                                             40
-                            1-111  02121P   0616 E6       61         A           LDB       &1,S        integer divide the column by 2.
-                                   02122P   0616 54                              LSRB
-                                   0212:P   0619 3A                              ABX                   Add in the column offset.                                                                                          41
-                                   02124
-                                   02125                               *
-                         40        02126                               *  Now calculate the cell bit.                                                                                                                     •
-                                   02127                               *
-                                   02126
-                         fi        02129P   061A          06         A           PULS                  A:=row, b:=column.                                                                                                 e
-                                   02130P   061C 84       01                     ANDA      #&1         At=bit number:=2*(ROW MOD 2) +
-                                   02131P   061E                                 RORB                  (COLUMN MOD 2).
-                                   02132P   061F 49                              ROLA 
-                                   02133P   0620 CS       10                     LOB       *1220       Something to shift.
-                                   02134P   0622 54                    LSRLOP LSRB                     Shift into bit specified by A.
-                                   02135P   0623                                 DEIOR 
-                                   02136P   0624 2A FC          0622             BPL       LSRLOP 
-                                   02137P          D7     86         A           STB       CELL        Put it away for the callers.
-                                   0238P    0628 39                              RTS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                                          410
-
-+44 (0)20 89 71 :."
-
-      For Your Near
-
+02094
+02095                      *
+02096                      * GRPHAR evaluates the column and row numbers.
+02097                      * It then calculates the address of the block containing the specified
+02096                      * cell.  The address is returned in X.
+02099                      * CELL contains the bit corresponding to the specified cell.
+02100                      *
+02101                      * Block address = SCRADR + ROW\2*32 + COLUMN\2
+02102                      * Cell bit = 2^(3-(2*(ROW MOD 2)+(COLUMN MOD 2)))
+02103                      *
+02104
+02105P 05F8 BD   0000    A GRPHAR JSR    CHKOPN   Check for a left parenthesis.
+02106P 05FB BD   0000    A GRPHA2 JSR    GETBYT   Evaluate the column number.
+02107P 05FE C1   3F      A        CMPB   #&63     Make sure it is in range.
+02108P 0600 22   07   0609        BHI    BADARG
+02109P 0602 34   04      A        PSHS   B        It is OK, save it.
+02110P 0604 BD   0000    A        JSR    COMBYT   Eat comma and evaluate the row number.
+02111P 0607 C1   1F      A        CMPB   #&31     Make sure it's in range.
+02112P 0609 22   71   067C BADARG BHI    GOFCER   (All who come here must meet the
+02113                      *    branch condition.)
+0214P  060B 34   04      A        PSHS   B        Row is OK, save it.
+02115P 060D 54                    LSRB            Integer divide by 2 and
+02116P 060E 86   20      A        LDA    #&32     multiply by 32.
+02117P 0610 3D                    MUL
+02118P 0611 8E   0400    A        LDX    #SCRADR  Get the base address of the screen
+02119                      *    memory.
+02120P 0614 30   8B      A        LEAX   D,X      Add in the row offset.
+02121P 0616 E6   61      A        LDB    &1,S     integer divide the column by 2.
+02122P 0618 54                    LSRB
+02123P 0619 3A                    ABX             Add in the column offset.
+02124
+02125                      *
+02126                      * Now calculate the cell bit.
+02127                      *
+02128
+02129P 061A 35   06      A        PULS   D        A:=row, b:=column.
+02130P 061C 84   01      A        ANDA   #&1      A:=bit number:=2*(ROW MOD 2) +
+02131P 061E 56                    RORB            (COLUMN MOD 2).
+02132P 061F 49                    ROLA
+02133P 0620 C6   10      A        LDB    #@20     Something to shift.
+02134P 0622 54             LSRLOP LSRB            Shift into bit specified by A.
+02135P 0623 4A                    DECA
+02136P 0624 2A   FC   0622        BPL    LSRLOP
+02137P 0626 D7   86      A        STB    CELL     Put it away for the callers.
+02138P 0628 39                    RTS

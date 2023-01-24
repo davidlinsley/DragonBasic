@@ -1,74 +1,57 @@
-                              PAGE   001  ECBCOM    .SA:0   ECBM64 Extension ROM Direct Page RAM
+       NAM    ECBM64
 
+**********************************************************************
+*                                                                    *
+*    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+*                                                                    *
+**********************************************************************
 
-                              00700                                  OPT     L,LLE=120
-                              00701                                  NAM     ECBM64
-                      4IP     00702 
-                              00703                          **********************************************************************
-                              00704                          *                                                                              *
+       TTL     External Declarations
 
-                              00705                                Copyright  1982 by Microsoft Corporation,      all  rights reserved
-            H I C             00706                          *                                                                              *
-                              00707                          **********************************************************************
-                              00708
-                              00709                                  TTL     External Declarations
+       XREF    ALPHLK,ASC2,ASCFLG
+       XREF    BITIN,BUF
+       XREP    CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
+       XREF    CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
+       XREF    CLEARC
+       XREF    DBNCNT
+       XREF    ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
+       XREF    FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
+       XREF    FUNDSP,FUNLST
+       XREF    GAPFLG,GETBYT,GIVABF,GOPTNW
+       XREF    HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+       XREF    HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
+       XREF    INTCNV,INTIDX,ISCNTC,INTWDG
+       XREF    JOYIN
+       XREF    LDBUFR,LIST,LOADAD,LPTOUT
+       XREF    MAIN
+       XREF    NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
+       XREF    OFFTK,ONTK
+       XREF    PINIT,POLCAT,POTVAL
+       XREF    READY,REASON,REDDY,RESLST,ROLTBL
+       XREF    SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
+       XREF    STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+       XREF    TEMPST
+       XREF    USRTAB
+       XREF    VIRQ
+       XREF    WRTLDR
+       XREF    XRRUN,XRSLWC
 
-                              00710
-                              00711                                  XREF    ALPHLK,ASC2,ASCFLG
-                              00712                                  XREF    BITIN,BUF
-                              00713                                  XREP    CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
-                      40      00714                                  XREF    CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
-                              00715                                  XREF    CLEARC
-                              00716                                  XREF    DBNCNT
-                      40      00717                                  XREF    ENDHKS,ERRAO,ERRBM,ER RDN,ERRIO,ERRNO,ERROR,EVLADR
-                              00716                                  XREF    FCERR,FILNAM,FILTYP,F INI,FNAMLN,FRESTR,FRMEVL,FRMNUM
+       IFEQ    REALIO
+ ENDC   IFE REALIO
 
-                              00719                                  XREF    FUNDSP,FUNLST
-                      40      00720                                  XREF    GAPFLG,GETBYT,GIVABF, GOPTNW
-                              00721                                  XREF    HDRLEN,HKBRKC,HKCHRI, HKCHRO,HKCKDI,HRCKDO,HKOLS,HKCLS1
-                              00722                                  XREF    HKCLSA,HKDNCK,HKDPRM, HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
-                              00723                                  XREF    INTCNV,INTIDX,ISCNTC, INTWDG
-                              00724                                  XREF    JOYIN
-                              00725                                  XREF    LDBUFR,LIST,LOADAD,LPTOUT
-                      40      00726                                  XREF    MAIN
-                              00727                                  XREF    NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
+       TTL    Equates
 
-                              00728                                  XREF    OFFTK,ONTK
-                              00729                                  XREF    PINIT,POLCAT,POTVAL
-                              00730                                  XREF    READY,REASON,REDDY,RESLST,ROLTBL
+       XDEF   SCRADR
+SCRADR EQU    @2000    Address of screen memory (400 hex).
 
-                              00731                                  XREF    SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
-                      40      00732                                  XREF    STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
-                              00733                                  XREF    TEMPST
-
-                              00734                                  XREF    USRTAB
-                      40      00735                                  XREF    VIRG)
-                              00736                                  XREF    WRTLDR
-                              00737                                  XREF    XRRUN,XRSLWC
-                              00738
-                              00739              C)001               IFE0    REALIO
-
-                              00744                           ENDO    IFE REALIO
-                              00745
-                              00746                                          Equates
-                              00747
-                              00748                                  XDEF    SCRADR
-                          1!  00749              0400      A SCRADR EQU      @2000      Address of screen memory     (400 hex).
-                              00750
-                              00751              0001      A         IFNE    METTOY
-                              00752                                  XDEF    PIAOAD
-                              00753              FFOO      A PIAOAD EQU      P177400    PIAO, side A,   data reg.    (FF00)
-                              00754                                  ENDO    IFN        METTOY
-                              00755              0000      A         IFNE    GRPTEK
-                              00758                           ENDO    IFN F4RPTFK
-                              00759                                  XDEF    PIAOAC
-                              00760              FFOI      A PIAOAC EQU      PlAOAD-1-8,1 PIAO, side A,  control  reg.
-                              00761                                  XDEF    PIAOBD
-                              00762              FF02      A PIAOBD EQU      PIA0AC-f-&1 PIAO,  side B,  data  reg.
-                              00763                                  XDEF    PIAOBC
-
-14[0]20 89 71 39
-
-
-  For Your Nearest
-
+       IFNE   METTOY
+       XDEF   PIA0AD
+PIA0AD EQU    @177400  PIA0, side A, data reg.  (FF00)
+       ENDC   IFN      METTOY
+       IFNE   GRPTEK
+ ENDC   IFN GRPTEK
+       XDEF   PIA0AC
+PIA0AC EQU    PIA0AD+&1 PIA0, side A, control  reg.
+       XDEF   PIA0BD
+PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
+       XDEF   PIA0BC

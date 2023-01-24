@@ -1,65 +1,50 @@
-                                          026 :E0B 64                ECB64 The LH'EN code.
+PAGE  026  ECBM64  .SA:1  ECBM64 The OPEN code.
 
-
-                                  OIENt.                               *  Here to oben a device for 
-                                  01695                                *
-                                  01696
-                                  01E97P 043B 4C                       OPENI INCA                     If lineprinter give mode error.
-                                  01698P 0430 28         EF     0420             BMI      BMERR
-                                  01699P 047':. 26       2E     0466             BNE      OPNRTS      If keyboard lust return.
-                                  0:700P 0440 8D                045r             BSR      OPNCSI      Do the dirty work.
-                                   0170IP 0442 B6                                LOA      ASCFLO      Must be an ASCII gapped file.
-                                  ,..)702P 0445 B4        0000      A            ANDA GAPFLG
-                                   0i/O3P 0442 27               0420             B?:::.0. BMERR       Give mode error if not
-                                   0704P 044A OC          78                     INC      CASOPN      Mark as open for input.
-                                   01705                               *      Fall into LODBUF to load the buffer.
-                                   01706
-                                   01707                               *
-                                   01708                               *  LODBUF loads the cassette buffer.
-                                   01709                               *
-                                   01710
-                                   01711                                         XDEF     LODBUF 
-                                   01712P 0440 BD         0518         LODBUF JSR         RDBLK       Read the next block from tape. 
-                                   01713P 044F 26         OF    0430             BNE      IOERR       Read error.
-                                   0174P 0451 OD          7C        A            TST      BLKTYP      Examine the block type.
-                                   01715P 045: 27         DB    0430             BC;1     IOERR       Can't have header in middle of file:
-                                   01716P 0455 28         17    046E             BMI      OPNRTS      If EOF block just return and leave
-                                   C1717                               •      the buffer empty.
-                                   0178P 0457 96          7D        A            LDA      BLKLEN      Get the block length.
-                                   01719P 0459 27               0440             BED.     LODBUF      Nothing there, go Pack for more.
-                                   01720                                         XOEF     FINLDB
-                                   0172IP 045B 97         79           FINLOB STA         CBFCNT      Set buffer count.
-                                   01722P 045D 20         OA    0469             BRA      SETPTR      Set the pointer to the beginning of
-                                   01/23                               •      of the buffer.
-                                   01724
-                                   01725
-                                   01726                               *
-                                   01727                               *  Make sure cassette isn't already poen, find the file, mark the
-                                   31728                               *  cassette as omen for input, and mark the cassette buffer as empty. 
-                                   01729                               *
-                                   0:730
-                                   01731                                         X0E7     OPNLSI
-                                   01732P 045F OD         78        A  OPNCSI TST         CASOPN       Is the cassette already open?
-                                   0I733P 0461 26         DO     0433            BNE      AOERR        Yes, give Already Open error.
-                                   07340 0463 8D          33     0498            BSR      TAPSRC      No, search the cassette for the file. 
-                                   01735P 0465 25         C9     0430            BNE      IOERR       An error occurred while searching. 
-                                   0173EP 0467 OF         79        A   MRKMT CLR         CBFCNT       Zero the count.
-                                   01737o 0469            0000      A   SETPTR LOX        #CASBUF      Point to the start of the buffer.
-                                   01738P 0460 9F         7A        A            STX      CBFPTR
-                                   01739P OaGE                          CONRTS R7S
-                                   0.1740
-
-
-
-
-
-
-
-
-
-
-
-+44 (0)20 EIEL71          •
-
-      For Your Near
-
+01693                      *
+01694                      * Here to oben a device for input.
+01695                      *
+01696
+01697P 043B 4C             OPENI  INCA            If lineprinter give mode error.
+01698P 043C 2B   EF   042D        BMI    BMERR
+01699P 043E 26   2E   046E        BNE    OPNRTS   If keyboard just return.
+01700P 0440 8D   1D   045F        BSR    OPNCSI   Do the dirty work.
+01701P 0442 B6   0000    A        LDA    ASCFLG   Must be an ASCII gapped file.
+01702P 0445 B4   0000    A        ANDA   GAPFLG
+01703P 0448 27   E3   042D        BEQ    BMERR    Give mode error if not.
+01704P 044A 0C   78      A        INC    CASOPN   Mark as open for input.
+01705                      *    Fall into LODBUF to load the buffer.
+01706
+01707                      *
+01708                      * LODBUF loads the cassette buffer.
+01709                      *
+01710
+01711                             XDEF   LODBUF
+01712P 044C BD   0518    P LODBUF JSR    RDBLK    Read the next block from tape.
+01713P 044F 26   DF   0430        BNE    IOERR    Read error.
+01714P 0451 0D   7C      A        TST    BLKTYP   Examine the block type.
+01715P 0453 27   DB   0430        BEQ    IOERR    Can't have header in middle of file!
+01716P 0455 2B   17   046E        BMI    OPNRTS   If EOF block just return and leave
+01717                      *    the buffer empty.
+01718P 0457 96   7D      A        LDA    BLKLEN   Get the block length.
+01719P 0459 27   F1   044C        BEQ    LODBUF   Nothing there, go back for more.
+01720                             XDEF   FINLDB
+01721P 045B 97   79      A FINLDB STA    CBFCNT   Set buffer count.
+01722P 045D 20   0A   0469        BRA    SETPTR   Set the pointer to the beginning of
+01723                      *    of the buffer.
+01724
+01725
+01726                      *
+01727                      *  Make sure cassette isn't already open, find the file, mark the
+01728                      *  cassette as open for input, and mark the cassette buffer as empty.
+01729                      *
+01730
+01731                             XDEF   OPNCSI
+01732P 045F 0D   78      A OPNCSI TST    CASOPN   Is the cassette already open?
+01733P 0461 26   D0   0433        BNE    AOERR    Yes, give Already Open error.
+017340 0463 8D   33   0498        BSR    TAPSRC   No, search the cassette for the file.
+01735P 0465 26   C9   0430        BNE    IOERR    An error occurred while searching.
+01736P 0467 0F   79      A MRKMT  CLR    CBFCNT   Zero the count.
+01737P 0469 8E   0000    A SETPTR LDX    #CASBUF  Point to the start of the buffer.
+01738P 046C 9F   7A      A        STX    CBFPTR
+01739P 046E 39             OPNRTS RTS
+01740

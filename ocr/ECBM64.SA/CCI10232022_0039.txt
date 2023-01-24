@@ -1,138 +1,36 @@
-                             PAGE   040   EOF164   .SA:1   ';::C3M64 SOUND and AUDIO commands.
-
-
-
-
-                             02233P  0685  86    04       A SOUNDR LOA      #6,4       Multiply duration by something
-
-                a     01     02234P  0687  3D                       MUL                so the sound can be heard.
-                             02235P  0688  DD    SD       A         STD     SNDTMR     Init the sound countdown timer.
-
-                             02236P  062A  36    FF03               LOA     PIAOBC     Make sure slow clock    is enabled at
-
-                H            02237P  068D  SA    01                 ORA                the PIA.
-
-                             0238P   068F  27    FF03     A         STA     PIA0BC
-
-                             02239P  0692  12                       NOP                WASTE A BYTE FOR ADDRESS OOMPATABILITY
-
-                             02240P  0693  5F                       CLRB               Select D/A sound.
-
-                             02241P  0694  SD    40   06OF.         BSR     SETSEL
-
-                          1  02242P  0696  8O    12   06AA          BSR     SNDON      Turn on sounC to TV.
-
-                             02243
-
-                             02244P  0698  SO    IF   0669  HLDSND BSR      SNDMID     Put out center amplitude.
-
-                             02245P  069A  86    FC       A         LDA     #8,252H-PIADIT Put   out max amplitude.
-
-                             02246P  069r: 8D    ID   06BB          BSR     DOSND
-
-                             02247P  069E  ED    19   0539          BSR     SNDMID     Put out center amplitude again.
-
-                             02248P  06A0  86    00       A         LOA     #8,0!+PIABIT Put   out min amplitude.
-
-                             02249P  06A2  8D    17   06BB          BSR     DOSND
-
-                             02250P  06A4  9E    8D       A         LOX     SNDTMR     Has the timer expired?
-
-                             02251P  06A6  26    F0   0698          BINE    HLDSND     No, hold the sount.
-
-                             02252                          *     Yes,  fall  into SNDOFF to turn off
-
-                             02253                          *     TV sound.
-
-                             02254
-
-                             02255                                  XDEF    SNDOFF
-
-                             02256P  06A8  4F               SNDOFF OLRA                Turn off TV sound.
-
-                             02257P  06A9                                   Skip       over SNDON entry point.
-
-                             02258                                  XDEF    SNDON
-                      40     02259P  06AA  86    OR       A SNDON   LDA     #@10       Turn on TV sound.
-
-                        1111 02260P  ()SAC A7    E2       A         STA     ,-S        Save ON/OFF bit.
-
-                             02261P  06AE  B6    FF23     A         LOA     PIAIBC     Get current contents of control     reg.
-                             02252P  0631  84    F7       A         ANDA    #02367     Reset sound enable bit.                                                                        •
-
-                             02263P  0633  AA    30       A         ORA                Now turn  it on if desired.
-
-                             02264P  0635  37    FF23     A         STA     PIA:LBO
-
-                             02':285P0638                   S~DRTS RTS                                                                                                                •
-
-                             02266
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                   -  0
-
-                                                                                                                                                                                    ,• 
-
-
-
-
-                                                                                                                                                                                      0
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+    [O} CD 8 9 '7 1 E
-
-
-
-     For Your Nean
-
+PAGE  040  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
+
+02233P 0685 86   04      A SOUNDR LDA    #&4      Multiply duration by something
+02234P 0687 3D                    MUL             so the sound can be heard.
+02235P 0688 DD   8D      A        STD    SNDTMR   Init the sound countdown timer.
+02236P 068A B6   FF03    A        LDA    PIA0BC   Make sure slow clock is enabled at
+02237P 068D 8A   01      A        ORA    #&1      the PIA.
+0238P  068F B7   FF03    A        STA    PIA0BC
+02239P 0692 12                    NOP             WASTE A BYTE FOR ADDRESS COMPATABILITY
+02240P 0693 5F                    CLRB            Select D/A sound.
+02241P 0694 8D   40   06D6        BSR    SETSEL
+02242P 0696 8D   12   06AA        BSR    SNDON    Turn on sound to TV.
+02243
+02244P 0698 8D   1F   06B9 HLDSND BSR    SNDMID   Put out center amplitude.
+02245P 069A 86   FC      A        LDA    #&252!+PIABIT Put out max amplitude.
+02246P 069C 8D   1D   06BB        BSR    DOSND
+02247P 069E 8D   19   06B9        BSR    SNDMID   Put out center amplitude again.
+02248P 06A0 86   00      A        LDA    #&0!+PIABIT Put out min amplitude.
+02249P 06A2 8D   17   06BB        BSR    DOSND
+02250P 06A4 9E   8D      A        LDX    SNDTMR   Has the timer expired?
+02251P 06A6 26   F0   0698        BNE    HLDSND   No, hold the sound.
+02252                      *    Yes, fall into SNDOFF to turn off
+02253                      *    TV sound.
+02254
+02255                             XDEF   SNDOFF
+02256P 06A8 4F             SNDOFF CLRA            Turn off TV sound.
+02257P 06A9                              Skip     over SNDON entry point.
+02258                             XDEF   SNDON
+02259P 06AA 86   08      A SNDON  LDA    #@10     Turn on TV sound.
+02260P 06AC A7   E2      A        STA    ,-S      Save ON/OFF bit.
+02261P 06AE B6   FF23    A        LDA    PIA1BC   Get current contents of control reg.
+02252P 06B1 84   F7      A        ANDA   #@367    Reset sound enable bit.
+02263P 06B3 AA   E0      A        ORA    ,S+      Now turn it on if desired.
+02264P 06B5 B7   FF23    A        STA    PIA1BC
+02285P 06B8 39             SNDRTS RTS
+02266

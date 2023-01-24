@@ -1,0 +1,1705 @@
+PAGE  001  ECBCOM  .SA:0  ECBM64 Extension ROM Direct Page RAM
+
+00700                             OPT    L,LLE=120
+00701                             NAM    ECBM64
+00702
+00703                      **********************************************************************
+00704                      *                                                                    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00706                      *                                                                    *
+00707                      **********************************************************************
+00708
+00709                             TTL     External Declarations
+00710
+00711                             XREF    ALPHLK,ASC2,ASCFLG
+00712                             XREF    BITIN,BUF
+00713                             XREP    CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
+00714                             XREF    CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
+00715                             XREF    CLEARC
+00716                             XREF    DBNCNT
+00717                             XREF    ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
+00716                             XREF    FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
+00719                             XREF    FUNDSP,FUNLST
+00720                             XREF    GAPFLG,GETBYT,GIVABF,GOPTNW
+00721                             XREF    HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+00722                             XREF    HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
+00723                             XREF    INTCNV,INTIDX,ISCNTC,INTWDG
+00724                             XREF    JOYIN
+00725                             XREF    LDBUFR,LIST,LOADAD,LPTOUT
+00726                             XREF    MAIN
+00727                             XREF    NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
+00728                             XREF    OFFTK,ONTK
+00729                             XREF    PINIT,POLCAT,POTVAL
+00730                             XREF    READY,REASON,REDDY,RESLST,ROLTBL
+00731                             XREF    SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
+00732                             XREF    STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+00733                             XREF    TEMPST
+00734                             XREF    USRTAB
+00735                             XREF    VIRQ
+00736                             XREF    WRTLDR
+00737                             XREF    XRRUN,XRSLWC
+00738
+00739            0001    A        IFEQ    REALIO
+00744                       ENDC   IFE REALIO
+00745
+00746                             TTL    Equates
+00747
+00748                             XDEF   SCRADR
+00749            0400    A SCRADR EQU    @2000    Address of screen memory (400 hex).
+00750
+00751            0001    A        IFNE   METTOY
+00752                             XDEF   PIA0AD
+00753            FF00    A PIA0AD EQU    @177400  PIA0, side A, data reg.  (FF00)
+00754                             ENDC   IFN      METTOY
+00755            0000    A        IFNE   GRPTEK
+00758                       ENDC   IFN GRPTEK
+00759                             XDEF   PIA0AC
+00760            FF01    A PIA0AC EQU    PIA0AD+&1 PIA0, side A, control  reg.
+00761                             XDEF   PIA0BD
+00762            FF02    A PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
+00763                             XDEF   PIA0BC
+
+PAGE  002  ECBM64  .SA:1  ECBM64 Equates
+
+00764            FF03    A PIA0BC EQU    PIA0BD+&1 PIA0, side B, control reg.
+00765
+00766            0001    A        IFNE   METTOY
+00767                             XDEF   PIA1AD
+00768            FF20    A PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
+00769                             ENDC   IFN      METTOY
+00770            0000    A        IFNE   GRPTEK
+00773                        ENDC  IFN GRPTEK
+00774                             XDEF   PIA1AC
+00775            FF21    A PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
+00776                             XDEF   PIA1BD
+00777            FF22    A PIA1BD EQU    PIA1AC+&1 PIA1, side B, data reg.
+00778                             XDEF   PIA1BC
+00779            FF23    A PIA1BC EQU    PIA1BD+&1 PIA1, side B, conrtrol reg.
+00780
+00781            C000    A CARTRM EQU    @140000  Address of cartridge ROM.  (C000)
+00782            8000    A EXTROM EQU    @100000  Address of extension ROM.  (8000)
+00783
+00784                             XDEF   SAM
+00785            FFC0    A SAM    EQU    @177700  Address of SAM chip.  (FFC0)
+00786
+00787            C000    A DSKRUM EQU    @140000 The address of the disk ROM.  (C000)
+00788
+00789            BE7F    A BOOT64 EQU    $BE7F
+00790            011A    A FLAG64 EQU    $11A
+00791                             TTL    Power up and Reset code.
+00792                             XDEF   POWRUP
+00793            0000    P POWRUP EQU    *        DUMMY LABEL FOR 64K VERSION
+00794                             XDEF   ZHRDIN
+00795            0000    P ZHRDIN EQU    *
+00796                             XDEF   INIT
+00797P 0000 8E   0071    P INIT   LDX    #LORAM   INITIALISE DIRECT PAGE RAM
+00798P 0003 CE   009D    A        LDU    #EXECAD
+00799P 0006 C6   0E      A        LDB    #NLORAM
+00800P 0008 BD   03B1    P        JSR    COPLOP
+00801P 000B CE   0000    A        LDU    #VIRQ    INITIALISE RAM OFF DIRECT PAGE
+00802P 000E C6   0E      A        LDB    #NMDRAM  UP TO 64K FLAG
+00803P 0010 BD   03B1    P        JSR    COPLOP
+00804P 0013 33   45      A        LEAU   5,U      SKIP PAST USED BYTES
+00805P 0015 C6   0B      A        LDB    #NHIRAM
+00806P 0017 BD   03B1    P        JSR    COPLOP
+00807P 001A 8E   0000    A        LDX    #SNERR   X:=SNERR FOR INITIALISING THE DISPATCH
+00808P 001D AF   43      A        STX    &3,U     INIT STUB 1 DISPATCH ADDRESS
+00809P 001F AF   48      A        STX    &8,U
+00810P 0021 8E   0000    A        LDX    #HOOKS
+00811P 0024 CC   3900    A        LDD    #$3900+NRTSH3
+00812P 0027 A7   80      A INIHKS STA    ,X+
+00813P 0029 5A                    DECB
+00814P 002A 26   FB   0027        BNE    INIHKS
+00815P 002C BD   065C    P        JSR    GRNCHR  Clear the screen.
+00816P 002F BD   00000   A        JSR    CLEARC  DESTROY OLD VARIABLES
+00817P 0032 1C   AF      A        ANDCC  #$FF!X(F!+I) Allow the cartridge to interrupt now
+00818                      *    before displaying the sign on message.
+00819P 0034 8E   0097    P        LDX    #SIGNON-&1 Print the sign on message.
+00820P 0037 BD   0000    A        JSR    STROUT
+00821                             XDEF   FINIT
+00822P 003A 86   55      A FINIT  LDA    #@125    Set the restart flag.
+00823P 003C 97   71      A        STA    RSTFLG
+
+PAGE  003  ECBM64  .SA:1  ECBM64 Power up and Reset code.
+
+00824P 003E B7   011A    A        STA    FLAG64
+00825P 0041 20   03   0046        BRA    BASRST
+00826                      *
+00827                      * Here to restart BASIC.
+00828                      *
+00829                             XDEF   ZSFTIN
+00830P 0043 BD   065C    P ZSFTIN JSR    GRNCHR
+00831                             XDEF   BASRST
+00832P 0046 0F   E3      A BASRST CLR    DURCNT   Clear the PLAY note duration count
+00833P 0048 0F   E4      A        CLR    DURCNT+&1 so interrupts don't think we are
+00834                      *    still playing the note.
+00835P 004A B6   FF03    A        LDA    PIA0BC   Enable the 60 hertz interrupt.
+00836P 004D 8A   01      A        ORA    #&1
+00837P 004F B7   FF03    A        STA    PIA0BC
+00838P 0052 0F   6F      A        CLR    DEVNUM   Make sure output goes to screen and
+00839                      *    input comes from keyboard.
+00840P 0054 BD   0000    A        JSR    STKINI   Reset the stack and things.
+00841P 0057 1C   AF      A        ANDCC  #$FF!X(F!+I) Enable interrupts.
+00842P 0059 7E   0000    A GORDY  JMP    READY    Go say "OK".
+00843
+00844
+00845                      *
+00846                      * Here on a FIRQ to handle the cartridge interrupt.
+00847                      *
+00848                             XDEF   CARTRG
+00849P 005C 7D   FF23    A CARTRG TST    PIA1BC   Did the cartridge cause the interrupt?
+00850P 005F 2B   01   0062        BMI    GOCART   Yes.
+00851P 0061 3B                    RTI             No, return from the interrupt.
+00852
+00853P 0062 BD   006A    P GOCART JSR    DELHAF   Delay for about a second
+00854P 0065 0F   71      A        CLR    RSTFLG   Don't allow BASIC to be restarted.
+00855P 0067 7E   C000    A        JMP    CARTRM   Go execute the cartrige program.
+00856
+00857                      *
+00858                      * Delay for about one half second.
+00859                      *
+00860
+00861                             XDEF   DELHAF
+00862P 006A 9E   BA      A DELHAF LDX    DBLZER
+00863P 006C 30   1F      A DELAY  LEAX   -&1,X
+00864P 006E 26   FC   006C        BNE    DELAY
+00865P 0070 39                    RTS
+
+PAGE  004  ECBM64  .SA:1  ECBM64 Power up and Reset code.
+
+00867                      *
+00868                      * Tnis stuff gets block transferred into RAM during initialization.
+00869                      *
+00870
+00871P 0071      0000    A LORAM  FDB    FCERR    EXECAD
+00872P 0073 0C   A7      A        INC    TXTPTR+&1 CHRGET RAM code.
+00R73P 0075 26   02   0079        BNE    CHRLOD
+00874P 0077 0C   A6      A        INC    TXTPTR
+00875P 0079 B6   0000    A CHRLOD LDA    >0       (Force extended addressing.)
+00876P 007C 7E   070B    P        JMP    ROMLOC
+00877
+00878            000E    A NLORAM EQU    *-LORAM
+00879
+00880P 007F 7E   0000    A MIDRAM JMP    INTWDG   VIRQ WEDGE (AUTO-REPEAT & RS232)
+00881P 0082 7E   005C    P        JMP    CARTRG   VFIRQ
+00882P 0085      00      A        FCB    &0       TICKER (Overlays 8K version's USRJMP.)
+00663P 0086      00      A        FCB    &0       (Was JMP FCERR for 8k version.)
+00884P 0087      00      A        FCB    &0
+00885P 0088      80      A        FCB    @200     RNDX
+00886P 0089      4F      A        FCB    @117
+00867P 008A      C7      A        FCB    @307
+00868P 008B      52      A        FCB    @122
+00889            0001    A        IFNE   ADDPRC
+00890P 008C      59      A        FCB    @131
+00691            000E    A NMDRAM EQU    *-MIDRAM
+00892                             ENDC   IFN      ADDPRC
+00893
+00894P 008D      05      A HIRAM  FCB    &5        INTER-REPEAT DELAY
+00895P 008E      00      A        FCB    NNRMTK    STUB0
+00896P 008F      0000    A        FDB    RESLST
+00897P 0091      0000    A        FDB    STMDSP
+00898P 0093      00      A        FCB    NFUNTK
+00899P 0094      0000    A        FDB    FUNLST
+00900P 0096      0000    A        FDB    FUNDSP
+00901
+00902            000B    A NHIRAM EQU    *-HIRAM
+00903
+00904            0001    A        IFNE   METTOY
+00905P 0098      28      A SIGNON FCC    /(C) 1983 DRAGON DATA LTD /
+00906P 00B1      0D      A        FCB    CR
+00907P 00B2      31      A        FCC    /16K BASIC INTERPRETER 1.0      /
+00908P 00D1      0D      A        FCB    CR
+00909P 00D2      28      A MICRO  FCC    /(C) 1983 BY MICROSOFT/
+00910P 00E7      0D      A        FCB    CR
+00911P 00E8      0D      A        FCB    CR
+00912P 00E9      00      A        FCB    &0
+00913                             ENDC   IFN      METTOY
+00914
+00915            0000    A        IFNE   GRPTEK
+00927                       ENDC   IFN GRPTEK
+00928
+00929                             TTL    CHRINP - Character Input Routine
+00930
+00931                      *
+00932                      * CHRINP inputs a character from the device specified by DEVNUM.
+00933                      * The character is returned in A.
+00934                      * All registers except A and CC are preserved.
+00935                      * If end of file is hit, EOFFLG=.TRUE.=non-zero, and A is meaningless.
+
+PAGE  005  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
+
+00936                      *
+00937                      * INCHR is called instead of CHRINP when a 7 bit code is wanted.
+00938                      *
+00939
+00940                             XDEF   INCHR
+00941P 00EA 8D   03   00EF INCHR  BSR    CHRINP   Read a character.
+00942P 00EC 84   7F      A        ANDA   #@177    Clear the high order bit.
+00943P 00EE 39                    RTS             Return with it
+00944
+00945
+00946                             XDEF   CHRINP
+00947P 00EF BD   0000    A CHRINP JSR    HKCHRI   RAM hook.
+00948P 00F2 0F   70      A        CLR    EOFFLG   End of file flag:=.FALSE.
+00949P 00F4 0D   6F      A        TST    DEVNUM   Check the device number.
+00950P 00F6 27   25   011D        BEQ    KEYINP   Go handle the keyboard.
+00951                      *    No, fall into CASINP to get char from
+00952                      *    cassette.
+
+PAGE  006  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
+
+00954                      *
+00955                      * CASINP reads a character from a cassette file.
+00956                      * (Also used for downloading in the extended version.)
+00957                      *
+00958
+00959P 00F8 0D   79      A CASINP TST    CBFCNT   Is the buffer empty?
+00960P 00FA 26   03   00FF        BNE    NOTMT    No, go get a char from it.
+00961P 00FC 03   70      A        COM    EOFFLG   Yes, end of file.
+00962P 00FE 39                    RTS
+00963
+00964P 00FF 34   74      A NOTMT PSHS    U,Y,X,B Save registers.  (Save all because
+00965                      *    of bossible LODBUF call.)
+00966P 0101 9E   7A      A        LDX    CBFPTR   Get char from cassette buffer, update
+00967P 0103 A6   80      A        LDA    ,X+      the pointer, and decrement the count.
+00968P 0105 34   02      A        PSHS   A        (Save the char too.)
+00969P 0107 9F   7A      A        STX    CBFPTR
+00970P 0109 0A   79      A        DEC    CBFCNT
+00971P 010B 26   09   0116        BNE    CASIRT   Buffer still not empty, just return.
+00972P 010D 96   6F      A        LDA    DEVNUM   Doing a download?
+00973P 010F 81   FD      A        CMPA   #-&3
+00974P 0111 27   05   0118        BEQ    LODDNL   Yes, use different load buffer
+00975                      *    routine.
+00976P 0113 BD   044C    P        JSR    LODBUF   Reload the buffer.
+00977P 0116 35   F6      A CASIRT PULS   D,X,Y,U,PC Get tne char into A, restore all regs
+00978                      *    and return.
+00979
+00980P 0118 BD   0000    A LODDNL JSR    LDBUFR   Reload download buffer.
+00981P 011B 20   F9   0116        BRA    CASIRT   Restore and return.
+
+PAGE  007  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
+
+00983                      *
+00984                      * KEYINP reads a char from the keyboard.
+00985                      *
+00986
+00987            0001    A        IFNE   REALIO
+00988P 011D 34   14      A KEYINP PSHS   X,B      Save the registers.
+00989P 011F BD   0000    A KEYILP JSR    CBLINK   Blink the cursor.
+00990P 0122 BD   0000    A        JSR    POLCAT   Scan the keyboard.
+00991P 0125 27   F8   011F        BEQ    KEYILP   No key, look again.
+00992P 0127 C6   60      A        LDB    #@140    Have key, clear the cursor.
+00993P 0129 E7   9F 0088 A        STB    [CURADR]
+00994P 012D 35   94      A KEYFIN PULS   B,X,PC   Restore B and X and return with the
+00995                      *    the char in A.
+00996                             ENDC   IFN      REALIO
+00997
+00998            0001    A        IFEQ   REALIO
+01001                       ENDC   IFE REALIO
+
+PAGE  008  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
+
+01003                             TTL    CHROUT - Output Character Routine
+01004
+01005                      *
+01006                      * CHROUT sends the character in A to the device specified by DEVNUM.
+01007                      * The output is suppressed if DEVNUM indicates that file input is
+01008                      * in progress.  This is done so character echo, input prompts
+01009                      * (such as double duestion mark for more input), etc is ignored
+01010                      * while inputting file data or loading an ASCII program file.
+01011                      *
+01012                      * All registers except CC are preserved.
+01013                      *
+01014
+01015                             XDEF   CHROUT
+01016P 012F BD   0000    A CHROUT JSR    HKCHRO   RAM hook.
+01017P 0132 34   04      A        PSHS   B        Save B.
+01018P 0134 D6   6F      A        LDB    DEVNUM   Get the device number.
+01019P 0136 C1   FD      A        CMPB   #-&3     Doing a download?
+01020P 0138 26   02   013C        BNE    NOTDNL   No.
+01021P 013A 35   84      A        PULS   B,PC     Yes, throw away the echo.
+01022
+01023P 013C 5C             NOTDNL INCB            See what it is.
+01024P 013D 35   04      A        PULS   B        Restore B.
+01025P 013F 102B FEBD    A        LBMI   LPTOUT   Send char to printer.
+01026P 0143 26   2F   0174        BNE    SCROPT   Send char to screen.
+01027
+01028P 0145 34   16      A        PSHS   X,D      It's the cassette, save some regs.
+01029P 0147 D6   78      A        LDB    CASOPN   Is the cassette
+01030P 0149 5A                    DECB            open for input?
+01031P 014A 27   0F   015B        BEQ    OUTRTS   Yes, throw this output away.
+01032
+01033                      *
+01034                      * Output character to cassette file.
+01035                      *
+01036
+01037P 014C D6   79      A CASOUT LDB    CBFCNT   Get the character count.
+01038P 014E 5C                    INCB            Is the buffer full?
+01039P 014F 26   02   0153        BNE    NOTFUL   No, go put the char in the buffer.
+01040P 0151 8D   0A   015D        BSR    DMPBUF   Yes, write out the buffer.
+01041P 0153 9E   7A      A NOTFUL LDX    CBFPTR   Get pointer into buffer.
+01042P 0155 A7   80      A        STA    ,X+      Put the char away and increment the
+01043P 0157 9F   7A      A        STX    CBFPTR   pointer.
+01044P 0159 0C   79      A        INC    CBFCNT   Increment the count.
+01045P 015B 35   96      A OUTRTS PULS   D,X,PC   Restore regs and return.
+01046
+01047                      *
+01048                      * Here to dump the cassette buffer to tape.
+01049                      *
+01050
+01051P 015D C6   01      A DMPBUF LDB    #&1      Set block type to data.
+01052P 015F D7   7C      A WRTEOF STB    BLKTYP
+01053P 0161 8E   0000    A        LDX    #CASBUF  Set address of data for WRTBLK.
+01054P 0164 9F   7E      A        STX    CBUFAD
+01055P 0166 D6   79      A        LDB    CBFCNT   Set the block length.
+01056P 0168 D7   7D      A        STB    BLKLEN
+01057P 016A 34   62      A        PSHS   U,Y,A    Save the rest.
+01058P 016C BD   0576    P        JSR    WRTBLK   Write block out.
+01059P 016F 35   62      A        PULS   A,Y,U    Restore regs.
+01060P 0171 7E   0467    P        JMP    MRKMT    Mark the buffer as empty.
+
+PAGE  009  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
+
+01062                      *
+01063                      * Ouput character to screen.
+01064                      *
+01065
+01066            0174    P SCROPT EQU    *
+01067            0001    A        IFNE   REALIO
+01068P 0174 BD   0000    A        JSR    SAMALP   Switch to text mode.
+01069P 0177 7E   0000    A        JMP    SCROUT   Go to the screen driver.
+01070                             ENDC   IFN      REALIO
+01071
+01072            0001    A        IFEQ   REALIO
+01104                       ENDC   IFE REALIO
+
+PAGE  010  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
+
+01106                             TTL    DEVPRM - Return Device Parameters
+01107
+01108                      *
+01109                      * DEVPRM returns the following device parameters:
+01110                      *
+01111                      * DEVPOS - The position of the print head or it's equivalent.
+01112                      * DEVWID - The line width of the device.
+01113                      * DEVLCF - The column number where the last comma field starts.
+01114                      * DEVCFW - The comma field width.
+01115                      * SPCIO  -  .TRUE. for special I/O handling in PRINT and INPUT code.
+01116                      *
+01117                      * All registers except CC are preserved.
+01118                      * On exit, Z=1 if the device has infinite width (DEVWID=0).
+01119                      *
+01120
+01121                             XDEF   DEVPRM
+01122P 017A BD   0000    A DEVPRM JSR    HKDPRM   RAM hook.
+01123P 017D 34   16      A        PSHS   X,D      Save registers.
+01124P 017F 0F   6E      A        CLR    SPCIO    Special I/O flag=.FALSE.
+01125P 0181 96   6F      A        LDA    DEVNUM   Set the device number.
+01126P 0183 27   09   018E        BEQ    SCRPRM   Go get the screen parms.
+01127P 0185 4C                    INCA
+01128P 0186 27   17   019F        BEQ    CASPRM   Go get cassette parms.
+01129
+01130                      *
+01131                      * Get line printer parameters.
+01132                      *
+01133
+01134P 0188 9E   99      A LPTPRM LDX    LPTCFW   Get comma field width and last comma
+01135                      *    field.
+01136P 018A DC   9B      A        LDD    LPTWID   Get width and current position.
+01137P 018C 20   09   0197        BRA    DEVFIN   Go put it all away.
+01138
+01139                      *
+01140                      * Get screen parms.
+01141                      * The width, comma field width, and last comma field are fixed.
+01142                      * The position is obtained by reading tne cursor address.
+01143                      *
+01144
+01145P 018E D6   89      A SCRPRM LDB    CURADR+&1 Get low order of cursor address.
+01146P 0190 C4   1F      A        ANDB   #&31     Determine the column number. This
+01147                      *    only works because the line width
+01148                      *    is a power of two.
+01149P 0192 8E   1010    A        LDX    #&16*&256+&16 Field width and last comma field.
+01150P 0195 86   20      A        LDA    #&32     Set up the width.
+01151                             XDEF   DEVFIN
+01152P 0197 9F   6A      A DEVFIN STX    DEVCFW   Put away comma field width and last
+01153                      *    comma field.
+01154P 0199 D7   6C      A        STB    DEVPOS   Put away the position.
+01155P 019B 97   6D      A        STA    DEVWID   Put away the width and set the Z bit
+01156                      *    for infinite width devices.
+01157P 019D 35   96      A        PULS   D,X,PC   Restore and return.
+01158
+01159
+01160                      *
+01161                      * Get tne cassette parms.
+01162                      * They are all fixed at values which are necessary for the special
+01163                      * I/O code to work properly.  SPCIO gets set TRUE.
+
+PAGE  011  ECBM64  .SA:1  ECBM64 DEVPRM - Return Device Parameters
+
+01164                      *
+01165
+01166P 019F 03   6E      A CASPRM COM    SPCIO    Speciai I/O flag:=.TRUE.
+01167P 01A1 8E   0100    A        LDX    #&256    Comma field width:=1, last comma
+01168                      *    field:=0 but don't really care.
+01169P 01A4 4F                    CLRA            Width:=infinite and position:=0.
+01170P 01A5 5F                    CLRB
+01171P 01A6 20   EF   0197        BRA    DEVFIN   Go put them away.
+
+PAGE  012  ECBM64  .SA:1  ECBM64 DEVPRM - Return Device Parameters
+
+01173                             TTL    INLIN - The line input routine.
+01174
+01175P 01A8 BD   065C    P INLCLS JSR    GRNCHR   Clear the screen and start over.
+01176                             XDEF   INLIN
+01177P 01AB BD   0000    A INLIN  JSR    HKINLN   RAM hook.
+01178P 01AE 0F   87      A        CLR    INKCHR   Throw away INKEY's character.
+01179P 01B0 8E   0000    A        LDX    #BUF     Point to the start of the line buffer.
+01180P 01B3 C6   01      A        LDB    #&1      Init the character count.
+01181P 01B5 BD   00EA    P INLINC JSR    INCHR    Read a character.
+01182P 01B8 0D   70      A        TST    EOFFLG   End of file reached?
+01183P 01BA 26   2B   01E7        BNE    INLDON   Yes, go finish up.
+01184P 01BC 0D   6F      A        TST    DEVNUM   Reading from the keyboard?
+01185P 01BE 26   23   01E3        BNE    NOEDIT   No, don't check for editing chars.
+01186P 01C0 81   0C      A        CMPA   #@14     CLEAR key?
+01187P 01C2 27   E4   01A8        BEQ    INLCLS   Yes, clear screen and start over.
+01188P 01C4 81   08      A        CMPA   #CHRDEL  Character delete?
+01189P 01C6 26   07   01CF        BNE    NTCDEL   No.
+01190P 01C8 5A                    DECB            Yes, at beginning of line?
+01191P 01C9 27   E0   01AB        BEQ    INLIN    Yes, just start over.
+01192P 01CB 30   1F      A        LEAX   -&1,X    Backup the buffer pointer.
+01193P 01CD 20   34   0203        BRA    ECHOIT   Output the CHRDEL to the screen to
+01194                      *    backup the cursor and go back for
+01195                      *    another char.
+01196
+01197P 01CF 81   15      A NTCDEL CMPA   #LINDEL  Is it a line delete?
+01198P 01D1 26   0A   01DD        BNE    NTLDEL   No
+01199P 01D3 5A             RUBLIN DECB            Yes, send CHRDELs to the screen
+01200P 01D4 27   D5   01AB        BEQ    INLIN    until all characters have been erased.
+01201P 01D6 86   08      A        LDA    #CHRDEL  Then go start all over.
+01202P 01D8 BD   012F    P        JSR    CHROUT
+01203P 01DB 20   F6   01D3        BRA    RUBLIN
+01204
+01205P 01DD 81   03      A NTLDEL CMPA   #BRKCHR  Break character? (Llke control-C)
+01206P 01DF 1A   01               SEC             (Set the carry just in case.)
+01207P 01E1 27   05   01E8        BEQ    FININL   Yes
+01208
+01209P 01E3 81   0D      A NOEDIT CMPA   #CR      Carriage return?
+01210P 01E5 26   0D   01F4        BNE    NOTCR    No
+01211P 01E7 4F             INLDON CLRA            (Clear carry.)  Clear control-C flag.
+01212P 01E8 34   01      A FININL PSHS   CC       Save the control-C flag.
+01213P 01EA BD   0000    A        JSR    CRDO     Start a new line.
+01214P 01ED 6F   84      A        CLR    ,X       Put a zero in to mark the end.
+01215P 01EF 8E   FFFF    A        LDX    #BUF-&1  Set up a pointer for CRUNCH.
+01216P 01F2 35   81      A        PULS   CC,PC    Get the control-C flag and return.
+01217
+01218                      *
+01219                      * The character is not a special char.  Weed out bad ones and store
+01220                      * the good ones in the buffer.
+01221                      *
+01222P 01F4 81   20      A NOTCR  CMPA   #SPACE   Those below space and above lower
+01223P 01F6 25   BD   01B5        BCS    INLINC   case z are thrown away.
+01224P 01F8 81   7B      A        CMPA   #'z+&1
+01225P 01FA 24   B9   01B5        BCC    INLINC
+01226P 01FC C1   FA      A GOODCH CMPB   #BUFLEN  Would this char fill the buffer?
+01227P 01FE 24   B5   01B5        BCC    INLINC   Yes, ignore it then because one
+01228                      *    byte must be reserved for the zero
+01229                      *    terminator inserted when a carriage
+01230                      *    return is typed.
+
+PAGE  013  ECBM64  .SA:1  ECBM64 INLIN - The line input routine.
+
+01231P 0200 A7   80      A        STA    ,X+      No, store the character, bump the
+01232P 0202 5C                    INCB            pointer, and increment the count.
+01233P 0203 BD   012F    P ECHOIT JSR    CHROUT   Echo the char and go back for more.
+01234P 0206 20   AD   01B5        BRA    INLINC
+01235
+01236                             TTL    OPNICK and OPNOCK
+01237
+01238                      *
+01239                      * Make sure device specified by DEVNUM is open for input.
+01240                      *
+01241
+01242                             XDEF   OPNICK
+01243P 0208 BD   0000    A OPNICK JSR    HKCKDI   RAM hook.
+01244P 020B 96   6F      A        LDA    DEVNUM   Get the device number.
+01245P 020D 27   21   0230        BEQ    OKOPN    Keyboard is always open.
+01246P 020F 4C                    INCA            Is is the printer?
+01247P 0210 26   0C   021E        BNE    GOBMER   Yes, give Bad Mode error.
+01248P 0212 96   78      A        LDA    CASOPN   Is the cassette open?
+01249P 0214 26   05   021B        BNE    CHKMOD   Yes, do check the open mode.
+01250                             XDEF   NOERR
+01251P 0216 C6   00      A NOERR  LDB    #ERRNO   No, give Not Open error.
+01252P 0218 7E   0000    A        JMP    ERROR
+01253
+01254P 021B 4A             CHKMOD DECA            Is it open for input?
+01255P 021C 27   12   0230        BEQ    OKOPN    Yes, OK.
+01256P 021E 7E   042D    P GOBMER JMP    BMERR    No, give Bad Mode error.
+01257
+01258
+01259                      *
+01260                      * Make sure device is open for output.
+01261                      *
+01262
+01263                             XDEF   OPNOCK
+01264P 0221 BD   0000    A OPNOCK JSR    HKCKDO   RAM hook.
+01265P 0224 96   6F      A        LDA    DEVNUM   Get the device number.
+01266P 0226 4C                    INCA
+01267P 0227 26   07   0230        BNE    OKOPN    Screen and printer are always open.
+01268P 0229 96   78      A        LDA    CASOPN   Is the casette open?
+01269P 022B 27   E9   0216        BEQ    NOERR    No, give Not Open error.
+01270P 022D 4A                    DECA            Yes, is it open for output?
+01271P 022E 27   EE   021E        BEQ    GOBMER   No, give mode error.
+01272P 0230 39             OKOPN  RTS             Yes, all is OK.
+01273
+
+PAGE  014  ECBM64  .SA:1  ECBM64 OPNICK and OPNOCK
+
+01275                             TTL    The CLOSE code.
+01276
+01277                             XDEF   CLOSE
+01278P 0231 27   0E   0241 CLOSE  BEQ    CLSALL   Nothing specified, close everything.
+01279P 0233 BD   03BC    P        JSR    GETDNM   Read a device number.
+01280P 0236 8D   10   0248 NXTCLO BSR    CLOSIT   Close this device.
+01281P 0238 9D   A5      A        JSR    CHRGOT   Another number specified?
+01282P 023A 27   2A   0266        BEQ    CLSRTS   No, all done.
+01283P 023C BD   03B9    P        JSR    GETCDN   Yes, read comma and device number.
+01284P 023F 20   F5   0236        BRA    NXTCLO   Go close it.
+01285
+01286                             XDEF   CLSALL
+01287P 0241 BD   0000    A CLSALL JSR    HKCLSA   RAM hook.
+01288                             XDEF   CLSCAS
+01289P 0244 86   FF      A CLSCAS LDA    #-&1     Only thing requiring attention is
+01290P 0246 97   6F      A        STA    DEVNUM   the cassette.
+01291
+01292                             XDEF   CLOSIT
+01293P 0248 BD   0000    A CLOSIT JSR    HKCLS1   RAM hook.
+01294P 024B 96   6F      A        LDA    DEVNUM   A:=device number.
+01295P 024D 0F   6F      A        CLR    DEVNUM   Clear it so normal output occurs when
+01296                      *    close is finished.
+01297P 024F 4C                    INCA            Do nothing if it isn't the cassette.
+01298P 0250 26   14   0266        BNE    CLSRTS
+01299P 0252 96   78      A        LDA    CASOPN   Is the casette open for output?
+01300P 0254 81   02      A        CMPA   #&2
+01301P 0256 26   0C   0264        BNE    MRKCLS   No, just mark it as closed.
+01302P 0258 96   79      A        LDA    CBFCNT   Yes, is there stuff in the buffer?
+01303P 025A 27   03   025F        BEQ    EOFWRT   No.
+01304P 025C BD   015D    P        JSR    DMPBUF   Yes, dump the buffer.
+01305                             XDEF   EOFWRT
+01306P 025F C6   FF      A EOFWRT LDB    #@377    Set block type to end of file.
+01307P 0261 BD   015F    P        JSR    WRTEOF   Write an EOF block.
+01308P 0264 0F   78      A MRKCLS CLR    CASOPN   Mark the cassette as closed.
+01309P 0266 39             CLSRTS RTS
+01310
+
+PAGE  015  ECBM64  .SA:1  ECBM64 The CLOSE code.
+
+01312                             TTL    CSAVE - Save program on cassette.
+01313
+01314                             XDEF   CSAVE
+01315P 0267 81   4D      A CSAVE  CMPA   #'M      Is it CSAVEM?
+01316P 0269 1027 FD93    A        LBEQ   CSAVEM   Yes, go handle it.
+01317P 026D BD   038F    P        JSR    GETFLN   Read the filename.
+01318P 0270 9D   A5      A        JSR    CHRGOT   End of statement?
+01319P 0272 27   16   028A        BEQ    BCSAVE   Yes, do binary CSAVE.
+01320P 0274 BD   0000    A        JSR    CHKCOM   No, must be followed bya comma and
+01321P 0277                       SYNCHK 'A       an "A" for ASCII.
+01322P 027C      E8   0266        BNE    CLSRTS   If statement doesn't end now let
+01323                      *    NEWSTT give a syntax error.
+01324P 027E 4F                    CLRA            Say it's a BASIC program.
+01325P 027F BD     0473  P        JSR    OPNASC   Open ASCII, gapped output file.
+01326P 0282 86     FF    A        LDA    #CASNUM  Make the listing go to cassette.
+01327P 0284 97     6F    A        STA    DEVNUM
+01328P 0286 4F                    CLRA            Make the LIST code see a terminator
+01329                      *    so the whole program gets saved.
+01330P 0287 7E     0000  A        JMP    LIST     The LIST code will do the rest.
+01331                      *    When LIST is done it will close the
+01332                      *    file.
+01333
+01334                      *
+01335                      * Here to do binary CSAVE.
+01336                      *
+01337
+01338P 028A 4F             BCSAVE CLRA            Say it's a BASIC program.
+01339P 028B 9E   8A      A        LDX    DBLZER   Say not ASCII or gapped.
+01340P 028D BD   0476    P        JSR    OPNCSO   Open cassette file for output.
+01341P 0290 0F   78      A        CLR    CASOPN   Mark cassette as closed since OPNCSO
+01342                      *    marked it as open.
+01343P 0292 0C   7C      A        INC    BLKTYP   Set block type to data.
+01344P 0294 BD   0000    A        JSR    WRTLDR   Turn on the cassette and write a
+01345                      *    leader.
+01346P 0297 9E   19      A        LDX    TXTTAB   Get the starting point.
+01347
+01346P 0299 9F   7E      A BCSLOP STX    CBUFAD   Store buffer address for BLKOUT.
+01349P 029B 86   FF      A        LDA    #&255    Assume it's a full block.
+01350P 029D 97   7D      A        STA    BLKLEN
+01351P 029F DC   1B      A        LDD    VARTAB   How many more to write?
+01352P 02A1 93   7E      A        SUBD   CBUFAD
+01353P 02A3 27   0D   02B2        BEQ    FINSAV   All done.
+01354P 02A5 1083 00FF    A        CMPD   #&255    Is it a full block?
+01355P 02A9 24   02   02AD        BHS    FULBLK   Yes.
+01356P 02AB D7   7D      A        STB    BLKLEN   No, set actual block length.
+01357P 02AD BD   057E    P FULBLK JSR    BLKOUT   Output the block.
+01358P 02B0 20   E7   0299        BRA    BCSLOP   So back for more.  BLKOUT set X
+01359                      *    to [CBUFAD]+[BLKLEN].
+01360
+01361                             XDEF   FINSAV
+01362P 02B2 00   7C      A FINSAV NEG    BLKTYP   Set block type to EOF.  (It was 1
+01363                      *    for data, now -1 for eof.
+01364P 02B4 0F   7D      A        CLR    BLKLEN   No data to go out.
+01365P 02B6 7E   0579    P        JMP    BLKOFF   Write EOF block, turn off motor, and
+01366                      *    return to NEWSTT.
+01367
+
+PAGE  016  ECBM64  .SA:1  ECBM64 CSAVE - Save program on cassette.
+
+01369                             TTL    CLOAD - Load a program from cassette.
+01370
+01371                             XDEF   CLOAD
+01372P 02B9 0F   78      A CLOAD  CLR    CASOPN   Force the cassette closed.  The
+01373                      *    last block of an output file may
+01374                      *    be lost but we don't have enough
+01375                      *    bytes to flush the buffer and the
+01376                      *    user has probably put the cassette
+01377                      *    in play mode anyway.
+01378P 02BB 81   4D      A        CMPA   #'M      Do they want to load a machine
+01379                      *    language file?
+01380P 02BD 1027 FD3F    A        LBEQ   CLOADM   Yes, go do it.
+01381P 02C1 32   62      A        LEAS   &2,S     No, get rid of NEWSTT return address.
+0182P  02C3 BD   03DC    P        JSR    FLNTRM   Read the filename.
+01383P 02C6 BD   045F    P        JSR    OPNCSI   Open the cassette for input.
+01384P 02C9 7D   0000    A        TST    GAPFLG   Is it a gapped file?
+01365P 02CC 27   1D   02EB        BEQ    BCLOD    No, go do binary CLOAD.
+01366
+01387                      *
+01388                      * Here to load ASCII file.
+01389                      *
+01390
+01391P 02CE B6   0000    A        LDA    ASCFLG   Make sure it is ASCII.
+01392P 02D1 27   1D   02F0        BEQ    BMERR1   If not give mode error.
+01393P 02D3 BD   0000    A        JSR    SCRTCH   Get rid of the existing program.
+01394P 02D6 86   FF      A        LDA    #CASNUM  Make program come from cassette.
+01395P 02D8 97   6F      A        STA    DEVNUM
+01396P 02DA 0C   78      A        INC    CASOPN   Mark the cassette as open for input.
+01397P 02DC BD   044C    P        JSR    LODBUF   Load the buffer and let main do the
+01396P 02DF 7E   0000    A        JMP    MAIN     actual loading.
+01399
+01400                      *
+01401                      * Here when MAIN sees the end of file.
+01402                      *
+01403
+01404                             XDEF   FINLOD
+01405P 02E2 BD   0000    A FINLOD JSR    HKFNLD   RAM hook.
+01406P 02E5 BD   0248    P        JSR    CLOSIT   Close the cassette file.
+01407P 02E8 7E   0000    A        JMP    READY    Go print "OK".
+01408
+01409                      *
+01410                      * Here to load a binary cassette file.
+01411                      *
+01412
+01413P 02EB B6   0000    A BCLOD  LDA    FILTYP   It must be a BASIC program.
+01414P 02EE 27   03   02F3        BEQ    DOBCLD   It is.
+01415P 02F0 7E   042D    P BMERR1 JMP    BMERR    It isn't, give a mode error.
+01416
+01417P 02F3 BD   0000    A DOBCLD JSR    SCRTCH   Wipe out the existing program.
+01416P 02F6 BD   0000    A        JSR    CSRDON   Start cassette and get into bit sync.
+01419P 02F9 9E   19      A        LDX    TXTTAB   Set up first load address.
+01420
+01421P 02FB 9F   7E      A CLDLOP STX    CBUFAD   Set load address for BLKINV.
+01422P 02FD DC   7E      A        LDD    CBUFAD   There must be another 256 bytes
+01423P 02FF 4C                    INCA            available or we give an OM error.
+01424P 0300 BD   0000    A        JSR    REASON   (Yes, it is possible that they won't
+01425                      *    be able to load a program they saved
+01426                      *    if it was a very tight fit, but they
+
+PAGE  017  ECBM64  .SA:1  ECBM64 CLOAD - Load a program from cassette.
+
+01427                      *    wouldn't be able to run it anyway.)
+01428P 0303 BD   0523    P        JSR    BLKIN    Load the next block.
+01429P 0306 26   13   031B        BNE    WIPER    An error occured.
+01430P 0308 96   7C      A        LDA    BLKTYP   No error, get the block type.
+01431P 030A 27   0F   031B        BEQ    WIPER    Can't have file header in middle of
+01432                      *    file.
+01433P 030C 2A   ED   02FB        BPL    CLDLOP   Data record so continue. Note that
+01434                      *    X has load address for next block.
+01435P 030E 9F   1B      A        STX    VARTAB   End of file, set end of program.
+01436P 0310 8D   40   0352        BSR    GOCOFF   Turn off the motor.
+01437P 0312 8E   FFFE    A        LDX    #REDDY-&2 Print "OK" since we won't be going
+01438P 0315 BD   0000    A        JSR    STROUT   through READY.  (NOTE: REDDY-2 is
+01439                      *   used to force a carriage return.)
+01440P 0318 7E   0000    A        JMP    FINI     Go fix up the links, etc.  End up
+01441                      *    at MAIN.
+01442
+01443P 031B BD   0000    A WIPER  JSR    SCRTCH   Error occured, wipe out wnatever did
+01444                      *    load so garbage isn't left around.
+01445P 031E 7E   0430    P GOIOER JMP    IOERR
+01446
+
+PAGE  018  ECBM64  .SA:1  ECBM64 CLOAD - Load a program from cassette.
+
+01448                      *
+01449                      * Here to load an ungapped machine language file.
+01450                      *
+01451
+01452                             XDEF   MLDUNG
+01453P 0321 9E   8A      A MLDUNG LDX    DBLZER   Assume no load offset specified.
+01454P 0323 9D   A5      A        JSR    CHRGOT   End of statement?
+01455P 0325 27   06   032D        BEQ    ZEROFF   Yes, use the default offset of zero.
+01456P 0327 BD   0000    A        JSR    CHKCOM   No, eat the comma and evaluate
+01457P 032A BD   0000    A        JSR    EVLADR   the specified offset.
+01458P 052D B6   0000    A ZEROFF LDA    FILTYP   Is the file a machine language file?
+01459P 0330 81   02      A        CMPA   #&2
+01460P 0332 26   BC   02F0        BNE    BMERR1   No, give file mode error.
+01461P 0334 FC   0000    A        LDD    STRTAD   Yes, add the load offset to the
+01452P 0337 33   8B      A        LEAU   D,X      execution address and save it for
+01463P 0339 DF   9D      A        STU    EXECAD   the EXEC statement.
+01464P 033B FC   0000    A        LDD    LOADAD   Add the load offset to the load
+01465P 033E 30   8B      A        LEAX   D,X      address of the file.
+01466P 0340 9F   7E      A        STX    CBUFAD   Save the effective load address.
+01467P 0342 BD   0000    A        JSR    CSRDON   Turn on the cassette and sync up.
+01468P 0345 BD   0523    P MLDCLP JSR    BLKIN    Read the next block of the file.
+01469P 0348 26   D4   031E        BNE    GOIOER   Bad read.
+01470P 034A 9F   7E      A        STX    CBUFAD   Update the load address.
+01471P 034C 0D   7C      A        TST    BLKTYP   What type of block was read?
+01472P 034E 27   CE   031E        BEQ    GOIOER   Can't have header in middle of file.
+01477P 0350 2A   F3   0345        BPL    MLDCLP   A data record, go read more.
+01474P 0352 7E   0000    A GOCOFF JMP    CASOFF   End of file, turn off cassette and
+01475                      *    return to NEWSTT.
+
+PAGE  019  ECBM64  .SA:1  ECBM64 CLOAD - Load a program from cassette.
+
+01477                             TTL    The EXEC statement.
+01478
+01479                      *
+01480                      * The EXEC statement causes processor control to be transferred to
+01481                      * the specified address.  If no address is specified the address
+01482                      * contained in EXECAD is used.
+01483                      *
+01484
+01485                             XDEF   EXEC
+01486P 0355 27   05   035C EXEC   BEQ    EXECDO   Use EXECAD if nothing specified.
+014875 0357 BD   0000    A        JSR    EVLADR   Evaluate the execution address.
+01488P 035A 9F   9D      A        STX    EXECAD   Put it away.
+01489P 035C 6E   9F 009D A EXECDO JMP    [EXECAD] Go to it.
+01490
+
+PAGE  020  ECBM64  .SA:1  ECBM64 The EXEC statement.
+
+01492                             TTL    Miscellaneous
+01493
+01494                      *
+01495                      * Check for BREAK and others.
+01496                      * Don't do it if cassette I/O is in progress.
+01497                      *
+01498
+01499                             XDEF   BRKCHK
+01500P 0360 BD   0000    A BRKCHK JSR    HKBRKC   RAM hook.
+01501P 0363 96   6F      A        LDA    DEVNUM
+01502P 0365 4C                    INCA
+01503P 0366 27   50   03B8        BEQ    COPRTS   Cassette, don't check for BREAK.
+01504P 0368 7E   0000    A        JMP    ISCNTC   Not cassette, go poll keyboard.
+01505
+01506
+01507                      *
+01508                      * Here when the PRINT code sees an @ sign directly after the
+01505                      * PRINT token.
+01510                      *
+01511
+01512                             XDEF   PATDO
+01513P 036B BD   0000    A PATDO  JSR    INTIDX   D:=screen address.
+01514P 036E 83   01FF    A        SUBD   #&511    Make sure it's in range.
+01515P 0371 1022 FC8B    A        LBHI   FCERR    It isn't.
+01516P 0375 C3   05FF    A        ADDD   #SCRADR+&511 It is, set the new cursor position.
+01517P 0378 DD   88      A        STD    CURADR
+01518P 037A 39             PATRTS RTS
+01519
+01520
+01521                      *
+01522                      * INKEY$ returns a single byte string containing the key code of
+01523                      * an active key or the null string if no key is active.
+01524                      *
+01525
+01525                             XDEF   INKEY$
+01527P 037B 96   87      A INKEY$ LDA    INKCHR   Is there a char in the single char
+01528                      *    buffer?
+01529P 037D 26   03   0382        BNE    NOPOLL   Yes, use it rather than poll for one.
+01530P 037F BD   0000    A        JSR    POLCAT   No, scan the keyboard.
+01531P 0382 0F   87      A NOPOLL CLR    INKCHR   Mark buffer as empty.
+01532P 0384 97   53      A        STA    FACLO    Save the key code.
+01533P 0386 1026 FC76    A        LBNE   CHR$DO   Go put it away.
+01534P 038A 97   56      A        STA    DSCTMP   No key seen, return the null string.
+01535P 038C 7E   0000    A        JMP    GOPTNW
+01535
+01537                             TTL    Get Filename.
+01538
+01539                             XDEF   GETFLN
+01540P 038F 8E   0000    A GETFLN LDX    #FNAMLN  Set the filename length to zero and
+01541P 0392 6F   80      A        CLR    ,X+      blank fill the filename buffer.
+01342P 0394 86   20      A        LDA    #SPACE
+01543P 0396 A7   80      A BLNKFL STA    ,X+
+01544P 0398 8C   0008    A        CMPX   #FILNAM+&8
+01545P 039B 26   F9   0396        BNE    BLNKFL
+01545
+01547P 039D 9D   A5      A        JSR    CHRGOT   Does the statement end here?
+01548P 039F 27   17   03B8        BEQ    COPRTS   Yes, no filename specified so use
+01549                      *    none.
+
+PAGE  021  ECBM64  .SA:1  ECBM64 Get Filename.
+
+01550P 03A1 BD   0000    A        JSR    FRMEVL   Yes, evaluate the filename string formula.
+0155P  03A4 BD   0000    A        JSR    FRESTR   Make sure it's a string, free up the
+01552                      *   temp, B:=length of string, X:=pointer
+01553                      *   to strng data.
+01554P 03A7 CE   0000    A        LDU    #FNAMLN  Store the filename length and point
+01555P 03AA E7   C0      A        STB    ,U+      to FILNAM.  (FILNAM immediately
+01556                      *    follows FNAMLN.)
+01557P 03AC 27   0A   03B8        BEQ    COPRTS   Don't copy null string, use default
+01558                      *    filename.
+01559  03AE                       SKIP2  Skip     into COPNAM to move the specified
+01560                      *    filename into FILNAM.
+01551
+01562                      *
+01563                      * Copy filename (or any 8 bytes) from [X] to [U].
+01564                      *
+01565
+01566P 03AF C6   08      A COPNAM LDB    #&8      Set up the count.
+01567                             XDEF   COPBXU
+01558            03E1    P COPBXU EQU    *
+01569                             XDEF   COPLOP
+01570P 03B1 A6   80      A COPLOP LDA    ,X+      Get a byte.
+01571P 03B3 A7   C0      A        STA    ,U+      Move it.
+01572P 03B5 5A                    DECB            Do it eight times.
+01573  03B6 26   F9  03B1         BNE     COPLOP
+01574P 03B8 39             COPRTS RTS
+01575
+
+PAGE  022  ECBM64  .SA:1  ECBM64 Get Filename.
+
+01577                             TTL    Get Device or File Number.
+01578
+01579                             XDEF   GETCDN
+01580P 03B9 BD   0000    A GETCDN JSR    CHKCOM   Eat comma and get device number.
+01581
+01582                             XDEF   GETDNM
+01583P 03BC 81   23      A GETDNM CMPA   #'#      If there is a number sign eat it.
+01584P 03BE 26   02   03C2        BNE    EVLDNM
+01585P 03C0 9D   9F      A        JSR    CHRGET
+01586P 03C2 BD   0000    A EVLDNM JSR    FRMNUM   Evaluate the device number formula.
+01587                             XDEF   SETDNM
+01588P 03C5 BD   0000    A SETDNM JSR    INTCNV   D:=signed integer from FAC.
+01589P 03C8 59                    ROLB            The high order 9 bits must be the same
+01590P 03C9 89   00      A        ADCA   #&0      for the number to be in the range
+01591P 03CB 26   69   0436        BNE    DNERR    -128 to +127.
+01592P 03CD 56                    RORB            It's OK, fix it back up.  Note that
+01593                      *    if it is negative the carry was set
+01594                      *    by the ADCAIM so the sign will come
+01595                      *    back in properly witn the RORB.
+01596P 03CE D7   6F      A        STB    DEVNUM   Put away the device number.
+01597P 03D0 BD   0000    A        JSR    HKDNCK   RPM hook for device number check.
+01598P 03D3 27   06   03DB        BEQ    DNMOK    0 for screen is OK.
+01599P 03D5 2A   5F   0436        BPL    DNERR    No other positive ones are allowed.
+01600P 03D7 C1   FE      A        CMPB   #-&2     Disallow those below -2.
+01601P 03D9 2D   5B   0436        BLT    DNERR
+01602P 03DB 39             DNMOK  RTS
+01603
+01604
+01605P 03DC 8D   B1   038F FLNTRM BSR    GETFLN   Get filename.  Fall into TRMCHK to
+01606                      *    make sure the statement ends now.
+01607
+01608                      *
+01609                      * TRMCHK makes sure that a statement is properly terminated.
+01610                      *
+01611
+01612                             XDEF   TRMCHK
+01613P 03DE 9D   A5      A TRMCHK JSR    CHRGOT   Set codes on current char.
+01614P 03E0 27   F9   03DB ZERCHK BEQ    DNMOK    It's a terminator.
+01615P 03E2 7E   0000    A        JMP    SNERR    Give syntax error
+
+PAGE  023  ECBM64  .SA:1  ECBM64 Get Device or File Number.
+
+01617                             TTL    The End Of File (EOF) Function.
+01618
+01619                      *
+01620                      * EOF returns FALSE (0) if device is not at end of file.
+01621                      * TRUE (-1) is returned if the device is at the end of file.
+01622                      *
+01623
+01624                             XDEF   EOF
+01625P 03E5 BD   0000    A EOF    JSR    HKEOF    RAM hook.
+01626P 03E8 96   6F      A        LDA    DEVNUM   Preserve the old device number since
+01627P 03EA 34   02      A        PSHS   A        this could be something like
+01628                      *    PRINT EOF(#-1).
+01629P 03EC 8D   D7   03C5        BSR    SETDNM   Convert the argument to integer and
+01630                      *    check it's range.
+01631P 03EE BD   0208    P        JSR    OPNICK   Make sure it's open for input.
+01632                             XDEF   EOFDEV
+01633P 03F1 5F             EOFDEV CLRB            Assume not at end of file.
+01634P 03F2 96   6F      A        LDA    DEVNUM   Get the device number.
+01635P 03F4 27   05   03FB        BEQ    EOFFIN   Keyboard never runs out of data.
+01636P 03F6 0D   79      A        TST    CBFCNT   Is the cassette buffer empty?
+01637P 03F8 26   01   03FB        BNE    EOFFIN   No, not at end of file.
+01638P 03FA 53                    COMB            Yes, there is nothing left.
+01639                             XDEF   EOFFIN
+01640P 03FB 35   02      A EOFFIN PULS   A        Restore old DEVNUM.
+01641P 03FD 97   6F      A        STA    DEVNUM
+01642P 03FF 1D             SINTB  SEX             Make it a 16 bit result and go
+01643P 0400 7E   0000    A        JMP    GIVABF   float it.
+
+PAGE  024  ECBM64  .SA:1  ECBM64 The End Of File (EOF) Function.
+
+01645                             TTL    The SKIPF statement.
+01646
+01647                      *
+01648                      * SKIPF skips the specified or next file on the tape.
+01649                      * Filenames are displayed if SKIPF is used in a direct statement.
+01650                      *
+01651
+01652                             XDEF   SKIPF
+01653P 0403 8D   D7   03DC SKIPF  BSR    FLNTRM   Read the filename and check for EOS.
+01654P 0405 8D   58   045F SKPDOR BSR    OPNCSI   Find the file.
+01655P 0407 BD   04E8    P        JSR    SKPFIL   Skip it.
+01656P 040A 26   24   0430        BNE    IOERR    SKPFIL encountered an error.
+01657P 040C 39                    RTS
+
+PAGE  025  ECBM64  .SA:1  ECBM64 The SKIPF statement.
+
+01659                             TTL    The OPEN code.
+01660
+01661                             XDEF   OPEN
+01662P 040D BD   0000    A OPEN   JSR    HKOPEN   Hook for disk version.
+01663P 0410 BD   0000    A        JSR    FRMEVL   Evaluate tne open mode.
+01664P 0413 BD   0000    A        JSR    ASC2     B:=open mode char.
+01665P 0416 34   04      A        PSHS   B        Save the open mode.
+01666P 0418 8D   9F   03B9        BSR    GETCDN   Eat comma and get device number.
+01667                             XDEF   OPNDEV
+01668P 041A BD   0000    A OPNDEV JSR    CHKCOM   Eat comma following device number.
+01669P 041D 8D   BD   03DC        BSR    FLNTRM   Read the filename into FILNAM.
+01670P 041F 96   6F      A        LDA    DEVNUM   A:=device number.
+01671P 0421 0F   6F      A        CLR    DEVNUM   Must be clear when OPEN returns.
+01672P 0423 35   04      A        PULS   B        Retrieve the open mode.
+01673P 0425 C1   49      A        CMPB   #'I      Open for input?
+01674P 0427 37   12   043B        BEQ    OPENI    Yes, go do it.
+01675P 0429 C1   4F      A        CMPB   #'O      No, open for output?
+01676P 042B 27   42   046F        BEQ    OPENO    Yes, go do it.
+01677                      *    No, give Bad Mode error.
+01678                             XDEF   FMERR
+01679            042D    P FMERR  EQU    *        Also known as File Mode error.
+01680P 042D C6   00      A BMERR  LDB    #ERRBM   Bad Mode error.
+01661P 042F                       SKIP2
+01682                             XDEF   IOERR
+01683P 0430 C6   00      A IOERR  LDB    #ERRIO   Cassette I/O error.
+01684P 0432                       SKIP2
+01685                             XDEF   AOERR
+01686P 0433 C6   00      A AOERR  LDB    #ERRAO   Already open error.
+01687P 0435                       SKIP2
+01688                             XDEF   DNERR
+01689P 0436 C6   00      A DNERR  LDB    #ERRDN   Device Number error.
+01690P 0438 7E   0000    A        JMP    ERROR
+01691
+
+PAGE  026  ECBM64  .SA:1  ECBM64 The OPEN code.
+
+01693                      *
+01694                      * Here to oben a device for input.
+01695                      *
+01696
+01697P 043B 4C             OPENI  INCA            If lineprinter give mode error.
+01698P 043C 2B   EF   042D        BMI    BMERR
+01699P 043E 26   2E   046E        BNE    OPNRTS   If keyboard just return.
+01700P 0440 8D   1D   045F        BSR    OPNCSI   Do the dirty work.
+01701P 0442 B6   0000    A        LDA    ASCFLG   Must be an ASCII gapped file.
+01702P 0445 B4   0000    A        ANDA   GAPFLG
+01703P 0448 27   E3   042D        BEQ    BMERR    Give mode error if not.
+01704P 044A 0C   78      A        INC    CASOPN   Mark as open for input.
+01705                      *    Fall into LODBUF to load the buffer.
+01706
+01707                      *
+01708                      * LODBUF loads the cassette buffer.
+01709                      *
+01710
+01711                             XDEF   LODBUF
+01712P 044C BD   0518    P LODBUF JSR    RDBLK    Read the next block from tape.
+01713P 044F 26   DF   0430        BNE    IOERR    Read error.
+01714P 0451 0D   7C      A        TST    BLKTYP   Examine the block type.
+01715P 0453 27   DB   0430        BEQ    IOERR    Can't have header in middle of file!
+01716P 0455 2B   17   046E        BMI    OPNRTS   If EOF block just return and leave
+01717                      *    the buffer empty.
+01718P 0457 96   7D      A        LDA    BLKLEN   Get the block length.
+01719P 0459 27   F1   044C        BEQ    LODBUF   Nothing there, go back for more.
+01720                             XDEF   FINLDB
+01721P 045B 97   79      A FINLDB STA    CBFCNT   Set buffer count.
+01722P 045D 20   0A   0469        BRA    SETPTR   Set the pointer to the beginning of
+01723                      *    of the buffer.
+01724
+01725
+01726                      *
+01727                      *  Make sure cassette isn't already open, find the file, mark the
+01728                      *  cassette as open for input, and mark the cassette buffer as empty.
+01729                      *
+01730
+01731                             XDEF   OPNCSI
+01732P 045F 0D   78      A OPNCSI TST    CASOPN   Is the cassette already open?
+01733P 0461 26   D0   0433        BNE    AOERR    Yes, give Already Open error.
+017340 0463 8D   33   0498        BSR    TAPSRC   No, search the cassette for the file.
+01735P 0465 26   C9   0430        BNE    IOERR    An error occurred while searching.
+01736P 0467 0F   79      A MRKMT  CLR    CBFCNT   Zero the count.
+01737P 0469 8E   0000    A SETPTR LDX    #CASBUF  Point to the start of the buffer.
+01738P 046C 9F   7A      A        STX    CBFPTR
+01739P 046E 39             OPNRTS RTS
+01740
+
+PAGE  027  ECBM64  .SA:1  ECBM64 The OPEN code.
+
+01742                      *
+01743                      * Here to open device for output.
+01744                      *
+01745
+01746P 046F 4C             OPENO  INCA            If lineprinter or screen just return.
+01747P 0470 26   FC   046E        BNE    OPNRTS
+01748P 0472 4C                    INCA            To say it's a BASIC data file.
+01749P 0473 8E   FFFF    A OPNASC LDX    #-&1     To set ASCFLG:=GAPFLG:=.TRUE.
+01750                      *    Fall into OPNCSO to write out the
+01751                      *    file header.
+01752
+01753                      *
+01754                      * OPNCSO writes out a file header and marks the cassette as open
+01755                      * for output.  On entry XHI=ASCFLG, XLO=GAPFLG, and A=File type.
+01756                      *
+01757
+01758                             XDEF   OPNCSO
+01759P 0476 0D   78      A OPNCSO TST    CASOPN   Is the cassette already open?
+01760P 0478 26   B9   0433        BNE    AOERR    Yes, give an Already Open error.
+01761P 047A CE   0000    A        LDU    #CASBUF  No, point to place to build the
+01762                      *    header.
+01763P 047D DF   7E      A        STU    CBUFAD   Set buffer address for BLKOUT.
+01764P 047F A7   48      A        STA    &8,U     Put away the file type.
+01765                      *    (FILTYP-CASBUF=8 but since FILTYP
+01766                      *    and CASBUF are external the cross
+01767                      *    assembler would use a 16 bit offset
+01768                      *    if the expression were used.)
+01769P 0481 AF   49      A        STX    &9,U     Follow with ASCFLG and GAPFG.
+01770                      *    (ASCFLG-CASBUF=9.)
+01771P 0483 8E   0000    A        LDX    #FILNAM  Copy the filename from FILNAM
+01772P 0486 BD   03AF    P        JSR    COPNAM   into the header.
+01773P 0489 0F   7C      A        CLR    BLKTYP   Set block type to file header.
+01774P 048B 86   00      A        LDA    #HDRLEN  Set length of block.
+01775P 048B 97   7D      A        STA    BLKLEN
+01776P 048F BD   0576    P        JSR    WRTBLK   Turn on the motor, write a block,
+01777                      *    and turn off the motor.
+01778P 0492 86   02      A        LDA    #&2      Mark the cassette as open for output.
+01779P 0494 97   78      A        STA    CASOPN
+01780P 0496 20   CF   0467        BRA    MRKMT    Mark the buffer as empty.
+
+PAGE  028  ECBM64  .SA:1  ECBM64 The OPEN code.
+
+01782                             TTL    Search Cassette for a File
+01783
+01784                             XDEF   TAPSRC
+01785P 0498 BE   0000    A TAPSRC LDX    #CASBUF  Tell BLKIN where to read into.
+0173SP 049B 9F   7E      A        STX    CBUFAD
+01787P 049D 96   68      A NXTFIL LDA    CURLIN   Direct statement?
+01788P 049F 4C                    INCA
+01789P 04A0 26   0B   04AD        BNE    NODSP1   No, don't display filenames.
+01790P 04A2 BD   065C    P        JSR    GRNCHR   Yes, clear the screen.
+01791P 04A5 9E   88      A        LDX    CURADR   Put up an "S" to say searching and
+01792P 04A7 C6   53      A        LDB    #'S      move the cursor over two for display-
+01793P 04A9 E7   81      A        STB    ,X++     ing the filename.
+01794P 04AB 9F   88      A        STX    CURADR
+01795P 04AD 8D   69   0518 NODSP1 BSR    RDBLK    Read what should be a header block.
+01796P 04AF DA   7C      A        ORB    BLKTYP   If a read error occurred or the
+01797P 04B1 26   FA   04AD        BNE    NODSP1   block isn't a header block REPEAT
+01798P 04B3 8E   0000    A        LDX    #CSFNAM  Y:=pointer to filename read from tape.
+01799P 04B6 CE   0000    A        LDU    #FILNAM  U:=pointer to filename being sought.
+01800P 04B9 C6   08      A        LDB    #&8      B:=loop count.
+01801P 04BB 6F   E2      A        CLR    ,-S      Put flag on stack saying names are
+01802                      *    the same.
+01803P 04BD A6   80      A DCFNAM LDA    ,X+      Get a byte of the tape filename.
+01804P 04BF 109E 68      A        LDY    CURLIN   Only display name if direct
+01805P 04C2 31   21      A        LEAY   &1,Y     statement.
+01606P 04C4 26   05   0409        BNE    NODSP2
+01807P 04C6 0F   6F      A        CLR    DEVNUM   Yes, output the char to the screen.
+01808P 04C8 BD   012F    P        JSR    CHROUT
+01809P 04CB A0   C0      A NODSP2 SUBA   ,U+      Get zero if matches desired name.
+01810P 04CD AA   E4      A        ORA    ,S       Any difference will make flag on
+01811P 04CF A7   E4      A        STA    ,S       stack non-zero.
+01812P 04D1 5A                    DECB            Loop so all characters will be
+01813P 04D2 26   E9   04BD        BNE    DCFNAM   displayed and compared.
+01814
+01815P 04D4 A6   E0      A        LDA    ,S+      Do the filenames match?
+01816P 04D6 27   0A   04E2        BEQ    FNDFIL   Yes.
+01817P 04D8 6D   57      A        TST    -&9,U    No, is the desired name null?
+01818                      *    (U is pointing one beyond the end
+01819                      *    of FILNAM (which is 8 bytes long) and
+01820                      *    FNAMLN immediately precedes FILNAM.)
+01821P 04DA 27   06   04E2        BEQ    FNDFIL   Yes, so we want the first file seen.
+01822P 04DC 8D   0A   04E8        BSR    SKPFIL   No, skip this file.
+01823P 04DE 26   07   04E7        BNE    BADHDR   Return with Z=0 if error.
+01824P 04E0 20   BB   049D        BRA    NXTFIL   So look at the next file.
+01825
+01826P 04E2 86   46      A FNDFIL LDA    #'F      Display "F" for Found.
+01827P 04E4 8D   29   050F        BSR    DSPCHR
+01828P 04E6 4F                    CLRA            Clear Z to indicate no tape error.
+01829P 04E7 39             BADHDR RTS
+01830
+
+PAGE  029  ECBM64  .SA:1  ECBM64 Search Cassette for a File
+
+01832                      *
+01833                      * SKPFIL skips the current file.
+01834                      * On exit Z=1 if all OK, Z=0 if error occured.
+01835                      *
+01836
+01837P 04E8 7D   0000    A SKPFIL TST    GAPFLG   Does this file have gaps?
+01838P 04EB 26   09   04F6        BNE    SKPGFL   Yes, go handle it.
+01839P 04ED BD   0000    A        JSR    CSRDON   No, turn on cassette and sync up.
+01840P 04F0 8D   31   0523 SKPLP  BSR    BLKIN    Read the next block.
+01841P 04F2 8D   08   04FC        BSR    SKIPER   See if error or EOF.
+01842P 04F4 20   FA   04F0        BRA    SKPLP    It was a good data record so look
+01843                      *    at the next block.
+01844
+01845P 04F6 8D   20   0518 SKPGFL BSR    RDBLK    Turn on, read block, turn off.
+01848P 04F8 8D   02   04FC        BSR    SKIPER   Check for errors or EOF.
+01847P 04FA 20   FA   04F6        BRA    SKPGFL   Good data record, look at next block.
+01848
+01849P 04FC 26   06   0504 SKIPER BNE    BADSKP   Cassette read error.
+01850P 04FE 96   7C      A        LDA    BLKTYP   Get the block type.
+01851P 0500 40                    NEGA            0 to 0, FF to 1, 1 to FF.
+01852P 0501 2B   14   0517        BMI    NODSP3   Data record, return to skip loop.
+01853P 0503 4A                    DECA            0 to FF, 1 to 0 so if EOF A=0 and
+01854                      *    if header A=FF for error.
+01855P 0504 97   81      A BADSKP STA    CSRERR   Save the error status.
+01856P 0506 32   62      A        LEAS   &2,S     Get rid of skip loop return address.
+01857P 0508 20   13   051D        BRA    RDBFIN   Turn off cassette and return with
+01858                      *    Z=1 if all OK.
+01859
+01860
+01881                      *
+01862                      * "Blink" char on screen.
+01883                      *
+01884
+01885P 050A B6   0400    A BLINKS LDA    SCRADR   Get the char.
+01886P 050D 88   40      A        EORA   #@100    Reverse the video on it.
+01887P 050F D6   68      A DSPCHR LDB    CURLIN   Only display if direct statement.
+01868P 0511 5C                    INCB
+01669P 0512 26   03   0517        BNE    NODSP3
+01970P 0514 B7   0400    A        STA    SCRADR   Put it back.
+01871P 0517 39             NODSP3 RTS
+
+PAGE  030  ECBM64  .SA:1  ECBM64 Search Cassette for a File
+
+01873                             TTL    Cassette Input Routines
+01874
+01875                      *
+01876                      * Turn motor on, read a block, and turn motor off.
+01877                      *
+01878
+01879P 0518 BD   0000    A RDBLK  JSR    CSRDON   Turn on motor and sync up.
+01880P 051B 8D   06   0523        BSR    BLKIN    Read a block.
+01881P 051D BD   0000    A RDBFIN JSR    CASOFF   Turn off motor and enable interrupts.
+01882P 0520 D6   81      A        LDB    CSRERR   B:=error code and set cond codes.
+01883P 0522 39                    RTS
+01884
+01885
+01886                      *
+01887                      * BLKIN reads a block from cassette.
+01888                      * On entry CBUFAD contains the buffer address.
+01889                      * On exit -
+01890                      * BLTYP and BLKLEN are set up.
+01891                      * Z=1 and A=CSRERR=0 if no errors occured.
+01892                      * Z=0 if an error occured and A=CSRERR=1 for a checksum error and 2
+01893                      * for a memory error.
+01894                      * Unless a memory error occurs X=CBUFAD+BLKLEN.
+01895                      * If a memory error occurs, X points one beyond the bad address.
+01896                      *
+01897                      * CC, A, B, X are modified.  The others are preserved.
+01898                      * Interrupts are left disabled.
+01899                      *
+01900
+01901                             XDEF   BLKIN
+01902P 0523                BLKIN  SETCC  F!+I     No interrupts during timing loops.
+01903P 0525 8D   E3   050A        BSR    BLINKS   Blink the char if showing names.
+01904P 0527 9E   7E      A        LDX    CBUFAD   Get the buffer address.
+01905P 0529 4F                    CLRA            Start with a zero byte.
+01908P 052A BD   0000    A SYNLP  JSR    BITIN    Read a bit.
+01907P 052D 46                    RORA            Rotate it into the byte.
+01908P 052E 81   3C      p        CMPA   #@74     Is it the sync byte?
+01909P 0530 26   F8   052A        BNE    SYNLP    No, look further.
+01910
+01911P 0532 BD   0000    A        JSR    CBIN     Yes, read and store the block type.
+01912P 0535 97   7C      A        LDA    BLKTYP
+01913P 0337 BD   0000    A        JSR    CBIN     Read and store the block length.
+01914P 053A 97   7D      A        STA    BLKLEN
+01915P 053C 9B   7C      A        ADDA   BLKTYP   Init the checksum.
+01916P 053E 97   80      A        STA    CHKSUM
+01917P 0540 96   7D      A        LDA    BLKLEN   Set uo a loop count.
+01918P 0542 97   81      A        STA    BYTCNT
+01919P 0544 27   11   0557        BEQ    NODATA   No data in this record, just go
+01920                      *    check the checksum.
+01921P 0546 BD   0000    A BLKILP JSR    CBIN     Read a byte of data.
+01922P 0549 A7   84      A        STA    ,X       Put it away.
+01923  054B A1   80      A        CMPA   ,X+      See if stored OK.
+01924P 054D 26   12   0561        BNE    BADMEM   It didn't, return a memory error.
+01925P 054F 9B   80      A        ADDA   CHKSUM   It did, update the checksum.
+01926P 0551 97   80      A        STA    CHKSUM
+01927P 0553 0A   81      A        DEC    BYTCNT   More bytes to read?
+01928P 0555 26   EF   0546        BNE    BLKILP   Yes, go read the next one.
+01929
+01930P 0557 BD   0000    A NODATA JSR    CBIN     No, read the checksum.
+
+PAGE  031  ECBM64  .SA:1  ECBM64 Cassette Input Routines
+
+01931P 055A 90   80      A        SUBA   CHKSUM   Does it agree with tne calculated one?
+01932P 055C 27   05   0563        BEQ    OKREAD   Yes.
+01933P 055E 86   01      A        LDA    #&1      No, indicate a checksum error occured.
+01934P 0560                       SKIP2
+01935P 0561 86   02      A BADMEM LDA    #&2      Indicate a memory error occured.
+01936P 0563 97   81      A OKREAD STA    CSRERR   Put away the status byte and return.
+01937P 0565 39                    RTS
+
+PAGE  032  ECBM64  .SA:1  ECBM64 Cassette Input Routines
+
+01939                      *
+01940                      * "MOTOR ON" turns the cassette motor on
+01941                      * "MOTOR OFF" turns tne cassette motor off.
+01942                      *
+01943
+01944                             XDEF   MOTOR
+01945P 0566 1F   89      A MOTOR  TFR    A,B      Save tne ON or OFF token.
+01946P 0568 9D   9F      A        JSR    CHRGET   Eat it for NEWSTT.
+01947P 056A C1   00      A        CMPB   #OFFTK   Is it "MOTOR OFF"?
+01948P 056C 27   0D   057B        BEQ    DOCOFF   Yes, go do it.
+01949P 056E C1   00      A        CMPB   #ONTK    No, how about "MOTOR ON"?
+01950P 0570 BD   03E0    P        JSR    ZERCHK   Give SN error if not.
+01951P 0573 7E   0000    A        JMP    CASON    Yes, go turn it on.
+
+PAGE  033  ECBM64  .SA:1  ECBM64 Cassette Input Routines
+
+01953                             TTL    The cassette output routines.
+01954
+01955                      *
+01956                      * WRTBLK turns the motor on, outputs a leader, writes a block of
+01957                      * data, and turns off the motor.
+01958                      * On entry, BLKTYP, BLKLEN, and CBUFAD must be set up.
+01959                      * On exit X contains [CBUFAD]+[BLKLEN].
+01960                      *
+01961
+01962P 0576 BD   0000    A WRTBLK JSR    WRTLDR   Turn on motor and write leader.
+01963P 0579 8D   03   057E BLKOFF BSR    BLKOUT   Output the block.
+01964P 057B 7E   0000    A DOCOFF JMP    CASOFF   Go turn off the motor.
+01965
+01966
+01967                      *
+01968                      * BLKOUT outputs a block of data.
+01969                      * Dn entry BLKTYP, BLKLEN, and CBUFAD must be set up.
+01970                      * On exit, X contains [CBUFAD]+[BLKLEN].
+01971                      *
+01972
+01973                             XDEF   BLKOUT
+01974P 057E                BLKOUT SETCC  F!+I     No interrupts during cassette I/O.
+01975P 0580 D6   7D      A        LDB    BLKLEN   Get the block length.
+01976P 0582 D7   81      A        STB    BYTCNT   Save for output loop count.
+01977P 0584 96   7D      A        LDA    BLKLEN   Also start the checksum with it.
+01978P 0586 27   07   058F        BEQ    ZERLEN   No data in block.
+01979P 0588 9E   7E      A        LDX    CBUFAD   Compute the checksum.  Note that this
+01980P 058A AB   80      A CHKSLP ADDA   ,X+      done prior to rather than while
+01981P 058C 5A                    DECB            writing the data to minimize the byte
+01982P 058D 26   FB   058A        BNE    CHKSLP   to byte delay while writing.  This
+01983                      *    results in a smoother sinewave.
+01984P 058F 9B   7C      A ZERLEN ADDA   BLKTYP   The block type is included in the
+01985P 0591 97   80      A        STA    CHKSUM   checksum.
+01986P 0593 9E   7E      A        LDX    CBUFAD   Set up the data pointer.
+01987P 0595 8D   1B   05B2        BSR    LDRBYT   Write a leader byte.
+01988P 0597 86   3C      A        LDA    #@74     Follow it with the sync byte.
+01989P 0599 8D   19   05B4        BSR    GOCBO    (3C hex.)
+01990P 059B 96   7C      A        LDA    BLKTYP   Send out the block type.
+01991P 059D 8D   15   05B4        B5R    GOCBO
+01992P 059F 96   7D      A        LDA    BLKLEN   Follow with the block length.
+01993P 05A1 8D   11   05B4        BSR    GOCBO
+01994P 05A3 4D                    TSTA            Any data to write?
+01995P 05A4 27   08   05AE        BEQ    OUTCHK   No, just go output the checksum.
+01996P 05A6 A6   80      A BLKOLP LDA    ,X+      Yes, output the data.
+01997P 05A8 8D   0A   05B4        BSR    GOCBO
+01998P 05AA 0A   81      A        DEC    BYTCNT
+01999P 05AC 26   F8   05A6        BNE    BLKOLP
+02000P 05AE 96   80      A OUTCHK LDA    CHKSUM   Output the checksum and fall into
+02001P 05B0 8D   02   05B4        BSR    GOCBO    LDRBYT to write a trailer byte.
+02002
+02003                      *
+02004                      * LDRBYT writes a 55 hex leader char.
+02005                      *
+02006
+02007P 05B2 86   55      A LDR8YT LDA    #@125    Leader byte is 55 hex.
+02008P 05B4 7E   0000    A GOCBO  JMP    CBOUT    Output it and return.
+02009
+02010                             TTL    Simple Graphics - SET, RESET, POINT, CLS
+
+PAGE  034  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02011
+02012                      *
+02013                      * SET makes the specified cell the specified color.
+02014                      *
+02015                      * Colors are -
+02016                      *  1 - Green
+02017                      *  2 - Yellow
+02018                      *  3 - Blue
+02019                      *  4 - Red
+02020                      *  5 - Buff
+02021                      *  6 - Cyan
+02022                      *  7 - Magenta
+02023                      *  8 - Orange
+02024                      *
+02025                      * If the color number given is zero and the block containing the cell
+02026                      * is already in graphic mode, the color of the block is unchanged.
+02027                      *
+02028                      * If the color number given is zero and the block containing the cell
+02029                      * is not already in graphic mode, the color of the block defaults to
+02030                      * Green.
+02031                      *
+02032
+02033                             XDEF   SET
+02034P 05B7 8D   3F   05F8 SET    BSR    GRPHAR   Evaluate the column and row args and
+02035                      *    make X point to the block containing
+02036                      *    the cell and CELL contain the bit
+02037                      *    corresponding to the cell.
+02038P 05B9 34   10      A        PSHS   X        Save the address.
+02039P 05BB BD   0000    A        JSR    COMBYT   Eat the comma and get the color number
+02040                      *    in B.
+02041P 05BE 35   10      A        PULS   X        Retrieve the address.
+02042P 05C0 C1   08      A        CMPB   #&8      Is the color number in range?
+02043P 05C2 22   45   0609        BHI    BADARG   No, give FC error.  (Negatives were
+02044                      *    thrown out by GETBYT.)
+02045P 05C4 5A                    DECB            Adjust the code for actual VDG color
+02046                      *    codes.
+02047P 05C5 2B   05   05CC        BMI    COLOR0   Handle color 0 as a special case.
+02048P 05C7 86   10      A        LDA    #&16     Shift the color code into bits
+02049P 05C9 3D                    MUL             4, 5, and 6 for the VDG.
+02050P 05CA 20   08   05D4        BRA    HAVCLR   We have the color code.
+02051
+02052P 05CC E6   84      A COLOR0 LDB    ,X       B:=current contents of block.
+02053P 05CE 2A   03   05D3        BPL    SETGRN   It isn't in graphic mode so
+02054                      *    color 0 defaults to green.
+02055P 05D0 C4   70      A        ANDB   #@160    It is graphic, retain the current
+02056                      *    color.
+02057P 05D2      21      A        FCB    @41      BRN over CLRB.
+02058
+02059P 05D3 5F             SETGRN CLRB            Set color to green.
+02060P 05D4 34   04      A HAVCLR PSHS   B        Save the color code.
+02061P 05D6 8D   69   0641        BSR    CHKRP    Must have a right paren before we
+02062                      *    actually do anything to the screen.
+02063P 05D8 A6   84      A        LDA    ,X       Get the current block.
+02064P 05DA 2B   01   05DD        BMI    ISGRPH   Graphic - retain currently lit cells.
+02065P 05DC 4F                    CLRA            Character - clear all other cells.
+02066P 05DD 84   0F      A ISGRPH ANDA   #@17     Get only the cell bits.
+02067P 05DF 9A   86      A        ORA    CELL     Include the only being SET.
+02068P 05E1 AA   E0      A        ORA    ,S+      Now get the color bits.
+
+PAGE  035  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02069P 05E3 8A   80      A STGRPH ORA    #@200    Set MSB for graphics mode.
+02070P 05E5 A7   84      A        STA    ,X       Put it away and return.
+02071P 05E7 39                    RTS
+
+PAGE  036  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02073                      *
+02074                      * RESET turns off the specified cell.
+02075                      *
+02076                      * If the block containing the cell is not in graphics mode, all
+02077                      * the cells are turned off and the block is put into graphics mode
+02078                      * with the default color of green.
+02079                      *
+02080
+02081                             XDEF   RESET
+02082P 05E8 8D   0E   05F8 RESET  BSR    GRPHAR   Evaluate the column and row args.
+02083P 05EA 8D   55   0641        BSR    CHKRP    Make sure there is a closing paren.
+02084P 05EC 4F                    CLRA            Assume the block isn't graphic.
+02085P 05ED E6   84      A        LDB    ,X       Get the current contents.
+02086P 05EF 2A   F2   05E3        BPL    STGRPH   Not graphic, go make it graphic
+02087                      *    with all cells off and a default
+02088                      *    color of green.
+02089P 05F1 03   86      A        COM    CELL     Make only tne specified cell bit 0.
+02090P 05F3 D4   86      A        ANDB   CELL     RESET the cell.
+02091P 05F5 E7   84      A        STB    ,X       Put it away and return.
+02092P 05F7 39                    RTS
+
+PAGE  037  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02094
+02095                      *
+02096                      * GRPHAR evaluates the column and row numbers.
+02097                      * It then calculates the address of the block containing the specified
+02096                      * cell.  The address is returned in X.
+02099                      * CELL contains the bit corresponding to the specified cell.
+02100                      *
+02101                      * Block address = SCRADR + ROW\2*32 + COLUMN\2
+02102                      * Cell bit = 2^(3-(2*(ROW MOD 2)+(COLUMN MOD 2)))
+02103                      *
+02104
+02105P 05F8 BD   0000    A GRPHAR JSR    CHKOPN   Check for a left parenthesis.
+02106P 05FB BD   0000    A GRPHA2 JSR    GETBYT   Evaluate the column number.
+02107P 05FE C1   3F      A        CMPB   #&63     Make sure it is in range.
+02108P 0600 22   07   0609        BHI    BADARG
+02109P 0602 34   04      A        PSHS   B        It is OK, save it.
+02110P 0604 BD   0000    A        JSR    COMBYT   Eat comma and evaluate the row number.
+02111P 0607 C1   1F      A        CMPB   #&31     Make sure it's in range.
+02112P 0609 22   71   067C BADARG BHI    GOFCER   (All who come here must meet the
+02113                      *    branch condition.)
+0214P  060B 34   04      A        PSHS   B        Row is OK, save it.
+02115P 060D 54                    LSRB            Integer divide by 2 and
+02116P 060E 86   20      A        LDA    #&32     multiply by 32.
+02117P 0610 3D                    MUL
+02118P 0611 8E   0400    A        LDX    #SCRADR  Get the base address of the screen
+02119                      *    memory.
+02120P 0614 30   8B      A        LEAX   D,X      Add in the row offset.
+02121P 0616 E6   61      A        LDB    &1,S     integer divide the column by 2.
+02122P 0618 54                    LSRB
+02123P 0619 3A                    ABX             Add in the column offset.
+02124
+02125                      *
+02126                      * Now calculate the cell bit.
+02127                      *
+02128
+02129P 061A 35   06      A        PULS   D        A:=row, b:=column.
+02130P 061C 84   01      A        ANDA   #&1      A:=bit number:=2*(ROW MOD 2) +
+02131P 061E 56                    RORB            (COLUMN MOD 2).
+02132P 061F 49                    ROLA
+02133P 0620 C6   10      A        LDB    #@20     Something to shift.
+02134P 0622 54             LSRLOP LSRB            Shift into bit specified by A.
+02135P 0623 4A                    DECA
+02136P 0624 2A   FC   0622        BPL    LSRLOP
+02137P 0626 D7   86      A        STB    CELL     Put it away for the callers.
+02138P  0628 39                    RTS
+
+PAGE  038  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02140                      *
+02141                      * POINT returns the status of the specified cell as follows:
+02142                      *
+02143                      * -1 Block containg cell is not in graphics mode.
+02144                      * 0 The cell is unlit.
+02145                      * 1 Green
+02146                      * 2 Yellow
+02147                      * 3 Blue
+02148                      * 4 Red
+02149                      * 5 Buff
+02150                      * 6 Cyan
+02151                      * 7 Magenta
+02152                      * 8 Orange
+02153                      *
+02154
+02155                             XDEF   POINT
+02156P 0629 8D   D0   05FB POINT  BSR    GRPHA2   Evaluate the args.  (Enter at GRPHA2
+02157                      *    since the open paren has already been
+02158                      *    eaten by the function dispatcher.
+02159P 062B C6   FF      A        LDB    #-&1     Assume it isn't graphic.
+02160P 062D A6   84      A        LDA    ,X       Get the current stuff.
+02161P 062F 2A   0D   063E        BPL    NTGRPH   It is not graphic.
+02162P 0631 94   86      A        ANDA   CELL     Mask off the desired cell.
+02163P 0633 27   08   063D        BEQ    NOTLIT   It isn't lit, return 0.
+02164P 0635 E6   84      A        LDB    ,X       It is lit, get the color code and
+02165P 0637 54                    LSRB            shift it down.
+02166P 0638 54                    LSRB
+02167P 0639 54                    LSRB
+02168P 063A 54                    LSRB
+02169P 063B C4   07      A        ANDB   #&7      Mask off the bits of interest.
+02170P 063D 5C             NOTLIT INCB            Do the final adjustment.
+02171P 063E BD   03FF    P NTGRPH JSR    SINTB    Float the signed integer in B.
+02172P 0641 7E   0000    A CHKRP  JMP    CHKCLS   Check for the right paren and return.
+02173
+
+PAGE  039  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02175                      *
+02176                      * CLS "clears" the screen.
+02177                      * If no argument is given, the screen is cleared using green spaces
+02178                      * (character mode).
+02179                      * If the argument is zero, the screen is blacked out oy putting
+02180                      * all blocks into graphics mode with all cells off and with a green
+02181                      * color field.
+02182                      * If the argument is between 1 and 8 all block are put in graphics
+02183                      * mode with all cells on using the color specified.  The colors are
+02184                      * the same as for the SET command.
+02185                      *
+02186
+02187                             XDEF   CLS
+02188P 0644 BD   0000    A CLS    JSR    HKCLS    RAM hook.
+02189P 0647 27   13   065C        BEQ    GRNCHR   No argument, use green space chars.
+02190P 0649 BD   0000    A        JSR    GETBYT   Read the argument.
+02191P 064C C1   08      A        CMPB   #&8      Valid args are from 0 to 8.
+02192P 064E 22   1B   066B        BHI    DOMIC    Go print MICROSOFT.
+02193P 0650 5D                    TSTB            Black out the screen if zero.
+02194P 0651 27   06   0659        BEQ    ALLOFF
+02195P 0653 5A                    DECB            Adjust to VDG color code and shift
+02196P 0654 86   10      A        LDA    #&16     into bits 4, 5, and 6.
+02197P 0656 3D                    MUL
+02198P 0657 CA   0F      A        ORB    #@17     Turn on all cells.
+02199P 0659 CA   80      A ALLOFF ORB    #@200    Turn on the graphics mode bit.
+02200P 065B                       SKIP2  Skip     over green character load.
+02201                             XDEF   GRNCHR
+02202P 065C C6   60      A GRNCHR LDB    #@140    This is a green space.
+02203P 065E 8E   0400    A        LDX    #SCRADR  Point to start of screen.
+02204P 0661 9F   88      A CLRLIN STX    CURADR   Store new cursor address.
+02205P 0663 E7   80      A CLSLOP STB    ,X+      Do all sceen positions.
+02206P 0665 8C   05FF    A        CMPX   #SCRADR+&511
+02207P 0668 23   F9   0663        BLS    CLSLOP
+02208P 066A 39                    RTS
+02209
+02210P 066B 8D   EF   065C DOMIC  BSR    GRNCHR   Clear the screen.
+02211P 066D 8E   00D1    P        LDX    #MICRO-&1 Print MICROSOFT.
+02212P 0670 7E   0000    A        JMP    STROUT
+02213
+02214                             TTL    SOUND and AUDIO commands.
+02215
+02218P 0673 BD   0000    A GCNZBY JSR    CHKCOM   Eat comma and get nonzero byte.
+02217P 0676 BD   0000    A GNZBYT JSR    GETBYT   Get nonzero byte.
+02218P 0679 5D                    TSTB            Give FC error if it's zero.
+02219P 067A 26   3C   06B8        BNE    SNDRTS
+02220P 067C 7E   0000    A GOFCER JMP    FCERR
+02221
+02222                      *
+02223                      * SOUND frequency,duration
+02224                      *
+02225                      * 0 .LT. frequency .LE. 255, 0 .LT. duration .LE. 255.
+02226                      *
+02227
+02228                             XDEF   SOUND
+02229P 067F 8D   F5   0676 SOUND  BSR    GNZBYT   Get the frequency number.
+02230P 0681 D7   8C      A        STB    SNDFRQ   Put it away.
+02231P 0683 8D   EE   0673        BSR    GCNZBY   Eat comma and get duration.
+02232                             XDEF   SOUNDR
+
+PAGE  040  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
+
+02233P 0685 86   04      A SOUNDR LDA    #&4      Multiply duration by something
+02234P 0687 3D                    MUL             so the sound can be heard.
+02235P 0688 DD   8D      A        STD    SNDTMR   Init the sound countdown timer.
+02236P 068A B6   FF03    A        LDA    PIA0BC   Make sure slow clock is enabled at
+02237P 068D 8A   01      A        ORA    #&1      the PIA.
+0238P  068F B7   FF03    A        STA    PIA0BC
+02239P 0692 12                    NOP             WASTE A BYTE FOR ADDRESS COMPATABILITY
+02240P 0693 5F                    CLRB            Select D/A sound.
+02241P 0694 8D   40   06D6        BSR    SETSEL
+02242P 0696 8D   12   06AA        BSR    SNDON    Turn on sound to TV.
+02243
+02244P 0698 8D   1F   06B9 HLDSND BSR    SNDMID   Put out center amplitude.
+02245P 069A 86   FC      A        LDA    #&252!+PIABIT Put out max amplitude.
+02246P 069C 8D   1D   06BB        BSR    DOSND
+02247P 069E 8D   19   06B9        BSR    SNDMID   Put out center amplitude again.
+02248P 06A0 86   00      A        LDA    #&0!+PIABIT Put out min amplitude.
+02249P 06A2 8D   17   06BB        BSR    DOSND
+02250P 06A4 9E   8D      A        LDX    SNDTMR   Has the timer expired?
+02251P 06A6 26   F0   0698        BNE    HLDSND   No, hold the sound.
+02252                      *    Yes, fall into SNDOFF to turn off
+02253                      *    TV sound.
+02254
+02255                             XDEF   SNDOFF
+02256P 06A8 4F             SNDOFF CLRA            Turn off TV sound.
+02257P 06A9                              Skip     over SNDON entry point.
+02258                             XDEF   SNDON
+02259P 06AA 86   08      A SNDON  LDA    #@10     Turn on TV sound.
+02260P 06AC A7   E2      A        STA    ,-S      Save ON/OFF bit.
+02261P 06AE B6   FF23    A        LDA    PIA1BC   Get current contents of control reg.
+02252P 06B1 84   F7      A        ANDA   #@367    Reset sound enable bit.
+02263P 06B3 AA   E0      A        ORA    ,S+      Now turn it on if desired.
+02264P 06B5 B7   FF23    A        STA    PIA1BC
+02285P 06B8 39             SNDRTS RTS
+02266
+
+PAGE  041  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
+
+02268P 06B9 86   7C      A SNDMID LDA    #&124!+PIABIT Put out center amplitude.
+02269P 06BB B7   FF20    A DOSND  STA    PIA1AD   Output amplitude to D/A.
+02270P 06BE 96   8C      A        LDA    SNDFRQ   Set the frecuency.
+02271P 06C0 4C             SNDLOP INCA            Hold it longer for lower frequencies.
+02272P 06C1 26   FD   06C0        BNE    SNDLOP
+02273P 06C3 39                    RTS
+02274
+02275
+02276                      *
+02277                      * AUDIO ON/OFF turns on or off tne cassette audio to the TV.
+02278                      *
+02279
+02280                             XDEF   AUDIO
+02281P 06C4 1F   89      A AUDIO  TFR    A,B      Save the ON or OFF token.
+02262P 06C6 9D   9F      A        JSR    CHRGET   Eat it for NEWSTT.
+02283P 06C8 C1   00      A        CMPB   #OFFTK   OFF?
+02284P 06CA 27   DC   06A8        BEQ    SNDOFF   Yes, go turn off sound enable.
+02285P 06CC C0   00      A        SUBB   #ONTK    ON?
+02266P 06CE BD   03E0    P        JSR    ZERCHK   If not give SN error.
+02287P 06D1 5C                    INCB            Yes, select cassette sound.
+02238P 06D2 8D   02   06D6        BSR    SETSEL
+02289P 06D4 20   D4   06AA        BRA    SNDON    Turn on sound enable and return.
+02290
+02291
+02292                      *
+02293                      * SETSEL sets the select lines according to tne contents of B.
+02294                      * B0 should be on to set SEL1, B1 should be on to set SEL2.
+02295                      *
+02296                      * U, A, and B are changed.
+02297                      *
+02296
+02299                             XDEF   SETSEL
+02300P 06D6 CE   FF01    A SETSEL LDU    #PIA0AC  Point to PIA0 A side control reg.
+02301P 06D9 8D   00   06DB        BSR    SETIT    Set or clear SEL1.
+02302                      *    Fall in to set or clear SEL2.
+02303P 06DB A6   C4      A SETIT  LDA    ,U       Get current reg contents and clear
+02304P 06DD 84   F7      A        ANDA   #@367    the select line bit.
+02305P 06DF 57                    ASRB            Set carry if line is to be set.
+02306P 06E0 24   02   06E4        BCC    NOSET    Don't set it.
+02307P 0EE2 8A   08      A        ORA    #@10     Set it.
+02308P 06E4 A7   C1      A NOSET  STA    ,U++     Store control word and point to next
+02305P 06E6 39                    RTS             control register.
+02310
+02311
+02312                      *
+02313                      * SNDCLK handles the timing for the SOUND routine.
+02314                      * It is invoked on an IRQ interrupt.
+02315                      *
+02316
+02317                             XDEF   SNDCLK
+02318P 06E7 BE   008D    A SNDCLK LDX    >SNDTMR  Is the SOUND countdown timer
+02319                      *    already zero?  (Force extended
+02320                      *    addressing since at interrupt level.)
+02321P 06EA 27   05   06F1        BEQ    SLWRTI   Yes, leave it as is.
+02322P 06EC 30   1F      A        LEAX   -&1,X    No, decrement it.
+02323P 06EE BF   008D    A        STX    >SNDTMR
+02324P 06F1 3B             SLWRTI RTI             Return from the interrupt.
+02325
+
+PAGE  042  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
+
+02327                             TTL    The JOYSTK function.
+02328
+02329                             XOEF   JOYSTK
+02330P 06F2 BD   0000    A JOYSTK JSR    CONINT   Convert the pot number to a single
+02331                      *    byte integer in B and FACLO.
+02332P 06F5 C1   03      A        CMPB   #&3      Must be 0, 1, 2, or 3.
+02333P 06F7 1022 F905    A        LBHI   FCERR
+02334P 06FB 5D                    TSTB            Is it pot 0?
+02335P 06FC 26   03   0701        BNE    GETPOT   No, just return the old value.
+02336P 06FE BD   0000    A        JSR    JOYIN    Yes, actually read all four pots.
+02337P 0701 8E   0000    A GETPOT LDX    #POTVAL  Point to the pot value table.
+02338P 0704 D6   53      A        LDB    FACLO    Get the pot number.
+02339P 0706 E6   85      A        LDB    B,X      Get tne requested pot value.
+02340P 0708 7E   0000    A        JMP    SNGFLT   Go float it and return.
+02341
+02342                             TTL    ROMable part of CHRGET.
+02141
+02344                             XDEF   ROMLOC
+02345            070B    P ROMLOC EQU    *
+02346            0001    A        IFNE   REALIO
+02347P 070B 81   3A      A        CMPA   #':       IS IT A ":"?
+02348P 070D 24   0A   0719        BCC    CHRRTS    IT IS .GE. ":"
+02349P 070F 81   20      A        CMPA   #'        SKIP SPACES.
+02350P 0711 26   02   0715        BNE    NTBLNK    BNE, JMP direct is faster tnan LBEQ,
+02351P 0713 0E   9F      A        JMP    CHRGET    but both use 4 bytes.
+02352P 0715 80   30      A NTBLNK SUBA   #'0       ALL CHARS .GT. "9" HAVE RET'D SO
+02353P 0717 80   D0      A        SUBA   #-'0      SEE IF NUMERIC.
+02354                      *    TURN CARRY ON IF NUMERIC.
+02355                      *    ALSO, SETZ IF NULL.
+02356P 0719 39             CHRRTS RTS             RETURN TO CALLER.
+02357                             ENDC   IFN      REALIO
+02358
+02359                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000

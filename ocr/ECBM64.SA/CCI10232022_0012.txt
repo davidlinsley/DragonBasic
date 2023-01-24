@@ -1,86 +1,45 @@
-                                                                                                                                                                                                                                                                                                  •
+PAGE  013  ECBM64  .SA:1  ECBM64 INLIN - The line input routine.
 
-
-
-                                             PAGE       013      6C2M64         .SA:;1       60BM64       INLIN - The line input routine.
-
-
-                                             01231P 0200           A7       80             A               STA                           No, store the character, bump the 
-                                             01232P 0202           50                                      INOB                          pointer, and increment the count. 
-                                             01233P 0203           BD       012F           P   ECHOIT      JSR          CHROUT           Echo the char and go back for more
-                                             01234P 0206           20       AD        0185                 BRA          INLINO
-                                             01235
-                       H I A:                01236                                                         TTL          OPNICK and OPNOCK
-                                             01237
-                                             01238                                             *
-                                             01239                                             *  Make     sure device specified by DEVNUM is open for input.
-                                       P     01240                                             *
-                                 (           01241
-                                             01242                                                         XDEF         OPNICK
-                                             01243P       0208     BD       0000           A   OPNICK      JSR          HKCKDI           RAM hook.
-                                             01244P       0208     96       6F             A               LOA          DEVNLM           Get the device number.
-                                 40          01245P       0201)    27       21        0230                 BEO          OKOPN            Keyboard is always open.                                                                                                                                 410
-                                             01246P       020F     40                                      INCA                          Is is the printer?
-                                             01247P       0210     26       00        0216                 BNE          GOBMER           Yes, give Bad Mode error. 
-                                 40          01248P       0212     96       78             A               LDA          OASOPN           Is the cassette open?
-                                             01249P       0214     26       05        0218                 BNE          OHKMOD           Yes, do check the open mooe.
-                                             01250                                                         XDEF         NOERR
-                                             01251P       0216     06       00             A   NOERR       LDB          #ERRNO           No, give Not Owen error.                                                                                                                                 •
-                                             01252P       0218     76       0000           A               JMP          ERROR
-                                             01253
-                                             01254P       0218     4A                          CHKMOD      DECA                          Is it open for input?                                                                                                                                    •
-                                             01255P       0210     27       12        0230                 BEO          OKOPN            Yes, OK.
-                                             01256P       0216     7E       042D           P   GOBMER      JMP          BMERR            No, give Bad Mode error.
-                                             01257
-                                             01258
-                                             01259                                             *
-                                             01260                                             *  Make     sure device is open for output.                                                                                                                                                        •
-                                             0126                                              *
-                                             01262
-                                             01263                                                         XDEF         OPNOCK                                                                                                                                                                    •
-                                             01264P       0221     BD       0000               OPNOCK      JSR          HKCKDO           RAM nook.
-                                             01265P       0224     96       6F             A               LDA          DEVNUM           Get the device number.
-                                             01266P       0226     40                                      INCA                                                                                                                                                                                   •
-                                             01267P       0227     26       07        0230                 BNE          OKOPN            Screen and printer are always open. 
-                                             01268P       0229     96       78             A               LOA          CASOPN           Is the casette open?
-                                             01269P       0228     27       69        0216                 BEQ          NOERR            No, give Not Open error.                                                                                                                                 lit
-                                             01270P       0220     4A                                      DECA                          Yes, is it open for output?
-                                             01271P       022E     27       66        0216                 860          GOBMER           No, dive mode error.
-                                 46          01272P       0230     39                          OKOPN       RTS                           Yes, all is OK.                                                                                                                                          •
-                                             01273-„
-
-
-                                                                                                                                                                                                                                                                                                  •
-
-
-
-
-                                                                                                                                                                                                                                                                                                  •
-
-
-
-
-                                                                                                                                                                                                                                                                                                  411
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                                                                  •
-
-+44(0)20ETEI 71
-
-         For Your Nec (                                                                                                                                                                                                                                                                           40
-
-
-
-
-
-
-                                    I I                                                                                                                                                                                                                                                      I,   1
-
+01231P 0200 A7   80      A        STA    ,X+      No, store the character, bump the
+01232P 0202 5C                    INCB            pointer, and increment the count.
+01233P 0203 BD   012F    P ECHOIT JSR    CHROUT   Echo the char and go back for more.
+01234P 0206 20   AD   01B5        BRA    INLINC
+01235
+01236                             TTL    OPNICK and OPNOCK
+01237
+01238                      *
+01239                      * Make sure device specified by DEVNUM is open for input.
+01240                      *
+01241
+01242                             XDEF   OPNICK
+01243P 0208 BD   0000    A OPNICK JSR    HKCKDI   RAM hook.
+01244P 020B 96   6F      A        LDA    DEVNUM   Get the device number.
+01245P 020D 27   21   0230        BEQ    OKOPN    Keyboard is always open.
+01246P 020F 4C                    INCA            Is is the printer?
+01247P 0210 26   0C   021E        BNE    GOBMER   Yes, give Bad Mode error.
+01248P 0212 96   78      A        LDA    CASOPN   Is the cassette open?
+01249P 0214 26   05   021B        BNE    CHKMOD   Yes, do check the open mode.
+01250                             XDEF   NOERR
+01251P 0216 C6   00      A NOERR  LDB    #ERRNO   No, give Not Open error.
+01252P 0218 7E   0000    A        JMP    ERROR
+01253
+01254P 021B 4A             CHKMOD DECA            Is it open for input?
+01255P 021C 27   12   0230        BEQ    OKOPN    Yes, OK.
+01256P 021E 7E   042D    P GOBMER JMP    BMERR    No, give Bad Mode error.
+01257
+01258
+01259                      *
+01260                      * Make sure device is open for output.
+01261                      *
+01262
+01263                             XDEF   OPNOCK
+01264P 0221 BD   0000    A OPNOCK JSR    HKCKDO   RAM hook.
+01265P 0224 96   6F      A        LDA    DEVNUM   Get the device number.
+01266P 0226 4C                    INCA
+01267P 0227 26   07   0230        BNE    OKOPN    Screen and printer are always open.
+01268P 0229 96   78      A        LDA    CASOPN   Is the casette open?
+01269P 022B 27   E9   0216        BEQ    NOERR    No, give Not Open error.
+01270P 022D 4A                    DECA            Yes, is it open for output?
+01271P 022E 27   EE   021E        BEQ    GOBMER   No, give mode error.
+01272P 0230 39             OKOPN  RTS             Yes, all is OK.
+01273

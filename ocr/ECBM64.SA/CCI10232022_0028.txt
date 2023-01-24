@@ -1,86 +1,42 @@
-                                         PAGE 029 ECBM64 .SAgi ECBM84 Search Cassette for a File
-                     a
+PAGE  029  ECBM64  .SA:1  ECBM64 Search Cassette for a File
 
-                                         01832                                      *
-                     H       (%..        01833                                      *  SKPFIL skips the current file.
-                                         01834                                      *  Or exit Z=1 if all OK, Z=0 if error occured.
-                                         01835                                      *
-                                         01836
-                             (.          01837P 04E8 7]             0000         A SKPFIL TST              GAPFLG        Does this file have gaps?
-                                         01838P 04EB 28             09      04F6               BNE         SKPFFIL       Yes, go handle it.
-                                         01839P 04E0 225            0000         A             jSR         CSRDON        No, turn on cassette and sync up.
-                                         01840P 04F0 80             31      0523 SKP...P BSR               BLKIN         Read the next block.
-                                         01841P 04F2 az,            08      04EC               BSR         SKIER         See if error or E3E.
-                                         01842P 04P4 20             FA      04F0               BRA         SKPLP         it was a good data record so look
-                             40          01843                                      *       at the next block
-                                         0'844
-                                         01845P 04F8 80             20      0516 SKPGFL BSR                RDBLK         Turn on, read block, turn off.
-                             40          01848P 04F8 8D             02      04FC               BSR         SKIPER        Check for errors or EDF.
-                                 IIH 01847P 04FA 20                 EA      04F8               ERA         SKPGFL        Good data record, 100K at next block.
-                                         01848
-                                         01849P 04FC 26             06      0504 SKIPER BNE                BADSKP        Cassette read error.
-                                         01850P 04FE 96             7C           A             LDA         BLKTYP        Get the block type.
-                                         01851P 0500 40                                        NEGA                      0 to 0, FF to 1, 1 to F.--.
-                             0"          01852P 0501 2R             14      0517               BMI         NODSP3        Data record, return to skip loop.
-                                         01853P 0503 4A                                        DECA                      0 to FE, 1 to 0 so if EOF A=0 and
-                                         01854                                      *       if heater A=FF for error.
-                                         01855P 0504 97             81           A BADSKP S7A              CSRERR        Save the error statues.
-                                         01856P 0506 32             62           A             LEAS        a.2,S         Get rid of skip loop return address.
-                                         018572 0508 20             13      0510               BRA         RDBFIN        Turn off cassette and return with
-                                         01858                                      *       Z=1 if aIl OK.
-                                         01859 
-                                         (:).860
-                                         01881                                      *
-                                         01862                                      *  "Blink" char on screen.
-                                         01883                                      *
-                             40          018E4
-                                 1111 01885P 050A 28                0400         A BLINKS LDA              SCRADR        Set the char.
-
-                                         OISEEP 050D 88             40           A             EnRA        #@100         Reverse the video on it.
-                             ( .         01887P 050F DE             88           A 08PCHR LflB             CLRL1N        Only disolay if direct statement.
-                                         01868P 0511 5C                                        INCB
-                                         01669P 0512 26             03                         BNE         NODSP3
-                             40          01970P 0514 B7             0400    051  7             STA         SCRADR        Put it back.
-                                         01871P 0517 39                             NODSP3 RTS
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+ 44 [0]20 89              :
-
-
-       For Your Near ,•1-
-
-
-
-
-
-                                                                                                                                                                                                                                                                4t
-
-
-
-
-                             0
-
+01832                      *
+01833                      * SKPFIL skips the current file.
+01834                      * On exit Z=1 if all OK, Z=0 if error occured.
+01835                      *
+01836
+01837P 04E8 7D   0000    A SKPFIL TST    GAPFLG   Does this file have gaps?
+01838P 04EB 26   09   04F6        BNE    SKPGFL   Yes, go handle it.
+01839P 04ED BD   0000    A        JSR    CSRDON   No, turn on cassette and sync up.
+01840P 04F0 8D   31   0523 SKPLP  BSR    BLKIN    Read the next block.
+01841P 04F2 8D   08   04FC        BSR    SKIPER   See if error or EOF.
+01842P 04F4 20   FA   04F0        BRA    SKPLP    It was a good data record so look
+01843                      *    at the next block.
+01844
+01845P 04F6 8D   20   0518 SKPGFL BSR    RDBLK    Turn on, read block, turn off.
+01848P 04F8 8D   02   04FC        BSR    SKIPER   Check for errors or EOF.
+01847P 04FA 20   FA   04F6        BRA    SKPGFL   Good data record, look at next block.
+01848
+01849P 04FC 26   06   0504 SKIPER BNE    BADSKP   Cassette read error.
+01850P 04FE 96   7C      A        LDA    BLKTYP   Get the block type.
+01851P 0500 40                    NEGA            0 to 0, FF to 1, 1 to FF.
+01852P 0501 2B   14   0517        BMI    NODSP3   Data record, return to skip loop.
+01853P 0503 4A                    DECA            0 to FF, 1 to 0 so if EOF A=0 and
+01854                      *    if header A=FF for error.
+01855P 0504 97   81      A BADSKP STA    CSRERR   Save the error status.
+01856P 0506 32   62      A        LEAS   &2,S     Get rid of skip loop return address.
+01857P 0508 20   13   051D        BRA    RDBFIN   Turn off cassette and return with
+01858                      *    Z=1 if all OK.
+01859
+01860
+01881                      *
+01862                      * "Blink" char on screen.
+01883                      *
+01884
+01885P 050A B6   0400    A BLINKS LDA    SCRADR   Get the char.
+01886P 050D 88   40      A        EORA   #@100    Reverse the video on it.
+01887P 050F D6   68      A DSPCHR LDB    CURLIN   Only display if direct statement.
+01868P 0511 5C                    INCB
+01669P 0512 26   03   0517        BNE    NODSP3
+01970P 0514 B7   0400    A        STA    SCRADR   Put it back.
+01871P 0517 39             NODSP3 RTS

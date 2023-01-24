@@ -1,61 +1,61 @@
-PAGE       020      ::'......C2,164.S51         EID.B54 The EXEC statement.
+PAGE  020  ECBM64  .SA:1  ECBM64 The EXEC statement.
 
-01452                                                                       Miscellaneous
-ola93 
-014'94                                            *
-0495                                              *  Check for BREAK and others.
-01495                                             *  Don't      co    it    if cassette          I/O is       in progress.
-C1497                                             *
+01492                             TTL    Miscellaneous
+01493
+01494                      *
+01495                      * Check for BREAK and others.
+01496                      * Don't do it if cassette I/O is in progress.
+01497                      *
 01498
-01499                                                         XDEF          BRRCHK
-01500P       0360     DD       0000           A   BRCH        JSR           HKBRKC          RAM hook.
-01501P       0363     SS       SF             5               LDA           DEVNUM
-01502P       0365     4C                                      INCA
-01503P       0366     27       50       0338                  BED           COPRTS          Cassette,         don't check for BREAK.
-01504P       0358     7E       0000           A               JMP           ISCNTC          Not    cassette,         go poll        keyboard.
+01499                             XDEF   BRKCHK
+01500P 0360 BD   0000    A BRKCHK JSR    HKBRKC   RAM hook.
+01501P 0363 96   6F      A        LDA    DEVNUM
+01502P 0365 4C                    INCA
+01503P 0366 27   50   03B8        BEQ    COPRTS   Cassette, don't check for BREAK.
+01504P 0368 7E   0000    A        JMP    ISCNTC   Not cassette, go poll keyboard.
 01505
-'::1506
-01507                                             *
-01508                                             *  Here when          the PRINT code sees an @ sign directly after the
-01505                                             *  PRINT token.
-01510                                             *
+01506
+01507                      *
+01508                      * Here when the PRINT code sees an @ sign directly after the
+01505                      * PRINT token.
+01510                      *
 01511
-01512                                                         XDEF          PATDO
-01513Q       0353     SD       0000           H '"PATDO       JSR           INTIDX          D:esereen address.
-01514P       036E     83       01FF           A               SUED          #&611           rilake sure       it's     in    range.
-01515P       0371     1022     758B           A               LBHI          FCERR           It   isn't.
-01516P       0375     53       05FF           A               ADDD          #SCRADR-1-&511         It    is,    set    the new cursor position.
-01517P       0378     DD       88             A               STD           CURADR
-01518P       037A     39                          PATRTS RTS
+01512                             XDEF   PATDO
+01513P 036B BD   0000    A PATDO  JSR    INTIDX   D:=screen address.
+01514P 036E 83   01FF    A        SUBD   #&511    Make sure it's in range.
+01515P 0371 1022 FC8B    A        LBHI   FCERR    It isn't.
+01516P 0375 C3   05FF    A        ADDD   #SCRADR+&511 It is, set the new cursor position.
+01517P 0378 DD   88      A        STD    CURADR
+01518P 037A 39             PATRTS RTS
 01519
-C1520
-01521                                             *
-01522                                             *  INKEYS returns a single byte string containing the key code                                                   of
-01523                                             *  an active          key or the null              string       if no key         is active.
-01524                                             *
+01520
+01521                      *
+01522                      * INKEY$ returns a single byte string containing the key code of
+01523                      * an active key or the null string if no key is active.
+01524                      *
 01525
-01525                                                         XDEF          INKEYS
-01527P       0373     96       87             A   INKEY$ LDA                INKCHR          Is there a char in the single char
-01528                                             *        huffir?
-01529P       037D     26       03       0382                  BNE           NOPOLL          Yes,     use it       rather than poll               for one
-01530P       0377     BD       0000           A               JSR           POLCPT          No,    scan the keyboard.
-0:531P       0382     OF       87             A   NOPOiLL CLR               INKCHR          r:i:ark  buffer as eft
-015325       0384     97       53             A               STA           FACLC           Save the key coce.
-01533P       0386     1026     FC76           A               LBNE          CH5MDU          ao put       it away.
-015340       038A     97       56             A               STA           DSCTMP          No key seen,            return the null string.
-01535P       038C     7E       0000           A               j',1P         GOPTNW
+01525                             XDEF   INKEY$
+01527P 037B 96   87      A INKEY$ LDA    INKCHR   Is there a char in the single char
+01528                      *    buffer?
+01529P 037D 26   03   0382        BNE    NOPOLL   Yes, use it rather than poll for one.
+01530P 037F BD   0000    A        JSR    POLCAT   No, scan the keyboard.
+01531P 0382 0F   87      A NOPOLL CLR    INKCHR   Mark buffer as empty.
+01532P 0384 97   53      A        STA    FACLO    Save the key code.
+01533P 0386 1026 FC76    A        LBNE   CHR$DO   Go put it away.
+01534P 038A 97   56      A        STA    DSCTMP   No key seen, return the null string.
+01535P 038C 7E   0000    A        JMP    GOPTNW
 01535
-0:537                                                         TTL           3et Filename.
+01537                             TTL    Get Filename.
 01538
-01539                                                         XDEF          SETF:LN
-01540P       038F     8E       0000           A   SETFLN LDX                #7NAMLN         Set the filename length to zero and
-01541P       0392     5F       80             5               CLR           ,X..i-          blank      fill     t'ne   filename         buffer.
-01342P       0394     816      20             A               LOP           #SPACE
-01543P       0396     A7       80             P.. BeNKFL STA                ,X-f-
-01544P       0398     8C       0008           A               CMPX          #FILNAM-1-&8
-C1545P       0392     25       FS       0395                  ENE           BLNKFL
+01539                             XDEF   GETFLN
+01540P 038F 8E   0000    A GETFLN LDX    #FNAMLN  Set the filename length to zero and
+01541P 0392 6F   80      A        CLR    ,X+      blank fill the filename buffer.
+01342P 0394 86   20      A        LDA    #SPACE
+01543P 0396 A7   80      A BLNKFL STA    ,X+
+01544P 0398 8C   0008    A        CMPX   #FILNAM+&8
+01545P 039B 26   F9   0396        BNE    BLNKFL
 01545
-01547P       039D     SD       55             5               JRR           CHRGOT          Does the statement end here?
-01548P       0397     27       17       0338                  BEO           COPRTS          Yes,     no filename specified so use
-01549                                             3:.      none.
-
+01547P 039D 9D   A5      A        JSR    CHRGOT   Does the statement end here?
+01548P 039F 27   17   03B8        BEQ    COPRTS   Yes, no filename specified so use
+01549                      *    none.
+
