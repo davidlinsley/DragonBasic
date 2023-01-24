@@ -1,88 +1,37 @@
-                                  04:2 E.CB!v1E4.SAgl   ECBM64 SOUND and AUDIO commands.
+PAGE  042  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 
-
-                           02327                                TTL     The JOYSTK function.
-                           02328 
-                           02329                                XOEF    JOYSTK
-              a            02330P  06F2 BD    0000    A JOYSTK JSR      CONINT    Convert the pot number to a single 
-
-                                                        •     byte integer in   B and FACLO.
-              nn           02332P  06F5 Cl    03                CMPB    #&1       Must be 0, 1, 2, or 8.
-                           02333P  06F7 1022  F905              LBHI    FERR
-                           02334P  06FB 5D                      TSTB              is it pot 0?
-                           02335P  06FC 26    03   0701         BNE     GETPOT    No, lust return tne old value. 
-                           02336P  06FE BD    0000              jSR     jOYIN     Yes, actually read all four pots. 
-                           02137P  0701 8E    0000      GETPOT LOX      #POTVAL   Point to the pot value table.
-                           02338P  0704 D6    53                LOB     FACLO     Set the pot number.
-                           02139P  0706 E6    85                LOB     B,X       Get tne requested pot value. 
-                           02140P  0708 7E    0000              jMA     SNSFLT    Go float it and return.
-                           02341 
-                           02342                                TTL     ROMable part of CHRGET.
-                           02141
-                   4110    02344                                XDEF    RCMLOC
-                           02345              0708      ROMLOC EQU      *
-                           02346              0001    A         IFNE    i'rEALIO
-                   (7      02347P  070B 81    3A                CMPA    #7:       IS IT A ":"?
-                      r    02348P  070D 24    OA   0719         BGC     CHRRTS    IT IS .GE. '4"
-                           02149P  070F 81    20                CMPA              SKIP SPACES.
-                           02150P  0711 26    02   0715         BNE     NTBLNK    BNE, JMP direct is faster tnan LBEO!,
-                           02351P  0711 OE    9F                jMP     CHRGET    but both use 4 bytes.
-                           02352P  0715 BO    30        NTBLNK SUBA               ALL CHARS       -D. HAVE RET7D So
-                           02353P  0717 80    DO                SUBA    *-'0      SEE IF NUMERIC.
-                           02354                        •     TURN CARRY ON IF NUMERIC.
-                           02155                        •     ALSO, SETZ IF NULL.
-                           02356P  0719 39              CHRRTS RTS                RETURN TO CALLER.
-                           02357                                ENDO    IFN       REALIO
-                           02358
-                   4111    02359                                END
-                           TOTAL ERRORS 00000--00000 
-                           TOTAL WARNINGS 00000 - -00000
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-                                                                                                                                                                              •
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+44(0)2MDE1971 . 
-
-
-     For Your Nea
-
+02327                             TTL    The JOYSTK function.
+02328
+02329                             XOEF   JOYSTK
+02330P 06F2 BD   0000    A JOYSTK JSR    CONINT   Convert the pot number to a single
+02331                      *    byte integer in B and FACLO.
+02332P 06F5 C1   03      A        CMPB   #&3      Must be 0, 1, 2, or 3.
+02333P 06F7 1022 F905    A        LBHI   FCERR
+02334P 06FB 5D                    TSTB            Is it pot 0?
+02335P 06FC 26   03   0701        BNE    GETPOT   No, just return the old value.
+02336P 06FE BD   0000    A        JSR    JOYIN    Yes, actually read all four pots.
+02337P 0701 8E   0000    A GETPOT LDX    #POTVAL  Point to the pot value table.
+02338P 0704 D6   53      A        LDB    FACLO    Get the pot number.
+02339P 0706 E6   85      A        LDB    B,X      Get tne requested pot value.
+02340P 0708 7E   0000    A        JMP    SNGFLT   Go float it and return.
+02341
+02342                             TTL    ROMable part of CHRGET.
+02141
+02344                             XDEF   ROMLOC
+02345            070B    P ROMLOC EQU    *
+02346            0001    A        IFNE   REALIO
+02347P 070B 81   3A      A        CMPA   #':       IS IT A ":"?
+02348P 070D 24   0A   0719        BCC    CHRRTS    IT IS .GE. ":"
+02349P 070F 81   20      A        CMPA   #'        SKIP SPACES.
+02350P 0711 26   02   0715        BNE    NTBLNK    BNE, JMP direct is faster tnan LBEQ,
+02351P 0713 0E   9F      A        JMP    CHRGET    but both use 4 bytes.
+02352P 0715 80   30      A NTBLNK SUBA   #'0       ALL CHARS .GT. "9" HAVE RET'D SO
+02353P 0717 80   D0      A        SUBA   #-'0      SEE IF NUMERIC.
+02354                      *    TURN CARRY ON IF NUMERIC.
+02355                      *    ALSO, SETZ IF NULL.
+02356P 0719 39             CHRRTS RTS             RETURN TO CALLER.
+02357                             ENDC   IFN      REALIO
+02358
+02359                             END
+TOTAL ERRORS 00000--00000
+TOTAL WARNINGS 00000--00000
