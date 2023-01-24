@@ -1408,3 +1408,62 @@ POINT  BSR    GRPHA2   Evaluate the args.  (Enter at GRPHA2
 NOTLIT INCB            Do the final adjustment.
 NTGRPH JSR    SINTB    Float the signed integer in B.
 CHKRP  JMP    CHKCLS   Check for the right paren and return.
+
+*
+* CLS "clears" the screen.
+* If no argument is given, the screen is cleared using green spaces
+* (character mode).
+* If the argument is zero, the screen is blacked out oy putting
+* all blocks into graphics mode with all cells off and with a green
+* color field.
+* If the argument is between 1 and 8 all block are put in graphics
+* mode with all cells on using the color specified.  The colors are
+* the same as for the SET command.
+*
+
+       XDEF   CLS
+CLS    JSR    HKCLS    RAM hook.
+       BEQ    GRNCHR   No argument, use green space chars.
+       JSR    GETBYT   Read the argument.
+       CMPB   #&8      Valid args are from 0 to 8.
+       BHI    DOMIC    Go print MICROSOFT.
+       TSTB            Black out the screen if zero.
+       BEQ    ALLOFF
+       DECB            Adjust to VDG color code and shift
+       LDA    #&16     into bits 4, 5, and 6.
+       MUL
+       ORB    #@17     Turn on all cells.
+ALLOFF ORB    #@200    Turn on the graphics mode bit.
+       SKIP2  Skip     over green character load.
+       XDEF   GRNCHR
+GRNCHR LDB    #@140    This is a green space.
+       LDX    #SCRADR  Point to start of screen.
+CLRLIN STX    CURADR   Store new cursor address.
+CLSLOP STB    ,X+      Do all sceen positions.
+       CMPX   #SCRADR+&511
+       BLS    CLSLOP
+       RTS
+
+DOMIC  BSR    GRNCHR   Clear the screen.
+       LDX    #MICRO-&1 Print MICROSOFT.
+       JMP    STROUT
+
+       TTL    SOUND and AUDIO commands.
+
+GCNZBY JSR    CHKCOM   Eat comma and get nonzero byte.
+GNZBYT JSR    GETBYT   Get nonzero byte.
+       TSTB            Give FC error if it's zero.
+       BNE    SNDRTS
+GOFCER JMP    FCERR
+
+*
+* SOUND frequency,duration
+*
+* 0 .LT. frequency .LE. 255, 0 .LT. duration .LE. 255.
+*
+
+       XDEF   SOUND
+SOUND  BSR    GNZBYT   Get the frequency number.
+       STB    SNDFRQ   Put it away.
+       BSR    GCNZBY   Eat comma and get duration.
+       XDEF   SOUNDR
