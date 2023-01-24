@@ -1,111 +1,36 @@
-                                                             .SA;t1   E0Bm64 Simble Graphics - SET,            RESET,    POINT, COS
-
-
-                                  02140 
-
-                                  02141                                *  POINT returns the status of the smecified cell as follows:
-
-                                  02142                                *
-
-                                  02143                                *  -1 Block containq cell          is not   in graphics mode.
-                                  02144                                *  0  The  ci:,11 is  unlit.
-
-                                  02145                                *  1 Green
-
-                                  02146                                   :2 Yellow
-
-                                  02147                                      Blue
-
-                                  02148                                      Red
-
-                                  02149                                   3 Buff
-
-                                  02150                                      Cyan
-
-                                  02151                                      magenta
-
-                                  02152                                   8 Orange
-
-                                  02153                                *
-                         4,       02154
-
-                            WI    02155                                          XDEF     POINT
-                                  02156P    0629   BD     DO    05FB   POINT     BSR      GRPHA2       Evaluate the args.         (Enter at     GRPHA2
-                         40       02157                                *      since the omen oaren has already been
-
-                                  02158                                       eaten by the function dispatcher.
-
-                                  02159P    062B   06     FF        A            LDB      *-&1         Assume it    isn't graphic.
-                                  02160P    0620   A6     84        A            LDA                   Get the current stuff.
-
-                                  02161P    062F   2A     OD    063E             BYO      NTGRPH       It  is not   graphic.
-                                  02162P    0631   94     86        A            ANDA     CELL         Mask off the desired cell.
-                                  02163P    0633   27     08                     BEO      NOTLIT       It  isn't   lit,   return 0.
-                                  02164P    0635   86     84        A            LDB      ,X           It  is  lit,   get  the color code       and
-                                  02165P    0637   54                            LSRB                  shift   it down.
-                                  02:66P    0638   54                            LSRB
-
-                                  02:67P    0639   54                            LSRB
-
-                                  02168P    063A   54                            LSRB
-
-                                  02169P    0638   C4     07        A            ANDB     #6,7         Mask   off the     its of interest.
-                                  02170P    063D   50                  NOTLIT INCB                     Do the final adjustment.
-                                  02171P    06:7F  BT)    03FF      P  NTSRPH JSR         SIN-7B       Float the signed integer in B.
-                                  02172P    0641   7E     0000      A  CHKRP     JMP      CHKCLS       Check for the right paren and            return.
-                                  02173
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-+44 (0)20 B9 71
-
-
-       For Your Nea
-
+PAGE  038  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02140                      *
+02141                      * POINT returns the status of the specified cell as follows:
+02142                      *
+02143                      * -1 Block containg cell is not in graphics mode.
+02144                      * 0 The cell is unlit.
+02145                      * 1 Green
+02146                      * 2 Yellow
+02147                      * 3 Blue
+02148                      * 4 Red
+02149                      * 5 Buff
+02150                      * 6 Cyan
+02151                      * 7 Magenta
+02152                      * 8 Orange
+02153                      *
+02154
+02155                             XDEF   POINT
+02156P 0629 8D   D0   05FB POINT  BSR    GRPHA2   Evaluate the args.  (Enter at GRPHA2
+02157                      *    since the open paren has already been
+02158                      *    eaten by the function dispatcher.
+02159P 062B C6   FF      A        LDB    #-&1     Assume it isn't graphic.
+02160P 062D A6   84      A        LDA    ,X       Get the current stuff.
+02161P 062F 2A   0D   063E        BPL    NTGRPH   It is not graphic.
+02162P 0631 94   86      A        ANDA   CELL     Mask off the desired cell.
+02163P 0633 27   08   063D        BEQ    NOTLIT   It isn't lit, return 0.
+02164P 0635 E6   84      A        LDB    ,X       It is lit, get the color code and
+02165P 0637 54                    LSRB            shift it down.
+02166P 0638 54                    LSRB
+02167P 0639 54                    LSRB
+02168P 063A 54                    LSRB
+02169P 063B C4   07      A        ANDB   #&7      Mask off the bits of interest.
+02170P 063D 5C             NOTLIT INCB            Do the final adjustment.
+02171P 063E BD   03FF    P NTGRPH JSR    SINTB    Float the signed integer in B.
+02172P 0641 7E   0000    A CHKRP  JMP    CHKCLS   Check for the right paren and return.
+02173
