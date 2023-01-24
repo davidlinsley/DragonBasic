@@ -1467,3 +1467,37 @@ SOUND  BSR    GNZBYT   Get the frequency number.
        STB    SNDFRQ   Put it away.
        BSR    GCNZBY   Eat comma and get duration.
        XDEF   SOUNDR
+SOUNDR LDA    #&4      Multiply duration by something
+       MUL             so the sound can be heard.
+       STD    SNDTMR   Init the sound countdown timer.
+       LDA    PIA0BC   Make sure slow clock is enabled at
+       ORA    #&1      the PIA.
+       STA    PIA0BC
+       NOP             WASTE A BYTE FOR ADDRESS COMPATABILITY
+       CLRB            Select D/A sound.
+       BSR    SETSEL
+       BSR    SNDON    Turn on sound to TV.
+
+HLDSND BSR    SNDMID   Put out center amplitude.
+       LDA    #&252!+PIABIT Put out max amplitude.
+       BSR    DOSND
+       BSR    SNDMID   Put out center amplitude again.
+       LDA    #&0!+PIABIT Put out min amplitude.
+       BSR    DOSND
+       LDX    SNDTMR   Has the timer expired?
+       BNE    HLDSND   No, hold the sound.
+*    Yes, fall into SNDOFF to turn off
+*    TV sound.
+
+       XDEF   SNDOFF
+SNDOFF CLRA            Turn off TV sound.
+              Skip     over SNDON entry point.
+       XDEF   SNDON
+SNDON  LDA    #@10     Turn on TV sound.
+       STA    ,-S      Save ON/OFF bit.
+       LDA    PIA1BC   Get current contents of control reg.
+       ANDA   #@367    Reset sound enable bit.
+       ORA    ,S+      Now turn it on if desired.
+       STA    PIA1BC
+SNDRTS RTS
+
