@@ -1247,3 +1247,61 @@ LDR8YT LDA    #@125    Leader byte is 55 hex.
 GOCBO  JMP    CBOUT    Output it and return.
 
        TTL    Simple Graphics - SET, RESET, POINT, CLS
+
+*
+* SET makes the specified cell the specified color.
+*
+* Colors are -
+*  1 - Green
+*  2 - Yellow
+*  3 - Blue
+*  4 - Red
+*  5 - Buff
+*  6 - Cyan
+*  7 - Magenta
+*  8 - Orange
+*
+* If the color number given is zero and the block containing the cell
+* is already in graphic mode, the color of the block is unchanged.
+*
+* If the color number given is zero and the block containing the cell
+* is not already in graphic mode, the color of the block defaults to
+* Green.
+*
+
+       XDEF   SET
+SET    BSR    GRPHAR   Evaluate the column and row args and
+*    make X point to the block containing
+*    the cell and CELL contain the bit
+*    corresponding to the cell.
+       PSHS   X        Save the address.
+       JSR    COMBYT   Eat the comma and get the color number
+*    in B.
+       PULS   X        Retrieve the address.
+       CMPB   #&8      Is the color number in range?
+       BHI    BADARG   No, give FC error.  (Negatives were
+*    thrown out by GETBYT.)
+       DECB            Adjust the code for actual VDG color
+*    codes.
+       BMI    COLOR0   Handle color 0 as a special case.
+       LDA    #&16     Shift the color code into bits
+       MUL             4, 5, and 6 for the VDG.
+       BRA    HAVCLR   We have the color code.
+
+COLOR0 LDB    ,X       B:=current contents of block.
+       BPL    SETGRN   It isn't in graphic mode so
+*    color 0 defaults to green.
+       ANDB   #@160    It is graphic, retain the current
+*    color.
+       FCB    @41      BRN over CLRB.
+
+SETGRN CLRB            Set color to green.
+HAVCLR PSHS   B        Save the color code.
+       BSR    CHKRP    Must have a right paren before we
+*    actually do anything to the screen.
+       LDA    ,X       Get the current block.
+       BMI    ISGRPH   Graphic - retain currently lit cells.
+       CLRA            Character - clear all other cells.
+ISGRPH ANDA   #@17     Get only the cell bits.
+       ORA    CELL     Include the only being SET.
+       ORA    ,S+      Now get the color bits.
