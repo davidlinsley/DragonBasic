@@ -1399,3 +1399,26 @@ PAGE  035  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
 02070P 05E5 A7   84      A        STA    ,X       Put it away and return.
 02071P 05E7 39                    RTS
 
+PAGE  036  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02073                      *
+02074                      * RESET turns off the specified cell.
+02075                      *
+02076                      * If the block containing the cell is not in graphics mode, all
+02077                      * the cells are turned off and the block is put into graphics mode
+02078                      * with the default color of green.
+02079                      *
+02080
+02081                             XDEF   RESET
+02082P 05E8 8D   0E   05F8 RESET  BSR    GRPHAR   Evaluate the column and row args.
+02083P 05EA 8D   55   0641        BSR    CHKRP    Make sure there is a closing paren.
+02084P 05EC 4F                    CLRA            Assume the block isn't graphic.
+02085P 05ED E6   84      A        LDB    ,X       Get the current contents.
+02086P 05EF 2A   F2   05E3        BPL    STGRPH   Not graphic, go make it graphic
+02087                      *    with all cells off and a default
+02088                      *    color of green.
+02089P 05F1 03   86      A        COM    CELL     Make only tne specified cell bit 0.
+02090P 05F3 D4   86      A        ANDB   CELL     RESET the cell.
+02091P 05F5 E7   84      A        STB    ,X       Put it away and return.
+02092P 05F7 39                    RTS
+
