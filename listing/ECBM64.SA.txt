@@ -1393,3 +1393,9 @@ PAGE  034  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
 02067P 05DF 9A   86      A        ORA    CELL     Include the only being SET.
 02068P 05E1 AA   E0      A        ORA    ,S+      Now get the color bits.
 
+PAGE  035  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
+
+02069P 05E3 8A   80      A STGRPH ORA    #@200    Set MSB for graphics mode.
+02070P 05E5 A7   84      A        STA    ,X       Put it away and return.
+02071P 05E7 39                    RTS
+
