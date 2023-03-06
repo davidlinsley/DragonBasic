@@ -694,3 +694,24 @@ NOTRS  LSR    KBROLL   CHANGE ROW STATE STORE
        LDX    #KBROLL  POINT TO ROLLOVER TABLE
 TBLCLR STA    ,X+      FORGET THE KEYS
        CMPX   #POTVAL  ALL CLEAR ?
+       BLO    TBLCLR
+CONTIN JMP    XRSLWC
+*
+*      END OF THE SUBROUTINES
+*
+*      64K FLAG AND VECTORS AT TOP OF ROM 2
+*
+       ASCT
+       ORG    $FFF0
+*
+       FCC    /64/
+*
+       FDB    VSWI3
+       FDB    VSWI2
+       FDB    VFIRQ
+       FDB    VIRQ
+       FDB    VSWI
+       FDB    VNMI
+       FDB    $C000    ROM START (NEVER USED)
+*
+       END
