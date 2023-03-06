@@ -1,61 +1,60 @@
-                                 PAGE    007    ECB064     .SA:1     IODRVR I/O DRIVER SUBROUT:.NES
+PAGE  007  ECBO64  .SA:1  IODRVR I/O DRIVER SUBROUTINES
 
-               al                0034eP    0164   8D    E0     0146             BSR      TXLPCH       TRANSMIT IT
-                                 00350P    0166   7F    034F                    JmP      EOLDLY       WAIT A' END CH LINE
-                                 00351P    0169   39                  ENDSEQ RTS
-                H I              00352                                *
-                                 00353                                *  LPTOUT - OuTPuT A CHARCHER           lo PARALLEL PRINTER INTERFACE
-                                 00354                                *
-                                 00355                                          XDEF     ZLArOu
-                                 00356                  016A        P ZLPTOO EQU
-                                 00357P    016A   34                  LPTOuT PSHS        A,B,X        SAVE REOS
-                                 00358                                *  DISABLE INTERRUPTS AT 7'HIS POINT?
-                                 00359P    016C   Al    OD                      CMPA     4CR          c.z?
-                                 00360P    016E   27    13     0a.83            BED.     LPTEUL              DaoL WITH EOL
-                                 00361P    0170   81    20                      CmPA     4SP          PRINTABLE?
-                                 00362P    0172   25    02     0176             BLO      SENDCH       N:J, SO SK:,A P05 UPDATE
-                                 00363P    0174   OC    9C                      INC      LPTPOS       YES,   UPDAE PRINT PUS
-                                 00364P    0176   BD    CE     (31146 SENDCH BSR         TXLPCH       AND SEND CHARACTER
-                                 o0365p    0178   06    9C                      LDB      LPTPOS       CHECK PRINT PuS
-                                 00366P    017A   D1    SB                      CmPB     LPTWiD       BUFFER FULL?
-                                 00367P    017C   25    11     0-18F            BLO      LPEXIT       NO,  SU OK TO EXIT
-                                 00368P    017E   7D    0148                    TST      AUTOLP       ATO LINEFEED?
-                                 00369P    0181   26    OA     0180             BNE      NXTLN        YES,   NO ACTION NEEDED
-                                 00370                                *  END OF L::.NE REACHED,       CR uR NO AU70              BUFFER PULL
-                                 00371P    0183   OD    9C          A LPTEOL TST         LPTPOS       EmdrY BUF,FER?
-                                 00372P    0165   26    04     0163             BNE      NEW .... N   NO,  50 FLUSH BUFFER
-                                 00373P    0187   86    20          A           LDA      4SP          YES,   SEND OLT A SPACE
-                                 00374P    0189   Si)   BB     0146             BSR      IXLPCH       BEFORE
-                                 00375P    0183   8D    CE     015B   NEWLN     35R      TXEOL        SENDING ELL S-..QUENCE
-                                 00376P    016D   OF    9C            NXTLN     CLR      LPTPUS       RESET PRINTER POSITION
-                                 00377P    018F         96          A LpEXIT PULS        A,B,X,PC RESTORE AND RETLRN
-                                 00378                                *
-                                 00379                                *  JOYSTICK RUUTINE NEXT
-                                 00360                                *
-                                 00381                                *  JOYSEL - SELECT ONE          HE JOYSTICK CHANNELS         (0-3)
-                                 00382                                *
-                                 00383P    0191   CE    FF01        A JOYSEL LDu         4POCRA       FlRsT T':mE THRU SETS UP
-                                 00364P    0194   SD    00     0196             DSR      NEWCR3       LS8 OF MuX,     SELECT CA2
-                                 0038P     0196   A8    C4          A NEWCR3 LDA         0,11         READ CLRRENT CR VALUE                                                                                             mr
-                                 00386P    0196   84    F7          A           ANDA     #$F7         RESE7 CR3
-                                 00387P    019A   56                            RORB                  mOVE LS BIT     IN7C CARRY
-                                 0033FkP   019D   24    02     019E '           BCC      C3wRT
-                                 00389P    019D   BA    08          A CR3SET ORA         #a           SETS CR3 IF LS BIT OH         (B)  StT
-                                 00390P    019F   A7    Cl            CR3wRT STA                      COPY NEW CR3 BACK &              uP
-                                 00391P    01A1   39                            +FS                   CRB FUR SECOND TIME THRU
-                                 00392                                *
-                                 00397.                               *  j0YIN - READS            juys-IcK CHANNELS
-                                 00394                                *
-                                 00395                                          XDEF     ZJOYIN
-                                 00'396                 01A2        P 7JOYiN EaJ         *
-                                 00397P    01A2   32    7D            jOYIN     LEAS     -3,S         RESERVE 3 BYTES OF STACK 1,,,RKSPACF
-                                 00398P    01P4   86    0I5E                    LDX      4POTVAL+4 USES AO-O-DEC SO ADDRESS a PAST END
-                                 00399P    01A7   C6    03                      LDB      #3           STARTS OHE fAJTH JOYST:K(3)
-                                 00400P    01P9   86    OA            NXTJOY LDP         #10          NUmBER        -RIES ON L.E.DoiAL READINGS
-                                 00401P    0:42   ED    El                      STD      1,8          SAVE JOYSICK NU,         AND 'RETRY VALUE
-                                           OlD    ap    62     0 1  1           BSR      jOYSEL       SELECT jOYSTICKB)
-                                 00403P    01AH   CC    4080        A RETRY     LDD      #54050       li& fFSD   IN  (A),   1/2 FSD    IN  (B)                                                                          •
-                                 00404P    0132   P7    E4          A !',ATTRY S-A       0,S          SCALE INCREMENT STORED AWAY                                                                                       I
-+44 [0]20 69 71                  00405P    0134   -F7   FE20        A           STS      P1PDRA       SEND APROX.       TO DAC
-      For Your Nec (-            00406P    017          FFOO        A           TST      PODDRA       :HECK COmPARATOR RESULT
-
+00349P 0164 8D   E0   0146        BSR    TXLPCH   TRANSMIT IT
+00350P 0166 7E   034F    p        JMP    EOLDLY   WAIT AT END OF LINE
+00351P 0169 39             ENDSEQ RTS
+00352                      *
+00353                      * LPTOUT - OUTPUT A CHARCTER TO PARALLEL PRINTER INTERFACE
+00354                      *
+00355                             XDEF   ZLPTOU
+00356            016A    P ZLPTOU EQU    *
+00357P 016A 34   16      A LPTOUT PSHS   A,B,X    SAVE REGS
+00358                      * DISABLE INTERRUPTS AT THIS POINT?
+00359P 016C 81   0D      A        CMPA   #CR      CR?
+00360P 016E 27   13   0183        BEQ    LPTEOL   YES, DEALL WITH EOL
+00361P 0170 81   20      A        CMPA   #SP      PRINTABLE?
+00362P 0172 25   02   0176        BLO    SENDCH   NO, SO SKIP POS UPDATE
+00363P 0174 0C   9C      A        INC    LPTPOS   YES, UPDATE PRINT POS
+00364P 0176 BD   CE   0146 SENDCH BSR    TXLPCH   AND SEND CHARACTER
+00365p 0178 D6   9C      A        LDB    LPTPOS   CHECK PRINT POS
+00366P 017A D1   9B      A        CMPB   LPTWID   BUFFER FULL?
+00367P 017C 25   11   018F        BLO    LPEXIT   NO, SO OK TO EXIT
+00368P 017E 7D   0148    A        TST    AUTOLF   AUTO LINEFEED?
+00369P 0181 26   0A   018D        BNE    NXTLN    YES, NO ACTION NEEDED
+00370                      * END OF LINE REACHED, CR OR NO AUTO LF ON BUFFER FULL
+00371P 0183 0D   9C      A LPTEOL TST    LPTPOS   EMPTY BUFFER?
+00372P 0185 26   04   018B        BNE    NEWLN    NO, SO FLUSH BUFFER
+00373P 0187 86   20      A        LDA    #SP      YES, SEND OUT A SPACE
+00374P 0189 8D   BB   0146        BSR    TXLPCH   BEFORE
+00375P 018B 8D   CE   015B NEWLN  BSR    TXEOL    SENDING EOL SEQUENCE
+00376P 018D 0F   9C      A NXTLN  CLR    LPTPOS   RESET PRINTER POSITION
+00377P 018F 35   96      A LPEXIT PULS   A,B,X,PC RESTORE AND RETURN
+00378                      *
+00379                      * JOYSTICK ROUTINE NEXT
+00380                      *
+00381                      * JOYSEL - SELECT ONE THE JOYSTICK CHANNELS (0-3)
+00382                      *
+00383P 0191 CE   FF01    A JOYSEL LDU    #POCRA   FIRST TIME THRU SETS UP
+00364P 0194 8D   00   0196        BSR    NEWCR3   LSB OF MUX, SELECT CA2
+00385P 0196 A6   C4      A NEWCR3 LDA    0,U      READ CURRENT CR VALUE
+00386P 0198 84   F7      A        ANDA   #$F7     RESET CR3
+00387P 019A 56                    RORB            MOVE LS BIT INTO CARRY
+00338P 019B 24   02   019F        BCC    CR3WRT
+00389P 019D BA   08      A CR3SET ORA    #8       SETS CR3 IF LS BIT OF (B) SET
+00390P 019F A7   C1      A CR3WRT STA    0,U++    COPY NEW CR3 BACK & SET UP
+00391P 01A1 39                    RTS             CRB FOR SECOND TIME THRU
+00392                      *
+00393                      * JOYIN - READS THE JOYSTICK CHANNELS
+00394                      *
+00395                             XDEF   ZJOYIN
+00396            01A2    P ZJOYIN EQU    *
+00397P 01A2 32   7D      A JOYIN  LEAS   -3,S     RESERVE 3 BYTES OF STACK WORKSPACE
+00398P 01A4 8E   015E    A        LDX    #POTVAL+4 USES AUTO-DEC SO ADDRESS 1 PAST END
+00399P 01A7 C6   03      A        LDB    #3       STARTS OFF WITH JOYSTICK(3)
+00400P 01A9 86   0A      A NXTJOY LDA    #10      NUMBER OF TRIES ON UNEQUAL READINGS
+00401P 01AB ED   61      A        STD    1,S      SAVE JOYSICK NO. AND RETRY VALUE
+00402P 01AD 8D   E2   0191        BSR    JOYSEL   SELECT JOYSTICK(B)
+00403P 01AF CC   4080    A RETRY  LDD    #$4080   1/4 FSD IN (A), 1/2 FSD IN (B)
+00404P 01B2 A7   E4      A NXTTRY STA    0,S      SCALE INCREMENT STORED AWAY
+00405P 01B4 F7   FE20    A        STB    P1PDRA   SEND APPROX. TO DAC
+00406P 01B7 7D   FF00    A        TST    P0PDRA   CHECK COMPARATOR RESULT

@@ -1,62 +1,60 @@
-                        PAGE 001  ECB064  .SA:1  IODRVR I/O DRIVER EQUATES
+PAGE  001  ECBO64  .SA:1  IODRVR I/O DRIVER EQUATES
 
-
-            al •        00001                           NAM    IODRVR
-                        00002                           OPT    REL,LLE=120
-                        00003                           TTL    I/O DRIVER EQUATES
-            H           00004                     *
-                        00005                     * I/O DEVICE ADDRESS EQUATES
-                        00006                     *
-                        00007                     * CONVENTIONS USED
-                        00008                     *
-                        00009                     * DDR = DATA DIRECTION RESISTER
-                        00010                     * PDR = PERIPHERAL DATA REGISTER
-                        00011                     * CR = CONTROL REGISTER
-                        00012                     * A  = A-SIDE OF PIA
-                        00013                     * B  = B-SIDE Or PIA
-                        00014                     * E.G.P0CRA = CONTROL REGISTER FOR A-SIDE UF PIA   FCTEDBY PO
-                        00015                     * PIA ADDRESS EQUATES FOLLOW
-                        00016                           )(REF  VFIRQ,VIRC,VNmi,VSWI,VSWI2,V8wI3,XRSLwC
-                        00017                     *
-                        00018                     * PO PIA
-                        00019                     *                                                                                                     •
-                        00020           FFOO    A PODDRA EQU   $FFOO
-                        00021           FFOO      POPDRA EQU   PODDRA
-                        00022           FFOI    A P0CkA ECU    P0DDRAA-1
-                        00023           FF02    A PODDRB ECU   P0DDRAA-2
-                        00024           FF02    A POPDRB EQU   PODDRB
-                        00025           FF03    A POCRB EU0    PODDRB4.1
-                        00026                     *
-                        00027                     * RS232 6551 CHIP
-                        00028                     *
-                        00029           FF04    A RSTXD ECU    $FF04
-                        00030           FF04    A RSRXD ECU    RSTXD
-                        00031           FF05    A RSSTAT ECU   RSTXD-1-1
-                        00032           FF06    A RSCMD EQU    RSTXDA-2
-                        00033           FF07      RSCNT EQU
-                        00034                     *
-                        00035                     * P1PIA
-                        00036                     *
-                        00037           FF20    A PiDDRA EQU   $FF20
-                        00038           FF20    A PIPDRA ECU   P1DDRA
-                        00039           FF21    A P1CRA EQU    P1DDRA4.1
-                        00040           FF22    A P1DDB EQU    PIDDRA-1-2
-                        00041           FF22    A P1PDRB ECU   P1DDRB
-                        00042           FF23    A PiCRB EQU    P1DDRBA-1
-                        00043                     *                                                                                                   - •
-                        00044                     * SAM CHIP EQUATES
-                        00045                     *
-                        00046           FFCO    A snmcR ECU             BASE ADDRESS   SAm CON79OL REGISTER
-                        00047           FFC9    A SAMF1S ECU   $FFC9    Fl SET ADDRESS
-                        00048           FFDB    A SAmMOS EQU   $FFDB    MO SET ADDRESS
-                        00049           FFDD    A SAMMiS ECU   $FFDD    MI SET ADDRESS
-                        00050           FFDE    A SAMTYC ECU   $FF:D:", mAP TYPE CL.EAR, ADDRESS
-                        00051           FFDF    A SAMTYS EQU    FFDF            SET
-                        00052
-                        00053                     * ADDRESSEE   I/O DRIVER RAMS FOLLOW
-                        00054
-                        00055           0082      PWIDTH ECU   $82      PULSE W:i.DTH COUNTER
-+44 (0)20 89 71      L  00056           0083      BITCNT ECU   $83      BII COUNTER (SYNC BITS NORmALLY)
-                        00057           0084    A Bf:AFLAG EQU $04      BIT PHASE F-AG
-    For Your Nea (S4    00058           0085      LSTSIN ECU   $85      LAST SINE TABLE EN-CRY TO BE OUTPLT
-
+00001                             NAM    IODRVR
+00002                             OPT    REL,LLE=120
+00003                             TTL    I/O DRIVER EQUATES
+00004                      *
+00005                      * I/O DEVICE ADDRESS EQUATES
+00006                      *
+00007                      * CONVENTIONS USED:
+00008                      *
+00009                      * DDR = DATA DIRECTION REGISTER
+00010                      * PDR = PERIPHERAL DATA REGISTER
+00011                      * CR  = CONTROL REGISTER
+00012                      * A   = A-SIDE OF PIA
+00013                      * B   = B-SIDE OF PIA
+00014                      * E.G. P0CRA = CONTROL REGISTER FOR A-SIDE OF PIA SELECCTED BY P0
+00015                      * PIA ADDRESS EQUATES FOLLOW
+00016                             XREF   VFIRQ,VIRQ,VNMI,VSWI,VSWI2,VSWI3,XRSLWC
+00017                      *
+00018                      * P0 PIA
+00019                      *
+00020            FF00    A P0DDRA EQU    $FF00
+00021            FF00    A P0PDRA EQU    P0DDRA
+00022            FF01    A P0CRA  EQU    P0DDRA+1
+00023            FF02    A P0DDRB EQU    P0DDRA+2
+00024            FF02    A P0PDRB EQU    P0DDRB
+00025            FF03    A P0CRB  EQU    P0DDRB+1
+00026                      *
+00027                      * RS232 6551 CHIP
+00028                      *
+00029            FF04    A RSTXD  EQU    $FF04
+00030            FF04    A RSRXD  EQU    RSTXD
+00031            FF05    A RSSTAT EQU    RSTXD+1
+00032            FF06    A RSCMD  EQU    RSTXD+2
+00033            FF07    A RSCNT  EQU    RSTXD+3
+00034                      *
+00035                      * P1 PIA
+00036                      *
+00037            FF20    A P1DDRA EQU    $FF20
+00038            FF20    A P1PDRA EQU    P1DDRA
+00039            FF21    A P1CRA  EQU    P1DDRA+1
+00040            FF22    A P1DDRB EQU    PIDDRA+2
+00041            FF22    A P1PDRB EQU    P1DDRB
+00042            FF23    A P1CRB  EQU    P1DDRB+1
+00043                      *
+00044                      * SAM CHIP EQUATES
+00045                      *
+00046            FFC0    A SAMCR  EQU    $FFC0    BASE ADDRESS OF SAM CONTROL REGISTER
+00047            FFC9    A SAMF1S EQU    $FFC9    F1 SET ADDRESS
+00048            FFDB    A SAMM0S EQU    $FFDB    M0 SET ADDRESS
+00049            FFDD    A SAMM1S EQU    $FFDD    M1 SET ADDRESS
+00050            FFDE    A SAMTYC EQU    $FFDE    MAP TYPE CLEAR ADDRESS
+00051            FFDF    A SAMTYS EQU    $FFDF    "   "    SET     "
+00052                      *
+00053                      * ADDRESSES OF I/O DRIVER RAMS FOLLOW
+00054                      *
+00055            0082    A PWIDTH EQU    $82      PULSE WIDTH COUNTER
+00056            0083    A BITCNT EQU    $83      BIT COUNTER (SYNC BITS NORMALLY)
+00057            0084    A BPFLAG EQU    $84      BIT PHASE FLAG
+00058            0085    A LSTSIN EQU    $85      LAST SINE TABLE ENTRY TO BE OUTPUT

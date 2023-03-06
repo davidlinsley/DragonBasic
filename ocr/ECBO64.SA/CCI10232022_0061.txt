@@ -1,102 +1,60 @@
-                                   (
+PAGE  004  ECBO64  .SA:1  IODRVR I/O DRIVER SUBROUTINES
 
-                                                PAGE                ECB064 .SAg1 10DRVR I/O DRIVER S.:BROuTINES
-
-
-
-                                   40           00175P       0042     7F       FF02                           CLR          POPORD          FORCE O'S TO ALL COLUMNS
-
-                         al                     00176P       0045     HE       FF00                           LDB          POPDRA          READ RUw S-ATUS                                                                                                                                     I  1 1'
-
-                                                00177P       0048     CA       80                             ORB          #$60            SET UNUSED BIT'
-
-                                                00178P       004A     E1       84                             CMPB         0,X             CHECK FUR ANY KEYBOAD PuTivZ.TY
-                         H I                    00179P       004C     27       72                             BEQ          NONKEY          IF THE SAmE THEN NO CHANGE
-
-                                                00180                                            *   SUME CHANGE HAS              BEEN DETECTED AT TH!.8 POINT Su                                  THINS TO DO
-
-                                                00181                                            *   10 TO mAK6 SURE              THAT IT WASN'T THE JOYSTICK BUT-ONS.
-
-                                                00182P       004E     IH       98                             TFR          B,A             SAVE ROw STA7uS
-
-                                                00 :,. :3 P  0050     73       FFO2                           COM          POPORB                       `!E3 TO COLuMNS
-
-                                                00184P       0053     8D       C9       001E                  BSR          CHKROW          CHECK             JOYSTIC BL:TTONS
-
-                                                00185P       0055     CI       F6            A                C:MPB        v45.?7,EF       AS O'S uN THE PAO LR PA1
-
-                                                00186P                26       67       0000                  BNE          NONKEY          :mEAN BLTTONS ARE DuWN
-                                   4110         0 87P        0059     A7       60            A                STA          0,X1-           SAVE FuLL. ROw s7pa IN, ROLLOVER TABLE
-                                                00188                                            *   AT THIS POINT A CHANGE IN THE STATE OH THE RuWS HAS BEEN DETETED
-
-                                                00189                                            *   SO THE FOLLOWINS CODE IS USED -0 DETECT                                             -,EY IT WAS
-                                                0            0058 6H           E4            A                CLR          0.6             RESET CCLLMN CuuNT
-
-                                                00191P       005D CIS          FE            A                LDB          #$FE            SET OP 0 IN LS BIT
-
-                                                001q2P       005E Ff           FFO2          A                STB          POPORB          AND SEND OUT TO MATRX COLUmNS
-                                                00193P       0062 8D           BA       001E     SCANKB BSR                CHKROW          :HECK ROW CLOSURES                                                                                                                                       •
-
-                                                00194P       0064 E7           61            A                STB             S            SAVE ROW STAT6 AwAY
-
-                                                00195P       006E 68           84            A                EORB         0,X             PERFORM KEY CLUSURE AND ROLLOVER DETECTION
-
-                                                00196P       0068 E4           84            A                ANDB         0,X             8:T SET IN 2 .7.E                                  'FROm LAST T2,:mE 
-
-                                                00137P       006A AE           61            A                LOA                          RESTCHE ROW STATE AND
-
-                                                00198P       006C A7           80                             STA          0, X+           SAVE IN ROLLOVER TABLE                           NEXT TImE
-                                   40           00199P       0066 5D                                          TSTB                         ANY CHANGES '0 KEYS?
-                                                00200P       006F 26           OA       OC)7B                 BNIE         DEBKEY          YES, DEBOUNCE BHCRE 8‘.,)CODING
-
-                                                00201P       0071 EC           64                             INC          0,8             ELSE uPDATE COL0mN CONT
-                                   40           00202P       0073 43                                          COMA                         USED TO SE CARRY *SLY                                                                                                                                    •
-                                                00203P       0074 79           FF02          A              ' ROL          POPORB          BEFORE SHIFTING 0 To NEX:1 GoLur.yiN
-
-                                                002042       0077 25           E9 0062                        BOS          SCANKB                       UNTIL ALL DuNE OR CLOSuRE                      FOUND
-                                   40           00205P       0079 20           45       0000                  BRA          NONKEY          MoST HAVE BEEN NO KEYS FOUND 
-                                                00206                                            *   KEY FOUND -           DEBUUNCE IT
-
-                                                00207P       007B 9E           97            A   DEBKEY LOX                KBOLAY          WAIT DEBOUNCE PERIOD
-                                   40           00208P       0071) I)          qA       0019                  Fv.R         IXDLAY          BHFORE R':::-CHECKING KB
-                                                00209P       007F 1 E          69            A                EX3          A,B             COPY ORIGINAL KEY CLOSURE
-
-                                                00210P       0081 81)          9B       0016                  BSR          CHKROW          AND GET NEW STATE
-
-                                                00211P       0063 Fl           6,1           A                CmPB         1,S             AND COmPARE WITH URIGINAL
-
-                                       ! I      00212P       0085              89            A                EIX8         A,B             RESTORE KEY CLOSURE
-
-                                                00213P       0067 26           37       0000                  BNE          NONKEY          IF NO m.ATCH NO KEY RETURNED
-                                   ‘w           00214                                            *   MUST BE A         vAL1O KEY               THIS PC'f.N7 Sc ENCODE '1.7
-                                                002I5P       0089 Pb           64                             LOA          0,8             PICK OP COLO7,'A COuNT
-
-                                                00216P       008B 80           08                             SUBP         #COLS           OHFSET IT
-                                   40           00217P       006D 6B           08                NXTRUW ADDA               4COL8           CALCULATE KEY POSITIUN AS FOLLOWS
-                                                00218P       008H 54                                          LSRB                         KEY pos = (RowPPOS)*(COLS) 4- (COL PuS)
-
-                                                00219P       0090 24           FD       (4;j.08D              BCC          NXTROW                 PUS = BIT SET IN (B)
-                                                00220P       009,2 D                                          TSTA                         KEY PUS = 0 IS A                                                                                                                                         •
-
-                                                00221P       0093 227          32       0007                  BEO          KEY°            SPECIAL CASE
-                                                00222P       0095 81           0:2                            CMPA         #$OO            CHECK NUMERIC KEY R4N117
-
-                                                00223P       0097 25           17       00B0                  BLO          NUmKEY          WHICH IS $00 -
-                                                00224P       0099 8].          11                             CMPA         #$11            CHECK S:-(ECIAL CASE RANGE
-
-                                                00225P       009B                       0005                  BLO          SPEC1           WHICH IS SOO - -54;10
-
-                                                002262       009D 8            2A            A                CMPA         w):32A          AND HINCK_LY CHECK RANGE
-
-                                                0022(P                22                0003                  BHI          SPEC2           $29 ONwARDS SPECIAL CASE
-
-                                                00228                                            *   ifIuST BE ALPHABETIC CHARACTS IH HERE
-
-                                                00229P       00A1 68                         A                POOP         =s330           POD OFFSET FOR ASCII UPPER CPsE
-
-                                       H11 00230P            00A3 ep           86       002B                  BSR          CSIE-           AND CHECK WHE-,'HER 70                                                                                                                              litr
--      CCW2 0 89 '71 3 p,                       00231P       00P5 27                    00D                   BEQ          CODED                                     :JpPER CASE REmAINS
-                                                00232                                            *   COULD BE                   CAS!.E AT THIS POINT Su CHECK A,-PHA LOCK
-
-       For Your Neara
-
+00175P 0042 7F   FF02    A        CLR    P0PDRB   FORCE 0'S TO ALL COLUMNS
+00176P 0045 F6   FF00    A        LDB    P0PDRA   READ ROW STATUS
+00177P 0048 CA   80      A        ORB    #$80     SET UNUSED BIT
+00178P 004A E1   84      A        CMPB   0,X      CHECK FOR ANY KEYBOAD ACTIVITY
+00179P 004C 27   72   00C0        BEQ    NONKEY   IF THE SAME THEN NO CHANGE
+00180                      * SOME CHANGE HAS BEEN DETECTED AT THIS POINT SO NEXT THING TO DO
+00181                      * IS TO MAKE SURE THAT IT WASN'T THE JOYSTICK BUTTONS.
+00182P 004E 1F   98      A        TFR    B,A      SAVE ROW STATUS
+00183P 0050 73   FF02    A        COM    P0PDRB   FORCE 1'S TO COLUMNS
+00184P 0053 8D   C9   001E        BSR    CHKROW   CHECK FOR JOYSTICK BUTTONS
+00185P 0055 C1   FF      A        CMPB   #$ff     AS 0'S ON THE PA0 OR PA1
+00186P 0057 26   67   00C0        BNE    NONKEY   MEAN BUTTONS ARE DOWN
+00187P 0059 A7   80      A        STA    0,X+     SAVE FULL ROW STATE IN ROLLOVER TABLE
+00188                      * AT THIS POINT A CHANGE IN THE STATE OF THE ROWS HAS BEEN DETECTED
+00189                      * SO THE FOLLOWINS CODE IS USED TO DETECT WHICH KEY IT WAS
+00190  005B 6F   E4      A        CLR    0,S      RESET COLUMN COUNT
+00191P 005D C6   FE      A        LDB    #$FE     SET UP 0 IN LS BIT
+00192P 005F F7   FF02    A        STB    P0PDRB   AND SEND OUT TO MATRIX COLUMNS
+00193P 0062 8D   BA   001E SCANKB BSR    CHKROW   CHECK ROW CLOSURES
+00194P 0064 E7   61      A        STB    1,S      SAVE ROW STATE AWAY
+00195P 0066 E8   84      A        EORB   0,X      PERFORM KEY CLOSURE AND ROLLOVER DETECTION
+00196P 0068 E4   84      A        ANDB   0,X      BIT SET IN B IF IT DIFFERED FROM LAST TIME
+00197P 006A A6   61      A        LDA    1,s      RESTORE ROW STATE AND
+00198P 006C A7   80      A        STA    0,X+     SAVE IN ROLLOVER TABLE FOR NEXT TIME
+00199P 006E 5D                    TSTB            ANY CHANGES TO KEYS?
+00200P 006F 26   0A   007B        BNE    DEBKEY   YES, DEBOUNCE BEFORE ENCODING
+00201P 0071 6C   E4      A        INC    0,S      ELSE UPDATE COLUMN COUNT
+00202P 0073 43                    COMA            USED TO SET CARRY BIT
+00203P 0074 79   FF02    A        ROL    P0PDRB   BEFORE SHIFTING 0 To NEXT COLUMN
+00204P 0077 25   E9   0062        BCS    SCANKB   REPEAT UNTIL ALL DONE OR CLOSURE FOUND
+00205P 0079 20   45   00C0        BRA    NONKEY   MUST HAVE BEEN NO KEYS FOUND
+00206                      * KEY FOUND - DEBOUNCE IT
+00207P 007B 9E   97      A DEBKEY LDX    KBDLAY   WAIT DEBOUNCE PERIOD
+00208P 007D 8D   9A   0019        BSR    IXDLAY   BEFORE RE-CHECKING KB
+00209P 007F 1E   89      A        EXG    A,B      COPY ORIGINAL KEY CLOSURE
+00210P 0081 8D   9B   001E        BSR    CHKROW   AND GET NEW STATE
+00211P 0083 E1   61      A        CMPB   1,S      AND COMPARE WITH ORIGINAL
+00212P 0085 1E   89      A        EXG    A,B      RESTORE KEY CLOSURE
+00213P 0087 26   37   00C0        BNE    NONKEY   IF NO MATCH NO KEY RETURNED
+00214                      * MUST BE A VALID KEY AT THIS POINT SO ENCODE IT
+00215P 0089 A6   E4      A        LDA    0,S      PICK UP COLUMN COUNT
+00216P 008B 80   08      A        SUBA   #COLS    OFFSET IT
+00217P 008D 8B   08      A NXTROW ADDA   #COLs    CALCULATE KEY POSITION AS FOLLOWS
+00218P 008F 54                    LSRB            KEY POS = (ROWPPOS)*(COLS) + (COL POS)
+00219P 0090 24   FB   008D        BCC    NXTROW   ROW POS = BIT SET IN (B)
+00220P 0092 4D                    TSTA            KEY POS = 0 IS A
+00221P 0093 27   32   00C7        BEQ    KEY0     SPECIAL CASE
+00222P 0095 81   0C      A        CMPA   #$0C     CHECK NUMERIC KEY RANGE
+00223P 0097 25   17   00B0        BLO    NUMKEY   WHICH IS $00 - $0B
+00224P 0099 81   11      A        CMPA   #$11     CHECK SPECIAL CASE RANGE
+00225P 009B 25   28   00C5        BLO    SPEC1    WHICH IS $0C - $10
+00226P 009D 81   2A      A        CMPA   #$2A     AND FINALLY CHECK RANGE
+00227P 009F 22   22   00C3        BHI    SPEC2    $2B ONWARDS SPECIAL CASE
+00228                      * MUST BE ALPHABETIC CHARACTER IF HERE
+00229P 00A1 8B   30      A        ADDA   #$30     ADD OFFSET FOR ASCII UPPER CASE
+00230P 00A3 8D   86   002B        BSR    CSHIFT   AND CHECK WHETHER TO SHIFT
+00231P 00A5 27   12   00B9        BEQ    CODED    IF SHIFT THEN UPPER CASE REMAINS
+00232                      * COULD BE LOWER CASE AT THIS POINT SO CHECK ALPHA LOCK
