@@ -1,61 +1,61 @@
-                                       PAGE     018     ECBOEm                 YODRVR I/O DRIVER SUBROUTINES
+PAGE     015    ECBOEm                YODRVR I/O DRIVER SUBROUTINES
 
-                    al                 008I3P     0417   85      0425                      LDX        #LOADER      COPY LOADER
-                                       00814P     041A   CE      01DA        A             LDU        #CASBUF      INTO CASSETTE BUFFER
-                    H I                00815P     04110  C6      8F          A             LDB        #ENDLOO-LOADER NUMBER OF BYTES TO                  COPY
-                                       00816P     041F   17      FC40 00E2                 LBSR       NZCOPY       USEING NZCOPY
-                                       00817P     0422   75      01DA                      jMP        CASBU-       AND AUTOSTART
-                                       00818                                    *  LOADER LOADS BASIC
-                                       00819P     0425   86      011A        A  LOADER LOA            FLAG84       HAS IT BEEN COPIED BEFORE
-                                       00820P     0428   81      55          A             CMPA       #$55                                                                                                                                     111 I
-                                       00821P     042A   26      16      0442              BNE        UPLOAD       NO.   THEN UPLOAD IT
-                                       00822                                    *  AT THIS POINT BASIC HAS BEEN COPIED ALREADY
-                                       00823                                    *  BUT NEED TO CHECK CHECKSUM TO SEE IF INTACT
-                                       00824P     042C   87      FFDF        A             STA        SAMTYS       mAP TYPE 1
-                                       00825P     042F   8E      C000        A             LDX        #$C000       BASE ADDRESS OF 48K BASIC
-                                       0082SP     0432   CC      0000        A             LOD        #0
-                                       00827P     0435           81          A  LPADD      ADDD                    PERFORM CHECKSUM
-                                       00828P     0437   8C      FFOO        A             CMPX       #1iFF00      FIN-1SHED ?
-                                       00829P     043A   25      F9      0438              BLO        LPADD
-                                       00830P     043C   3. 0    011?        A             CMPD       CSUM64
-                                       00831P     0440   27      6F      0481              BE0        WARSTR       INTO BASIC IF SO
-                                       00832                                    *  NOW COPY BASIC ACROSS
-                                       00833P     0442   87      FFDE        A  UPLOAD STA            SAMTYC       mAP 0
-                                       00334p     0445   SE      H•223                     LOA        P1CR8
-                                       00835P     0448   84      FB          A             ANDA       #$F8         SELECT DD REG
-                                       00836P     044A   B7      FF23        A             STA        P1CRB
-                                       00837P     044D   FE      FF22        A             LDB        P1DDRB       READ     DD REG                                                                                                                 •
-                                       00838P     0450   CA      04                        ORB        #4           PB2-OUTPUT
-                                       00839P     0482   F7      FF22        A             STB        P1DDRB
-                                       00840P     0455   8A      04          A             ORA        #4
-                                       00841P     0457   B7      FF23        A             STA        P1CRB        DESELECT OD REG
-                                       00842P     045A   B       FF22                      LOA        P1PDRB       R.AD DATA REG
-                                       00843P     045D   84      FB          A             ANDA       #$FB         PB2 OUPUT=LO THUS
-                                       00844P     045F           FF22        A             STA        P1PDRB       ...SELECT ROM 2
-                                       00848P     0462   FE      BFF0        A             LDU        $BFF0        LOOK FOR 64K FLAG
-                                       00846P     0465   1183    3634        A             CMPU       #'6*$100+'4
-                                       00847P     0469   27      08      0473              BEAD       BOOTIT
-                                       00848P     04E8           04          A             ORA        #$04         PuT ROM SELECT SACK
-                                       00849P     0460     7     FF22        A             STA        P1PDRB       ...SELECT ROM I
-                                       00850P     0470   7E:     0000        A             JMP        FCERR
-                                       00851P     0473   7F      0118        A  BOOTIT CLR            CSUM64       CLEAR CHECKSUM
-                                       00852P     047s           0110                      CLR        CSOM64+1
-                                       00853P     0479   SE      8000        A             LDX        #$8000       ROM START ADRESS
-                                       00854P     047C     oaE   C000        A             LDY        #$C000       START         BASIC IN RAM
-                                       00855P     0480   EC      81          A  NXTBYT LDD            , X++        DATA FROM ROM                                                                                                                   0
-                                       00856P     0482   37      FFDF        A             STA        SAMTYS       MAP TYPE 1                                                                                                                   '
-                                       00857P     0485   ED      Al          A             STD
-                                       00858P     0487           011S        A             ADDD       CSUM64
-                                       008592     048A   F 0     0118        A             STD        CSUM64       UPDATE CHECKSUM
-                                       008EOP     048O   1060    FFOO        A             CMPY       #$FFOO       COPIED ALL ?
-                                       008E1P     0491   24      05      0498              BHS        RAMCPD       BRANCH IF SO
-                                       00862P     0493   87      FFDE                      STA        SAMTYC       MAP TYPE 0
-                                       00863P     0496   20      E8      0480              BRA        NXTBYT
-                                       00864                                    *  NOW INITIALISE PUINTERS
-                                       00885P     0498   8E      BEE°        A  RAMCPD LOX            #$BFF0
-                                       00866P     0498   9R.     74          A             STX        ENDMEm
-                                       00887P     049D   9F      27          A             STX        MEMSIZ
-44 [0]2 0 E3 9.71 3E                   00868P     049F   cp,f:   23          A             STX        FRETUP
-     For Your Neare!                   00869P     04A1   30      89 FF38 A                 LEAX       -STRSPC,X
-                                       00670P     04A5           21          A             SIX        STKTOP
+008I3P    0417   8E      0425                     LDX       #LOADER      COPY LOADER
+00814P    041A   CE      01DA       A             LDU       #CASBUF      INTO CASSETTE BuFFER
+00815P    041D   CE      8F         A             LDB       #ENDLOD -LOADER NUMBER OF BYTI=S TO              COPY
+00816P    041F           FC40   0062              LBSR      NZCOPY       USEING NZCOPY
+00817P    0422   7E      01DA       A             jMP       CASBUF       AND AUTOSTART
+00818                                  *  LOADER LOADS BASIC
+00819P    0425   86      011A       A  LOADER LDA           FLAG64       HAS IT BEEN COPIED BEFORE
+00820P    0428   81      55         A             CMPA      #$55
+00821P    042A   26      16     0442              BNE       UPLOAD       NO    THEN UPLOAD IT
+00822                                  *  AT THIS POINT BASIC HAS BEEN COPIED ALREADY
+00823                                  *  BUT NEED TO       CHECK CHECKSUM TO SEE IF INTACT
+00824P    042C   87      FFDF       A             STA       SAMTYS       mAP TYPE 1
+00825P    042F   8E      C000       A             LDX       #$C000       BASE ADDRESS OF 48K BASIC
+00826P    0432   CC      0000                     LDD       #0
+00827P    0435   E3      81            LPADD      ADDD      7X++         PERFORM CHECKSUM
+00828P    0437   80      FFOO                     CMPX      #$FFOO       FINISHED ?
+00829P    043A   25      F9     0435              BLO       LPADD
+00830P    043C   1083    0118                     CMPD      CSUM64
+00831P    0440   27      6F     0481              BEO       WARSTR       INTO BASIC IF SO
+00832                                  *  NOW COPY BASIC ACROSS
+00833P    0442   87      FFDE       A  UPLOAD STA           SAMTYC       MAP 0
+008:34P   0445   86      FF23       A             LDA       P1CRB
+00835P    0448   84      FB         A             ANDA      #$FB         SELECT DD REG
+00836P    044A   87      FF23       A             STA       P1CRB
+00837P    044D   F6      FF22       A             LDB       PIDDRB       READ     CD REG
+00838P    0450   CA      04                       ORB       #4           PB2-OUTPUT
+00839P    0452   F7      FF22       A             STB       P1DDRB
+00840P    0455   8A      04         A             ORA       #4
+00841P    0457   87      FF23       A             STA       P1ORB        DESELECT DD REG
+00842P    045A   86      FF22       A             LDA       P1PDR8       R.AD DATA R53
+00843P    045D   84      FB         A             ANDA      #$FB         PB2 OUPUT=LO THUS
+00844P    045F   87      FF22       A             STA       P1PDR8       ...SELECT ROM 2
+00845P    0462   FE      BFFO       A             LDU       $BFF0        LOOK FOR 64K FLAG
+00846P    0465   1183    3634       A             CMPU      #'6*$100+'4
+00847P    0469   27      08     0473              BE()      BOOTIT
+00648P    0468   CA      04         A             ORA       #$04         PuT ROM SELECT BACK
+00849P    046D   87      FF22       A             STA       P1PDRB       ...SELECT ROM        1
+00850P    0470   7E      0000       A             JMP       FCERR
+00851P    0473   7F      0118       A  BOOTIT CLR           CSUM64       CLEAR CHECKSUM
+00852P    0476   7F      0110                     CLR       0Sum64+1
+00853P    0479   SE      8000       A             LDX       #$8000       ROM START ADRESS
+00854P    047C   108E    C000       A             LDY       #$E000       START OF BASIC IN RAM
+00855P    0480   EC      81         A  NXTBYT LDD            X++.        DATA FROM ROM
+00856P    0482   87      FFDF       A             STA       SAMTYS       mAP TYPE 1
+00857P    0485   ED      Al         A             STD
+00858P    0487   FI'L    0118       A             ADDD      CSUm64
+00859P    048A   FD      0118       A             STD       CSUM84       UPDATE CHECKSUM
+00860P    048D   .1.08C  FFOO       A             CMPY      #$FFOO       COPIED ALL ?
+00861P    0491   24      05     0498              BHS       RAMCPD       BRANCH IF SO
+00862P    0493   87      FFDE                     STA       SAMTYC       MAP TYPE 0
+00863P    0496   20      E8     0480              BRA       NXTBYT
+00864                                  *  NOW INITIALISE POINTERS
+00865P    0493   SE      BFFO          RAMCPD LOX           #$BFF0
+00866P    0498   9F      74         1,21          STX       ENDmEm
+00867P    049D   9F      27         A             STX       MEMSIZ
+00868P    049F   cp,f.   23         A             STX       FRETOP
+00869P    04A1   30      89 FF38 A                LEAX      -STRSPC,X
+00670P    04A5           21         A             STX       STKTOP
 
