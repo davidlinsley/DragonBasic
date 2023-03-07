@@ -1,92 +1,61 @@
-                                                                                                                                                                     •
+PAGE 014  ECBOEM  .SA:1  IODRVR I/O DRIVER SUBROUTINES
 
-
-
-
-
-
-                          PAGE  014  ECBOEM   .SA'41  ICDRVR I/O DRIVER SUBROUTINES                                                                                  •
-
-
-
-                          00755P 03D7                 EOLDLY DEC5             ALL EOL CHARACTERS PRINTED ?
-                          00756P 03D8 27         03DD        5E0     SEQOUT                                                                                          40
-                          00757P OZDA 7E   01DA              jMP     TXSEQ    IGNORE THE PATCH
-                          00758:p03DD  10BE           SEQeuT LDY     LDELAY   ANY LINE DE1_AY ?
-                          00759P 03E1 27   07    03EA        RFQ     NODLY                                                                                           40
-                          00/60P 03E3 BD   0090       EULIAT JSR     BLDLAY   WAIT A 10 MS
-
-                          00761P 03E6 31            A        LEAY    -I,Y     FINISHED WAITING ?
-                          00762P 03E8 26         03E3        BNE     EOLWT                                                                                           40
-                          00763P 03EA 39              NODLY  RTS
-                          00/64                       *
-                          00765                       * INTERRUPT  HAND!FR FOR AUTO-RFPFAT AND RS232                                                                 40
-                          00766
-
-                   40     00767
-                                                             XDEF    INTWDG
-                          00768P 03EB F6   FF05       INTWDG LDB     RSSTAT   GET RS232 STATUS
-
-                          00769P 03EE 2A   OD    03FD        BPL     NOTRS    INTFRRUPT FROm 6551 ?
-                   40     00770P 03P0 C4   08       A        ANDB    #$08     REnIEVE BUFFER FULL ?
-                          00771P 03F2 27   08    03FC        5E0     NOTRXD
-                          00772P 03E4 86   FFOP,    A        LDA     RSCMD    GET COMMAND BYTE
-                          00773P 03E7 84   FE       A        ANDA    #$FE     SET DATA TERmINAL
-                          00774P 03F9 87   PF06     A        STA     RSCMD    ....NOT READY                                                                          •
-                          00775P 03FC                 NOTRXD RTI
-
-                          00776                       *
-
-                          00777P 03FD 74   0151     A NOTRS  LSR     KBROLL   CHANSF ROW STATE STORE
-
-                          00778P 0400 7A   011E     A        DEC     CNTDWN   REPEAT YET ?
-                          00779P 0403 26   OC    0411        BNE     CONTIN
-                          00780P 0405 86   FR       A        LDA     #$FF                                                                                            •
-                          00781P 0407 8E   0151     A        LDX     #KBROLL  POINT TO RuLLOVER TABLE
-                          00782P 040A A7   80       A TBLCLR STA              FORGET THE KEYS
-                          00783P 040C 8C   015A     A        CMPX    #POTVAL      CLEAR ?                                                                            •
-                          00784P 040F 25   F9    040A        BLO     TBLCLR
-                          00785P 0411 7E   0000     A CONTIN JMP     XRSLWO
-                          00786                       *                                                                                                              •
-
-                          00787                       * END OF THE SUBROUTINES
-                          00788                       *
-
-                          00789                       * START OF DRAGON 64  BAS'I_C DUWNLOADER
-
-                          00790                       *
-
-                          00/91            0 i 1A     FAB64  EQU    $11A     SET WHEN RAM BASIC IS LOADED 
-                    Hy    00792            011B       CSUME4 EQU    $11B     CHECKSUM OF RAM BASIC
-                          00797.                      *
-
-                          00794                       * SYSTEM VARIABLES MOD'D FOR 64K VERSON
-                          00795                       *
-
-                          00796            0074       ENDmEM EQU    $74
-
-                          00797            0027       MEMSIZ EQU    $27
-                          00798            0023       FRETOP EQU    $23                                                                                              •
-
-                          00799            0021       STKTOP ECU
-                          00800            00O8       STRSPC EL,!U  200      DEFAULT STRING SYACE
-                          00801            01DA       CASBUP EQU    $1DA                                                                                             •
-
-                          00802            0072       RSTVEC EUU    $72
-
-                         00803             C000       CLDSTR EQU    $C000    COLDSTART ENTRY 70 64K MODE                                                             mr
-                          00804            C003       WRMSTR EQU    $0003    WARMSTART
-                         00805                        *
-
-                         00806                        * DOWNLOAD FOL:_OwS
-
-                         00807
-
-                         00808                        * BOOT64 BOOTSTRAPS THE LOADER INTO THE CASSETTE BuFFER
-                         00809                        *
-
-                    op   00810                               XDEF   BOOT64
-+44 (0)20 89 71          00811P 0414  12              ROOT64 NOP             NEEDED    RESET PURPOSES
-                         00612Q 04l5  1A           A         ORCC   .4$50    mASK INTERRUPTS
-   For Your Neon
+00755P 03D75A             EOLDLY DEC8           ALL EOL CHARACTERS PRINTED ?
+00756P 03D627   03   03DD        BEQ   SEQOUT
+00757P 03DA76   OIDA             „IMP  TXSEQ    IGNORE THE PATCH
+00758P 03DD'OBE         A SEQOuT LDY   LDELAY   ANY LINE.      ?
+00759P 03E127   07   036A        BEQ   NODLY
+00760P 03E3BD   0090      EOLWT  JSR   BLDLAY   wAIT A 10 MS
+00761P 03E631                    LEAY  —1,Y     FINISHED WAITING ?
+00762P 03E826   F9   03E3        BNE   EOLIAT
+00763P 03EA39             NODLY  RTS
+00764                     *
+00765                     * INTERRUPTHANDLER FOR AUTO—REPEAT AND RS232
+00766                     *
+00767                            XDIEF INTWDG
+00768P 03E8F6   FF05    A INTWDG LDB   RSSTAT   GET RS232 STATUS
+00769P 03EE2A   OD   03FD        BPL   NOTRS    INTERRUPT FROM 6551 ?
+00770P 03F004   08      A        ANDB  #$08     RECIEVE BUFFER FULL ?
+00771P 03F227   08   03E0        BEQ   NOTRXD
+00772P 03F486   FF06    A        LDA   RSCMD    GET COMMAND BYTE
+00773P 03F784   FE      A        ANDA  #$FE     SET DATA TERmINAL
+00774P 03F987   FF06             STA   RSCMD    ....NOT READY
+00775P 03FC               NOTRXD RTI
+00776                     *
+00777P 03FD74   0151    A NOTRS  LSR   KBROLL   CHANGE ROW STATE STORE
+00778P 04007A   011F    A        DEC   CNTDWN   REPEAT YET ?
+00779P 040326   Ors. 0411        BNE   CONTIN
+00780P 040586   FP      A        LOA   #$FF
+00781P 0407SE   0151    A        LDX   #KBROLL  POINT TO RuLLOVER TABLE
+00782P 040AA7   80      A TBLCLR STA   ,X+      FORGET THE KEYS
+00783P 040C8C   015A    A        CMPX  *POTVAL  A„_L CLEAR ?
+00784P 040F25   F9   040A        BLO   TBLCLR
+00785P 04117E   0000    A CONTIN JMP   XRSLWC
+00786                     *
+00787                     * END OF THE SUBROUTINES
+00788                     *
+00789                     * START OF DRAGON 64BASIC DUWNLOADER
+00790                     *
+00791           (MIA      FLA664 EUu   $11A     ST WHEN RAM BASIC IS LOADED
+00792           0118      CSUM64 EQU   $118     CHECKSUM OF RAM BASIC
+00793                     *
+00794                     * SYSTEm VARIABLES MoD'D FOR 64K VIERriN
+00795                     *
+00796           0074    A ElDMEM EQU   $74
+00797           0027    A MEMSIZ EQU   $27
+00798           0023    A FRFTOP EQU   $23
+00799           0021    A STKTOP EQU   $21
+00800           0008    A STRSPC EQU   200      DEFAULT STRING SACE
+00801           OIDA    A CPSBUF EQU   $1DA
+00802           0072    A RSTVEC EQU   $72
+00803           0000    A CLDSTR EQU   $0000    COLDSTART ENTRY 70 64K MODE
+00804           C003    A wRmSTR EQU   $0003    WARMSTART
+00805                     *
+00806                     * DOWNLOAD FOLLOwS
+00807                     *
+00808                     * BOOT64 BOOTSTRAPS THE LOADER INTO THE CASSETTE BuFFER
+00809                     *
+00810                            XDEF  BOOT64
+0081IP 0414 12            800T64 NOP            NEEDED   RESET PURPOSES
+00812P 0415 lA  50      A        OR00  4$50     mASK INTERRuPTS
 

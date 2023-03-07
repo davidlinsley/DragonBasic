@@ -1,106 +1,61 @@
-                                                                                                                                                                                                                                                                                               I  ||
+PAGE  004 ECBOEM  .SW.1  IODRVR I/O DRIVER SUBROUTINES
 
-
-
-
-
-                                                PAGE      004      ECBOEM         .5W.1        IODRVR I/O DRIVER SUBROUTINES
-
-
-     audio                                      00175P      0066      5A                                      DE0B                         UPDATE COUNT
-
-                                                00176P      0067      26       F9       0062                  BNE         NZCO2Y           REPEAT UNTIL BLOCK COMPLETE
-
-     H I GH                                     00177P      0069      39                                      RTS
-                                                00178                                            *
-
-                                                00179                                            *   NON-ZERO TABLE ENTRIES FOLLOW
-
-                                                00180                                            *
-
-                                                00181P      006A               3?            A   NZDATA FOB               OBLVAL           CURSOR BLINK RATE
-
-                                                00182P      006B               0100          A                FDB         $0100            SYNC BYTE COUNT
-
-                                                00183P      006D               12            A                FCB         $12              mIN 1200HZ CYCLE WIDTH
-                                   40           00184P      006E               OA            A                FCB         $0A                                PULSE                  (HALF CYCLE)
-
-                                                00185P      006F               12            A                FCB         $12              MAX        "
-
-                                                00186P      0070               DA5C          A                FDB         MSECI0*50 MOTOR DELAY VALUE - HALF SECOND
-                                   40           00187P      0072               0459          A                FOB         mSEC10           KEYBOARD DEBOUNCE DELAY VALUE
-
-                                                00188P      0074               10            A                FCB         LCFW             LP COMMA FIELD WIDTH                                                                                                                                I H
-                                                00189P      0075               74            A                FCB         LLCF             LP LAST COMMA FIELD
-                                   tt           00190P      0076               84            A                FOB         LWIDTH           LP WIDTH
-                                                00191                                            *   FINAL BLOCK ENTRIES
-
-                                                00192P      0077               FF            A                FOB         ON               LP BUFFER FULL AUTO LF FLAG
-                                                00193P      0076               FF            A                FOB         ON               ALPHA LOCK FLAG                                                                                                                                          •
-
-                                                00194P      0079               01            A                FOB         1                CHARACTER COUNT IN LP TERMINATOR SEQUENCE
-
-                                                001952      007A               OD            A                FCB         CR               CARRIAGE RETURN FOLLOWED
-                                                00196P      007B               OA            A                FOB         LF               BY LINE FEED SEQUENCE                    (IF REQUIRED)                                                                                                   •
-
-                                                001972      0070               0004.         A                DSZ         4                REMAINDER OF SEQUENCE IS FREE
-
-                                                00198                                            *   END OF NZDA7A
-                                                00199                                            *                                                                                                                                                                                                  two
-
-                                                00200                                            *   CBLINK - CURSOR                         ROUTINE
-
-                                                00201                                            *
-                                                00202                                                         XDEF        ZOBLIN                                                                                                                                                                    •
-
-                                                00203                          0080              ZCBLIN EQU
-                                                00204P      0080      OA       8F            A   CBLINK DEC               CBLONT           UPDATE BLINK RATE COUNTER
-                                                00205P      0082      26       OC       0090                  ENE         BLDLAY                 .NE.     0 THEN DELAY 10 MSECS                                                                                                                     •
-                                        I  I    00206P      0084      86       32            A                LOA         #OBLVAL          OTHERWISE RESET TO INITIAL VALUE                                                                                                                    !1',1
-                                                00207P      0086      97       8F                             STA         CBLEN7           FOR BLINK RATE
-
-                                                00208P      0088      99       88            A                LDX         CURAOR           GET READY TO FLASH CURSOR
-
-                                                00209P      008A      A6       84            A                LDA         0,X              BY READING CHAR AT CURSOR POS
-
-                                                00210P      008C      88       40                             EORA        #$40             AND INVERTING
-
-                                                002I1P      008E      A7       84                             STA         0,X              BEFORE WRITNI; BACK
-
-                                                00212P      0090      SE       045E              BLDLAY LDX               #mSE010          SET U2 10 MSEC DELAY CONSTANT
-
-                                                00213                                            *
-
-                                                00214                                            *   IxDLAY - DELAY RouTJ.N9
-
-                                                00215                                            *
-
-                                                002162      0093      30       1F            A   IXDLAY LEAX              -1,X             DECREMENT IX
-                                   t            00217P      0095      26       FC       0093                  BNE         IXDLAY           REPEAT UNTIL            (IX)     = 0
-
-                                                00218P      0097      39                                      RTS
-
-                                                00219                                            *
-
-                                                00220                                            *   ROUTINES USED BY THE ',EYBOARD PULLER FOLLOW
-
-                                                00221                                            *
-
-                                                00222                                            *   CHKROW - CHECKS RuWS OF K/B MATRIX FOR CLOSURE
-
-                                                00223                                            *
-                                      I I       002242      0098      F6       FFOO          A   0HKROW LDB               POPDRA           READ ROW DATA
-                                                00225P      009B      CA       80            A                ORB         #$80             SET UNUSED BIT
-
-                                                00226P      009D      7D       FFO2          A                TST         POPDRB           SHIFT KEY IS
-
-                                                00227P      00A0      2B       02       00A4                  DMI         NOSHFT           IS MASKED OUT
-
-                                                00226P      00A2      CA       40            A                ORB         #s40             BY THIS
-                     abs                        00229P      00A4      39                         NOSHFT RTS
-
-971 3909 info@                                  00230                                            *
-
-                                                00231                                            *   CSHIFT - CHECKS THE S7ATE OH THE SHIFT KEY,                                     Z = 1      IF PRESSED
-•                                  (S6          00232                                            *
+00175P 0066 5A                   DECB           UPDATE COUNT
+001762 0067 26  F9   0062        BNE    NZCOPY  REPEAT UNTIL BLOCK COMPLETE
+00177P 0069 39                   RTS
+00178                     *
+00179                     * NON-ZERO TABLE ENTRIES FOLLOW
+00180                     *
+00181P 006A     32      A NZDATA FOB    CBLVAL  CURSOR BLINK RATE
+00182P 006B     0100    A        FDB    $0100   SYNC BYTE COUNT
+00183P 006D     12      A        FCB    $12     mIN 1200HZ CYCLE WIDTH
+00184P 006E     OA      A        FCB    $0A               PULSE   "   (HALF CYCLE)
+00185P 006F     12      A        FCB    $12     MAX   "                        11
+00186P 0070     DA5C    A        FOB    MSECI0*50MOTOR DELAY VALUE - HALF SECOND
+00187P 0072     045E    A        FOB    MSEC10  KEYBOARD DEBOUNCE DELAY VALUE
+00188P 0074     10      A        FCB    LCFW    LP COMMA FIELD WIDTH
+00189P 0075     74      A        FOB    LLCF    LP LAST COMMA FIELD
+00190P 0076     84      A        FCB    LWIDTH  LP WIDTH
+00191                       FINAL BLOCK ENTRIES
+00192P 0077     FF      A        FOB    ON      LP BUFFER FULL AUTO LF FLAG
+00193P 0076     FF      A        FOB    ON      ALPHA LOCK FLAG
+00194P 0079     01      A        FOB    1       CHARACTER COUNT IN LP TERMINATOR SEQUENCE
+001952 007A     OD      A        FCB    CR      CARRIAGE RETURN FOLLOWED
+00196P 007B     OA      A        FOB    LE      BY LINE FEED SEQUENCE (IF REQUIRED)
+001972 0070     0004.   A        882    4       REMAINDER OF SEQUENCE IS FREE
+00198                     * END OF NZDA7A
+00199                     *
+00200                     * CBLINK - CURSOR BLINKROUTINE
+00201                     *
+00202                            XDEF   ZOBLIN
+00203           0080    P ZCBLIN EQU
+00204P 0080 OA  8F      A CBLINK DEC    CBLONT  UPDATE BLINK RATE COUNTER
+00205P 0082 26  OC   0090        BNE    BLDLAY  IF .NE. 0 THEN DELAY 10 MSECS
+00206P 0084 86  32      A        LOA    #OBLVAL OTHERWISE RESET TO INITIAL VALUE
+00207P 0086 97  8F      A        STA    CBLENT  FOR BLINK RATE
+00208P 0088 96  88      A        LDX    OURAOR  C:P:T READY TO FLASH CURSOR
+00209P 008A A6  84      A        LDA    0,X     BY READING CHAR AT CURSOR POS
+00210P 008C 86  40      A        EORA   #$40    AND INVERTING
+00211P 008E A7  84      A        STA    0,X     BEFORE WRITNP. BACK
+00212P 0090 SE  0456    A BLDLAY LDX    #mSEC10 SET UP 10 MSEC DELAY CONSTANT
+00213                     *
+00214                     * IxDLAY - DELA
+00215                     *
+00216P 0093 30  IF        IXOLAY LEAX   -1,X    DECREMENT IX
+00217P 0095 26  FC   0093        BNE    IXDLAY  REPEAT UNTIL (IX) = 0
+00218P 0097 .39                  RTS
+00219                     *
+00220                     * ROUTINES USED BY THE ,EYBOARD PULLER FOLLOW
+00221                     *
+00222                     * CHKROW - CHECKS RuWS OF K/B MATRIX FOR CLOSURE
+00223                     *
+002242 0098 F6  FFOO    A OHKROW LOB    POPDRA  READ ROW DATA
+00225P 009B CA  80      A        ORB    #$80    SET UNUSED BIT
+002262 009D 7D  FFO2    A        TST    POPORB  SHIFT KEY IS
+00227P 00A0 28  02   00A4        BMI    NOSHFT  IS MASKED OUT
+00226P 00A2 CA  40      A        ORB    #$40    BY THIS
+00229P 00A4 39            NOSHFT RTS
+00230                     *
+00231                     * CSHIFT - CHECKS THE S7ATE OH THE SHIFT KEY,Z = 1 IF PRESSED
+00232                     *
 

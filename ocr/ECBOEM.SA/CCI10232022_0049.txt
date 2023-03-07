@@ -1,73 +1,61 @@
-                           PAGE   008  ECBOEM   .SA:1   IODRVR I/O DRIVER SUBROUTINES
+PAGE  008  ECBOEM  .SA:1  IODRVR I/O DRIVER SUBROUTINES
 
-
-                           00407                         *
-
-                           00e.,.08                        TXLPCH - TRANSMITS A CHARACTER TO THE LINE PRINTER
-                           004.09                       *
-
-             H I           00410P  0100 34   04       A TXLPCH PSHS     B         SAVE REG
-                           00411P  01C2 7D   03FF     A         TST     PRNFLG    TEST PRINTER TYPE
-                           004I2P  0105 7E   0390               JMP     PRNSEL    GO FIND OUT WHICH
-                           00413P  0108 B7   FF02     A  LPROUT STA     POPDRB    SEND CHARACTER OUT
-                           00414P  01CB 06   02                 LOB     #2        SET UP STROBE BIT
-                           00415P  01CD F7   FF20     A         STB     PIPDRA    SEND STROBE,  PULSE HI
-                           00416P  0100 7F   FF20     A         CLR     P1PORA    THEN PULSE LO
-                           00417                           N.B. THE STROBE PULSE IS INVERTED BY THE L802 SO
-                           00418                           ACTUAL STROBE TO PRINTER IS LO FOLLOWED BY HI
-
-                           00419P  01D3 35   84                 PULS    B,PC      RESTORE AND RETURN
-                           00420                        *
-
-                           00421                        *  TXEOL - TRANSMITS THE END OF LINE TERMINATING StQUENCE
-                           00422                        *
-
-                           00423P  0105 BE   014A       TXEOL   LDX     #EOLSEQ   SET UP EOL SEQUENCE ADDRESS
-                           00424P  0108 8E   80                 LOB     0,X+      GET COUNT OF CHARACTERS IN IT
-                           00425P  010A 5D              TXSEQ   TSTB              COUNT = 0 ?                                                                                •
-                           00428P  0108 27   07    01E4         BEG!    ENDSEQ    YES, SO FINISH                                                                           8["
-                           00427P  0100 A8   80       A         LOA     0,X+      PICK UP NEXT CHARACTER
-                           00428P  01DF BD   DF    0100         BSR     TXLPCH    TRANSMIT IT
-                           00429P  01E1 7E   0307               jMP     EOLDLY    DO WE HAVE AN EOL DELAY
-                           00430P  0184 39              ENDSEQ RTS
-                           00431                        *                                                                                                                    •
-                           00432                        *  LPTOUT - OUTPUT A CHARCTER TO PRINTER INTERFACE
-
-                           00433                        *
-
-                           00434                                XDEF    ZLPTOU
-                           00435             01E5     P ZLPTOU EQU
-
-                           00436P  0185 34   16       A LPTOUT PSHS     A,B,X     SAVE REi,IS
-                           00437                        *  DISABLE INTERRUPTS AT THIS POINT?                                                                                 •
-                           00438P  0187 61   OD       A         CMPA    #CR       CR?
-                           00439P  01E9 27   13    01FE         BED.    LPTEOL    YES, DEAL WITH EOL
-                           00440P  01E8 81   20       A         CMPA    #SP       PRINTABLE?
-                           0044IP  01ED 25   02    01FI         BLO     SENDCH    NO, SO SKIP PUS UPDATE
-                           00442P  01EF 00   50       A         INC     LPTPOS    YES, UPDATE PRINT PUS
-                           00443P  01F1 BD   CD    0100 SENDCH BSR      TXLPCH    AND SEND CHARACTER
-                           004442  01F3 D6   90       A         LOB     LPTPOS    CHECK PRINT PUS
-                           00448P  01F5 D1   98       A         OMPB    LPTWID    BUFFER FULL?
-                           00446P  01E7 25   11    020A         BLO     LPExIT    Nu, SU OK TO EXIT
-                           00447P  01F5 70   0148     A         TST     AUTOLF    AUTO LINEFEED?
-                           00448P  Olfrn26         0208         BNE     NXTLN     YES, NO ACTION NEEDED
-                           00449                        *  END OF LINE REACHED,   CR OR NO AUTO LF ON BUFFER FULL
-                           00450P  01FF OD   9C       A LPTEOL TST      LPTPOS    EmPTY BUFFER?
-                           00451P  0200 26   04    0208         BNF     NEWLN     NO, SO FLUSH BUFFER
-                           00452P  0202 86   20       A         LOA     #SP       YES, SEND OUT A SPACE
-                           00453P  0204 80   BA    0100         BSR     TXLPCH    BEFORE
-                           00454P  0206 80   CD    0105 NEWLN   BSR     TXEOL     SENDING EOL SEQUENCE
-                           00455P  0208 OF   9C       A NXTLN   CLR     LPTPOS    RESET PRINTER POSITION
-                           00456P  020A 35   56       A LPEXIT PULS     A,B,X,PC RESTORE AND RETURN
-                           00457                        *
-                           00458                        *  JOYSTICK ROUTINE NEXT
-
-                           00455                        *
-                           00460                        *  JUYSEL - SELEL.; ONE THE JOYSTICK CHANNES
-                           00481                        *
-
-                           00462P  0200 CE            A JOYSEL LOU      #POCRA    FIRST TIME THRU SETS UP
-ek4 [c]2o 9 '7 1 E         00483P  020F BO   00    0211         BSR     NEWCR3    LSB OF MUX,  SELECT CA2
-                           00484P  0211 A6            A WWTR3 LOA       O_O       READ OuRRENT CR VALUE
-   For Your Near(
+00407                      *
+00406                      * TXLPCH   TRANSMITS A CHARACTER TO THE LINE PRINTER
+00409                      *
+004i0P 01C0 34   04        TXLPCH PSHS  B        SAVE REG
+00411P 01C2 7D   03FF             TST   PRNFLG   TEST PRINTER TYPE
+004I2P 0105 7E   0390             JMP   PRNSEL   BO FIND OUT WHICH
+00413P 0108 87   FF02      LPROUT STA   POPDRB   SEND CHARACTER OUT
+00414P 01CB C6   02               LDB   #2       SET UP STROBE 8::T
+00415P 01CD F7   FF20             STB   PIPDRA   SEND STROBE, PULSE HI
+00416P 0100 7F   FF20             CLR   P1PORA   THEN PULSE LO
+00417                      * N.B. THE STROBE PULSE IS INVERTED BY THE L802 SO
+00418                      * ACTUAL STROBE TO PRINTER IS LO FOLLOWED BY HI
+00415P 0103 35   84               PULS  B,PC     RESTORE AND RETURN
+00420                      *
+00421                      * TXEOL - TRANSMITS THE END OF LINE TERMINATING SEQUENCE
+00422                      *
+00423P 0105 BE   014A      TXEOL  LDX   #EOLSEQ  SET UP EOL SEQUENCE ADDRESS
+00424P 0108 E6   80               LOB   0,X+     GET COUNT OF CHARACTERS IN IT
+00425P 010A 5D             TXSEQ  TSTB           COUNT = 0 ?
+00426P 0108 27   07   01E4        BEQ   ENDSEQ   YES, SO FINISH
+00427P 01DD A6   BO      A        LOA   0,X+     PICK UP NEXT CHARACTER
+00428P 010F 80   DF   01C0        BSR   TXLPCH   TRANSMIT IT
+00429P 01E1 75   0307             jMP   EOLDLY   DU WE HAVE AN EOL DELAY
+00430P 01E4 39             ENDSEQ RTS
+00431                      *
+00432                      * LPTOUT - OUTPUT A CHARCTER TO PRINTER INTERFACE
+00433                      *
+00434                             XOEF  ZLPTOU
+00435            01E5      ZLPTOU EQU   *
+00436P 0155 34   16        LPTOUT PSHS  A,B,X    SAVE REi,IS
+00437                      * DISABLE INTERRUPTS AT THIS POINT?
+00438P 0157 61   00      A        CMPA  #CR      CR?
+00439P 01E9 27   13   01FE        BEQ   LPTEOL   YES, DEAL WITH EOL
+00440P 01E8 81   20      A        CMPA  #SP      PRINTABLE?
+0044IP 01ED 25   02   01F1        BLO   SENDCH   NO, SO SKIP PUS UPDATE
+00442P 01EF 00   90      A        INC   LPTPOS   YES, UPDATE PRINT POS
+00443P 01F1 80   CD   01C0 SENDCH BSR   TXLPCH   AND SEND CHARACTER
+00444P 01F3 D6   SO      A        LOB   LPTPOS   CHECK PRINT PUS
+00445P 01F5 D1   98      A        CMPB  LPTWID   BUFFER FULL?
+00446P 01E7 25        020A        BLO   LPEXIT   Nu, SU OK TO EXIT
+00447P 01F9 70   0148    A        TST   AUTOLF   AUTO LINEFEED?
+00448P 01FF:26   0f.-40208        BNE   NXTLN    YES, NO ACTION NEEDED
+00449                      * END OF LINE REACHED,CR OR NO AUTO LF ON BUFFER FULL
+00450P 01FF OD   SC      A LPTEOL TST   LPTPOS   EMPTY BUFFER?
+00451P 0200 26   04   0206        BNF   NEWLN    NO, SO FLUSH BUFFER
+00452P 0202 66   20      A        LDA   #SP      YES, SEND OUT A SPACE
+00453P 0204 80   BA   01C0        BSR   TXLPCH   BEFORE
+00454P 0206 80   CD   0105 NEWLN  85R   TXEOL    SENDING EOL SEQUENCE
+00455P 0208 OF   9C      A NXTLN  CLR   LPTPOS   RESET PRINTER POSITION
+00456P 020A 35   96      A LPEXIT PULS  A,B,X,PC RESTORE AND RETURN
+00457                      *
+00458                      * JOYSTICK ROUTINE NEXT
+00459                      *
+00460                      * JOYSEL - SELEL;T ONE THE JOYSTICCHANNELS (0-3)
+00461                      *
+00462P 020C CE   FF01    A JOYS   Lou   #POCRA   FIRST TIME THRU SETS OP
+00463P 020F 80   00   0211        BSR   NEWCR3   LSB OF MUX, SELECT CA2
+00464P 0211 A6   04      A M.,:CR3 LOA  O_U      READ CuRRENT CR VALUE
 
