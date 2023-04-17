@@ -1,61 +1,60 @@
-PAGE      012     ECBOEm        .SA:1       IODRVR      I/O DRIVER SUBROUTINES
+PAGE  012  ECBOEM  .SA:1  IODRVR I/O DRIVER SUBROUTINES
 
-00639P 0301 24               05      0308                 BHS        BUEND           THEREBY DOUBLING THE FREQUENCY
-00640P 0303 B7                            A               STA        P1PDR4          TO 2400 HZ
-00641P 0306 20               F3      02FB                 BRA        HZ2400
-00642                                         *  LAST     TABLE ENTRY NUT YET OUTPUT TO AVOID INTER—BIT DISCONTINUITY 
-00643P 0308 97               88           A   BITEND      STA        LSYSIN          SAVE LAST ENTRY FOR LATER USE
-00644P 030A 58                                            ASLB                       SHIFT TO NEXT BZ.T POSITION
-00645P 030B 24               D4      02E1                 BCC        NEWBIT          UNTIL ALL 8 BITS DEALT WITH
-00646P ~30D 35               82           A               PULS       4,PC            RESTORE AND RETURN
-00647                                         *
-00648                                         *  SINTAB — CONTAINS ENTR:FS USED TO GENERATE S..I.NE WAVE FORNS VIA DAC
-00649                                         *  N. B.    THE FIRST ENTRY IS OFFSET Ti ALLOW FOR INTER—BYTE DISCONTINUITY
-00650                                         *
-00651P      030E'            80           A   SINTAB      FCB        $ 80 $90, $         $ 8 , $ 8 , $           8 ., $ 0 $ F
-0065'2P     0318             F8           A               FCB        $1:, 8, SF 8, $ FO, $8 8, $88„ $08„ $B8, $48, $90
-0065:,:P    0321             78           A               FCB        $78, $68, $50, $40 „ $30, $20, $10, $08, $00
-006840      0324             00           A               FCB        $00, $00„ $08, $:;.0, $20, $30, $40, $50, $68
-00655                                         *
-00656                                         *  WRTLDR — OUTPUTS A BIT SYNC LEADER (D.,' $55'S                             (ALTEHNATING O'S & l'S)
-00657                                         *
-00658                                                     XDEF       ZWRTLD
-00659                        0333         P   ZWRILD      EQU
-00660P      0333    34       24           A   WRILDR      PSHS       B,Y             SAVE RIESS
-00661P      0335    14       50           A               ORCC       #$50            DISABLE F & I          INTERRUPTS
-00662P              17       c:F60   0294                 LRSR       CASON           TURN CASSETTE                    ON
-00663P      0334    86       55           A               LOA        #$55            SYNC BYTE VALUE
-00664P      033C    9E       90           A               LDX        LDRCNT          NUMBER OF BYTES IN LEADER
-00665P      033E    8D       9D      02DD     NXTLDR      BSR        CBOUT           RECORD SYNC BYTE
-00666P      0340    30       1F           A               LEAX       —1,X            UNTIL     (IX)    BYTES DUNE
-00667P      0342    26       FA      033E                 DNE        NXTLDR
-00668P      034.4.  35       A4                           PULS       B,Y,PC          RESTORE AND RETURN
-00669                                         *
-00670                                         *           DOWNLOADER I/O ROUTINES
-00671                                         *
-00672                                                     XDEF       ZINHST
-00673P      0346    34       05           A   ZINHST      PSHS       B,CC            PRESERVE REGISTERS
-00674P      0348    14       50           A               ORCC       #$50
-00675P      0344    86       08           A               LDA        #$08            MASK FOR DATA RECEIVED
-00676P      0340    F6       FF06         A               LOB        RSCMD
-006770      034F    CA       01           A               ORB        #$01            SET DATA TERMINAL
-00578P      0381    F7                    A               STB        RSCMD           ....READY
-00679P      0354    04       FE           A               ANDB       #$FE            WE'LL FINISH AGAIN SOON
-00680P      0356    B5       EF05         A   RSRXwT      BITA       RSSTAT          ANY DATA CAPTURED
-00681P      0359    27       FB      0356                 BEQ        RSRXWT
-00682P      0358    F7                    A               STB        RS0MD           ....NOT READY
-0068:W      035E    86       PF04         A               LDA        RSRXD           READ IN THE INPUT
-00684P      0361    34";     85           A               PuLS       B,D2„PC         RESTORE AND RETURN
-00685
-00686                                                     XDEF       ZOUTHS
-006872      0363             05           A   ZOUTHS      PSHS       B,CC            SAVE REGISTERS
-00688P      0365    C6       10           A               LOB        #$10            MASK FOR TRANSMIT BUFFER
-00689P      0367    F5       FF05         A   RSTXWT      BITB       RSSTAT          EMPTY
-00690P      03EA      7      Es      0367                            RSTXWT
-0069IP      036C      7      FF04                         STA        RSTXD           PUT OUT THE BYTE
-006Y/P                       85           A               PuLS       B,CC,PC         R?..:STORE   AND    FR-FL.JN
-                                              *
-00694                                                     XDEF       ZSTBAU
-00695P              Cl       07           A   ZSTBAU      CMPB       #(RSTEND—RSTAB)
-uUbe,P      0373    24       l2                           BHS                        01Z7  C.JF- R.;,:!N6E
-
+00639P 0301 24   05   0308        BHS    BITEND   THEREBY DOUBLING THE FREQUENCY
+00640P 0303 B7   FF20    A        STA    P1PDRA   TO 2400 HZ
+00641P 0306 20   F3   02FB        BRA    HZ2400
+00642                      * LAST TABLE ENTRY NOT YET OUTPUT TO AVOID INTER—BIT DISCONTINUITY
+00643P 0308 97   85      A BITEND STA    LSTSIN   SAVE LAST ENTRY FOR LATER USE
+00644P 030A 58                    ASLB            SHIFT TO NEXT BIT POSITION
+00645P 030B 24   D4   02E1        BCC    NEWBIT   UNTIL ALL 8 BITS DEALT WITH
+00646P 030D 35   82      A        PULS   A,PC     RESTORE AND RETURN
+00647                      *
+00648                      * SINTAB — CONTAINS ENTRIES USED TO GENERATE SINE WAVE FORMS VIA DAC
+00649                      * N.B. THE FIRST ENTRY IS OFFSET TO ALLOW FOR INTER—BYTE DISCONTINUITY
+00650                      *
+00651P 030F      80      A SINTAB FCB    $80,$90,$A8,$B8,$C8,$D8,$E8,$F0,$F8
+00652P 0318      F8      A        FCB    $F8,$F8,$F0,$E8,$D8,$C8,$B8,$A8,$90
+00653P 0321      78      A        FCB    $78,$68,$50,$40,$30,$20,$10,$08,$00
+00654P 032A      00      A        FCB    $00,$00,$08,$10,$20,$30,$40,$50,$68
+00655                      *
+00656                      * WRTLDR — OUTPUTS A BIT SYNC LEADER OF $55'S (ALTERNATING 0'S & 1'S)
+00657                      *
+00658                             XDEF   ZWRTLD
+00659            0333    P ZWRTLD EQU    *
+00660P 0333 34   24      A WRTLDR PSHS   B,Y      SAVE REGS
+00661P 0335 1A   50      A        ORCC   #$50     DISABLE F & I INTERRUPTS
+00662P 0337 17   FF60 029A        LBSR   CASON    TURN CASSETTE DRIVE ON
+00663P 033A 86   55      A        LDA    #$55     SYNC BYTE VALUE
+00664P 033C 9E   90      A        LDX    LDRCNT   NUMBER OF BYTES IN LEADER
+00665P 033E 8D   9D   02DD NXTLDR BSR    CBOUT    RECORD SYNC BYTE
+00666P 0340 30   1F      A        LEAX   -1,X     UNTIL (IX) BYTES DONE
+00667P 0342 26   FA   033E        BNE    NXTLDR
+00668P 0344 35   A4      A        PULS   B,Y,PC   RESTORE AND RETURN
+00669                      *
+00670                      *      DOWNLOADER I/O ROUTINES
+00671                      *
+00672                             XDEF   ZINHST
+00673P 0346 34   05      A ZINHST PSHS   B,CC     PRESERVE REGISTERS
+00674P 0348 1A   50      A        ORCC   #$50
+00675P 034A 86   08      A        LDA    #$08     MASK FOR DATA RECEIVED
+00676P 034C F6   FF06    A        LDB    RSCMD
+006770 034F CA   01      A        ORB    #$01     SET DATA TERMINAL
+00578P 0351 F7   FF06    A        STB    RSCMD    ....READY
+00679P 0354 C4   FE      A        ANDB   #$FE     WE'LL FINISH AGAIN SOON
+00680P 0356 B5   FF05    A RSRXWT BITA   RSSTAT   ANY DATA CAPTURED ?
+00681P 0359 27   FB   0356        BEQ    RSRXWT
+00682P 035B F7   FF06    A        STB    RSCMD    ....NOT READY
+00683P 035E B6   FF04    A        LDA    RSRXD    READ IN THE INPUT
+00684P 0361 35   85      A        PULS   B,CC,PC  RESTORE AND RETURN
+00685                      *
+00686                             XDEF   ZOUTHS
+00687P 0363 34   05      A ZOUTHS PSHS   B,CC     SAVE REGISTERS
+00688P 0365 C6   10      A        LDB    #$10     MASK FOR TRANSMIT BUFFER
+00689P 0367 F5   FF05    A RSTXWT BITB   RSSTAT   EMPTY ?
+00690P 036A 27   FB   0367        BEQ    RSTXWT
+00691P 036C B7   FF04    A        STA    RSTXD    PUT OUT THE BYTE
+00692P 036F 35   85      A        PULS   B,CC,PC  RESTORE AND RETURN
+00693                      *
+00694                             XDEF   ZSTBAU
+00695P 0371 C1   07      A ZSTBAU CMPB   #(RSTEND—RSTAB)
+00696P 0373 24   12   0387        BHS    RSERR    OUT OF RAN6E
