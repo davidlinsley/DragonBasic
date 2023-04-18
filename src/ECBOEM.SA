@@ -868,3 +868,27 @@ RAMCPD LDX    #$BFF0
        STX    FRETOP
        LEAX   -STRSPC,X
        STX    STKTOP
+       TFR    X,S
+       LDX    #BOOT64
+       STX    RSTVEC
+       JMP    CLDSTR
+*
+WARSTR JMP    WRMSTR
+ENDLOD EQU    *
+       XREF   POWRUP
+       ASCT
+       ORG    $BFF2
+*
+       XDEF   INTVEC
+INTVEC FDB    VSWI3
+       FDB    VSWI2
+       FDB    VFIRQ
+       FDB    VIRQ
+       FDB    VSWI
+       FDB    VNMI
+       FDB    POWRUP
+       XDEF   LASTWR
+LASTWR EQU    *
+       XDEF   ENDRAM
+ENDRAM EQU    *
+       END
