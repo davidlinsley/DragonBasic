@@ -1,29 +1,28 @@
-PAGE  016 ECBOEm   .SAgl  IODRVR I/O DRIVER SUBROuTINES
+PAGE  016  ECBOEM  .SA:1  IODRVR I/O DRIVER SUBROUTINES
 
-00871P 04A7 1F   14      A       TFR     X,S
-00872P 04A9 BE   0414    P       LDX     #800T64
-00873P 04AC 9F   72      A       STX     RSTVEC
-00874P 04AE 7E   C000    A       JMP     CLDSTR
-00875                     *
-00876P 04Bi 7E   C003    AWARSTR JMP     WRMSTR
-00877            04B4    PENDLOD EQU     *
-00878                            XREF    POWRUP
-00879A 0000                      ASCT
-00880A BFF2                      ORG     $BFF2
-00881                     *
-00882                            XDEF    INTVEC
-00883A BFF2      0000    AINTVEC FDB     VSWI3
-00884A BFF4      0000    A       FDB     VSWI2
-00885A BFF6      0000    A       FDB     VFIRQ
-00886A BFF8      0000    A       FDB     VIRG)
-00887A BFFA      0000    A       FDB     VSWI
-00888A BFFC      0000    A       FDB     VNMI
-00889A BFFE      0000    A       FDB     POWRUP
-00890                            XDEF    LASTwR
-00891            C000    ALASTWR EQU     *
-00892                            XDEF    ENDRAM
-00393            C000    AENDRAM EQU     *
-00894                            END
+00871P 04A7 1F   14      A        TFR    X,S
+00872P 04A9 BE   0414    P        LDX    #BOOT64
+00873P 04AC 9F   72      A        STX    RSTVEC
+00874P 04AE 7E   C000    A        JMP    CLDSTR
+00875                      *
+00876P 04B1 7E   C003    A WARSTR JMP    WRMSTR
+00877            04B4    P ENDLOD EQU    *
+00878                             XREF   POWRUP
+00879A 0000                       ASCT
+00880A BFF2                       ORG    $BFF2
+00881                      *
+00882                             XDEF   INTVEC
+00883A BFF2      0000    A INTVEC FDB    VSWI3
+00884A BFF4      0000    A        FDB    VSWI2
+00885A BFF6      0000    A        FDB    VFIRQ
+00886A BFF8      0000    A        FDB    VIRQ
+00887A BFFA      0000    A        FDB    VSWI
+00888A BFFC      0000    A        FDB    VNMI
+00889A BFFE      0000    A        FDB    POWRUP
+00890                             XDEF   LASTWR
+00891            C000    A LASTWR EQU    *
+00892                             XDEF   ENDRAM
+00393            C000    A ENDRAM EQU    *
+00894                             END
 TOTAL ERRORS 00000--00000
 TOTAL WARNINGS 00000-00000
-
