@@ -6,37 +6,37 @@
 *                                                                    *
 **********************************************************************
 
-       TTL     External Declarations
+       TTL    External Declarations
 
-       XREF    ALPHLK,ASC2,ASCFLG
-       XREF    BITIN,BUF
-       XREP    CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
-       XREF    CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
-       XREF    CLEARC
-       XREF    DBNCNT
-       XREF    ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
-       XREF    FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
-       XREF    FUNDSP,FUNLST
-       XREF    GAPFLG,GETBYT,GIVABF,GOPTNW
-       XREF    HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
-       XREF    HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
-       XREF    INTCNV,INTIDX,ISCNTC,INTWDG
-       XREF    JOYIN
-       XREF    LDBUFR,LIST,LOADAD,LPTOUT
-       XREF    MAIN
-       XREF    NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
-       XREF    OFFTK,ONTK
-       XREF    PINIT,POLCAT,POTVAL
-       XREF    READY,REASON,REDDY,RESLST,ROLTBL
-       XREF    SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
-       XREF    STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
-       XREF    TEMPST
-       XREF    USRTAB
-       XREF    VIRQ
-       XREF    WRTLDR
-       XREF    XRRUN,XRSLWC
+       XREF   ALPHLK,ASC2,ASCFLG
+       XREF   BITIN,BUF
+       XREP   CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
+       XREF   CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
+       XREF   CLEARC
+       XREF   DBNCNT
+       XREF   ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
+       XREF   FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
+       XREF   FUNDSP,FUNLST
+       XREF   GAPFLG,GETBYT,GIVABF,GOPTNW
+       XREF   HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+       XREF   HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
+       XREF   INTCNV,INTIDX,ISCNTC,INTWDG
+       XREF   JOYIN
+       XREF   LDBUFR,LIST,LOADAD,LPTOUT
+       XREF   MAIN
+       XREF   NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
+       XREF   OFFTK,ONTK
+       XREF   PINIT,POLCAT,POTVAL
+       XREF   READY,REASON,REDDY,RESLST,ROLTBL
+       XREF   SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
+       XREF   STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+       XREF   TEMPST
+       XREF   USRTAB
+       XREF   VIRQ
+       XREF   WRTLDR
+       XREF   XRRUN,XRSLWC
 
-       IFEQ    REALIO
+       IFEQ   REALIO
  ENDC   IFE REALIO
 
        TTL    Equates
@@ -51,7 +51,7 @@ PIA0AD EQU    @177400  PIA0, side A, data reg.  (FF00)
        IFNE   GRPTEK
  ENDC   IFN GRPTEK
        XDEF   PIA0AC
-PIA0AC EQU    PIA0AD+&1 PIA0, side A, control  reg.
+PIA0AC EQU    PIA0AD+&1 PIA0, side A, control reg.
        XDEF   PIA0BD
 PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
        XDEF   PIA0BC
@@ -62,7 +62,7 @@ PIA0BC EQU    PIA0BD+&1 PIA0, side B, control reg.
 PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
        ENDC   IFN      METTOY
        IFNE   GRPTEK
-  ENDC  IFN GRPTEK
+ ENDC   IFN GRPTEK
        XDEF   PIA1AC
 PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
        XDEF   PIA1BD
@@ -76,7 +76,7 @@ EXTROM EQU    @100000  Address of extension ROM.  (8000)
        XDEF   SAM
 SAM    EQU    @177700  Address of SAM chip.  (FFC0)
 
-DSKRUM EQU    @140000 The address of the disk ROM.  (C000)
+DSKROM EQU    @140000  The address of the disk ROM.  (C000)
 
 BOOT64 EQU    $BE7F
 FLAG64 EQU    $11A
@@ -157,7 +157,7 @@ DELAY  LEAX   -&1,X
        RTS
 
 *
-* Tnis stuff gets block transferred into RAM during initialization.
+* This stuff gets block transferred into RAM during initialization.
 *
 
 LORAM  FDB    FCERR    EXECAD
@@ -183,8 +183,8 @@ MIDRAM JMP    INTWDG   VIRQ WEDGE (AUTO-REPEAT & RS232)
 NMDRAM EQU    *-MIDRAM
        ENDC   IFN      ADDPRC
 
-HIRAM  FCB    &5        INTER-REPEAT DELAY
-       FCB    NNRMTK    STUB0
+HIRAM  FCB    &5       INTER-REPEAT DELAY
+       FCB    NNRMTK   STUB0
        FDB    RESLST
        FDB    STMDSP
        FCB    NFUNTK
@@ -242,8 +242,8 @@ CASINP TST    CBFCNT   Is the buffer empty?
        COM    EOFFLG   Yes, end of file.
        RTS
 
-NOTMT PSHS    U,Y,X,B Save registers.  (Save all because
-*    of bossible LODBUF call.)
+NOTMT PSHS    U,Y,X,B  Save registers.  (Save all because
+*    of possible LODBUF call.)
        LDX    CBFPTR   Get char from cassette buffer, update
        LDA    ,X+      the pointer, and decrement the count.
        PSHS   A        (Save the char too.)
@@ -255,7 +255,7 @@ NOTMT PSHS    U,Y,X,B Save registers.  (Save all because
        BEQ    LODDNL   Yes, use different load buffer
 *    routine.
        JSR    LODBUF   Reload the buffer.
-CASIRT PULS   D,X,Y,U,PC Get tne char into A, restore all regs
+CASIRT PULS   D,X,Y,U,PC Get the char into A, restore all regs
 *    and return.
 
 LODDNL JSR    LDBUFR   Reload download buffer.
@@ -285,7 +285,7 @@ KEYFIN PULS   B,X,PC   Restore B and X and return with the
 * CHROUT sends the character in A to the device specified by DEVNUM.
 * The output is suppressed if DEVNUM indicates that file input is
 * in progress.  This is done so character echo, input prompts
-* (such as double duestion mark for more input), etc is ignored
+* (such as double question mark for more input), etc is ignored
 * while inputting file data or loading an ASCII program file.
 *
 * All registers except CC are preserved.
@@ -360,7 +360,7 @@ SCROPT EQU    *
 * DEVWID - The line width of the device.
 * DEVLCF - The column number where the last comma field starts.
 * DEVCFW - The comma field width.
-* SPCIO  -  .TRUE. for special I/O handling in PRINT and INPUT code.
+* SPCIO  - .TRUE. for special I/O handling in PRINT and INPUT code.
 *
 * All registers except CC are preserved.
 * On exit, Z=1 if the device has infinite width (DEVWID=0).
@@ -369,8 +369,8 @@ SCROPT EQU    *
        XDEF   DEVPRM
 DEVPRM JSR    HKDPRM   RAM hook.
        PSHS   X,D      Save registers.
-       CLR    SPCIO    Special I/O flag=.FALSE.
-       LDA    DEVNUM   Set the device number.
+       CLR    SPCIO    Special I/O flag:=.FALSE.
+       LDA    DEVNUM   Get the device number.
        BEQ    SCRPRM   Go get the screen parms.
        INCA
        BEQ    CASPRM   Go get cassette parms.
@@ -387,7 +387,7 @@ LPTPRM LDX    LPTCFW   Get comma field width and last comma
 *
 * Get screen parms.
 * The width, comma field width, and last comma field are fixed.
-* The position is obtained by reading tne cursor address.
+* The position is obtained by reading the cursor address.
 *
 
 SCRPRM LDB    CURADR+&1 Get low order of cursor address.
@@ -406,12 +406,12 @@ DEVFIN STX    DEVCFW   Put away comma field width and last
 
 
 *
-* Get tne cassette parms.
+* Get the cassette parms.
 * They are all fixed at values which are necessary for the special
 * I/O code to work properly.  SPCIO gets set TRUE.
 *
 
-CASPRM COM    SPCIO    Speciai I/O flag:=.TRUE.
+CASPRM COM    SPCIO    Special I/O flag:=.TRUE.
        LDX    #&256    Comma field width:=1, last comma
 *    field:=0 but don't really care.
        CLRA            Width:=infinite and position:=0.
@@ -450,7 +450,7 @@ RUBLIN DECB            Yes, send CHRDELs to the screen
        JSR    CHROUT
        BRA    RUBLIN
 
-NTLDEL CMPA   #BRKCHR  Break character? (Llke control-C)
+NTLDEL CMPA   #BRKCHR  Break character? (Like control-C)
        SEC             (Set the carry just in case.)
        BEQ    FININL   Yes
 
@@ -494,7 +494,7 @@ OPNICK JSR    HKCKDI   RAM hook.
        INCA            Is is the printer?
        BNE    GOBMER   Yes, give Bad Mode error.
        LDA    CASOPN   Is the cassette open?
-       BNE    CHKMOD   Yes, do check the open mode.
+       BNE    CHKMOD   Yes, go check the open mode.
        XDEF   NOERR
 NOERR  LDB    #ERRNO   No, give Not Open error.
        JMP    ERROR
@@ -601,7 +601,7 @@ BCSLOP STX    CBUFAD   Store buffer address for BLKOUT.
        BHS    FULBLK   Yes.
        STB    BLKLEN   No, set actual block length.
 FULBLK JSR    BLKOUT   Output the block.
-       BRA    BCSLOP   So back for more.  BLKOUT set X
+       BRA    BCSLOP   Go back for more.  BLKOUT set X
 *    to [CBUFAD]+[BLKLEN].
 
        XDEF   FINSAV
@@ -675,17 +675,17 @@ CLDLOP STX    CBUFAD   Set load address for BLKINV.
        LDA    BLKTYP   No error, get the block type.
        BEQ    WIPER    Can't have file header in middle of
 *    file.
-       BPL    CLDLOP   Data record so continue. Note that
+       BPL    CLDLOP   Data record so continue.  Note that
 *    X has load address for next block.
        STX    VARTAB   End of file, set end of program.
        BSR    GOCOFF   Turn off the motor.
        LDX    #REDDY-&2 Print "OK" since we won't be going
        JSR    STROUT   through READY.  (NOTE: REDDY-2 is
-*   used to force a carriage return.)
+*    used to force a carriage return.)
        JMP    FINI     Go fix up the links, etc.  End up
 *    at MAIN.
 
-WIPER  JSR    SCRTCH   Error occured, wipe out wnatever did
+WIPER  JSR    SCRTCH   Error occured, wipe out whatever did
 *    load so garbage isn't left around.
 GOIOER JMP    IOERR
 
@@ -792,8 +792,8 @@ BLNKFL STA    ,X+
 *    none.
        JSR    FRMEVL   Yes, evaluate the filename string formula.
        JSR    FRESTR   Make sure it's a string, free up the
-*   temp, B:=length of string, X:=pointer
-*   to strng data.
+*    temp, B:=length of string, X:=pointer
+*    to strng data.
        LDU    #FNAMLN  Store the filename length and point
        STB    ,U+      to FILNAM.  (FILNAM immediately
 *    follows FNAMLN.)
@@ -813,7 +813,7 @@ COPBXU EQU    *
 COPLOP LDA    ,X+      Get a byte.
        STA    ,U+      Move it.
        DECB            Do it eight times.
-       BNE     COPLOP
+       BNE    COPLOP
 COPRTS RTS
 
        TTL    Get Device or File Number.
@@ -834,9 +834,9 @@ SETDNM JSR    INTCNV   D:=signed integer from FAC.
        RORB            It's OK, fix it back up.  Note that
 *    if it is negative the carry was set
 *    by the ADCAIM so the sign will come
-*    back in properly witn the RORB.
+*    back in properly with the RORB.
        STB    DEVNUM   Put away the device number.
-       JSR    HKDNCK   RPM hook for device number check.
+       JSR    HKDNCK   RAM hook for device number check.
        BEQ    DNMOK    0 for screen is OK.
        BPL    DNERR    No other positive ones are allowed.
        CMPB   #-&2     Disallow those below -2.
@@ -902,7 +902,7 @@ SKPDOR BSR    OPNCSI   Find the file.
 
        XDEF   OPEN
 OPEN   JSR    HKOPEN   Hook for disk version.
-       JSR    FRMEVL   Evaluate tne open mode.
+       JSR    FRMEVL   Evaluate the open mode.
        JSR    ASC2     B:=open mode char.
        PSHS   B        Save the open mode.
        BSR    GETCDN   Eat comma and get device number.
@@ -932,7 +932,7 @@ DNERR  LDB    #ERRDN   Device Number error.
        JMP    ERROR
 
 *
-* Here to oben a device for input.
+* Here to open a device for input.
 *
 
 OPENI  INCA            If lineprinter give mode error.
@@ -965,8 +965,8 @@ FINLDB STA    CBFCNT   Set buffer count.
 
 
 *
-*  Make sure cassette isn't already open, find the file, mark the
-*  cassette as open for input, and mark the cassette buffer as empty.
+* Make sure cassette isn't already open, find the file, mark the
+* cassette as open for input, and mark the cassette buffer as empty.
 *
 
        XDEF   OPNCSI
@@ -1006,7 +1006,7 @@ OPNCSO TST    CASOPN   Is the cassette already open?
 *    and CASBUF are external the cross
 *    assembler would use a 16 bit offset
 *    if the expression were used.)
-       STX    &9,U     Follow with ASCFLG and GAPFG.
+       STX    &9,U     Follow with ASCFLG and GAPFLG.
 *    (ASCFLG-CASBUF=9.)
        LDX    #FILNAM  Copy the filename from FILNAM
        JSR    COPNAM   into the header.
@@ -1061,7 +1061,7 @@ NODSP2 SUBA   ,U+      Get zero if matches desired name.
        BEQ    FNDFIL   Yes, so we want the first file seen.
        BSR    SKPFIL   No, skip this file.
        BNE    BADHDR   Return with Z=0 if error.
-       BRA    NXTFIL   So look at the next file.
+       BRA    NXTFIL   Go look at the next file.
 
 FNDFIL LDA    #'F      Display "F" for Found.
        BSR    DSPCHR
@@ -1148,12 +1148,12 @@ SYNLP  JSR    BITIN    Read a bit.
        BNE    SYNLP    No, look further.
 
        JSR    CBIN     Yes, read and store the block type.
-       LDA    BLKTYP
+       STA    BLKTYP
        JSR    CBIN     Read and store the block length.
        STA    BLKLEN
        ADDA   BLKTYP   Init the checksum.
        STA    CHKSUM
-       LDA    BLKLEN   Set uo a loop count.
+       LDA    BLKLEN   Set up a loop count.
        STA    BYTCNT
        BEQ    NODATA   No data in this record, just go
 *    check the checksum.
@@ -1167,7 +1167,7 @@ BLKILP JSR    CBIN     Read a byte of data.
        BNE    BLKILP   Yes, go read the next one.
 
 NODATA JSR    CBIN     No, read the checksum.
-       SUBA   CHKSUM   Does it agree with tne calculated one?
+       SUBA   CHKSUM   Does it agree with the calculated one?
        BEQ    OKREAD   Yes.
        LDA    #&1      No, indicate a checksum error occured.
        SKIP2
@@ -1176,12 +1176,12 @@ OKREAD STA    CSRERR   Put away the status byte and return.
        RTS
 
 *
-* "MOTOR ON" turns the cassette motor on
-* "MOTOR OFF" turns tne cassette motor off.
+* "MOTOR ON" turns the cassette motor on.
+* "MOTOR OFF" turns the cassette motor off.
 *
 
        XDEF   MOTOR
-MOTOR  TFR    A,B      Save tne ON or OFF token.
+MOTOR  TFR    A,B      Save the ON or OFF token.
        JSR    CHRGET   Eat it for NEWSTT.
        CMPB   #OFFTK   Is it "MOTOR OFF"?
        BEQ    DOCOFF   Yes, go do it.
@@ -1205,7 +1205,7 @@ DOCOFF JMP    CASOFF   Go turn off the motor.
 
 *
 * BLKOUT outputs a block of data.
-* Dn entry BLKTYP, BLKLEN, and CBUFAD must be set up.
+* On entry BLKTYP, BLKLEN, and CBUFAD must be set up.
 * On exit, X contains [CBUFAD]+[BLKLEN].
 *
 
@@ -1243,7 +1243,7 @@ OUTCHK LDA    CHKSUM   Output the checksum and fall into
 * LDRBYT writes a 55 hex leader char.
 *
 
-LDR8YT LDA    #@125    Leader byte is 55 hex.
+LDRBYT LDA    #@125    Leader byte is 55 hex.
 GOCBO  JMP    CBOUT    Output it and return.
 
        TTL    Simple Graphics - SET, RESET, POINT, CLS
@@ -1325,7 +1325,7 @@ RESET  BSR    GRPHAR   Evaluate the column and row args.
        BPL    STGRPH   Not graphic, go make it graphic
 *    with all cells off and a default
 *    color of green.
-       COM    CELL     Make only tne specified cell bit 0.
+       COM    CELL     Make only the specified cell bit 0.
        ANDB   CELL     RESET the cell.
        STB    ,X       Put it away and return.
        RTS
@@ -1356,7 +1356,7 @@ BADARG BHI    GOFCER   (All who come here must meet the
        LDX    #SCRADR  Get the base address of the screen
 *    memory.
        LEAX   D,X      Add in the row offset.
-       LDB    &1,S     integer divide the column by 2.
+       LDB    &1,S     Integer divide the column by 2.
        LSRB
        ABX             Add in the column offset.
 
@@ -1373,7 +1373,7 @@ LSRLOP LSRB            Shift into bit specified by A.
        DECA
        BPL    LSRLOP
        STB    CELL     Put it away for the callers.
-       RTS
+        RTS
 
 *
 * POINT returns the status of the specified cell as follows:
@@ -1413,7 +1413,7 @@ CHKRP  JMP    CHKCLS   Check for the right paren and return.
 * CLS "clears" the screen.
 * If no argument is given, the screen is cleared using green spaces
 * (character mode).
-* If the argument is zero, the screen is blacked out oy putting
+* If the argument is zero, the screen is blacked out by putting
 * all blocks into graphics mode with all cells off and with a green
 * color field.
 * If the argument is between 1 and 8 all block are put in graphics
@@ -1491,7 +1491,7 @@ HLDSND BSR    SNDMID   Put out center amplitude.
 
        XDEF   SNDOFF
 SNDOFF CLRA            Turn off TV sound.
-              Skip     over SNDON entry point.
+       SKIP2  Skip     over SNDON entry point.
        XDEF   SNDON
 SNDON  LDA    #@10     Turn on TV sound.
        STA    ,-S      Save ON/OFF bit.
@@ -1503,14 +1503,14 @@ SNDRTS RTS
 
 SNDMID LDA    #&124!+PIABIT Put out center amplitude.
 DOSND  STA    PIA1AD   Output amplitude to D/A.
-       LDA    SNDFRQ   Set the frecuency.
+       LDA    SNDFRQ   Get the frecuency.
 SNDLOP INCA            Hold it longer for lower frequencies.
        BNE    SNDLOP
        RTS
 
 
 *
-* AUDIO ON/OFF turns on or off tne cassette audio to the TV.
+* AUDIO ON/OFF turns on or off the cassette audio to the TV.
 *
 
        XDEF   AUDIO
@@ -1526,7 +1526,7 @@ AUDIO  TFR    A,B      Save the ON or OFF token.
 
 
 *
-* SETSEL sets the select lines according to tne contents of B.
+* SETSEL sets the select lines according to the contents of B.
 * B0 should be on to set SEL1, B1 should be on to set SEL2.
 *
 * U, A, and B are changed.
@@ -1561,7 +1561,7 @@ SLWRTI RTI             Return from the interrupt.
 
        TTL    The JOYSTK function.
 
-       XOEF   JOYSTK
+       XDEF   JOYSTK
 JOYSTK JSR    CONINT   Convert the pot number to a single
 *    byte integer in B and FACLO.
        CMPB   #&3      Must be 0, 1, 2, or 3.
@@ -1571,7 +1571,7 @@ JOYSTK JSR    CONINT   Convert the pot number to a single
        JSR    JOYIN    Yes, actually read all four pots.
 GETPOT LDX    #POTVAL  Point to the pot value table.
        LDB    FACLO    Get the pot number.
-       LDB    B,X      Get tne requested pot value.
+       LDB    B,X      Get the requested pot value.
        JMP    SNGFLT   Go float it and return.
 
        TTL    ROMable part of CHRGET.
@@ -1579,13 +1579,13 @@ GETPOT LDX    #POTVAL  Point to the pot value table.
        XDEF   ROMLOC
 ROMLOC EQU    *
        IFNE   REALIO
-       CMPA   #':       IS IT A ":"?
-       BCC    CHRRTS    IT IS .GE. ":"
-       CMPA   #'        SKIP SPACES.
-       BNE    NTBLNK    BNE, JMP direct is faster tnan LBEQ,
-       JMP    CHRGET    but both use 4 bytes.
-NTBLNK SUBA   #'0       ALL CHARS .GT. "9" HAVE RET'D SO
-       SUBA   #-'0      SEE IF NUMERIC.
+       CMPA   #':      IS IT A ":"?
+       BCC    CHRRTS   IT IS .GE. ":"
+       CMPA   #'       SKIP SPACES.
+       BNE    NTBLNK   BNE, JMP direct is faster tnan LBEQ,
+       JMP    CHRGET   but both use 4 bytes.
+NTBLNK SUBA   #'0      ALL CHARS .GT. "9" HAVE RET'D SO
+       SUBA   #-'0     SEE IF NUMERIC.
 *    TURN CARRY ON IF NUMERIC.
 *    ALSO, SETZ IF NULL.
 CHRRTS RTS             RETURN TO CALLER.

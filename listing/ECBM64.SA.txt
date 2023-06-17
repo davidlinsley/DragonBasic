@@ -9,37 +9,37 @@ PAGE  001  ECBCOM  .SA:0  ECBM64 Extension ROM Direct Page RAM
 00706                      *                                                                    *
 00707                      **********************************************************************
 00708
-00709                             TTL     External Declarations
+00709                             TTL    External Declarations
 00710
-00711                             XREF    ALPHLK,ASC2,ASCFLG
-00712                             XREF    BITIN,BUF
-00713                             XREP    CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
-00714                             XREF    CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
-00715                             XREF    CLEARC
-00716                             XREF    DBNCNT
-00717                             XREF    ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
-00716                             XREF    FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
-00719                             XREF    FUNDSP,FUNLST
-00720                             XREF    GAPFLG,GETBYT,GIVABF,GOPTNW
-00721                             XREF    HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
-00722                             XREF    HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
-00723                             XREF    INTCNV,INTIDX,ISCNTC,INTWDG
-00724                             XREF    JOYIN
-00725                             XREF    LDBUFR,LIST,LOADAD,LPTOUT
-00726                             XREF    MAIN
-00727                             XREF    NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
-00728                             XREF    OFFTK,ONTK
-00729                             XREF    PINIT,POLCAT,POTVAL
-00730                             XREF    READY,REASON,REDDY,RESLST,ROLTBL
-00731                             XREF    SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
-00732                             XREF    STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
-00733                             XREF    TEMPST
-00734                             XREF    USRTAB
-00735                             XREF    VIRQ
-00736                             XREF    WRTLDR
-00737                             XREF    XRRUN,XRSLWC
+00711                             XREF   ALPHLK,ASC2,ASCFLG
+00712                             XREF   BITIN,BUF
+00713                             XREP   CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
+00714                             XREF   CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
+00715                             XREF   CLEARC
+00716                             XREF   DBNCNT
+00717                             XREF   ENDHKS,ERRAO,ERRBM,ERRDN,ERRIO,ERRNO,ERROR,EVLADR
+00716                             XREF   FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
+00719                             XREF   FUNDSP,FUNLST
+00720                             XREF   GAPFLG,GETBYT,GIVABF,GOPTNW
+00721                             XREF   HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+00722                             XREF   HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
+00723                             XREF   INTCNV,INTIDX,ISCNTC,INTWDG
+00724                             XREF   JOYIN
+00725                             XREF   LDBUFR,LIST,LOADAD,LPTOUT
+00726                             XREF   MAIN
+00727                             XREF   NFUNTK,NNRMTK,NRTSH3,NRTSHK,NZLINK
+00728                             XREF   OFFTK,ONTK
+00729                             XREF   PINIT,POLCAT,POTVAL
+00730                             XREF   READY,REASON,REDDY,RESLST,ROLTBL
+00731                             XREF   SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
+00732                             XREF   STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+00733                             XREF   TEMPST
+00734                             XREF   USRTAB
+00735                             XREF   VIRQ
+00736                             XREF   WRTLDR
+00737                             XREF   XRRUN,XRSLWC
 00738
-00739            0001    A        IFEQ    REALIO
+00739            0001    A        IFEQ   REALIO
 00744                       ENDC   IFE REALIO
 00745
 00746                             TTL    Equates
@@ -54,7 +54,7 @@ PAGE  001  ECBCOM  .SA:0  ECBM64 Extension ROM Direct Page RAM
 00755            0000    A        IFNE   GRPTEK
 00758                       ENDC   IFN GRPTEK
 00759                             XDEF   PIA0AC
-00760            FF01    A PIA0AC EQU    PIA0AD+&1 PIA0, side A, control  reg.
+00760            FF01    A PIA0AC EQU    PIA0AD+&1 PIA0, side A, control reg.
 00761                             XDEF   PIA0BD
 00762            FF02    A PIA0BD EQU    PIA0AC+&1 PIA0, side B, data reg.
 00763                             XDEF   PIA0BC
@@ -68,7 +68,7 @@ PAGE  002  ECBM64  .SA:1  ECBM64 Equates
 00768            FF20    A PIA1AD EQU    @177440  PIA1, side A, data reg.  (FF20)
 00769                             ENDC   IFN      METTOY
 00770            0000    A        IFNE   GRPTEK
-00773                        ENDC  IFN GRPTEK
+00773                       ENDC   IFN GRPTEK
 00774                             XDEF   PIA1AC
 00775            FF21    A PIA1AC EQU    PIA1AD+&1 PIA1, side A, control reg.
 00776                             XDEF   PIA1BD
@@ -82,7 +82,7 @@ PAGE  002  ECBM64  .SA:1  ECBM64 Equates
 00784                             XDEF   SAM
 00785            FFC0    A SAM    EQU    @177700  Address of SAM chip.  (FFC0)
 00786
-00787            C000    A DSKRUM EQU    @140000 The address of the disk ROM.  (C000)
+00787            C000    A DSKROM EQU    @140000  The address of the disk ROM.  (C000)
 00788
 00789            BE7F    A BOOT64 EQU    $BE7F
 00790            011A    A FLAG64 EQU    $11A
@@ -168,7 +168,7 @@ PAGE  003  ECBM64  .SA:1  ECBM64 Power up and Reset code.
 PAGE  004  ECBM64  .SA:1  ECBM64 Power up and Reset code.
 
 00867                      *
-00868                      * Tnis stuff gets block transferred into RAM during initialization.
+00868                      * This stuff gets block transferred into RAM during initialization.
 00869                      *
 00870
 00871P 0071      0000    A LORAM  FDB    FCERR    EXECAD
@@ -194,8 +194,8 @@ PAGE  004  ECBM64  .SA:1  ECBM64 Power up and Reset code.
 00691            000E    A NMDRAM EQU    *-MIDRAM
 00892                             ENDC   IFN      ADDPRC
 00893
-00894P 008D      05      A HIRAM  FCB    &5        INTER-REPEAT DELAY
-00895P 008E      00      A        FCB    NNRMTK    STUB0
+00894P 008D      05      A HIRAM  FCB    &5       INTER-REPEAT DELAY
+00895P 008E      00      A        FCB    NNRMTK   STUB0
 00896P 008F      0000    A        FDB    RESLST
 00897P 0091      0000    A        FDB    STMDSP
 00898P 0093      00      A        FCB    NFUNTK
@@ -258,8 +258,8 @@ PAGE  006  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
 00961P 00FC 03   70      A        COM    EOFFLG   Yes, end of file.
 00962P 00FE 39                    RTS
 00963
-00964P 00FF 34   74      A NOTMT PSHS    U,Y,X,B Save registers.  (Save all because
-00965                      *    of bossible LODBUF call.)
+00964P 00FF 34   74      A NOTMT PSHS    U,Y,X,B  Save registers.  (Save all because
+00965                      *    of possible LODBUF call.)
 00966P 0101 9E   7A      A        LDX    CBFPTR   Get char from cassette buffer, update
 00967P 0103 A6   80      A        LDA    ,X+      the pointer, and decrement the count.
 00968P 0105 34   02      A        PSHS   A        (Save the char too.)
@@ -271,7 +271,7 @@ PAGE  006  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
 00974P 0111 27   05   0118        BEQ    LODDNL   Yes, use different load buffer
 00975                      *    routine.
 00976P 0113 BD   044C    P        JSR    LODBUF   Reload the buffer.
-00977P 0116 35   F6      A CASIRT PULS   D,X,Y,U,PC Get tne char into A, restore all regs
+00977P 0116 35   F6      A CASIRT PULS   D,X,Y,U,PC Get the char into A, restore all regs
 00978                      *    and return.
 00979
 00980P 0118 BD   0000    A LODDNL JSR    LDBUFR   Reload download buffer.
@@ -305,7 +305,7 @@ PAGE  008  ECBM64  .SA:1  ECBM64 CHRINP - Character Input Routine
 01006                      * CHROUT sends the character in A to the device specified by DEVNUM.
 01007                      * The output is suppressed if DEVNUM indicates that file input is
 01008                      * in progress.  This is done so character echo, input prompts
-01009                      * (such as double duestion mark for more input), etc is ignored
+01009                      * (such as double question mark for more input), etc is ignored
 01010                      * while inputting file data or loading an ASCII program file.
 01011                      *
 01012                      * All registers except CC are preserved.
@@ -384,7 +384,7 @@ PAGE  010  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
 01112                      * DEVWID - The line width of the device.
 01113                      * DEVLCF - The column number where the last comma field starts.
 01114                      * DEVCFW - The comma field width.
-01115                      * SPCIO  -  .TRUE. for special I/O handling in PRINT and INPUT code.
+01115                      * SPCIO  - .TRUE. for special I/O handling in PRINT and INPUT code.
 01116                      *
 01117                      * All registers except CC are preserved.
 01118                      * On exit, Z=1 if the device has infinite width (DEVWID=0).
@@ -393,8 +393,8 @@ PAGE  010  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
 01121                             XDEF   DEVPRM
 01122P 017A BD   0000    A DEVPRM JSR    HKDPRM   RAM hook.
 01123P 017D 34   16      A        PSHS   X,D      Save registers.
-01124P 017F 0F   6E      A        CLR    SPCIO    Special I/O flag=.FALSE.
-01125P 0181 96   6F      A        LDA    DEVNUM   Set the device number.
+01124P 017F 0F   6E      A        CLR    SPCIO    Special I/O flag:=.FALSE.
+01125P 0181 96   6F      A        LDA    DEVNUM   Get the device number.
 01126P 0183 27   09   018E        BEQ    SCRPRM   Go get the screen parms.
 01127P 0185 4C                    INCA
 01128P 0186 27   17   019F        BEQ    CASPRM   Go get cassette parms.
@@ -411,7 +411,7 @@ PAGE  010  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
 01139                      *
 01140                      * Get screen parms.
 01141                      * The width, comma field width, and last comma field are fixed.
-01142                      * The position is obtained by reading tne cursor address.
+01142                      * The position is obtained by reading the cursor address.
 01143                      *
 01144
 01145P 018E D6   89      A SCRPRM LDB    CURADR+&1 Get low order of cursor address.
@@ -430,7 +430,7 @@ PAGE  010  ECBM64  .SA:1  ECBM64 CHROUT - Output Character Routine
 01158
 01159
 01160                      *
-01161                      * Get tne cassette parms.
+01161                      * Get the cassette parms.
 01162                      * They are all fixed at values which are necessary for the special
 01163                      * I/O code to work properly.  SPCIO gets set TRUE.
 
@@ -438,7 +438,7 @@ PAGE  011  ECBM64  .SA:1  ECBM64 DEVPRM - Return Device Parameters
 
 01164                      *
 01165
-01166P 019F 03   6E      A CASPRM COM    SPCIO    Speciai I/O flag:=.TRUE.
+01166P 019F 03   6E      A CASPRM COM    SPCIO    Special I/O flag:=.TRUE.
 01167P 01A1 8E   0100    A        LDX    #&256    Comma field width:=1, last comma
 01168                      *    field:=0 but don't really care.
 01169P 01A4 4F                    CLRA            Width:=infinite and position:=0.
@@ -479,7 +479,7 @@ PAGE  012  ECBM64  .SA:1  ECBM64 DEVPRM - Return Device Parameters
 01202P 01D8 BD   012F    P        JSR    CHROUT
 01203P 01DB 20   F6   01D3        BRA    RUBLIN
 01204
-01205P 01DD 81   03      A NTLDEL CMPA   #BRKCHR  Break character? (Llke control-C)
+01205P 01DD 81   03      A NTLDEL CMPA   #BRKCHR  Break character? (Like control-C)
 01206P 01DF 1A   01               SEC             (Set the carry just in case.)
 01207P 01E1 27   05   01E8        BEQ    FININL   Yes
 01208
@@ -526,7 +526,7 @@ PAGE  013  ECBM64  .SA:1  ECBM64 INLIN - The line input routine.
 01246P 020F 4C                    INCA            Is is the printer?
 01247P 0210 26   0C   021E        BNE    GOBMER   Yes, give Bad Mode error.
 01248P 0212 96   78      A        LDA    CASOPN   Is the cassette open?
-01249P 0214 26   05   021B        BNE    CHKMOD   Yes, do check the open mode.
+01249P 0214 26   05   021B        BNE    CHKMOD   Yes, go check the open mode.
 01250                             XDEF   NOERR
 01251P 0216 C6   00      A NOERR  LDB    #ERRNO   No, give Not Open error.
 01252P 0218 7E   0000    A        JMP    ERROR
@@ -639,7 +639,7 @@ PAGE  015  ECBM64  .SA:1  ECBM64 The CLOSE code.
 01355P 02A9 24   02   02AD        BHS    FULBLK   Yes.
 01356P 02AB D7   7D      A        STB    BLKLEN   No, set actual block length.
 01357P 02AD BD   057E    P FULBLK JSR    BLKOUT   Output the block.
-01358P 02B0 20   E7   0299        BRA    BCSLOP   So back for more.  BLKOUT set X
+01358P 02B0 20   E7   0299        BRA    BCSLOP   Go back for more.  BLKOUT set X
 01359                      *    to [CBUFAD]+[BLKLEN].
 01360
 01361                             XDEF   FINSAV
@@ -719,17 +719,17 @@ PAGE  017  ECBM64  .SA:1  ECBM64 CLOAD - Load a program from cassette.
 01430P 0308 96   7C      A        LDA    BLKTYP   No error, get the block type.
 01431P 030A 27   0F   031B        BEQ    WIPER    Can't have file header in middle of
 01432                      *    file.
-01433P 030C 2A   ED   02FB        BPL    CLDLOP   Data record so continue. Note that
+01433P 030C 2A   ED   02FB        BPL    CLDLOP   Data record so continue.  Note that
 01434                      *    X has load address for next block.
 01435P 030E 9F   1B      A        STX    VARTAB   End of file, set end of program.
 01436P 0310 8D   40   0352        BSR    GOCOFF   Turn off the motor.
 01437P 0312 8E   FFFE    A        LDX    #REDDY-&2 Print "OK" since we won't be going
 01438P 0315 BD   0000    A        JSR    STROUT   through READY.  (NOTE: REDDY-2 is
-01439                      *   used to force a carriage return.)
+01439                      *    used to force a carriage return.)
 01440P 0318 7E   0000    A        JMP    FINI     Go fix up the links, etc.  End up
 01441                      *    at MAIN.
 01442
-01443P 031B BD   0000    A WIPER  JSR    SCRTCH   Error occured, wipe out wnatever did
+01443P 031B BD   0000    A WIPER  JSR    SCRTCH   Error occured, wipe out whatever did
 01444                      *    load so garbage isn't left around.
 01445P 031E 7E   0430    P GOIOER JMP    IOERR
 01446
@@ -847,8 +847,8 @@ PAGE  021  ECBM64  .SA:1  ECBM64 Get Filename.
 
 01550P 03A1 BD   0000    A        JSR    FRMEVL   Yes, evaluate the filename string formula.
 0155P  03A4 BD   0000    A        JSR    FRESTR   Make sure it's a string, free up the
-01552                      *   temp, B:=length of string, X:=pointer
-01553                      *   to strng data.
+01552                      *    temp, B:=length of string, X:=pointer
+01553                      *    to strng data.
 01554P 03A7 CE   0000    A        LDU    #FNAMLN  Store the filename length and point
 01555P 03AA E7   C0      A        STB    ,U+      to FILNAM.  (FILNAM immediately
 01556                      *    follows FNAMLN.)
@@ -868,7 +868,7 @@ PAGE  021  ECBM64  .SA:1  ECBM64 Get Filename.
 01570P 03B1 A6   80      A COPLOP LDA    ,X+      Get a byte.
 01571P 03B3 A7   C0      A        STA    ,U+      Move it.
 01572P 03B5 5A                    DECB            Do it eight times.
-01573  03B6 26   F9  03B1         BNE     COPLOP
+01573  03B6 26   F9  03B1         BNE    COPLOP
 01574P 03B8 39             COPRTS RTS
 01575
 
@@ -892,9 +892,9 @@ PAGE  022  ECBM64  .SA:1  ECBM64 Get Filename.
 01592P 03CD 56                    RORB            It's OK, fix it back up.  Note that
 01593                      *    if it is negative the carry was set
 01594                      *    by the ADCAIM so the sign will come
-01595                      *    back in properly witn the RORB.
+01595                      *    back in properly with the RORB.
 01596P 03CE D7   6F      A        STB    DEVNUM   Put away the device number.
-01597P 03D0 BD   0000    A        JSR    HKDNCK   RPM hook for device number check.
+01597P 03D0 BD   0000    A        JSR    HKDNCK   RAM hook for device number check.
 01598P 03D3 27   06   03DB        BEQ    DNMOK    0 for screen is OK.
 01599P 03D5 2A   5F   0436        BPL    DNERR    No other positive ones are allowed.
 01600P 03D7 C1   FE      A        CMPB   #-&2     Disallow those below -2.
@@ -966,7 +966,7 @@ PAGE  025  ECBM64  .SA:1  ECBM64 The SKIPF statement.
 01660
 01661                             XDEF   OPEN
 01662P 040D BD   0000    A OPEN   JSR    HKOPEN   Hook for disk version.
-01663P 0410 BD   0000    A        JSR    FRMEVL   Evaluate tne open mode.
+01663P 0410 BD   0000    A        JSR    FRMEVL   Evaluate the open mode.
 01664P 0413 BD   0000    A        JSR    ASC2     B:=open mode char.
 01665P 0416 34   04      A        PSHS   B        Save the open mode.
 01666P 0418 8D   9F   03B9        BSR    GETCDN   Eat comma and get device number.
@@ -999,7 +999,7 @@ PAGE  025  ECBM64  .SA:1  ECBM64 The SKIPF statement.
 PAGE  026  ECBM64  .SA:1  ECBM64 The OPEN code.
 
 01693                      *
-01694                      * Here to oben a device for input.
+01694                      * Here to open a device for input.
 01695                      *
 01696
 01697P 043B 4C             OPENI  INCA            If lineprinter give mode error.
@@ -1032,8 +1032,8 @@ PAGE  026  ECBM64  .SA:1  ECBM64 The OPEN code.
 01724
 01725
 01726                      *
-01727                      *  Make sure cassette isn't already open, find the file, mark the
-01728                      *  cassette as open for input, and mark the cassette buffer as empty.
+01727                      * Make sure cassette isn't already open, find the file, mark the
+01728                      * cassette as open for input, and mark the cassette buffer as empty.
 01729                      *
 01730
 01731                             XDEF   OPNCSI
@@ -1076,7 +1076,7 @@ PAGE  027  ECBM64  .SA:1  ECBM64 The OPEN code.
 01766                      *    and CASBUF are external the cross
 01767                      *    assembler would use a 16 bit offset
 01768                      *    if the expression were used.)
-01769P 0481 AF   49      A        STX    &9,U     Follow with ASCFLG and GAPFG.
+01769P 0481 AF   49      A        STX    &9,U     Follow with ASCFLG and GAPFLG.
 01770                      *    (ASCFLG-CASBUF=9.)
 01771P 0483 8E   0000    A        LDX    #FILNAM  Copy the filename from FILNAM
 01772P 0486 BD   03AF    P        JSR    COPNAM   into the header.
@@ -1133,7 +1133,7 @@ PAGE  028  ECBM64  .SA:1  ECBM64 The OPEN code.
 01821P 04DA 27   06   04E2        BEQ    FNDFIL   Yes, so we want the first file seen.
 01822P 04DC 8D   0A   04E8        BSR    SKPFIL   No, skip this file.
 01823P 04DE 26   07   04E7        BNE    BADHDR   Return with Z=0 if error.
-01824P 04E0 20   BB   049D        BRA    NXTFIL   So look at the next file.
+01824P 04E0 20   BB   049D        BRA    NXTFIL   Go look at the next file.
 01825
 01826P 04E2 86   46      A FNDFIL LDA    #'F      Display "F" for Found.
 01827P 04E4 8D   29   050F        BSR    DSPCHR
@@ -1225,12 +1225,12 @@ PAGE  030  ECBM64  .SA:1  ECBM64 Search Cassette for a File
 01909P 0530 26   F8   052A        BNE    SYNLP    No, look further.
 01910
 01911P 0532 BD   0000    A        JSR    CBIN     Yes, read and store the block type.
-01912P 0535 97   7C      A        LDA    BLKTYP
+01912P 0535 97   7C      A        STA    BLKTYP
 01913P 0337 BD   0000    A        JSR    CBIN     Read and store the block length.
 01914P 053A 97   7D      A        STA    BLKLEN
 01915P 053C 9B   7C      A        ADDA   BLKTYP   Init the checksum.
 01916P 053E 97   80      A        STA    CHKSUM
-01917P 0540 96   7D      A        LDA    BLKLEN   Set uo a loop count.
+01917P 0540 96   7D      A        LDA    BLKLEN   Set up a loop count.
 01918P 0542 97   81      A        STA    BYTCNT
 01919P 0544 27   11   0557        BEQ    NODATA   No data in this record, just go
 01920                      *    check the checksum.
@@ -1247,7 +1247,7 @@ PAGE  030  ECBM64  .SA:1  ECBM64 Search Cassette for a File
 
 PAGE  031  ECBM64  .SA:1  ECBM64 Cassette Input Routines
 
-01931P 055A 90   80      A        SUBA   CHKSUM   Does it agree with tne calculated one?
+01931P 055A 90   80      A        SUBA   CHKSUM   Does it agree with the calculated one?
 01932P 055C 27   05   0563        BEQ    OKREAD   Yes.
 01933P 055E 86   01      A        LDA    #&1      No, indicate a checksum error occured.
 01934P 0560                       SKIP2
@@ -1258,12 +1258,12 @@ PAGE  031  ECBM64  .SA:1  ECBM64 Cassette Input Routines
 PAGE  032  ECBM64  .SA:1  ECBM64 Cassette Input Routines
 
 01939                      *
-01940                      * "MOTOR ON" turns the cassette motor on
-01941                      * "MOTOR OFF" turns tne cassette motor off.
+01940                      * "MOTOR ON" turns the cassette motor on.
+01941                      * "MOTOR OFF" turns the cassette motor off.
 01942                      *
 01943
 01944                             XDEF   MOTOR
-01945P 0566 1F   89      A MOTOR  TFR    A,B      Save tne ON or OFF token.
+01945P 0566 1F   89      A MOTOR  TFR    A,B      Save the ON or OFF token.
 01946P 0568 9D   9F      A        JSR    CHRGET   Eat it for NEWSTT.
 01947P 056A C1   00      A        CMPB   #OFFTK   Is it "MOTOR OFF"?
 01948P 056C 27   0D   057B        BEQ    DOCOFF   Yes, go do it.
@@ -1289,7 +1289,7 @@ PAGE  033  ECBM64  .SA:1  ECBM64 Cassette Input Routines
 01966
 01967                      *
 01968                      * BLKOUT outputs a block of data.
-01969                      * Dn entry BLKTYP, BLKLEN, and CBUFAD must be set up.
+01969                      * On entry BLKTYP, BLKLEN, and CBUFAD must be set up.
 01970                      * On exit, X contains [CBUFAD]+[BLKLEN].
 01971                      *
 01972
@@ -1327,7 +1327,7 @@ PAGE  033  ECBM64  .SA:1  ECBM64 Cassette Input Routines
 02004                      * LDRBYT writes a 55 hex leader char.
 02005                      *
 02006
-02007P 05B2 86   55      A LDR8YT LDA    #@125    Leader byte is 55 hex.
+02007P 05B2 86   55      A LDRBYT LDA    #@125    Leader byte is 55 hex.
 02008P 05B4 7E   0000    A GOCBO  JMP    CBOUT    Output it and return.
 02009
 02010                             TTL    Simple Graphics - SET, RESET, POINT, CLS
@@ -1417,7 +1417,7 @@ PAGE  036  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
 02086P 05EF 2A   F2   05E3        BPL    STGRPH   Not graphic, go make it graphic
 02087                      *    with all cells off and a default
 02088                      *    color of green.
-02089P 05F1 03   86      A        COM    CELL     Make only tne specified cell bit 0.
+02089P 05F1 03   86      A        COM    CELL     Make only the specified cell bit 0.
 02090P 05F3 D4   86      A        ANDB   CELL     RESET the cell.
 02091P 05F5 E7   84      A        STB    ,X       Put it away and return.
 02092P 05F7 39                    RTS
@@ -1451,7 +1451,7 @@ PAGE  037  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
 02118P 0611 8E   0400    A        LDX    #SCRADR  Get the base address of the screen
 02119                      *    memory.
 02120P 0614 30   8B      A        LEAX   D,X      Add in the row offset.
-02121P 0616 E6   61      A        LDB    &1,S     integer divide the column by 2.
+02121P 0616 E6   61      A        LDB    &1,S     Integer divide the column by 2.
 02122P 0618 54                    LSRB
 02123P 0619 3A                    ABX             Add in the column offset.
 02124
@@ -1513,7 +1513,7 @@ PAGE  039  ECBM64  .SA:1  ECBM64 Simple Graphics - SET, RESET, POINT, CLS
 02176                      * CLS "clears" the screen.
 02177                      * If no argument is given, the screen is cleared using green spaces
 02178                      * (character mode).
-02179                      * If the argument is zero, the screen is blacked out oy putting
+02179                      * If the argument is zero, the screen is blacked out by putting
 02180                      * all blocks into graphics mode with all cells off and with a green
 02181                      * color field.
 02182                      * If the argument is between 1 and 8 all block are put in graphics
@@ -1594,7 +1594,7 @@ PAGE  040  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 02254
 02255                             XDEF   SNDOFF
 02256P 06A8 4F             SNDOFF CLRA            Turn off TV sound.
-02257P 06A9                              Skip     over SNDON entry point.
+02257P 06A9                       SKIP2  Skip     over SNDON entry point.
 02258                             XDEF   SNDON
 02259P 06AA 86   08      A SNDON  LDA    #@10     Turn on TV sound.
 02260P 06AC A7   E2      A        STA    ,-S      Save ON/OFF bit.
@@ -1609,14 +1609,14 @@ PAGE  041  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 
 02268P 06B9 86   7C      A SNDMID LDA    #&124!+PIABIT Put out center amplitude.
 02269P 06BB B7   FF20    A DOSND  STA    PIA1AD   Output amplitude to D/A.
-02270P 06BE 96   8C      A        LDA    SNDFRQ   Set the frecuency.
+02270P 06BE 96   8C      A        LDA    SNDFRQ   Get the frecuency.
 02271P 06C0 4C             SNDLOP INCA            Hold it longer for lower frequencies.
 02272P 06C1 26   FD   06C0        BNE    SNDLOP
 02273P 06C3 39                    RTS
 02274
 02275
 02276                      *
-02277                      * AUDIO ON/OFF turns on or off tne cassette audio to the TV.
+02277                      * AUDIO ON/OFF turns on or off the cassette audio to the TV.
 02278                      *
 02279
 02280                             XDEF   AUDIO
@@ -1632,7 +1632,7 @@ PAGE  041  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 02290
 02291
 02292                      *
-02293                      * SETSEL sets the select lines according to tne contents of B.
+02293                      * SETSEL sets the select lines according to the contents of B.
 02294                      * B0 should be on to set SEL1, B1 should be on to set SEL2.
 02295                      *
 02296                      * U, A, and B are changed.
@@ -1670,7 +1670,7 @@ PAGE  042  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 
 02327                             TTL    The JOYSTK function.
 02328
-02329                             XOEF   JOYSTK
+02329                             XDEF   JOYSTK
 02330P 06F2 BD   0000    A JOYSTK JSR    CONINT   Convert the pot number to a single
 02331                      *    byte integer in B and FACLO.
 02332P 06F5 C1   03      A        CMPB   #&3      Must be 0, 1, 2, or 3.
@@ -1680,7 +1680,7 @@ PAGE  042  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 02336P 06FE BD   0000    A        JSR    JOYIN    Yes, actually read all four pots.
 02337P 0701 8E   0000    A GETPOT LDX    #POTVAL  Point to the pot value table.
 02338P 0704 D6   53      A        LDB    FACLO    Get the pot number.
-02339P 0706 E6   85      A        LDB    B,X      Get tne requested pot value.
+02339P 0706 E6   85      A        LDB    B,X      Get the requested pot value.
 02340P 0708 7E   0000    A        JMP    SNGFLT   Go float it and return.
 02341
 02342                             TTL    ROMable part of CHRGET.
@@ -1688,13 +1688,13 @@ PAGE  042  ECBM64  .SA:1  ECBM64 SOUND and AUDIO commands.
 02344                             XDEF   ROMLOC
 02345            070B    P ROMLOC EQU    *
 02346            0001    A        IFNE   REALIO
-02347P 070B 81   3A      A        CMPA   #':       IS IT A ":"?
-02348P 070D 24   0A   0719        BCC    CHRRTS    IT IS .GE. ":"
-02349P 070F 81   20      A        CMPA   #'        SKIP SPACES.
-02350P 0711 26   02   0715        BNE    NTBLNK    BNE, JMP direct is faster tnan LBEQ,
-02351P 0713 0E   9F      A        JMP    CHRGET    but both use 4 bytes.
-02352P 0715 80   30      A NTBLNK SUBA   #'0       ALL CHARS .GT. "9" HAVE RET'D SO
-02353P 0717 80   D0      A        SUBA   #-'0      SEE IF NUMERIC.
+02347P 070B 81   3A      A        CMPA   #':      IS IT A ":"?
+02348P 070D 24   0A   0719        BCC    CHRRTS   IT IS .GE. ":"
+02349P 070F 81   20      A        CMPA   #'       SKIP SPACES.
+02350P 0711 26   02   0715        BNE    NTBLNK   BNE, JMP direct is faster tnan LBEQ,
+02351P 0713 0E   9F      A        JMP    CHRGET   but both use 4 bytes.
+02352P 0715 80   30      A NTBLNK SUBA   #'0      ALL CHARS .GT. "9" HAVE RET'D SO
+02353P 0717 80   D0      A        SUBA   #-'0     SEE IF NUMERIC.
 02354                      *    TURN CARRY ON IF NUMERIC.
 02355                      *    ALSO, SETZ IF NULL.
 02356P 0719 39             CHRRTS RTS             RETURN TO CALLER.
