@@ -1,5 +1,3 @@
-
-
        NAM    ECBMOD
 
 **********************************************************************
@@ -313,7 +311,7 @@ MICRO  FCC    /(C) 1982 BY MICROSOFT/
        FCB    &0
        ENDC   IFN      METTOY
 
-       IFNE     GRPTEK
+       IFNE   GRPTEK
  ENDC   IFN GRPTEK
 
        TTL    CHRINP - Character Input Routine
@@ -324,7 +322,7 @@ MICRO  FCC    /(C) 1982 BY MICROSOFT/
 * All registers except A and CC are preserved.
 * If end of file is hit, EOFFLG=.TRUE.=non-zero, and A is meaningless.
 *
-* INCHR is called instead of CHRINP when a 7 bit code  is wanted.
+* INCHR is called instead of CHRINP when a 7 bit code is wanted.
 *
 
        XDEF   INCHR
@@ -387,7 +385,7 @@ KEYFIN PULS   B,X,PC   Restore B and X and return with the
 
        IFEQ   REALIO
  ENDC   IFE REALIO
-
+       
        TTL    CHROUT - Output Character Routine
 
 *
@@ -458,7 +456,7 @@ SCROPT EQU    *
        ENDC   IFN      REALIO
 
        IFEQ   REALIO
- ENDC    IFE REALIO
+ ENDC   IFE REALIO
 
        TTL    DEVPRM - Return Device Parameters
 
@@ -491,7 +489,7 @@ DEVPRM JSR    HKDPRM   RAM hook.
 LPTPRM LDX    LPTCFW   Get comma field width and last comma
 *    field.
        LDD    LPTWID   Get width and current position.
-       BRA    DEVFIN   Go out it all away.
+       BRA    DEVFIN   Go put it all away.
 
 *
 * Get screen parms.
@@ -517,7 +515,7 @@ DEVFIN STX    DEVCFW   Put away comma field width and last
 *
 * Get the cassette parms.
 * They are all fixed at values which are necessary for the special
-* I/O code to work properly. SPCIO gets set TRUE.
+* I/O code to work properly.  SPCIO gets set TRUE.
 *
 
 CASPRM COM    SPCIO    Special I/O flag:=.TRUE.
@@ -637,7 +635,7 @@ NXTCLO BSR    CLOSIT   Close this device.
        JSR    CHRGOT   Another number specified?
        BEQ    CLSRTS   No, all done.
        JSR    GETCDN   Yes, read comma and device number.
-       BRA    NXTCLO   So close it.
+       BRA    NXTCLO   Go close it.
 
        XDEF   CLSALL
 CLSALL JSR    HKCLSA   RAM hook.
@@ -659,7 +657,7 @@ CLOSIT JSR    HKCLS1   RAM hook.
        BEQ    EOFWRT   No.
        JSR    DMPBUF   Yes, dump the buffer.
        XDEF   EOFWRT
-EOFWRT LDB    #@377    Set block type to end of flle.
+EOFWRT LDB    #@377    Set block type to end of file.
        JSR    WRTEOF   Write an EOF block.
 MRKCLS CLR    CASOPN   Mark the cassette as closed.
 CLSRTS RTS
@@ -682,7 +680,7 @@ CSAVE  CMPA   #'M      Is it CSAVEM?
        STA    DEVNUM
        CLRA            Make the LIST code see a terminator
 *    so the whole program gets saved.
-       JMP    LIST     The LIST code will do the rest,
+       JMP    LIST     The LIST code will do the rest.
 *    When LIST is done it will close the
 *    file.
 
@@ -724,11 +722,11 @@ FINSAV NEG    BLKTYP   Set block type to EOF.  (It was 1
 
        XDEF   CLOAD
 CLOAD  CLR    CASOPN   Force the cassette closed.  The
-* last block of an output file may
-* be lost but we don't have enough
-* bytes to flush the buffer and tne
-* user has probably put the cassette
-* in play mode anyway.
+*    last block of an output file may
+*    be lost but we don't have enough
+*    bytes to flush the buffer and the
+*    user has probably put the cassette
+*    in play mode anyway.
        CMPA   #'M      Do they want to load a machine
 *    language file?
        LBEQ   CLOADM   Yes, go do it.
@@ -752,7 +750,7 @@ CLOAD  CLR    CASOPN   Force the cassette closed.  The
        JMP    MAIN     actual loading.
 
 *
-*  Here when MAIN sees the end of file.
+* Here when MAIN sees the end of file.
 *
 
        XDEF   FINLOD
@@ -769,13 +767,13 @@ BCLOD  LDA    FILTYP   It must be a BASIC program.
 BMERR1 JMP    BMERR    It isn't, give a mode error.
 
 DOBCLD JSR    SCRTCH   Wipe out the existing program.
-       JSR    CSRDUN   Start cassette and get into bit sync.
+       JSR    CSRDON   Start cassette and get into bit sync.
        LDX    TXTTAB   Set up first load address.
 
 CLDLOP STX    CBUFAD   Set load address for BLKINV.
        LDD    CBUFAD   There must be another 256 bytes
        INCA            available or we give an OM error.
-       JSR    REASON   (Yes, it is possble that they won't
+       JSR    REASON   (Yes, it is possible that they won't
 *    be able to load a program they saved
 *    if it was a very tight fit, but they
 *    wouldn't be able to run it anyway.)
@@ -791,7 +789,7 @@ CLDLOP STX    CBUFAD   Set load address for BLKINV.
        LDX    #REDDY-&2 Print "OK" since we won't be going
        JSR    STROUT   through READY.  (NOTE: REDDY-2 is
 *    used to force a carriage return.)
-       JMP    FINI     Go fix up the links,etc. End up
+       JMP    FINI     Go fix up the links,etc.  End up
 *    at MAIN.
 
 WIPER  JSR    SCRTCH   Error occured, wipe out whatever did
@@ -799,33 +797,33 @@ WIPER  JSR    SCRTCH   Error occured, wipe out whatever did
 GOIOER JMP    IOERR
 
 *
-* Here to load an ungapped machine langauge file.
+* Here to load an ungapped machine language file.
 *
 
        XDEF   MLDUNG
 MLDUNG LDX    DBLZER   Assume no load offset specified.
        JSR    CHRGOT   End of statement?
-       BEQ    ZEROFF   Yes, use tne default offset of zero.
+       BEQ    ZEROFF   Yes, use the default offset of zero.
        JSR    CHKCOM   No, eat the comma and evaluate
        JSR    EVLADR   the specified offset.
 ZEROFF LDA    FILTYP   Is the file a machine language file?
        CMPA   #&2
        BNE    BMERR1   No, give file mode error.
-       LDD    STRTAD   Yes, add tne load offset to the
+       LDD    STRTAD   Yes, add the load offset to the
        LEAU   D,X      execution address and save it for
        STU    EXECAD   the EXEC statement.
        LDD    LOADAD   Add the load offset to the load
        LEAX   D,X      address of the file.
        STX    CBUFAD   Save the effective load address.
-       JSR    CSRDON   Turn on tne cassette and sync up.
-MLDCLP JSR    BLKIN    Read tne next block of the file.
+       JSR    CSRDON   Turn on the cassette and sync up.
+MLDCLP JSR    BLKIN    Read the next block of the file.
        BNE    GOIOER   Bad read.
        STX    CBUFAD   Update the load address.
        TST    BLKTYP   What type of block was read?
        BEQ    GOIOER   Can't have header in middle of file.
        BPL    MLDCLP   A data record, go read more.
 GOCOFF JMP    CASOFF   End of file, turn off cassette and
-*    return  to NEWSTT.
+*    return to NEWSTT.
 
        TTL    The EXEC statement.
 
@@ -839,7 +837,7 @@ GOCOFF JMP    CASOFF   End of file, turn off cassette and
 EXEC   BEQ    EXECDO   Use EXECAD if nothing specified.
        JSR    EVLADR   Evaluate the execution address.
        STX    EXECAD   Put it away.
-EXECDO JMP    [EXECADJ Go to it.
+EXECDO JMP    [EXECAD] Go to it.
 
        TTL    Miscellaneous
 
@@ -880,7 +878,7 @@ INKEY$ LDA    INKCHR   Is there a char in the single char
 *    buffer?
        BNE    NOPOLL   Yes, use it rather than poll for one.
        JSR    POLCAT   No, scan the keyboard.
-NOPOLL CLR    INKCHR   Mark Pufber as empty.
+NOPOLL CLR    INKCHR   Mark buffer as empty.
        STA    FACLO    Save the key code.
        LBNE   CHR$DO   Go put it away.
        STA    DSCTMP   No key seen, return the null string.
@@ -901,7 +899,7 @@ BLNKFL STA    ,X+
 *    none.
        JSR    FRMEVL   Yes, evaluate the filename string formula.
        JSR    FRESTR   Make sure it's a string, free up the
-*    temp, B:=length of string,  X:=pointer
+*    temp, B:=length of string, X:=pointer
 *    to string data.
        LDU    #FNAMLN  Store the filename length and point
        STB    ,U+      to FILNAM.  (FILNAM immediately
@@ -973,7 +971,7 @@ ZERCHK BEQ    DNMOK    It's a terminator.
 *
 
        XDEF   EOF
-EOF    JSR    HKEOF    RPM hook.
+EOF    JSR    HKEOF    RAM hook.
        LDA    DEVNUM   Preserve the old device number since
        PSHS   A        this could be something like
 *    PRINT EOF(#-1).
@@ -1081,7 +1079,7 @@ FINLDB STA    CBFCNT   Set buffer count.
        XDEF   OPNCSI
 OPNCSI TST    CASOPN   Is the cassette already open?
        BNE    AOERR    Yes, give Already Open error.
-       BSR    TAPSRC   No, search cassette for the file.
+       BSR    TAPSRC   No, search the cassette for the file.
        BNE    IOERR    An error occurred while searching.
 MRKMT  CLR    CBFCNT   Zero the count.
 SETPTR LDX    #CASBUF  Point to the start of the buffer.
@@ -1095,8 +1093,8 @@ OPNRTS RTS
 OPENO  INCA            If lineprinter or screen just return.
        BNE    OPNRTS
        INCA            To say it's a BASIC data file.
-OPNASC LDX    #-&1     To set ASCFLG:=GAPFLGt:=.TRUE.
-*    Fall  into OPNCSO to write out the
+OPNASC LDX    #-&1     To set ASCFLG:=GAPFLG:=.TRUE.
+*    Fall into OPNCSO to write out the
 *    file header.
 
 *
@@ -1195,7 +1193,7 @@ SKPGFL BSR    RDBLK    Turn on, read block, turn off.
        BRA    SKPGFL   Good data record, look at next block.
 
 SKIPER BNE    BADSKP   Cassette read error.
-       LDA    BLKTYP   Get tne block type.
+       LDA    BLKTYP   Get the block type.
        NEGA            0 to 0, FF to 1, 1 to FF.
        BMI    NODSP3   Data record, return to skip loop.
        DECA            0 to FF, 1 to 0 so if EOF A=0 and
@@ -1210,12 +1208,12 @@ BADSKP STA    CSRERR   Save the error status.
 * "Blink" char on screen.
 *
 
-BLINKS LDA    SCRADR    Get the char.
+BLINKS LDA    SCRADR   Get the char.
        EORA   #@100    Reverse the video on it.
-DSPCHR LDB    CURLIN    Only display if direct statement.
+DSPCHR LDB    CURLIN   Only display if direct statement.
        INCB
        BNE    NODSP3
-       STA    SCRADR    Put it back.
+       STA    SCRADR   Put it back.
 NODSP3 RTS
 
        TTL    Cassette Input Routines
@@ -1334,7 +1332,7 @@ ZERLEN ADDA   BLKTYP   The block type is included in the
        LDX    CBUFAD   Set up the data pointer.
        BSR    LDRBYT   Write a leader byte.
        LDA    #@74     Follow it with the sync byte.
-       BSR    GOCBO    (3C  hex.)
+       BSR    GOCBO    (3C hex.)
        LDA    BLKTYP   Send out the block type.
        BSR    GOCBO
        LDA    BLKLEN   Follow with the block length.
@@ -1536,9 +1534,9 @@ CLS    JSR    HKCLS    RAM hook.
        JSR    GETBYT   Read the argument.
        CMPB   #&8      Valid args are from 0 to 8.
        BHI    DOMIC    Go print MICROSOFT.
-       TSTB            Black out tne screen if zero.
+       TSTB            Black out the screen if zero.
        BEQ    ALLOFF
-       DECB            Adjust to YDG color code and shift
+       DECB            Adjust to VDG color code and shift
        LDA    #&16     into bits 4, 5, and 6.
        MUL
        ORB    #@17     Turn on all cells.
@@ -1568,7 +1566,7 @@ GOFCER JMP    FCERR
 *
 * SOUND frequency,duration
 *
-* 0 .LT. frequency .LE. 255, 0 .L.T. duration .LE. 255.
+* 0 .LT. frequency .LE. 255, 0 .LT. duration .LE. 255.
 *
 
        XDEF   SOUND
@@ -1605,7 +1603,7 @@ SNDOFF CLRA            Turn off TV sound.
 SNDON  LDA    #@10     Turn on TV sound.
        STA    ,-S      Save ON/OFF bit.
        LDA    PIA1BC   Get current contents of control reg.
-       ANDA   #@367    Reset sound enabie bit.
+       ANDA   #@367    Reset sound enable bit.
        ORA    ,S+      Now turn it on if desired.
        STA    PIA1BC
 SNDRTS RTS
@@ -1676,7 +1674,7 @@ JOYSTK JSR    CONINT   Convert the pot number to a single
        CMPB   #&3      Must be 0, 1, 2, or 3.
        LBHI   FCERR
        TSTB            Is it pot 0?
-       BNE    GETPOT   No, just return tne old value.
+       BNE    GETPOT   No, just return the old value.
        JSR    JOYIN    Yes, actually read all four pots.
 GETPOT LDX    #POTVAL  Point to the pot value table.
        LDB    FACLO    Get the pot number.
