@@ -1421,9 +1421,9 @@ BIN080 BCS    BIN100   IT'S A DIGIT SO READ A LINE NUMBER.
 BIN090 JSR    CHRGOT   REGET CURRENT CHAR AND GO scan it
        BRA    BIN050
 
-BIN100 LDX    TXTPTR   Remeber where tne number started.
+BIN100 LDX    TXTPTR   Remeber where the number started.
        PSHS   X
-       JSR    LINGET   Read tne number into LINNUM.
+       JSR    LINGET   Read the number into LINNUM.
        LDX    TXTPTR   Scan back until X points to the
 BIN110 LDA    ,-X      last digit of the line number.
        JSR    ISDIGC   (Last CHRGET call in LINGET skipped
