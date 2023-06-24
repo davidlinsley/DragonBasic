@@ -15,7 +15,7 @@ Scanning was hand fed one page at a time (carefully not breaking any of the fan 
   - The OCR of each scanned page split into per source file directories.
   - Each page is corrected in place to create reproductions (including alignment) of each page of the original listing.
   - Some later corrections were only made to the listing and src directory files as the contents of this folder were just an intermediate step.
-- OriginalScans
+- scans
   - The scanned pages of the four listing bundles, split into per source file directories.
 - src
   - A copy of the files from the listing directory but renamed to the original filenames in the listing page titles.
