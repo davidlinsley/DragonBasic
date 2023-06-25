@@ -1,5 +1,5 @@
 # Microsoft BASIC for the Dragon 64
-This repository contains the source code for the Dragon 64 versions of the Microsoft 16K BASIC Interpreter for the Motorola 6809 (aka BASIC-69 and Extended Color BASIC).
+This repository contains the source code for the Dragon 64 versions of the Microsoft 16K BASIC Interpreter for the Motorola 6809 (aka BASIC-69 and Extended Color BASIC). At the time of creating this repo it is the only known copy of the source code.
 
 The source was recovered from a paper listing of the Motorola assembler output that was produced in 1983 at Dragon Data's R&D facility near their Kenfig factory in Port Talbot, Wales. The shared and unique source for both the 32K and 64K mode ROMs are present, and despite being boxed in an attic for a majority of the previous 39 years, the listing is very well preserved. It totals 340 pages of fan-fold tractor feed across 4 bundles.
 
@@ -7,7 +7,7 @@ Scanning was hand fed one page at a time (carefully not breaking any of the fan 
 
 # Repository Layout
 - docs
-  - The manual for the Motorola RASM09 assembler that was likely used given the listing format and that it is documented that Dragon Data owned several Motorola EXORset systems.
+  - The manual for the Motorola RASM09 assembler that was likely used given the listing format and that it is [documented](http://www.dragondata.co.uk/history/WDA/index.html) that Dragon Data owned several Motorola EXORciser systems.
 - listing
   - The individual source files broken out from the complete listing.
   - Each file is simply the corrected pages from the associated ocr sub-directory appended together.
@@ -28,7 +28,7 @@ Scanning was hand fed one page at a time (carefully not breaking any of the fan 
     - Columns 1 through 27 inclusive which are the generated line/sequence numbers and assembled output.
 
 # Source Fidelity
-The source is complete as output by the assembler barring unintentional errors from OCR and manual correction. Pull Requests to fix those are welcome, but original spelling mistakes and other original errors (for example duplicate words like "the the") are intentionally left as is. However, the source is not 100% complete as when shipped by Microsoft:
+The source is complete as output by the assembler barring unintentional errors from OCR and manual correction. Original spelling mistakes ("remeber") and other errors ("the the") are intentionally left as is. However, the source is not 100% complete as when shipped by Microsoft:
 - We do not yet know the composition of ECBCOM.SA
   - See issue ECBCOM.SA #15.
   - The contents of this file appear to have been the equivalent of #include into the other source files as ECBCOM.SA appears as the filename in the header line of every PAGE 001 of the other files.
@@ -65,26 +65,35 @@ The last two files are the Dragon Data BIOS written by Duncan Smeed:
 - ECBOEM.SA (Dragon 64 32K ROM)
 - ECBO64.SA (Dragon 64 64K ROM)
 
+# License
+The files in this repo are for historical archival/reference/interest purposes only. Please see the [license](./LICENSE.md) for additional information.
+
+# Contributing
+Contributions are welcome to further the fidelity of the listing and source code. Contribution guidance may be found in the [Contributor's Guide](./CONTRIBUTING.md) stored in the root of this repo.
+
 # Acknowledgements
 ## Duncan Smeed
-Duncan is the author of the Dragon Data BIOS and coauthor of the seminal book Inside the Dragon. In early 1982 he flew to Seattle from the UK for a single day roundtrip - to the bemusement of immigration at SeaTac Airport - to pick up the BASIC source code disk.
+Duncan is the author of the Dragon Data BIOS and coauthor of the seminal book Inside the Dragon. In early 1982 he flew to Seattle from the UK for a single day roundtrip - to the bemusement of immigration at SeaTac Airport - to pick up the BASIC source code disk from Microsoft.
 
 Bookending that adventure, he hand delivered the listing to the Dragon Meetup where he helped scan a majority of pages.
 
 ## Richard Harding
 ## Tony Jewell
-Richard and Tony organized the 2022 Dragon Meetup and Richard's A3 scanner was kindly loaned for this project.
+Richard and Tony organized the 2022 Dragon Meetup and Richard's A3 scanner was kindly loaned for this project. Richard and I have been talking about this project since the 2019 Dragon Meetup.
 
-They continue to unearth Dragon history which they share on the Facebook Dragon 32/64 Owners/Users group and Twitter.
+They continue to unearth Dragon history which they share on the [Facebook Dragon 32/64 Owners/Users group](https://www.facebook.com/groups/dragon32), [Twitter](https://twitter.com/HereBeDragons3) and [Richard's Dragon Data Archive](http://www.dragondata.co.uk/)
 
 ## Tim Gilberts
-Tim helped scan a bulk of the listing, pairing with Duncan and myself. At the start of the weekend he didn't know of this project, but happily sacrificed his time.
+Tim helped scan a bulk of the listing, pairing with Duncan and myself. At the start of the Meetup he didn't know of this project, but happily sacrificed his time and was a great scanning partner.
 
 ## Rich Turner
-While at Microsoft Rich led the publishing of the GW-BASIC source code and provided the contacts and guidance for trying to publish the Microsoft code through the same route. He is also a former Dragon 32 owner from the original era.
+While at Microsoft Rich led the publishing of the [GW-BASIC](https://github.com/microsoft/GW-BASIC) source code and provided the contacts and guidance for trying to publish the Microsoft code through the same route. He is also a former Dragon 32 owner from the original era.
 
 ## Dave Plummer
-Dave is a former Microsoft employee who saw my plea for current appropriate contacts and used his network to secure permission for myself to publish the Microsoft source.
+Dave is a former Microsoft employee who used his network to secure permission from Microsoft for myself to publish the Microsoft source.
+
+## Al Kossow
+Al gave permission to host a copy of the [Motorola assembler manual](http://www.bitsavers.org/components/motorola/6800/exorciser/M68MASR_Macro_Assemblers_Reference_6800_6801_6805_6809_Sep1979.pdf) which was sourced from his [bitsavers.org site](http://www.bitsavers.org/).
 
 ## Cecelia, Chiara and Thea Linsley
-This project would not have been possible without the support of my amazing wife and kids to attend the 2022 Dragon Meetup. This also fulfilled my childhood dream - since Christmas 1984 - of visiting the former Dragon Data factory.
+This project would not have been possible without the support of my amazing family to fly 4800 miles to attend the 2022 Dragon Meetup. This also fulfilled a long held dream - since Christmas 1984 - of visiting the former Dragon Data factory.
