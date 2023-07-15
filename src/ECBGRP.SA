@@ -160,13 +160,13 @@ SCNPNT JSR    GETNUM   SET X INTO POKER AND Y INTO [B]
        LDY    #XSTORE
 SCNPN2 CMPB   #CYMAX   IS IT TOO BIG?
        BCS    SCNYNT
-       LDB    #CYMAX—&1 SET MAXIMUM VALUE
+       LDB    #CYMAX-&1 SET MAXIMUM VALUE
 SCNYNT CLRA            MAKE DOUBLE BYTE
        STD    &2,Y
        LDD    POKER    GET X VALUE
        CMPD   #CXMAX   SEE IF TOO BIG
        BCS    SVXRTS
-       LDD    #CXMAX—&1
+       LDD    #CXMAX-&1
 SVXRTS STD    ,Y
        RTS
 
@@ -193,7 +193,7 @@ GSCALC LDA    SCMODE   GET THE SCREEN MODE
 GSCNTY LDA    SCMODE   NOW SEE IF X HAS TO BE SHIFTED
 
        CMPA   #&4      SEE IF ITS MODE 4
-       BCC    SVURTS   ONLY MODE4 HAS X NON—SCALED
+       BCC    SVURTS   ONLY MODE4 HAS X NON-SCALED
        LDD    ,U
        LSRA
        RORB            DO THE DIVIDE
@@ -617,11 +617,11 @@ SAMALP PSHS   D,X
        STA    &2,X
        STA    &1,X
        STA    -&2,X
-       STA    —&4,X
-       STA    —&6,X
+       STA    -&4,X
+       STA    -&6,X
        STA    -&8,X
        LDA    PIA1BD   GET PIA VALUE FOR VIDEO CONTROL
-       ANDA   #&7      PRESERVE NON—VIDEO BITS
+       ANDA   #&7      PRESERVE NON-VIDEO BITS
        STA    PIA1BD   SETTING ALL VIDEO BIT TO 0
        PULS   D,X,PC   RETURN PRESERVING ALL REGISTERS
 SAMGRP PSHS   D,X
@@ -794,7 +794,7 @@ REPINT STA    SCRBAS   SAVE FOR FUTURE USE
        STA    SCMODE
        LDA    #&16
        STA    SCWID
-       LOA    #&3
+       LDA    #&3
        STA    FORCLR
        LDA    #&12
        STA    SCTOP
@@ -875,7 +875,7 @@ GGPRET EQU    *        This address is used by the code
 GGETC2 JSR    CRDGET   SCAN THE COORDINATES
        JSR    CHKCOM   SKIP COMMA AFTER COORDINATES
        JSR    PGTARY   SCAN THE ARRAY NAME AND LOOK IT UP
-•    [X] RECEIVES POINTER AT THE LENGTH
+*    [X] RECEIVES POINTER AT THE LENGTH
 *    BYTES. AN FCERR IS GENERATED IF
 *    THE ARRAY DOES NOT EXIST
        TFR    X,D      SAVE POINTER LENGTH BYTES IN [D]
@@ -1303,7 +1303,7 @@ TSTBRD JSR    [PNTADR] GET ADDRESS OF THIS POINT
        PSHS   D        SAVE THE BIT MASK IN [A]
        ANDA   ,X       READ CURRENT DATA IN AND MASK
        CMPA   &1,S     SEE IF MATCH BORDER COLOR
-       PULS   D, PC    RETURN WITH CONDITION CODES SET
+       PULS   D,PC     RETURN WITH CONDITION CODES SET
 
        TTL    MUSIC COMMAND
 
@@ -1356,10 +1356,10 @@ PLYSCN TST    PSTLEN   AT THE END OF THIS STRING?
        BEQ    PLYCON   SEE IF NESTED IN EXECUTE
        JSR    FETCHR   GET THE NEXT CHARACTER
        CMPA   #SEMCOL  IGNORE SEMICOLONS
-       BECI   PLYSCN
+       BEQ    PLYSCN
        CMPA   #''      IGNORE SINGLE QUOTE
        BEQ    PLYSCN
-       CMPA   #`X      IS IT EXECUTE?
+       CMPA   #'X      IS IT EXECUTE?
        LBEQ   PXCUTR   GO SCAN NAME AND START SUBSTRING
        BSR    PLYDOH   Do command and return to PLYSCN.
        BRA    PLYSCN
@@ -1383,7 +1383,7 @@ NTMUSO CMPA   #'V      Select volume?
        SUBB   #&31
        BSR    GPARG
        CMPB   #&31     Check the range 0 to 31.
-       BHS    BADPLY
+       BHI    BADPLY
        ASLB
        ASLB
        PSHS   B
@@ -1589,7 +1589,7 @@ PLYNLP SUBA   #'0      OFFSET BY ASCII 0
        MUL             MULTIPLY OLD VALUE BY 10
        TSTA            SHOULDNT FLOW INTO HIGH BYTE
        BNE    PLYBAD   ERROR IF SO
-       ADDE   PDIGIT   BRING IN NEW DIGIT
+       ADDB   PDIGIT   BRING IN NEW DIGIT
        BCS    PLYBAD   AGAIN SHOJLDNT OVERFLOW
        TST    PSTLEN   End of string?
        BEQ    PLYRTS   Yes, quit scanning value.
@@ -2051,7 +2051,7 @@ CNATSK JSR    STMAXS   UP MAX X AND Y IN XMAX AND YMAX
        JSR    GSCALE   SCALE CENTER
        LDX    ,U       GET XSTORE
        STX    CNTRX    SET UP THE CENTER
-       LDX    82,U     GET YSTORE
+       LDX    &2,U     GET YSTORE
        STX    CNTRY
        JSR    CHKCOM
        JSR    EVLADR   READ THE RADIUS

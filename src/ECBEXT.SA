@@ -233,7 +233,7 @@ DELLP  TST    ,X       AT END OF LINE?
        RTS
 
 DELCHR DEC    EDTLEN   DECREMENT LINE LENGTH
-       LEAY   -&1,Y    ADJUST POINTER FOR preincrement.
+       LEAY   -&1,X    ADJUST POINTER FOR preincrement.
 CMPRSS LEAY   &1,Y     POINT TO NEXT CHAR
        LDA    &1,Y     MOVE CHARS DOWN A BYTE
        STA    ,Y
@@ -983,7 +983,7 @@ DELSLP LDU    ,U       Link to the next line.
 *    of the first line beyond the range.
 DELDOR LDX    FSTPTR   X:=pointer to link field of first
 *    line to be deleted.
-*      BSR    DELDO    Move the top of the program down
+       BSR    DELDO    Move the top of the program down
 *    over the lines being deleted and
 *    update VARTAB.
 *    Note that if a null range was
@@ -1491,7 +1491,7 @@ BIN140 STB    &3,X
 *
 
 ASCBIN LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
-       LEAX   -&1, X   Adjust for preinc.
+       LEAX   -&1,X    Adjust for preinc.
 ASCBLN LEAX   &1,X     POINT TO THE START OF THE LINK.
        LDD    &2,X     CURLIN:=LINE NUMBER SO IT CAN BE
 *    BE PRINTED BY "INPRT" IF WE SEE

@@ -65,7 +65,7 @@ GOTK   EQU    Q
        DCI    RE,M
        XDEF   REMTK
 REMTK  EQU    Q
-       DCIONE
+       DCIONE '
        XDEF   SNGQTK
 SNGQTK EQU    Q
        DCI    ELS,E
@@ -339,7 +339,7 @@ CLASS1 EQU    Q+&1     The first class 1 function token.
        XDEF   TCLAS1
 TCLAS1 EQU    (2*CLASS1)!.&255
        DCI    LEFT,$
-       DCI    RIGHT,S
+       DCI    RIGHT,$
        DCI    MID,$
        XDEF   MID$TK
 MID$TK EQU    Q
@@ -412,7 +412,7 @@ FUNDSP FDBEXT SGN
        FDBEXT HEX$
 
        FDBEXT LEFT$ 
-       FDBEXT RIGHT$,
+       FDBEXT RIGHT$
        FDBEXT MID$
 
        FDBEXT POINT
@@ -449,7 +449,7 @@ OPTAB  FCB    &121
        FCB    &80
        FDBEXT ANDOP
        FCB    &70
-       FDBEXT DROP
+       FDBEXT OROP
 
        TTL    Error Texts
 
