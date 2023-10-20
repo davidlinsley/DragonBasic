@@ -17,7 +17,7 @@
        XREF   FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
        XREF   FUNDSP,FUNLST
        XREF   GAPFLG,GETBYT,GIVABF,GOPTNW
-       XREF   HDRLEN,HKBRKC,HRCHRI,HRCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+       XREF   HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HKCKDO,HKCLS,HKCLS1
        XREF   HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
        XREF   HRDINI
        XREF   INTCNV,INTIDX,ISCNTC,INTWDG
@@ -29,7 +29,7 @@
        XREF   PINIT,POLCAT,POTVAL
        XREF   READY,REASON,REDDY,RESLST,ROLTBL
        XREF   SAMALP,SCROUT,SCRTCH,SFTINI,SNERR,SNGFLT
-       XREF   STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+       XREF   STKINI,STMDSP,STROUT,STRTAD,STUB0,SYNCHR
        XREF   TEMPST
        XREF   USRTAB
        XREF   VIRQ
@@ -110,7 +110,7 @@ HRDRT1 LDS    #BUF+BUFLEN Set up a temporary stack.
        XDEF   POWRUP
 POWRUP LEAY   HRDRT1,PCR Set up return address for HRDINI.
        JMP    HRDINI   (Can't use stack since RAM is no
-•    good until the SAM is initialized.)
+*    good until the SAM is initialized.)
 *
 * Here to perform BASIC initialization.
 *
@@ -171,7 +171,7 @@ HAVEND STX    ENDMEM   Set pointer to end of memory.  Don't
        ENDC   IFN      REALIO
        IFEQ   REALIO
  ENDC   IFE REALIO
-       STX    &3, U    Init the stub 1 dispatch addresses.
+       STX    &3,U     Init the stub 1 dispatch addresses.
        STX    &8,U
        IFNE   REALIO
        LDX    #HOOKS   Initialize the extension hooks by

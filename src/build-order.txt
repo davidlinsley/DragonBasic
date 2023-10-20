@@ -1,0 +1,28 @@
+There are two variants of the DragonBasic ROM. To build the first one,
+use this order, and set the origin to $8000:
+
+    ECBTAB.SA
+    ECBBAS.SA
+    ECBBS2.SA
+    ECBMTH.SA
+    ECBEXT.SA
+    ECBDNL.SA
+    ECBPU.SA
+    ECBGRP.SA
+    ECBMOD.SA
+    ECBOEM.SA
+    ECBRAM.SA
+
+To build the second one, use this order, and set the origin to $C000:
+
+    ECBTAB.SA
+    ECBBAS.SA
+    ECBBS2.SA
+    ECBMTH.SA
+    ECBEXT.SA
+    ECBDNL.SA
+    ECBPU.SA
+    ECBGRP.SA
+    ECBM64.SA
+    ECBO64.SA
+    ECBRAM.SA

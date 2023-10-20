@@ -8,7 +8,7 @@
 
        TTL    External Declarations
 
-       XREF   BRKTXT,BUF,BUFLNM,BUFM1N
+       XREF   BRKTXT,BUF,BUFLNM,BUFMIN
        XREF   CASOFF,CHROUT,CLASS1,CLASS2,CLASS3,CLSALL,CONDCR,CRUNCH
        XREF   CONS16,DATATK,DEVPRM
        XREF   ELSETK,EQULTK,ERR,ERRBS,ERRCN,ERRDD
@@ -16,7 +16,7 @@
        XREF   ERRFD,ERRID,ERRIE,ERRLS,ERRNF,ERROD,ERROM,ERRRG
        XREF   ERRSN,ERRSO,ERRST,ERRTAB,ERRTM,ERRUL
        XREF   FADD,FCOMP,FIN,FINLOD,FLOAT,FLOATS
-       XREF   FNDOER,FNTK,FONE,FORTK,FOUTC,FUNDSO
+       XREF   FNDOER,FNTK,FONE,FORTK,FOUTC,FUNDS0
        XREF   GETDNM,GOTK,GREATK
        XREF   HKASGN,HKCLRC,HKERR,HKETRP
        XREF   HKEVAL,HKGONE,HKITMS,HKNWST,HKRUN,HKSCP1,HKSCP2,HOCONS
@@ -28,7 +28,7 @@
        XREF   PLUSTK,POLCAT
        XREF   QINT
        XREF   REDDY
-       XREF   SETDNM,SIGN,SNDOFF,STEPTK,STMDSO,STROUT,STRPRT,SUBTK
+       XREF   SETDNM,SIGN,SNDOFF,STEPTK,STMDS0,STROUT,STRPRT,SUBTK
        XREF   TEMPST,THENTK,TIMETK,TIMSET,TCLAS1,TCLAS2,TCLAS3,TLFNTK,TOTK
        XREF   XRRUN
        XREF   ZEROFC
@@ -82,7 +82,7 @@ FFRTS  LDX    TEMPX1
 
        XDEF   BLTU
 BLTU   BSR    REASON   ASCERTAIN THAT STACK WON'T
-•    BE OVERRUN. 
+*    BE OVERRUN. 
        XDEF   BLTUC
 BLTUC  LDU    HIGHDS
        LEAU   &1,U 
@@ -98,7 +98,7 @@ BLTRTS RTS             RETURN TO CALLER.
 *
 * THIS ROUTINE IS USED TO ASCERTAIN THAT A GIVEN
 * NUMBER OF LOCS REMAIN AVAILABLE FOR THE STACK.
-•    THE CALL IS:
+*    THE CALL IS:
 * LDAI B, NUMBER OF 2-BYTE ENTRIES NEEDED.
 * JSR GETSTK
 *
@@ -445,7 +445,7 @@ DOSDSP ASLA            Multiply token by 2 to get offset
 *    LDX A,X since offset is signed.)
        JSR    CHRGET   Get the first char and set the cond
 *    codes.
-       JMP    [, X]    Go handle the statement.
+       JMP    [,X]     Go handle the statement.
 
 *
 * Here if not a list 0 statement.
@@ -675,7 +675,7 @@ REMRTS RTS             "NEWSTT" RTS ADDR IS STILL THERE.
 DATAN  LDB    #':      "DATA" TERMINATES ON ":" AND NULL.
        SKIP1
 REMN   CLRB            THE ONLY TERMINATOR IS NULL.
-       SIB    CHARAC   PRESERVE IT.
+       STB    CHARAC   PRESERVE IT.
        CLRB            THIS MAKES CHARAC=0 AFTER SWAP.
        LDX    TXTPTR   START AT CURRENT POSITION.
 EXCHQT TFR    B,A
@@ -729,7 +729,7 @@ SKPMRF BSR    DATA     Skip until end of statement (colon)
 *    of BNE since IFCNT was set to zero
 *    when the original IF was seen.)
        JSR    CHRGET   Yes, this is the ELSE we want.  Eat
-        the ELSE token.
+*    the ELSE token.
 DOCOND JSR    CHRGOT   TEST CURRENT CHARACTER.
        LBCS   GOTO     IF A NUMBER, GOTO IT.
        JMP    GONE3    INTERPRET NEW STATEMENT.
@@ -751,8 +751,8 @@ ONGLOP DEC    FACLO
 ONGLP1 JSR    CHRGET   ADVANCE AND SET CODES.
        BSR    LINGET
        CMPA   #&44     IS IT A COMMA?
-       BEQ    ONGLCP
-       PULS   B, PC    Get rid of token and return to NEWSTT.
+       BEQ    ONGLOP
+       PULS   B,PC     Get rid of token and return to NEWSTT.
 *    NEWSTT will give SN error if not end
 *    of statement. If end of statement, 
 *    the statement following the ON will 
@@ -899,7 +899,7 @@ NOTQTI LDX    #BUFMIN  Just in case DEVNUM is nonzero make
        BRA    INPCON   Go do the assignments.
 
 
-QINLIN JSR    OUTGIST
+QINLIN JSR    OUTQST
        JSR    OUTSPC
        XDEF   INLNDO
 INLNDO JSR    INLIN
@@ -1370,7 +1370,7 @@ ISOFUN PSHS   B        SAVE FUNCTION NUMBER.
        JSR    GETBYT   [B]=VALUE OF FORMULA.
        PULS   A        GET FUNCTION NUMBER.
        PSHS   B,A      Save integer and function number.
-       FCB    &216     LDXIM to FINGO.  (Faster than CPMXIM.)
+       FCB    @216     LDXIM to FINGO.  (Faster than CPMXIM.)
 ISCLS0 BSR    PARCHK   READ A FORMULA SURROUNDED BY PARENS.
 FINGO  PULS   B        GET DISPATCH FUNCTION.
        LDX    FUNDS0   X:=address of function dispatch table.
@@ -1397,7 +1397,7 @@ ANDOP  CLRA            SET [ACCA]=0.
        BRA    STOLOG
 ORFIN  ORA    INTEGR
        ORB    INTEGR+&1 GOT RESULT OR "OR".
-STOLOG JMP    G1VABF   FLOAT AND RET TO USER.
+STOLOG JMP    GIVABF   FLOAT AND RET TO USER.
 
 *
 * TIME TO PERFORM A RELATIONAL OPERATOR.
@@ -1895,7 +1895,7 @@ PUTNEW LDX    TEMPPT   POINTER TO FIRST FREE TEMP.
 ERRGO2 JMP    ERROR    GO TELL HIM.
 PUTNW1 LDA    DSCTMP   Move DSCTMP into the temporary.
        STA    &0,X     Move the length.
-       LDD    DSCTM2+&2 Follow with the address.
+       LDD    DSCTMP+&2 Follow with the address.
        STD    &2,X
        LDA    #-&1
        STA    VALTYP   TYPE IS "STRING".
@@ -1951,7 +1951,7 @@ TVAR   CMPX   TEMPPT   DONE WITH TEMPS?
        BEQ    SVARS    YEP.
        BSR    DVAR
        BRA    TVAR     LOOP.
-SVARS  LDX    VRRTAB   GET START OF SIMPLE VARIABLES.
+SVARS  LDX    VARTAB   GET START OF SIMPLE VARIABLES.
 SVAR   CMPX   ARYTAB   DONE WITH SIMPLE VARIABLES?
        BEQ    ARYVAR   YEP.
        BSR    DVARS    DO IT , AGAIN.
@@ -2014,7 +2014,7 @@ GRBPAS LDX    GRBPNT   VARIABLE POINTER.
 *
 * THE FOLLOWING ROUTINE CONCATENATES TWO STRINGS.
 * THE FAC CONTAINS THE FIRST ONE AT THIS POINT.
-• [TXTPTR] POINTS TO THE + SIGN.
+* [TXTPTR] POINTS TO THE + SIGN.
 *
 CAT    LDD     FACMO   PUSH THE POINTER TO THE LEFT HAND
        PSHS    B,A     STRING DESCRIPTOR.
@@ -2023,8 +2023,8 @@ CAT    LDD     FACMO   PUSH THE POINTER TO THE LEFT HAND
        JSR     CHKSTR  RESULT MUST BE STRING.
        PULS    X       X:=POINTER TO LEFT SIDE DESCRIPTOR.
        STX     STRNG1  SAVE IT.
-       LDB      X      GET LENGTH OF OLD STRING.
-       LOX     FACMO   GET SECOND DESC'S PNTR.
+       LDB     ,X      GET LENGTH OF OLD STRING.
+       LDX     FACMO   GET SECOND DESC'S PNTR.
        ADDB    ,X
        BCC     SIZEOK  RESULT IS LESS THAN 256.
        LDB     #ERRLS  ERROR "LONG STRING".
@@ -2137,7 +2137,7 @@ ASC2   BSR    LEN1
 * IF # .GT. THE LEN OF THE STRING, IT RETURNS THE WHOLE STRING.
 *
        XDEF   LEFT$
-LEFT$  BEIR   PREAM    TEST THE PARAMETERS.
+LEFT$  BSR    PREAM    TEST THE PARAMETERS.
        XDEF   LEFTUS
 LEFTUS CLRA            LEFT NEVER CHANGES STRING POINTER. 
 RLEFT  CMPB   ,X       COMPARE LENGTHS.

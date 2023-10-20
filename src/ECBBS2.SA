@@ -115,11 +115,11 @@ DCRNLP LDA    ,X+      Get char from crunched line and point
        LDB    ,X       the colon must be thrown away.
        CMPB   #ELSETK
        BEQ    DCRNLP   It is an ELSE, skip the colon.
-       CMPB   #SNGOTK  Single quote is crunched as a colon
+       CMPB   #SNGQTK  Single quote is crunched as a colon
        BEQ    DCRNLP   followed by a single quote token so
 *    throw away the colon if this is the
 *    case.
-SKIP2  Skip            over BADTOK to store colon.
+       SKIP2  Skip     over BADTOK to store colon.
 BADTOK LDA    #'!      Unrecognised token. Print as
 *    exclamation point.
 NOTCOL BSR    BUFCHR   Just a normal char, out it in the
@@ -316,7 +316,7 @@ STRLOP LDA    ,X+      Get char from source line.
 *    crunching.
 QSTRNG STA    ,U+      No, put into dest buffer and go 
        BRA    STRLOP   back for more.
-NSQTE  CMPA   #'O      Numeric digits,  colons, and semi-
+NSQTE  CMPA   #'0      Numeric digits,  colons, and semi-
        BCS    MUSTCR   colons do not get crunched.  Just
        CMPA   #SEMCOL+&1 copy them to the dest buffer.
        BCS    STUFFA   Note that ASCII codes go 0-9, colon,
@@ -345,7 +345,7 @@ NXTLST LEAU   STBLEN,U Point to the next stub.
        BEQ    NOTFND   Zero means all active lists have
 *    been checked.
 
-       LDY    &1, U    Y:=pointer to reserved word list.
+       LDY    &1,U     Y:=pointer to reserved word list.
 
 NXTRES LDX    ,S       X:=pointer to first char to crunch.
 
@@ -360,7 +360,7 @@ RESLOP LDB    ,Y+      B:=char from res word list.
 * Reserved word has been found.
 *
 
-       LEAS   82,S     Get rid of old source pointer.
+       LEAS   &2,S     Get rid of old source pointer.
        PULS   U        Retrieve dest buffer pointer.
        ORB    TOKNUM   B:=token code with MSB=1.
        LDA    FUNFLG   Is it a function token?
@@ -378,7 +378,7 @@ NTELSE STB    ,U+      Put normal token away.
        BNE    NODATT   No.
        INC    INDATA   Yes, set the in DATA flag.
 NODATT CMPB   #REMTK   Is it a REM statement?
-       BEO    SKPREM   Yes, no crunching for rest of line. 
+       BEQ    SKPREM   Yes, no crunching for rest of line. 
 GGCLOP BRA    GOCLOP   No, continue crunching.
 *
 * Here when all lists of a particular type (normal or function)
