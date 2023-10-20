@@ -11,6 +11,8 @@ Scanning was hand fed one page at a time (carefully not breaking any of the fan 
 - listing
   - The individual source files broken out from the complete listing.
   - Each file is simply the corrected pages from the associated ocr sub-directory appended together.
+- lwtools
+  - Instructions and non-original source for building the ROMs using [lwtools](http://www.lwtools.ca/).
 - ocr
   - The OCR of each scanned page split into per source file directories.
   - Each page is corrected in place to create reproductions (including alignment) of each page of the original listing.
@@ -29,9 +31,10 @@ Scanning was hand fed one page at a time (carefully not breaking any of the fan 
 
 # Source Fidelity
 The source is complete as output by the assembler barring unintentional errors from OCR and manual correction. Original spelling mistakes ("remeber") and other errors ("the the") are intentionally left as is. However, the source is not 100% complete as when shipped by Microsoft:
-- We do not yet know the composition of ECBCOM.SA
+- We do have the original ECBCOM.SA
   - See issue ECBCOM.SA #15.
   - The contents of this file appear to have been the equivalent of #include into the other source files as ECBCOM.SA appears as the filename in the header line of every PAGE 001 of the other files.
+  - @chasonr has implemented a version of ECBCOM.SA in the lwtools directory that can be used to create byte identical ROM images.
 - There are missing macro definitions which the assembler did not list the bytes for, such as SKIP2.
   - These were likely defined in ECBCOM.SA.
   - Disassembling the ROMs we can recreate the macros but not any comments. 
@@ -97,3 +100,6 @@ Al gave permission to host a copy of the [Motorola assembler manual](http://www.
 
 ## Cecelia, Chiara and Thea Linsley
 This project would not have been possible without the support of my amazing family to fly 4800 miles to attend the 2022 Dragon Meetup. This also fulfilled a long held dream - since Christmas 1984 - of visiting the former Dragon Data factory.
+
+## Chasonr
+GitHub user @chasonr found and corrected the final OCR errors in the src files so that it can now be built with [lwtools](http://www.lwtools.ca/) and create byte identical images to the original Dragon 64 ROMs.
