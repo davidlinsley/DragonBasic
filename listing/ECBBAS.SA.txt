@@ -11,7 +11,7 @@ PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
 00708
 00709                             TTL    External Declarations
 00710
-00711                             XREF   BRKTXT,BUF,BUFLNM,BUFM1N
+00711                             XREF   BRKTXT,BUF,BUFLNM,BUFMIN
 00712                             XREF   CASOFF,CHROUT,CLASS1,CLASS2,CLASS3,CLSALL,CONDCR,CRUNCH
 00713                             XREF   CONS16,DATATK,DEVPRM
 00714                             XREF   ELSETK,EQULTK,ERR,ERRBS,ERRCN,ERRDD
@@ -19,7 +19,7 @@ PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
 00716                             XREF   ERRFD,ERRID,ERRIE,ERRLS,ERRNF,ERROD,ERROM,ERRRG
 00717                             XREF   ERRSN,ERRSO,ERRST,ERRTAB,ERRTM,ERRUL
 00718                             XREF   FADD,FCOMP,FIN,FINLOD,FLOAT,FLOATS
-00719                             XREF   FNDOER,FNTK,FONE,FORTK,FOUTC,FUNDSO
+00719                             XREF   FNDOER,FNTK,FONE,FORTK,FOUTC,FUNDS0
 00720                             XREF   GETDNM,GOTK,GREATK
 00721                             XREF   HKASGN,HKCLRC,HKERR,HKETRP
 00722                             XREF   HKEVAL,HKGONE,HKITMS,HKNWST,HKRUN,HKSCP1,HKSCP2,HOCONS
@@ -31,7 +31,7 @@ PAGE  001  ECBCOM  .SA:0  BASIC  Extension ROM Direct Page RAM
 00728                             XREF   PLUSTK,POLCAT
 00729                             XREF   QINT
 00730                             XREF   REDDY
-00731                             XREF   SETDNM,SIGN,SNDOFF,STEPTK,STMDSO,STROUT,STRPRT,SUBTK
+00731                             XREF   SETDNM,SIGN,SNDOFF,STEPTK,STMDS0,STROUT,STRPRT,SUBTK
 00732                             XREF   TEMPST,THENTK,TIMETK,TIMSET,TCLAS1,TCLAS2,TCLAS3,TLFNTK,TOTK
 00733                             XREF   XRRUN
 00734                             XREF   ZEROFC
@@ -88,7 +88,7 @@ PAGE  002  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
 00782
 00783                             XDEF   BLTU
 00784P 0025 8D   17   003E BLTU   BSR    REASON   ASCERTAIN THAT STACK WON'T
-00785                      •    BE OVERRUN. 
+00785                      *    BE OVERRUN.
 00786                             XDEF   BLTUC
 00787P 0027 DE   41      A BLTUC  LDU    HIGHDS
 00788P 0029 33   41      A        LEAU   &1,U 
@@ -104,7 +104,7 @@ PAGE  002  ECBBAS  .SA:1  BASIC  GENERAL STORAGE MANAGEMENT ROUTINES.
 00798                      *
 00799                      * THIS ROUTINE IS USED TO ASCERTAIN THAT A GIVEN
 00800                      * NUMBER OF LOCS REMAIN AVAILABLE FOR THE STACK.
-00801                      •    THE CALL IS:
+00801                      *    THE CALL IS:
 00802                      * LDAI B, NUMBER OF 2-BYTE ENTRIES NEEDED.
 00803                      * JSR GETSTK
 00804                      *
@@ -478,7 +478,7 @@ PAGE  010  ECBBAS  .SA:1  BASIC  THE "FOR" STATEMENT.
 
 PAGE  011  ECBBAS  .SA:1  BASIC  NEW STATEMENT FETCHER.
 
-01153P 01FC 6E   94      A        JMP    [, X]    Go handle the statement.
+01153P 01FC 6E   94      A        JMP    [,X]     Go handle the statement.
 01154
 01155                      *
 01156                      * Here if not a list 0 statement.
@@ -721,7 +721,7 @@ PAGE  015  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
 01393P 0324 C6   3A      A DATAN  LDB    #':      "DATA" TERMINATES ON ":" AND NULL.
 01394P 0326                       SKIP1
 01395P 0327 5F             REMN   CLRB            THE ONLY TERMINATOR IS NULL.
-01396P 0328 D7   01      A        SIB    CHARAC   PRESERVE IT.
+01396P 0328 D7   01      A        STB    CHARAC   PRESERVE IT.
 01397P 032A 5F                    CLRB            THIS MAKES CHARAC=0 AFTER SWAP.
 01398P 032B 9E   A6      A        LDX    TXTPTR   START AT CURRENT POSITION.
 01399P 032D 1F   98      A EXCHQT TFR    B,A
@@ -781,7 +781,7 @@ PAGE  017  ECBBAS  .SA:1  BASIC  RUN,GOTO,GOSUB,RETURN.
 01448                      *    of BNE since IFCNT was set to zero
 01449                      *    when the original IF was seen.)
 01450P 0373 9D   9F      A        JSR    CHRGET   Yes, this is the ELSE we want.  Eat
-01451                              the ELSE token.
+01451                      *    the ELSE token.
 01452P 0375 9D   A5      A DOCOND JSR    CHRGOT   TEST CURRENT CHARACTER.
 01453P 0377 1025 FF65 02E0        LBCS   GOTO     IF A NUMBER, GOTO IT.
 01454P 037B 7E   01E5    P        JMP    GONE3    INTERPRET NEW STATEMENT.
@@ -806,8 +806,8 @@ PAGE  018  ECBBAS  .SA:1  BASIC  "IF ... THEN" CODE.
 01471P 0399 9D   9F      A ONGLP1 JSR    CHRGET   ADVANCE AND SET CODES.
 01472P 039B 8D   06   03A3        BSR    LINGET
 01473P 039D 81   2C      A        CMPA   #&44     IS IT A COMMA?
-01474P 039F 27   EF   0390        BEQ    ONGLCP
-01475P 03A1 35   84      A        PULS   B, PC    Get rid of token and return to NEWSTT.
+01474P 039F 27   EF   0390        BEQ    ONGLOP
+01475P 03A1 35   84      A        PULS   B,PC     Get rid of token and return to NEWSTT.
 01476                      *    NEWSTT will give SN error if not end
 01477                      *    of statement. If end of statement, 
 01478                      *    the statement following the ON will 
@@ -963,7 +963,7 @@ PAGE  021  ECBBAS  .SA:1  BASIC  INPUT AND READ CODE.
 01622P 0467 20   1A   0483        BRA    INPCON   Go do the assignments.
 01623
 01624
-01625P 0469 BD   0000    A QINLIN JSR    OUTGIST
+01625P 0469 BD   0000    A QINLIN JSR    OUTQST
 01626P 046C BD   0000    A        JSR    OUTSPC
 01627                             XDEF   INLNDO
 01628P 046F BD   0000    A INLNDO JSR    INLIN
@@ -1466,7 +1466,7 @@ PAGE  031  ECBBAS  .SA:l  BASIC  FORMULA EVALUATION CODE.
 02101P 0705 BD   0B5A    P        JSR    GETBYT   [B]=VALUE OF FORMULA.
 02102P 0708 35   02      A        PULS   A        GET FUNCTION NUMBER.
 02103P 070A 34   06      A        PSHS   B,A      Save integer and function number.
-02104P 070C      BE      A        FCB    &216     LDXIM to FINGO.  (Faster than CPMXIM.)
+02104P 070C      BE      A        FCB    @216     LDXIM to FINGO.  (Faster than CPMXIM.)
 02105P 070D 8D   99   06A8 ISCLS0 BSR    PARCHK   READ A FORMULA SURROUNDED BY PARENS.
 02106P 070F 35   04      A FINGO  PULS   B        GET DISPATCH FUNCTION.
 02107P 0711 BE   0000    A        LDX    FUNDS0   X:=address of function dispatch table.
@@ -1493,7 +1493,7 @@ PAGE  031  ECBBAS  .SA:l  BASIC  FORMULA EVALUATION CODE.
 02128P 0731 20   04   0737        BRA    STOLOG
 02129P 0733 9A   01      A ORFIN  ORA    INTEGR
 02130P 0735 DA   02      A        ORB    INTEGR+&1 GOT RESULT OR "OR".
-02131P 0737 7E   0940    P STOLOG JMP    G1VABF   FLOAT AND RET TO USER.
+02131P 0737 7E   0940    P STOLOG JMP    GIVABF   FLOAT AND RET TO USER.
 02132
 02133                      *
 02134                      * TIME TO PERFORM A RELATIONAL OPERATOR.
@@ -2022,7 +2022,7 @@ PAGE  041  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
 02642P 09A4 7E   004D    P ERRGO2 JMP    ERROR    GO TELL HIM.
 02643P 09A7 96   56      A PUTNW1 LDA    DSCTMP   Move DSCTMP into the temporary.
 02644P 09A9 A7   84      A        STA    &0,X     Move the length.
-02645P 09AB DC   58      A        LDD    DSCTM2+&2 Follow with the address.
+02645P 09AB DC   58      A        LDD    DSCTMP+&2 Follow with the address.
 02646P 09AD ED   02      A        STD    &2,X
 02647P 09AF 86   FF      A        LDA    #-&1
 02648P 09B1 97   06      A        STA    VALTYP   TYPE IS "STRING".
@@ -2081,7 +2081,7 @@ PAGE  042  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
 02700P 09F1 27   04   09F7        BEQ    SVARS    YEP.
 02701P 09F3 8D   32   0A27        BSR    DVAR
 02702P 09F5 20   F8   09EF        BRA    TVAR     LOOP.
-02703P 09F7 9E   1B      A SVARS  LDX    VRRTAB   GET START OF SIMPLE VARIABLES.
+02703P 09F7 9E   1B      A SVARS  LDX    VARTAB   GET START OF SIMPLE VARIABLES.
 02704P 09F9 9C   1D      A SVAR   CMPX   ARYTAB   DONE WITH SIMPLE VARIABLES?
 02705P 09FB 27   04   0A01        BEQ    ARYVAR   YEP.
 02706P 09FD 8D   22   0A21        BSR    DVARS    DO IT , AGAIN.
@@ -2147,7 +2147,7 @@ PAGE  043  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.                              
 02763                      *
 02764                      * THE FOLLOWING ROUTINE CONCATENATES TWO STRINGS.
 02765                      * THE FAC CONTAINS THE FIRST ONE AT THIS POINT.
-02766                      • [TXTPTR] POINTS TO THE + SIGN.
+02766                      * [TXTPTR] POINTS TO THE + SIGN.
 02767                      *
 02768P 0A5E DC   52      A CAT    LDD     FACMO   PUSH THE POINTER TO THE LEFT HAND
 02769P 0A60 34   06      A        PSHS    B,A     STRING DESCRIPTOR.
@@ -2156,8 +2156,8 @@ PAGE  043  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.                              
 02772P 0A65 BD   0580    P        JSR     CHKSTR  RESULT MUST BE STRING.
 02773P 0A68 35   10      A        PULS    X       X:=POINTER TO LEFT SIDE DESCRIPTOR.
 02774P 0A6A 9F   62      A        STX     STRNG1  SAVE IT.
-02775P 0A6C E6   84      A        LDB      X      GET LENGTH OF OLD STRING.
-02776P 0A6E 9E   52      A        LOX     FACMO   GET SECOND DESC'S PNTR.
+02775P 0A6C E6   84      A        LDB     ,X      GET LENGTH OF OLD STRING.
+02776P 0A6E 9E   52      A        LDX     FACMO   GET SECOND DESC'S PNTR.
 02777P 0A70 EB   84      A        ADDB    ,X
 02778P 0A72 24   05   0A79        BCC     SIZEOK  RESULT IS LESS THAN 256.
 02779P 0A74 C6   00      A        LDB     #ERRLS  ERROR "LONG STRING".
@@ -2276,7 +2276,7 @@ PAGE  045  ECBBAS  .SA:1  BASIC  STRING FUNCTIONS.
 02886                      * IF # .GT. THE LEN OF THE STRING, IT RETURNS THE WHOLE STRING.
 02887                      *
 02888                             XDEF   LEFT$
-02889P 0AFA 8D   48   0B44 LEFT$  BEIR   PREAM    TEST THE PARAMETERS.
+02889P 0AFA 8D   48   0B44 LEFT$  BSR    PREAM    TEST THE PARAMETERS.
 02890                             XDEF   LEFTUS
 02891P 0AFC 4F             LEFTUS CLRA            LEFT NEVER CHANGES STRING POINTER. 
 02A92P 0AFD E1   84      A RLEFT  CMPB   ,X       COMPARE LENGTHS.

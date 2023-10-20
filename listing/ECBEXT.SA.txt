@@ -248,7 +248,7 @@ PAGE  005  ECBEXT  .SA:1  EXTEND The EDIT Command
 00933P 011F 39                    RTS
 00934
 00935P 0120 0A   D7      A DELCHR DEC    EDTLEN   DECREMENT LINE LENGTH
-00936P 0122 31   1F      A        LEAY   -&1,Y    ADJUST POINTER FOR preincrement.
+00936P 0122 31   1F      A        LEAY   -&1,X    ADJUST POINTER FOR preincrement.
 00937P 0124 31   21      A CMPRSS LEAY   &1,Y     POINT TO NEXT CHAR
 00938P 0126 A6   21      A        LDA    &1,Y     MOVE CHARS DOWN A BYTE
 00939P 0128 A7   A4      A        STA    ,Y
@@ -1039,7 +1039,7 @@ PAGE  019  ECBEXT  .SA:1  EXTEND The DELETE Command
 01876                      *    of the first line beyond the range.
 01877P 04AD 9E   D3      A DELDOR LDX    FSTPTR   X:=pointer to link field of first
 01878A                     *    line to be deleted.
-01879P 04AF 8D   15   04C6 *      BSR    DELDO    Move the top of the program down
+01879P 04AF 8D   15   04C6        BSR    DELDO    Move the top of the program down
 01880                      *    over the lines being deleted and
 01881                      *    update VARTAB.
 01862                      *    Note that if a null range was
@@ -1580,7 +1580,7 @@ PAGE  031  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 02391                      *
 02392
 02393P 0689 9E   19      A ASCBIN LDX    TXTTAB   START AT THE BEGINNING OF THE PROGRAM.
-02394P 068B 30   1F      A        LEAX   -&1, X   Adjust for preinc.
+02394P 068B 30   1F      A        LEAX   -&1,X    Adjust for preinc.
 02395P 068D 30   01      A ASCBLN LEAX   &1,X     POINT TO THE START OF THE LINK.
 02396P 068F EC   02      A        LDD    &2,X     CURLIN:=LINE NUMBER SO IT CAN BE
 02397                      *    BE PRINTED BY "INPRT" IF WE SEE

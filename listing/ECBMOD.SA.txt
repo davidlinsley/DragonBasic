@@ -20,7 +20,7 @@ PAGE  001  ECBCOM  .SA:0  ECBMOD Extension ROM Direct Page RAM
 00717                             XREF   FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
 00718                             XREF   FUNDSP,FUNLST
 00719                             XREF   GAPFLG,GETBYT,GIVABF,GOPTNW
-00720                             XREF   HDRLEN,HKBRKC,HRCHRI,HRCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+00720                             XREF   HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HKCKDO,HKCLS,HKCLS1
 00721                             XREF   HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
 00722                             XREF   HRDINI
 00723                             XREF   INTCNV,INTIDX,ISCNTC,INTWDG
@@ -32,7 +32,7 @@ PAGE  001  ECBCOM  .SA:0  ECBMOD Extension ROM Direct Page RAM
 00729                             XREF   PINIT,POLCAT,POTVAL
 00730                             XREF   READY,REASON,REDDY,RESLST,ROLTBL
 00731                             XREF   SAMALP,SCROUT,SCRTCH,SFTINI,SNERR,SNGFLT
-00732                             XREF   STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+00732                             XREF   STKINI,STMDSP,STROUT,STRTAD,STUB0,SYNCHR
 00733                             XREF   TEMPST
 00734                             XREF   USRTAB
 00735                             XREF   VIRQ
@@ -116,7 +116,7 @@ PAGE  002  ECBMOD  .SA:1 ECBMOD Equates
 00818                             XDEF   POWRUP
 00819P 0019 31   8C E4     POWRUP LEAY   HRDRT1,PCR Set up return address for HRDINI.
 00820P 001C 7E   0000    A        JMP    HRDINI   (Can't use stack since RAM is no
-00821                      •    good until the SAM is initialized.)
+00821                      *    good until the SAM is initialized.)
 00822                      *
 00823                      * Here to perform BASIC initialization.
 
@@ -183,7 +183,7 @@ PAGE  003  ECBMOD  .SA:1  ECBMOD Power up and Reset code.
 
 PAGE  004  ECBMOD  .SA:1  ECBMOD Power up and Reset code.
 
-00891P 0065 AF   43      A        STX    &3, U    Init the stub 1 dispatch addresses.
+00891P 0065 AF   43      A        STX    &3,U     Init the stub 1 dispatch addresses.
 00892P 0067 AF   48      A        STX    &8,U
 00893            0001    A        IFNE   REALIO
 00894P 0069 8E   0000    A        LDX    #HOOKS   Initialize the extension hooks by

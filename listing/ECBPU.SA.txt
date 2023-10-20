@@ -74,7 +74,7 @@ PAGE  002  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 00768                      *    if it's shorter than the field.
 00769P 001F BD   0000    A        JSR    STRPRT   Print the string.
 00770P 0022 9E   52      A        LDX    FACMO    See if spaces are needed to fill out
-00771P 0024 D6   D9      A        LDS    FLDWID   the field.
+00771P 0024 D6   D9      A        LDB    FLDWID   the field.
 00772P 0026 E0   84      A        SUBB   ,X
 00773P 0028 5A             UPRTSP DECB            More spaces to print?
 00774P 0029 102B 0148 0175        LBMI   FNSTRF   No, string field is finished.
@@ -105,7 +105,7 @@ PAGE  003  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 00797                      *    string then go scan them. Otherwise
 00798                      *    the closing MLCSTR wasn't found and
 00799                      *    therefore we aren't really looking
-00800                      •    at a string field.
+00800                      *    at a string field.
 00801P 004B 9E   0F      A NOSTRF LDX    TEMPX1   It isn't a string field so restore the
 00802P 004D D6   D3      A        LDB    USSCNT   using string pointer and char count.
 00803P 004F 86   25      A        LDA    #MLCSTR  Just print the MLCSTR since it doesn't
@@ -458,7 +458,7 @@ PAGE  012  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 01131P 0233 A6   84      A        LDA    ,X       No, see if we can shorten the field.
 01132P 0235 81   20      A        CMPA   #SPACE   We can throw away leadinf spaces or
 01133P 0237 27   EE   0227        BEQ    FOUBE1   asterisks.
-01134P 0239 81   2A      A        CMPA   #"*
+01134P 0239 81   2A      A        CMPA   #'*
 01135P 023B 27   EA   0227        BEQ    FOUBE1
 01136                      *
 01137                      * We can also shorten the field by throwing away a zero if it is
@@ -657,7 +657,7 @@ PAGE  016  ECBPU  .SA:1  TXRPU  The PRINT USING Floating Point Output Routine
 01320P 0335 A7   C1      A        STA    ,U++     "E" and the sign.
 01321P 0337 86   2F      A        LDA    #'0-&1   Convert exponent to two ASCII digits.
 01322P 0339 4C             FEXPHI INCA            Increment high order digit.
-01323P 033A C0   0A      A        SUBS   #&10     Sub 10 until result does negative.
+01323P 033A C0   0A      A        SUBB   #&10     Sub 10 until result does negative.
 01324P 033C 24   FB   0339        BCC    FEXPHI
 01325P 033E CB   3A      A        ADDB   #'0+&10  B:=the low order digit.
 01326P 0340 ED   C1      A        STD    ,U++     Store the exponent.
