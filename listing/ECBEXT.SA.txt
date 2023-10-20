@@ -1502,12 +1502,12 @@ PAGE  028  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 02321P 0625 9D   A5      A BIN090 JSR    CHRGOT   REGET CURRENT CHAR AND GO scan it
 02322P 0627 20   D4   05FD        BRA    BIN050
 02323
-02324P 0629 9E   A6      A BIN100 LDX    TXTPTR   Remeber where tne number started.
+02324P 0629 9E   A6      A BIN100 LDX    TXTPTR   Remeber where the number started.
 
 PAGE  029  ECBEXT  .SA:1  EXTEND RENUM - Renumber a BASIC program
 
 02325P 062B 34   10      A        PSHS   X
-02326P 062D BD   0000    A        JSR    LINGET   Read tne number into LINNUM.
+02326P 062D BD   0000    A        JSR    LINGET   Read the number into LINNUM.
 02327P 0630 9E   A6      A        LDX    TXTPTR   Scan back until X points to the
 02328P 0632 A6   82      A BIN110 LDA    ,-X      last digit of the line number.
 02329P 0634 BD   0000    A        JSR    ISDIGC   (Last CHRGET call in LINGET skipped

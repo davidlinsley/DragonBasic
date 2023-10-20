@@ -68,7 +68,7 @@ ISSTRF DECB            Decrement using string char count.
 *    if it's shorter than the field.
        JSR    STRPRT   Print the string.
        LDX    FACMO    See if spaces are needed to fill out
-       LDS    FLDWID   the field.
+       LDB    FLDWID   the field.
        SUBB   ,X
 UPRTSP DECB            More spaces to print?
        LBMI   FNSTRF   No, string field is finished.
@@ -97,7 +97,7 @@ LPSTRF LDA    ,X       Get next using string char.
 *    string then go scan them. Otherwise
 *    the closing MLCSTR wasn't found and
 *    therefore we aren't really looking
-•    at a string field.
+*    at a string field.
 NOSTRF LDX    TEMPX1   It isn't a string field so restore the
        LDB    USSCNT   using string pointer and char count.
        LDA    #MLCSTR  Just print the MLCSTR since it doesn't
@@ -195,7 +195,7 @@ GONWUC BNE    NEWUCH   No, so it isn't "$$", "**", or "**$".
        BNE    NTBOTH   It is some oher char.
        DECB            It is "**$" so decrement using string
        LEAX   &1,X     char count and advance the pointer.
-       INC    FLDWID   Tne "$" makes room for another digit.
+       INC    FLDWID   The "$" makes room for another digit.
 DOLRNM LDA    PUMASK   Set the floating dollar sign flag.
        ORA    #DOLFLG
        STA    PUMASK
@@ -308,7 +308,7 @@ FNSTRF CLR    USFLG    Assume end of statement terminated
        BRA    CRDNUS
 
 SEMUSN JSR    CHRGET   skip the semicolon.
-CRDNUS LDX    USDPTR   Calculate a pointer into tne using
+CRDNUS LDX    USDPTR   Calculate a pointer into the using
        LDB    ,X       string using the descriptor pointer
        SUBB   USSCNT   and the character count.
        LDX    &2,X
@@ -431,7 +431,7 @@ FOUBE1 LEAX   &1,X     Is the right amount of space being
        LDA    ,X       No, see if we can shorten the field.
        CMPA   #SPACE   We can throw away leadinf spaces or
        BEQ    FOUBE1   asterisks.
-       CMPA   #"*
+       CMPA   #'*
        BEQ    FOUBE1
 *
 * We can also shorten the field by throwing away a zero if it is
@@ -620,7 +620,7 @@ FEXPLS STA    &1,U     Store the sign of the exponent.
        STA    ,U++     "E" and the sign.
        LDA    #'0-&1   Convert exponent to two ASCII digits.
 FEXPHI INCA            Increment high order digit.
-       SUBS   #&10     Sub 10 until result does negative.
+       SUBB   #&10     Sub 10 until result does negative.
        BCC    FEXPHI
        ADDB   #'0+&10  B:=the low order digit.
        STD    ,U++     Store the exponent.

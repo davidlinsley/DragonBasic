@@ -287,8 +287,8 @@ NZLINK FCB    &1       This nonzero byte must be here so
 *    the end of the program when fixing
 *    up the links after the line in BUF
 *    has been inserted into the program.
-       XDEF  BUFLNM
-BUFLNM RMB   &2        Place to put line number before BUF
+       XDEF   BUFLNM
+BUFLNM RMB    &2       Place to put line number before BUF
 *    so BLTUC can put it all away at once.
        XDEF   BUFMIN
 BUFMIN RMB    &1       The INPUT code stores a comma here
@@ -319,7 +319,7 @@ FBUFFR RMB    &13+(&3*ADDPRC)
        ENDC   1FN      REALIO
 
        XDEF   START
-START  EOU    *
+START  EQU    *
 
        IFEQ   REALIO
  ENDC   IFE REALIO

@@ -207,7 +207,7 @@ PAGE  005  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 00895P 00D5 26   0B   00E2        BNE    NTBOTH   It is some oher char.
 00896P 00D7 5A                    DECB            It is "**$" so decrement using string
 00897P 00D8 30   01      A        LEAX   &1,X     char count and advance the pointer.
-00898P 00DA 0C   D9      A        INC    FLDWID   Tne "$" makes room for another digit.
+00898P 00DA 0C   D9      A        INC    FLDWID   The "$" makes room for another digit.
 00899P 00DC 96   DA      A DOLRNM LDA    PUMASK   Set the floating dollar sign flag.
 00900P 00DE 8A   10      A        ORA    #DOLFLG
 00901P 00E0 97   DA      A        STA    PUMASK
@@ -328,7 +328,7 @@ PAGE  009  ECBPU  .SA:1  TXRPU  The PRINT USING driver.
 01008P 0184 20   02   0188        BRA    CRDNUS
 01009
 01010P 0186 9D   9F      A SEMUSN JSR    CHRGET   skip the semicolon.
-01011P 0188 9E   D5      A CRDNUS LDX    USDPTR   Calculate a pointer into tne using
+01011P 0188 9E   D5      A CRDNUS LDX    USDPTR   Calculate a pointer into the using
 01012P 018A E6   84      A        LDB    ,X       string using the descriptor pointer
 01013P 018C D0   D3      A        SUBB   USSCNT   and the character count.
 01014P 018E AE   02      A        LDX    &2,X
