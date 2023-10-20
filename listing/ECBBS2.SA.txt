@@ -126,11 +126,11 @@ PAGE  004  ECBBS2  .SA:1  BASTWO LIST and LLIST
 00817P 0077 E6   84      A        LDB    ,X       the colon must be thrown away.
 00818P 0079 Cl   00      A        CMPB   #ELSETK
 00819P 007B 27   F0   006D        BEQ    DCRNLP   It is an ELSE, skip the colon.
-00820P 007D C1   00      A        CMPB   #SNGOTK  Single quote is crunched as a colon
+00820P 007D C1   00      A        CMPB   #SNGQTK  Single quote is crunched as a colon
 00821P 007F 27   EC   006D        BEQ    DCRNLP   followed by a single quote token so
 00822                      *    throw away the colon if this is the
 00823                      *    case.
-00824P 0081                SKIP2  Skip            over BADTOK to store colon.
+00824P 0081                       SKIP2  Skip     over BADTOK to store colon.
 00825P 0082 86   21      A BADTOK LDA    #'!      Unrecognised token. Print as
 00826                      *    exclamation point.
 00827P 0084 8D   30   00B6 NOTCOL BSR    BUFCHR   Just a normal char, out it in the
@@ -342,7 +342,7 @@ PAGE  008  ECBBS2  .SA:l  BASTWO The CRUNCH code
 
 PAGE  009  ECBBS2  .SA:1  BASTWO The CRUNCH code
 
-01024P 012C 81   30      A NSQTE  CMPA   #'O      Numeric digits,  colons, and semi-
+01024P 012C 81   30      A NSQTE  CMPA   #'0      Numeric digits,  colons, and semi-
 01025P 012E 25   04   0134        BCS    MUSTCR   colons do not get crunched.  Just
 01026P 0130 81   3C      A        CMPA   #SEMCOL+&1 copy them to the dest buffer.
 01027P 0132 25   C0   00F4        BCS    STUFFA   Note that ASCII codes go 0-9, colon,
@@ -371,7 +371,7 @@ PAGE  009  ECBBS2  .SA:1  BASTWO The CRUNCH code
 01050P 0143 27   31   0176        BEQ    NOTFND   Zero means all active lists have
 01051                      *    been checked.
 01052
-01053P 0145 10AE 41      A        LDY    &1, U    Y:=pointer to reserved word list.
+01053P 0145 10AE 41      A        LDY    &1,U     Y:=pointer to reserved word list.
 01054
 01055P 0148 AE   E4      A NXTRES LDX    ,S       X:=pointer to first char to crunch.
 01056
@@ -386,7 +386,7 @@ PAGE  009  ECBBS2  .SA:1  BASTWO The CRUNCH code
 01065                      * Reserved word has been found.
 01066                      *
 01067
-01068P 0154 32   62      A        LEAS   82,S     Get rid of old source pointer.
+01068P 0154 32   62      A        LEAS   &2,S     Get rid of old source pointer.
 01069P 0156 35   40      A        PULS   U        Retrieve dest buffer pointer.
 01070P 0158 DA   42      A        ORB    TOKNUM   B:=token code with MSB=1.
 01071P 015A 96   41      A        LDA    FUNFLG   Is it a function token?
@@ -407,7 +407,7 @@ PAGE  010  ECBBS2  .SA:1  BASTWO The CRUNCH code
 01083P 016C 26   02   0170        BNE    NODATT   No.
 01084P 016E 0C   44      A        INC    INDATA   Yes, set the in DATA flag.
 01085P 0170 C1   00      A NODATT CMPB   #REMTK   Is it a REM statement?
-01086P 0172 27   AA   011E        BEO    SKPREM   Yes, no crunching for rest of line. 
+01086P 0172 27   AA   011E        BEQ    SKPREM   Yes, no crunching for rest of line.
 01087P 0174 20   86   00FC GGCLOP BRA    GOCLOP   No, continue crunching.
 
 PAGE  011  ECBBS2  .SA:1  BASTWO The CRUNCH code

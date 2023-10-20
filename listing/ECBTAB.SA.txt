@@ -71,7 +71,7 @@ PAGE  002  ECBTAB  .SA:1  ECBTAB "Normal" (non-function) Reserved Word Table
 00765P 0038                       DCI    RE,M
 00766                             XDEF   REMTK
 00767            0082    A REMTK  EQU    Q
-00768P 003B                       DCIONE
+00768P 003B                       DCIONE '
 00769                             XDEF   SNGQTK
 00770            0083    A SNGQTK EQU    Q
 00771P 003C                       DCI    ELS,E
@@ -360,7 +360,7 @@ PAGE  007  ECBTAB  .SA:1  ECBTAB Statement Dispatch Table
 01053                             XDEF   TCLAS1
 01054            002C    A TCLAS1 EQU    (2*CLASS1)!.&255
 01055P 0213                       DCI    LEFT,$
-01056P 0218                       DCI    RIGHT,S
+01056P 0218                       DCI    RIGHT,$
 01057P 021E                       DCI    MID,$
 01058                             XDEF   MID$TK
 01059            0098    A MID$TK EQU    Q
@@ -439,7 +439,7 @@ PAGE  009  ECBTAB  .SA:1  ECBTAB Function Reserved Word List
 01129P 027A                       FDBEXT HEX$
 01130
 01131P 027C                       FDBEXT LEFT$ 
-01132P 027E                       FDBEXT RIGHT$,
+01132P 027E                       FDBEXT RIGHT$
 01133P 0280                       FDBEXT MID$
 01134
 01135P 0282                       FDBEXT POINT
@@ -479,7 +479,7 @@ PAGE  010  ECBTAB  .SA:1  ECBTAB Function Dispatch Table
 01168P 02A3      50      A        FCB    &80
 01169P 02A4                       FDBEXT ANDOP
 01170P 02A6      46      A        FCB    &70
-01171P 02A7                       FDBEXT DROP
+01171P 02A7                       FDBEXT OROP
 
 PAGE  011  ECBTAB  .SA:1  ECBTAB Operator Table
 

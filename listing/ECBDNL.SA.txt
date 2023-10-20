@@ -5,7 +5,7 @@ PAGE  001  ECBCOM  .SA:0  Downlo Extension ROM Direct Page RAM
 00702
 00703                      **********************************************************************
 00704                      *                                                                    *
-00705                      •    Copyright 1982 by Microsoft Corporation, all rights reserved    *
+00705                      *    Copyright 1982 by Microsoft Corporation, all rights reserved    *
 00706                      *                                                                    *
 00707                      **********************************************************************
 00708

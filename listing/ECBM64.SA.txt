@@ -13,7 +13,7 @@ PAGE  001  ECBCOM  .SA:0  ECBM64 Extension ROM Direct Page RAM
 00710
 00711                             XREF   ALPHLK,ASC2,ASCFLG
 00712                             XREF   BITIN,BUF
-00713                             XREP   CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
+00713                             XREF   CASBUF,CASOFF,CASON,CBIN,CBLINK,CBOUT,CHKCLS,CHKCOM,CHKOPN
 00714                             XREF   CHR$DO,CLOADM,COMBYT,CONINT,CRDO,CSAVEM,CSFNAM,CSRDON
 00715                             XREF   CLEARC
 00716                             XREF   DBNCNT
@@ -21,7 +21,7 @@ PAGE  001  ECBCOM  .SA:0  ECBM64 Extension ROM Direct Page RAM
 00716                             XREF   FCERR,FILNAM,FILTYP,FINI,FNAMLN,FRESTR,FRMEVL,FRMNUM
 00719                             XREF   FUNDSP,FUNLST
 00720                             XREF   GAPFLG,GETBYT,GIVABF,GOPTNW
-00721                             XREF   HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HRCKDO,HKCLS,HKCLS1
+00721                             XREF   HDRLEN,HKBRKC,HKCHRI,HKCHRO,HKCKDI,HKCKDO,HKCLS,HKCLS1
 00722                             XREF   HKCLSA,HKDNCK,HKDPRM,HKEOF,HKFNLD,HKINLN,HKOPEN,HOOKS
 00723                             XREF   INTCNV,INTIDX,ISCNTC,INTWDG
 00724                             XREF   JOYIN
@@ -32,7 +32,7 @@ PAGE  001  ECBCOM  .SA:0  ECBM64 Extension ROM Direct Page RAM
 00729                             XREF   PINIT,POLCAT,POTVAL
 00730                             XREF   READY,REASON,REDDY,RESLST,ROLTBL
 00731                             XREF   SAMALP,SCROUT,SCRTCH,SNERR,SNGFLT
-00732                             XREF   STKINI,STMDSP,STROUT,STRTAD,STUBO,SYNCHR
+00732                             XREF   STKINI,STMDSP,STROUT,STRTAD,STUB0,SYNCHR
 00733                             XREF   TEMPST
 00734                             XREF   USRTAB
 00735                             XREF   VIRQ
@@ -1311,7 +1311,7 @@ PAGE  033  ECBM64  .SA:1  ECBM64 Cassette Input Routines
 01988P 0597 86   3C      A        LDA    #@74     Follow it with the sync byte.
 01989P 0599 8D   19   05B4        BSR    GOCBO    (3C hex.)
 01990P 059B 96   7C      A        LDA    BLKTYP   Send out the block type.
-01991P 059D 8D   15   05B4        B5R    GOCBO
+01991P 059D 8D   15   05B4        BSR    GOCBO
 01992P 059F 96   7D      A        LDA    BLKLEN   Follow with the block length.
 01993P 05A1 8D   11   05B4        BSR    GOCBO
 01994P 05A3 4D                    TSTA            Any data to write?

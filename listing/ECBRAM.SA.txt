@@ -308,8 +308,8 @@ PAGE  007  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 00990                      *    the end of the program when fixing
 00991                      *    up the links after the line in BUF
 00992                      *    has been inserted into the program.
-00993                             XDEF  BUFLNM
-00994D 01DA      0002    A BUFLNM RMB   &2        Place to put line number before BUF
+00993                             XDEF   BUFLNM
+00994D 01DA      0002    A BUFLNM RMB    &2       Place to put line number before BUF
 00995                      *    so BLTUC can put it all away at once.
 00996                             XDEF   BUFMIN
 00997D 01DC      0001    A BUFMIN RMB    &1       The INPUT code stores a comma here
@@ -343,7 +343,7 @@ PAGE  008  ECBRAM  .SA:1  TXRRAM RAM off the direct page.
 01022                             ENDC   1FN      REALIO
 01023
 01024                             XDEF   START
-01025            7F00    A START  EOU    *
+01025            7F00    A START  EQU    *
 01026
 01027            0001    A        IFEQ   REALIO
 01029                       ENDC   IFE REALIO
